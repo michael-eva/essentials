@@ -10,6 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import FormLayout from "./FormLayout";
+import { Button } from "@/components/ui/button";
 
 interface FitnessBgFormProps {
     isFirstStep?: boolean;
@@ -226,13 +227,13 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
                                 placeholder="Add custom exercise"
                                 className="flex-1"
                             />
-                            <button
+                            <Button
                                 type="button"
                                 onClick={handleCustomExercise}
-                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                className="rounded-md"
                             >
                                 Add
-                            </button>
+                            </Button>
                         </div>}
                     </div>
 

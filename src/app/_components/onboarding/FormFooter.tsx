@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { STEPS } from "@/app/onboarding/[tab]/page";
 import { isValid } from "zod";
+import { Button } from "@/components/ui/button";
 
 export interface FormFooterProps {
     onSubmit: () => Promise<boolean>; // Should return true if validation passed, false otherwise
@@ -55,24 +56,22 @@ export default function FormFooter({
     return (
         <div className="px-8 py-6 bg-gray-50 border-t border-gray-100">
             <div className="flex justify-between items-center">
-                <button
+                <Button
                     type="button"
                     onClick={handlePrevious}
                     disabled={isFirstStep || loading}
-                    className={`px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all ${isFirstStep ? 'invisible' : ''
-                        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`bg-muted text-muted-foreground rounded-full ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     Previous
-                </button>
-                <button
+                </Button>
+                <Button
                     type="button"
                     onClick={handleNext}
                     disabled={loading}
-                    className={`px-6 py-3 text-sm font-medium text-white bg-primary border border-transparent rounded-full hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                    className={`rounded-full ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {loading ? 'Processing...' : isLastStep ? 'Finish' : 'Next'}
-                </button>
+                </Button>
             </div>
         </div>
     );
