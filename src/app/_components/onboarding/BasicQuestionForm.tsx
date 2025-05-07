@@ -1,11 +1,13 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import Input from "../global/Input";
-import Select from "../global/Select";
+
 import FormFooter from "./FormFooter";
 import type { STEPS } from "@/app/onboarding/[tab]/page";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import FormLayout from "./FormLayout";
 
 const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -51,7 +53,7 @@ interface BasicQuestionFormProps {
 
 export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep }: BasicQuestionFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors }, control } = useForm({
         resolver: zodResolver(formSchema),
         mode: "onChange",
     });
@@ -75,11 +77,20 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
     };
 
     return (
-        <div className="pb-20">
-            <form className="space-y-6 max-w-md mx-auto p-6">
-                <div className="space-y-4">
+        <FormLayout
+            onSubmit={onSubmit}
+            isFirstStep={isFirstStep}
+            isLastStep={isLastStep}
+            currentStep={currentStep}
+            isSubmitting={isSubmitting}
+        >
+            <form className="space-y-8 max-w-md mx-auto px-2">
+                <h2 className="text-2xl font-medium text-gray-900">Basic Information</h2>
+                <p className="text-gray-500">Tell us a bit about yourself to personalize your experience.</p>
+
+                <div className="space-y-8">
                     <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                             What is your name?
                         </label>
                         {errors.name && (
@@ -89,12 +100,13 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
                             {...register("name")}
                             type="text"
                             id="name"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="block w-full rounded-md border-gray-200 shadow-sm focus:border-gray-900 focus:ring-gray-900 px-4 py-3"
+                            placeholder="Enter your name"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="age" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
                             What is your age?
                         </label>
                         {errors.age && (
@@ -104,12 +116,13 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
                             {...register("age", { valueAsNumber: true })}
                             type="number"
                             id="age"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="block w-full rounded-md border-gray-200 shadow-sm focus:border-gray-900 focus:ring-gray-900 px-4 py-3"
+                            placeholder="Enter your age"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="height" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="height" className="block text-sm font-medium text-gray-700 mb-2">
                             What is your height? (cm)
                         </label>
                         {errors.height && (
@@ -119,12 +132,13 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
                             {...register("height", { valueAsNumber: true })}
                             type="number"
                             id="height"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="block w-full rounded-md border-gray-200 shadow-sm focus:border-gray-900 focus:ring-gray-900 px-4 py-3"
+                            placeholder="Enter your height in cm"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="weight" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-2">
                             What is your weight? (kg)
                         </label>
                         {errors.weight && (
@@ -134,38 +148,41 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
                             {...register("weight", { valueAsNumber: true })}
                             type="number"
                             id="weight"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="block w-full rounded-md border-gray-200 shadow-sm focus:border-gray-900 focus:ring-gray-900 px-4 py-3"
+                            placeholder="Enter your weight in kg"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
                             What is your gender?
                         </label>
                         {errors.gender && (
                             <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
                         )}
-                        <Select
-                            {...register("gender")}
-                            options={[
-                                { value: "Male", label: "Male" },
-                                { value: "Female", label: "Female" },
-                                { value: "Prefer not to say", label: "Prefer not to say" }
-                            ]}
-                            placeholder="Select gender"
-                            className="w-full"
+                        <Controller
+                            name="gender"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    defaultValue={field.value}
+                                >
+                                    <SelectTrigger className="w-full rounded-md border-gray-200 px-4 py-3 focus:border-gray-900 focus:ring-gray-900">
+                                        <SelectValue placeholder="Select gender" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-md">
+                                        <SelectItem value="Male">Male</SelectItem>
+                                        <SelectItem value="Female">Female</SelectItem>
+                                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
                         />
                     </div>
                 </div>
             </form>
-
-            <FormFooter
-                onSubmit={onSubmit}
-                isFirstStep={isFirstStep}
-                isLastStep={isLastStep}
-                currentStep={currentStep}
-                isSubmitting={isSubmitting}
-            />
-        </div>
+        </FormLayout>
     );
 }

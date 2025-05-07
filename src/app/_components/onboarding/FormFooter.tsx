@@ -1,16 +1,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { STEPS } from "@/app/onboarding/[tab]/page";
+import { isValid } from "zod";
 
-const STEPS = [
-    "basic-info",
-    "fitness-background",
-    "health-considerations",
-    "goals",
-    "pilates",
-    "motivation"
-] as const;
-
-interface FormFooterProps {
+export interface FormFooterProps {
     onSubmit: () => Promise<boolean>; // Should return true if validation passed, false otherwise
     isLastStep?: boolean;
     isFirstStep?: boolean;
@@ -18,22 +11,23 @@ interface FormFooterProps {
     isSubmitting?: boolean; // Optional prop to show loading state
 }
 
-export default function FormFooter({ 
-    onSubmit, 
-    isLastStep, 
-    isFirstStep, 
+export default function FormFooter({
+    onSubmit,
+    isLastStep,
+    isFirstStep,
     currentStep,
     isSubmitting = false
 }: FormFooterProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(isSubmitting);
 
+
     const handleNext = async () => {
         setLoading(true);
         try {
             // Call the form's submit function
             const isValid = await onSubmit();
-            
+
             // Only navigate if validation passed
             if (isValid && !isLastStep) {
                 const currentIndex = STEPS.indexOf(currentStep);
@@ -41,7 +35,7 @@ export default function FormFooter({
                 router.push(`/onboarding/${nextStep}`);
             } else if (isValid && isLastStep) {
                 // Handle completion of the entire onboarding process
-                router.push('/dashboard'); // or wherever you want to redirect after completion
+                // router.push('/dashboard');
             }
         } catch (error) {
             console.error('Form submission error:', error);
@@ -59,15 +53,14 @@ export default function FormFooter({
     };
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-            <div className="max-w-md mx-auto flex justify-between items-center">
+        <div className="px-8 py-6 bg-gray-50 border-t border-gray-100">
+            <div className="flex justify-between items-center">
                 <button
                     type="button"
                     onClick={handlePrevious}
                     disabled={isFirstStep || loading}
-                    className={`px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                        isFirstStep ? 'invisible' : ''
-                    } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all ${isFirstStep ? 'invisible' : ''
+                        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     Previous
                 </button>
@@ -75,9 +68,8 @@ export default function FormFooter({
                     type="button"
                     onClick={handleNext}
                     disabled={loading}
-                    className={`px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                        loading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    className={`px-6 py-3 text-sm font-medium text-white bg-primary border border-transparent rounded-full hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                 >
                     {loading ? 'Processing...' : isLastStep ? 'Finish' : 'Next'}
                 </button>

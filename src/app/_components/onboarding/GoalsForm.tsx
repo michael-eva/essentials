@@ -1,14 +1,14 @@
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useState } from "react";
 import FormFooter from "./FormFooter";
-
-const STEPS = [
-    "basic-info",
-    "fitness-background",
-    "health-considerations",
-    "goals",
-    "pilates",
-    "motivation"
-] as const;
+import type { STEPS } from "@/app/onboarding/[tab]/page";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Textarea } from "@/components/ui/textarea";
+import FormLayout from "./FormLayout";
+import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 
 interface GoalsFormProps {
     isFirstStep?: boolean;
@@ -16,26 +16,46 @@ interface GoalsFormProps {
     currentStep: typeof STEPS[number];
 }
 
+const formSchema = z.object({
+    fitnessGoals: z.array(z.string()).min(1, "Please select at least one goal"),
+    goalTimeline: z.enum(["1-3 months", "3-6 months", "6-12 months", "More than a year"], {
+        required_error: "Please select your goal timeline",
+    }),
+    specificGoals: z.string().optional(),
+});
+
 export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: GoalsFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { register, handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
+        resolver: zodResolver(formSchema),
+        mode: "onChange",
+        defaultValues: {
+            fitnessGoals: [],
+            goalTimeline: undefined,
+            specificGoals: "",
+        }
+    });
 
-    // This function will be passed to the FormFooter
+    const handleFitnessGoalsChange = (goal: string) => {
+        const currentGoals = watch("fitnessGoals");
+        const newGoals = currentGoals.includes(goal)
+            ? currentGoals.filter(g => g !== goal)
+            : [...currentGoals, goal];
+        setValue("fitnessGoals", newGoals);
+    };
+
     const onSubmit = async (): Promise<boolean> => {
         setIsSubmitting(true);
-        
+
         try {
-            // Add your form validation logic here
-            
-            // Mock form submission
-            console.log("Goals data submitted");
-            
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Return true to indicate the form was successfully submitted
-            return true;
+            let isValid = false;
+            await handleSubmit(async (data) => {
+                console.log("Goals data submitted:", data);
+                isValid = true;
+            })();
+            return isValid;
         } catch (error) {
-            console.error("Form submission failed:", error);
+            console.error("Form validation failed:", error);
             return false;
         } finally {
             setIsSubmitting(false);
@@ -43,109 +63,92 @@ export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: Goal
     };
 
     return (
-        <div className="pb-20">
-            <div className="space-y-6 max-w-md mx-auto p-6">
-                <h2 className="text-2xl font-bold text-gray-900">Your Fitness Goals</h2>
-                <div className="space-y-4">
+        <FormLayout
+            onSubmit={onSubmit}
+            isFirstStep={isFirstStep}
+            isLastStep={isLastStep}
+            currentStep={currentStep}
+            isSubmitting={isSubmitting}
+        >
+            <form className="space-y-8 max-w-md mx-auto px-2">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Fitness Goals</h2>
+                <div className="space-y-8">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-base font-medium text-gray-700 mb-4">
                             What are your primary fitness goals? (Select all that apply)
                         </label>
-                        <div className="mt-2 space-y-2">
-                            <div className="flex items-center">
-                                <input
-                                    id="weight-loss"
-                                    name="fitness-goal"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        {errors.fitnessGoals && (
+                            <p className="mb-2 text-sm text-red-600">{errors.fitnessGoals.message}</p>
+                        )}
+                        <Controller
+                            name="fitnessGoals"
+                            control={control}
+                            render={({ field }) => (
+                                <MultiSelectPills
+                                    options={["Weight loss", "Muscle gain", "Improve endurance", "Increase flexibility", "Tone muscles"]}
+                                    selectedValues={field.value}
+                                    onChange={handleFitnessGoalsChange}
                                 />
-                                <label htmlFor="weight-loss" className="ml-3 text-sm text-gray-700">
-                                    Weight loss
-                                </label>
-                            </div>
-                            <div className="flex items-center">
-                                <input
-                                    id="muscle-gain"
-                                    name="fitness-goal"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="muscle-gain" className="ml-3 text-sm text-gray-700">
-                                    Muscle gain
-                                </label>
-                            </div>
-                            <div className="flex items-center">
-                                <input
-                                    id="endurance"
-                                    name="fitness-goal"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="endurance" className="ml-3 text-sm text-gray-700">
-                                    Improve endurance
-                                </label>
-                            </div>
-                            <div className="flex items-center">
-                                <input
-                                    id="flexibility"
-                                    name="fitness-goal"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="flexibility" className="ml-3 text-sm text-gray-700">
-                                    Increase flexibility
-                                </label>
-                            </div>
-                            <div className="flex items-center">
-                                <input
-                                    id="tone"
-                                    name="fitness-goal"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="tone" className="ml-3 text-sm text-gray-700">
-                                    Tone muscles
-                                </label>
-                            </div>
-                        </div>
+                            )}
+                        />
                     </div>
-                    
+
                     <div>
-                        <label htmlFor="goal-timeline" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="goal-timeline" className="block text-base font-medium text-gray-700 mb-4">
                             What is your timeline for achieving these goals?
                         </label>
-                        <select
-                            id="goal-timeline"
-                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                        >
-                            <option>1-3 months</option>
-                            <option>3-6 months</option>
-                            <option>6-12 months</option>
-                            <option>More than a year</option>
-                        </select>
+                        {errors.goalTimeline && (
+                            <p className="mb-2 text-sm text-red-600">{errors.goalTimeline.message}</p>
+                        )}
+                        <Controller
+                            name="goalTimeline"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    defaultValue={field.value}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select timeline" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="1-3 months">1-3 months</SelectItem>
+                                        <SelectItem value="3-6 months">3-6 months</SelectItem>
+                                        <SelectItem value="6-12 months">6-12 months</SelectItem>
+                                        <SelectItem value="More than a year">More than a year</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
                     </div>
-                    
+
                     <div>
                         <label htmlFor="specific-goals" className="block text-sm font-medium text-gray-700">
                             Do you have any specific goals or milestones?
                         </label>
-                        <textarea
-                            id="specific-goals"
-                            rows={3}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            placeholder="E.g., Run 5k, Lose 10kg, etc."
+                        {errors.specificGoals && (
+                            <p className="mt-1 text-sm text-red-600">{errors.specificGoals.message}</p>
+                        )}
+                        <Controller
+                            name="specificGoals"
+                            control={control}
+                            render={({ field }) => (
+                                <Textarea
+                                    {...field}
+                                    id="specific-goals"
+                                    rows={3}
+                                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.specificGoals
+                                        ? "border-red-500 focus:border-red-500"
+                                        : "border-gray-300 focus:border-indigo-500"
+                                        }`}
+                                    placeholder="E.g., Run 5k, Lose 10kg, etc."
+                                />
+                            )}
                         />
                     </div>
                 </div>
-            </div>
-            
-            <FormFooter
-                onSubmit={onSubmit}
-                isFirstStep={isFirstStep}
-                isLastStep={isLastStep}
-                currentStep={currentStep}
-                isSubmitting={isSubmitting}
-            />
-        </div>
+            </form>
+        </FormLayout>
     );
 }
