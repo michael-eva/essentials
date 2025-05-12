@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground">
-        <ThemeProvider defaultTheme="system" storageKey="app-theme">
+        <ThemeProvider defaultTheme="light" storageKey="app-theme">
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </ThemeProvider>
         <Toaster />
