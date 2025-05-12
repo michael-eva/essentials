@@ -2,11 +2,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
-import FormFooter from "./FormFooter";
-import type { STEPS } from "@/app/onboarding/[tab]/page";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { STEPS } from "@/app/onboarding/constants";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import FormLayout from "./FormLayout";
@@ -77,7 +73,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
 
     const handleCustomMotivation = () => {
         if (customMotivationInput.trim()) {
-            const currentOtherMotivations = watch("otherMotivation") || [];
+            const currentOtherMotivations = watch("otherMotivation") ?? [];
             setValue("otherMotivation", [...currentOtherMotivations, customMotivationInput]);
             setCustomMotivationInput("");
         }
@@ -85,19 +81,19 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
 
     const handleCustomProgressTracking = () => {
         if (customProgressTrackingInput.trim()) {
-            const currentOtherMethods = watch("otherProgressTracking") || [];
+            const currentOtherMethods = watch("otherProgressTracking") ?? [];
             setValue("otherProgressTracking", [...currentOtherMethods, customProgressTrackingInput]);
             setCustomProgressTrackingInput("");
         }
     };
 
     const removeOtherMotivation = (motivation: string) => {
-        const currentOtherMotivations = watch("otherMotivation") || [];
+        const currentOtherMotivations = watch("otherMotivation") ?? [];
         setValue("otherMotivation", currentOtherMotivations.filter(m => m !== motivation));
     };
 
     const removeOtherProgressTracking = (method: string) => {
-        const currentOtherMethods = watch("otherProgressTracking") || [];
+        const currentOtherMethods = watch("otherProgressTracking") ?? [];
         setValue("otherProgressTracking", currentOtherMethods.filter(m => m !== method));
     };
 

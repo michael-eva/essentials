@@ -4,8 +4,7 @@ import { z } from "zod";
 import { useState } from "react";
 import Input from "../global/Input";
 
-import FormFooter from "./FormFooter";
-import type { STEPS } from "@/app/onboarding/[tab]/page";
+import { STEPS } from "@/app/onboarding/constants";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import FormLayout from "./FormLayout";
 

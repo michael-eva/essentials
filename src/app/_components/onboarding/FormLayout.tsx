@@ -1,5 +1,5 @@
 import FormFooter, { type FormFooterProps } from "./FormFooter";
-import { STEPS } from "@/app/onboarding/[tab]/page";
+import { STEPS } from "@/app/onboarding/constants";
 
 function FormProgress({ currentStep }: { currentStep: typeof STEPS[number] }) {
     const currentIndex = STEPS.indexOf(currentStep);

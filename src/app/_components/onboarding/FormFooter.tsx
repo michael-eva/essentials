@@ -1,7 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { STEPS } from "@/app/onboarding/[tab]/page";
-import { isValid } from "zod";
+import { STEPS } from "@/app/onboarding/constants";
 import { Button } from "@/components/ui/button";
 
 export interface FormFooterProps {
@@ -59,7 +58,7 @@ export default function FormFooter({
                 <Button
                     type="button"
                     onClick={handlePrevious}
-                    disabled={isFirstStep || loading}
+                    disabled={isFirstStep ?? loading}
                     className={`bg-muted text-muted-foreground rounded-full ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     Previous

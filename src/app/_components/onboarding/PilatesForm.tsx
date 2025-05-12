@@ -2,10 +2,8 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
-import FormFooter from "./FormFooter";
-import type { STEPS } from "@/app/onboarding/[tab]/page";
+import { STEPS } from "@/app/onboarding/constants";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import FormLayout from "./FormLayout";
@@ -76,7 +74,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
     };
 
     const handleCustomInstructor = () => {
-        const customInstructor = watch("customInstructor") || "";
+        const customInstructor = watch("customInstructor") ?? "";
         if (customInstructor.trim()) {
             const currentInstructors = watch("instructors");
             setValue("instructors", [...currentInstructors, customInstructor]);
@@ -85,7 +83,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
     };
 
     const handleCustomApparatus = () => {
-        const customApparatus = watch("customApparatus") || "";
+        const customApparatus = watch("customApparatus") ?? "";
         if (customApparatus.trim()) {
             const currentApparatus = watch("apparatusPreference");
             setValue("apparatusPreference", [...currentApparatus, customApparatus]);

@@ -2,7 +2,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
-import type { STEPS } from "@/app/onboarding/[tab]/page";
+import { STEPS } from "@/app/onboarding/constants";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
@@ -66,16 +66,16 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
     };
 
     const handleCustomExercise = () => {
-        const customExercise = watch("customExercise") || "";
+        const customExercise = watch("customExercise") ?? "";
         if (customExercise.trim()) {
-            const currentOtherExercises = watch("otherExercises") || [];
+            const currentOtherExercises = watch("otherExercises") ?? [];
             setValue("otherExercises", [...currentOtherExercises, customExercise]);
             setValue("customExercise", "");
         }
     };
 
     const removeOtherExercise = (exercise: string) => {
-        const currentOtherExercises = watch("otherExercises") || [];
+        const currentOtherExercises = watch("otherExercises") ?? [];
         setValue("otherExercises", currentOtherExercises.filter(e => e !== exercise));
     };
 

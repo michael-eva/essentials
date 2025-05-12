@@ -6,18 +6,14 @@ import GoalsForm from "@/app/_components/onboarding/GoalsForm";
 import { use } from "react";
 import MotivationForm from "@/app/_components/onboarding/MotivationForm";
 import PilatesForm from "@/app/_components/onboarding/PilatesForm";
-
-export const STEPS = [
-    "basic-info",
-    "fitness-background",
-    "health-considerations",
-    "goals",
-    "pilates",
-    "motivation"
-] as const;
-
-export default function OnboardingPage({ params }: { params: { tab: string } }) {
-    const { tab } = use(params as unknown as Promise<{ tab: string }>);
+import { STEPS } from "../constants";
+type PageProps = {
+    params: Promise<{
+        tab: string;
+    }>;
+}
+export default function OnboardingPage({ params }: PageProps) {
+    const { tab } = use(params);
 
     const renderForm = () => {
         const currentStepIndex = STEPS.indexOf(tab as typeof STEPS[number]);

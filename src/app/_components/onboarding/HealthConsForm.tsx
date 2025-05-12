@@ -2,7 +2,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
-import type { STEPS } from "@/app/onboarding/[tab]/page";
+import { STEPS } from "@/app/onboarding/constants";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
@@ -124,14 +124,14 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
 
     const handleAddOtherHealthCondition = () => {
         if (customCondition.trim()) {
-            const currentOtherConditions = watch("otherHealthConditions") || [];
+            const currentOtherConditions = watch("otherHealthConditions") ?? [];
             setValue("otherHealthConditions", [...currentOtherConditions, customCondition]);
             setCustomCondition("");
         }
     };
 
     const removeOtherHealthCondition = (condition: string) => {
-        const currentOtherConditions = watch("otherHealthConditions") || [];
+        const currentOtherConditions = watch("otherHealthConditions") ?? [];
         setValue("otherHealthConditions", currentOtherConditions.filter(c => c !== condition));
     };
 
@@ -249,7 +249,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                                                     message: "Please describe your injuries or limitations"
                                                 });
                                             } else {
-                                                trigger("injuriesDetails");
+                                                void trigger("injuriesDetails");
                                             }
                                         }}
                                     />
@@ -315,7 +315,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                                                     message: "Please provide details about your surgery and recovery timeline"
                                                 });
                                             } else {
-                                                trigger("surgeryDetails");
+                                                void trigger("surgeryDetails");
                                             }
                                         }}
                                     />

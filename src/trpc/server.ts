@@ -25,6 +25,7 @@ const getQueryClient = cache(createQueryClient);
 const caller = createCaller(createContext);
 
 export const { trpc: api, HydrateClient } = createHydrationHelpers<AppRouter>(
+  // @ts-expect-error - Known type issue with tRPC v11 and React 19
   caller,
   getQueryClient,
 );
