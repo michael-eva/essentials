@@ -1,7 +1,7 @@
 'use client'
 import ClassRecommendations from "@/app/_components/dashboard/ClassRecommendations"
 import Dashboard from "@/app/_components/dashboard/Dashboard"
-import WorkoutHistory from "@/app/_components/dashboard/WorkoutHistory"
+// import WorkoutHistory from "@/app/_components/dashboard/WorkoutHistory"
 import { use } from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -22,8 +22,8 @@ export default function Home({ params }: PageProps) {
         return <Dashboard />;
       case 'your-plan':
         return <ClassRecommendations />;
-      case 'history':
-        return <WorkoutHistory />;
+      // case 'history':
+      //   return <WorkoutHistory />;
       default:
         return <Dashboard />;
     }
@@ -53,7 +53,7 @@ export default function Home({ params }: PageProps) {
           >
             Your Plan
           </Link>
-          <Link
+          {/* <Link
             href={`/dashboard/${userId}/history`}
             className={cn(
               "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
@@ -61,7 +61,7 @@ export default function Home({ params }: PageProps) {
             )}
           >
             History
-          </Link>
+          </Link> */}
         </div>
 
         {renderContent()}
