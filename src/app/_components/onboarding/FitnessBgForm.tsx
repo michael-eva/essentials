@@ -2,11 +2,8 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
-import FormFooter from "./FormFooter";
 import type { STEPS } from "@/app/onboarding/[tab]/page";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import FormLayout from "./FormLayout";
@@ -22,11 +19,8 @@ const formSchema = z.object({
     fitnessLevel: z.enum(["Beginner", "Intermediate", "Advanced"], {
         required_error: "Fitness level is required",
     }),
-    pilatesExperience: z.boolean({
-        required_error: "Please indicate if you have Pilates experience",
-    }),
-    pilatesDuration: z.enum(["Less than 3 months", "3-6 months", "6-12 months", "1-3 years", "More than 3 years"]).optional(),
-    otherExercises: z.array(z.string()).min(1, "Please select at least one exercise"),
+    exercises: z.array(z.string()).min(1, "Please select at least one exercise"),
+    otherExercises: z.array(z.string()).optional(),
     exerciseFrequency: z.enum(["0", "1-2", "3-4", "5+"], {
         required_error: "Exercise frequency is required",
     }),
@@ -37,13 +31,16 @@ const formSchema = z.object({
 })
     .refine(
         (data) => {
-            return data.pilatesExperience ? data.pilatesDuration !== undefined : true;
+            // If "Other" is selected, at least one custom exercise must be added
+            return !data.exercises.includes("Other") || (data.otherExercises && data.otherExercises.length > 0);
         },
         {
-            message: "Please select your Pilates experience duration",
-            path: ["pilatesDuration"],
+            message: "Please add at least one custom exercise",
+            path: ["otherExercises"],
         }
     );
+
+const EXERCISE_OPTIONS = ["Running", "Cycling", "Swimming", "Weightlifting", "Yoga", "Dance", "Team sports", "Other"];
 
 export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: FitnessBgFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,8 +49,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
         mode: "onChange",
         defaultValues: {
             fitnessLevel: undefined,
-            pilatesExperience: undefined,
-            pilatesDuration: undefined,
+            exercises: [],
             otherExercises: [],
             exerciseFrequency: undefined,
             sessionLength: undefined,
@@ -61,23 +57,26 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
         }
     });
 
-    const pilatesExperience = watch("pilatesExperience");
-
-    const handleOtherExercisesChange = (exercise: string) => {
-        const currentExercises = watch("otherExercises");
+    const handleExerciseChange = (exercise: string) => {
+        const currentExercises = watch("exercises");
         const newExercises = currentExercises.includes(exercise)
             ? currentExercises.filter(e => e !== exercise)
             : [...currentExercises, exercise];
-        setValue("otherExercises", newExercises);
+        setValue("exercises", newExercises);
     };
 
     const handleCustomExercise = () => {
         const customExercise = watch("customExercise") || "";
         if (customExercise.trim()) {
-            const currentExercises = watch("otherExercises");
-            setValue("otherExercises", [...currentExercises, customExercise]);
+            const currentOtherExercises = watch("otherExercises") || [];
+            setValue("otherExercises", [...currentOtherExercises, customExercise]);
             setValue("customExercise", "");
         }
+    };
+
+    const removeOtherExercise = (exercise: string) => {
+        const currentOtherExercises = watch("otherExercises") || [];
+        setValue("otherExercises", currentOtherExercises.filter(e => e !== exercise));
     };
 
     const onSubmit = async (): Promise<boolean> => {
@@ -97,6 +96,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
             setIsSubmitting(false);
         }
     };
+    const otherExercises = watch("otherExercises");
 
     return (
         <FormLayout
@@ -123,7 +123,6 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
                                 <Select
                                     onValueChange={field.onChange}
                                     value={field.value}
-                                    defaultValue={field.value}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select level" />
@@ -140,101 +139,63 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
-                            Have you practiced Pilates before?
+                            What forms of exercise do you currently engage in?
                         </label>
-                        {errors.pilatesExperience && (
-                            <p className="mt-1 text-sm text-red-600">{errors.pilatesExperience.message}</p>
-                        )}
-                        <Controller
-                            name="pilatesExperience"
-                            control={control}
-                            render={({ field }) => (
-                                <RadioGroup
-                                    onValueChange={(value) => field.onChange(value === "true")}
-                                    value={field.value !== undefined ? field.value.toString() : undefined}
-                                    className="flex space-x-4 mt-2"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="true" id="pilates-yes" />
-                                        <label htmlFor="pilates-yes" className="text-sm">Yes</label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="false" id="pilates-no" />
-                                        <label htmlFor="pilates-no" className="text-sm">No</label>
-                                    </div>
-                                </RadioGroup>
-                            )}
-                        />
-                    </div>
-
-                    {pilatesExperience && (
-                        <div>
-                            <label htmlFor="pilates-duration" className="block text-sm font-medium text-gray-700">
-                                How long have you been practicing Pilates?
-                            </label>
-                            {errors.pilatesDuration && (
-                                <p className="mt-1 text-sm text-red-600">{errors.pilatesDuration.message}</p>
-                            )}
-                            <Controller
-                                name="pilatesDuration"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        defaultValue={field.value}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select duration" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Less than 3 months">Less than 3 months</SelectItem>
-                                            <SelectItem value="3-6 months">3-6 months</SelectItem>
-                                            <SelectItem value="6-12 months">6-12 months</SelectItem>
-                                            <SelectItem value="1-3 years">1-3 years</SelectItem>
-                                            <SelectItem value="More than 3 years">More than 3 years</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                        </div>
-                    )}
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            What other forms of exercise do you currently engage in?
-                        </label>
-                        {errors.otherExercises && (
-                            <p className="mt-1 text-sm text-red-600">{errors.otherExercises.message}</p>
+                        {errors.exercises && (
+                            <p className="mt-1 text-sm text-red-600">{errors.exercises.message}</p>
                         )}
                         <div className="mt-4">
                             <Controller
-                                name="otherExercises"
+                                name="exercises"
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelectPills
-                                        options={["Running", "Cycling", "Swimming", "Weightlifting", "Yoga", "Dance", "Team sports", "Other", "None"]}
+                                        options={EXERCISE_OPTIONS}
                                         selectedValues={field.value}
-                                        onChange={handleOtherExercisesChange}
+                                        onChange={handleExerciseChange}
                                     />
                                 )}
                             />
                         </div>
-                        {watch("otherExercises").includes("Other") && <div className="mt-4 flex gap-2">
-                            <Input
-                                {...register("customExercise")}
-                                type="text"
-                                placeholder="Add custom exercise"
-                                className="flex-1"
-                            />
-                            <Button
-                                type="button"
-                                onClick={handleCustomExercise}
-                                className="rounded-md"
-                            >
-                                Add
-                            </Button>
-                        </div>}
+                        {watch("exercises")?.includes("Other") && (
+                            <div className="mt-4 space-y-4">
+                                <div className="flex gap-2">
+                                    <Input
+                                        {...register("customExercise")}
+                                        type="text"
+                                        placeholder="Add custom exercise"
+                                        className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.otherExercises ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
+                                            }`}
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={handleCustomExercise}
+                                        className="rounded-md"
+                                    >
+                                        Add
+                                    </Button>
+                                </div>
+                                {errors.otherExercises && (
+                                    <p className="text-sm text-red-600">{errors.otherExercises.message}</p>
+                                )}
+                                {otherExercises && otherExercises.length > 0 && (
+                                    <div className="space-y-2">
+                                        {watch("otherExercises")?.map((exercise) => (
+                                            <div key={exercise} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                                                <span className="text-sm text-gray-700">{exercise}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeOtherExercise(exercise)}
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div>
@@ -251,7 +212,6 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
                                 <Select
                                     onValueChange={field.onChange}
                                     value={field.value}
-                                    defaultValue={field.value}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select frequency" />
@@ -281,7 +241,6 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
                                 <Select
                                     onValueChange={field.onChange}
                                     value={field.value}
-                                    defaultValue={field.value}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select duration" />

@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import FormLayout from "./FormLayout";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface PilatesFormProps {
     isFirstStep?: boolean;
@@ -17,6 +18,10 @@ interface PilatesFormProps {
 }
 
 const formSchema = z.object({
+    pilatesExperience: z.boolean({
+        required_error: "Please indicate if you have Pilates experience",
+    }),
+    pilatesDuration: z.enum(["Less than 3 months", "3-6 months", "6-12 months", "1-3 years", "More than 3 years"]).optional(),
     studioFrequency: z.enum(["Never", "1-2 times per month", "1 time per week", "2-3 times per week", "4+ times per week"], {
         required_error: "Please select how often you can attend in-studio sessions",
     }),
@@ -27,7 +32,15 @@ const formSchema = z.object({
     customInstructor: z.string().optional(),
     apparatusPreference: z.array(z.string()).min(1, "Please select at least one apparatus preference"),
     customApparatus: z.string().optional(),
-});
+}).refine(
+    (data) => {
+        return data.pilatesExperience ? data.pilatesDuration !== undefined : true;
+    },
+    {
+        message: "Please select your Pilates experience duration",
+        path: ["pilatesDuration"],
+    }
+);
 
 export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: PilatesFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,6 +48,8 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
+            pilatesExperience: undefined,
+            pilatesDuration: undefined,
             studioFrequency: undefined,
             sessionPreference: undefined,
             instructors: [],
@@ -43,7 +58,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
             customApparatus: "",
         }
     });
-
+    const pilatesExperience = watch("pilatesExperience");
     const handleInstructorsChange = (instructor: string) => {
         const currentInstructors = watch("instructors");
         const newInstructors = currentInstructors.includes(instructor)
@@ -107,6 +122,67 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
             <form className="space-y-8 max-w-md mx-auto px-2">
                 <h2 className="text-2xl font-bold text-gray-900">Pilates Preferences</h2>
                 <div className="space-y-8">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Have you practiced Pilates before?
+                        </label>
+                        {errors.pilatesExperience && (
+                            <p className="mt-1 text-sm text-red-600">{errors.pilatesExperience.message}</p>
+                        )}
+                        <Controller
+                            name="pilatesExperience"
+                            control={control}
+                            render={({ field }) => (
+                                <RadioGroup
+                                    onValueChange={(value) => field.onChange(value === "true")}
+                                    value={field.value !== undefined ? field.value.toString() : undefined}
+                                    className="flex space-x-4 mt-2"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="true" id="pilates-yes" />
+                                        <label htmlFor="pilates-yes" className="text-sm">Yes</label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="false" id="pilates-no" />
+                                        <label htmlFor="pilates-no" className="text-sm">No</label>
+                                    </div>
+                                </RadioGroup>
+                            )}
+                        />
+                    </div>
+
+                    {pilatesExperience && (
+                        <div>
+                            <label htmlFor="pilates-duration" className="block text-sm font-medium text-gray-700">
+                                How long have you been practicing Pilates?
+                            </label>
+                            {errors.pilatesDuration && (
+                                <p className="mt-1 text-sm text-red-600">{errors.pilatesDuration.message}</p>
+                            )}
+                            <Controller
+                                name="pilatesDuration"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        defaultValue={field.value}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select duration" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Less than 3 months">Less than 3 months</SelectItem>
+                                            <SelectItem value="3-6 months">3-6 months</SelectItem>
+                                            <SelectItem value="6-12 months">6-12 months</SelectItem>
+                                            <SelectItem value="1-3 years">1-3 years</SelectItem>
+                                            <SelectItem value="More than 3 years">More than 3 years</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                        </div>
+                    )}
                     <div>
                         <label htmlFor="studio-frequency" className="block text-sm font-medium text-gray-700">
                             How often can you attend in-studio Pilates sessions?

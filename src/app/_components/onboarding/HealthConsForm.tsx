@@ -2,11 +2,9 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
-import FormFooter from "./FormFooter";
 import type { STEPS } from "@/app/onboarding/[tab]/page";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,12 +50,22 @@ const formSchema = z.object({
             message: "Please provide details about your surgery and recovery timeline",
             path: ["surgeryDetails"],
         }
+    )
+    .refine(
+        (data) => {
+            // If "Other" is selected, at least one custom condition must be added
+            return !data.chronicConditions.includes("Other") || (data.otherHealthConditions && data.otherHealthConditions.length > 0);
+        },
+        {
+            message: "Please add at least one custom health condition",
+            path: ["otherHealthConditions"],
+        }
     );
 
 export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }: HealthConsFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [customCondition, setCustomCondition] = useState("");
-    const { register, handleSubmit, formState: { errors }, control, watch, setValue, setError, clearErrors, trigger } = useForm({
+    const { handleSubmit, formState: { errors }, control, watch, setValue, setError, clearErrors, trigger } = useForm({
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
@@ -141,6 +149,17 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
             setError("surgeryDetails", {
                 type: "custom",
                 message: "Please provide details about your surgery and recovery timeline"
+            });
+            return false;
+        }
+
+        // Validate custom health conditions if "Other" is selected
+        const chronicConditions = watch("chronicConditions");
+        const otherHealthConditions = watch("otherHealthConditions");
+        if (chronicConditions.includes("Other") && (!otherHealthConditions || otherHealthConditions.length === 0)) {
+            setError("otherHealthConditions", {
+                type: "custom",
+                message: "Please add at least one custom health condition"
             });
             return false;
         }
@@ -331,7 +350,8 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                                         value={customCondition}
                                         onChange={(e) => setCustomCondition(e.target.value)}
                                         placeholder="Add custom condition"
-                                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.otherHealthConditions ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
+                                            }`}
                                     />
                                     <button
                                         type="button"
@@ -341,6 +361,9 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                                         Add
                                     </button>
                                 </div>
+                                {errors.otherHealthConditions && (
+                                    <p className="mt-2 text-sm text-red-600">{errors.otherHealthConditions.message}</p>
+                                )}
                                 <div className="mt-3 space-y-2">
                                     {watch("otherHealthConditions")?.map((condition) => (
                                         <div key={condition} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">

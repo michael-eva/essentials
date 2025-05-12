@@ -19,24 +19,45 @@ interface MotivationFormProps {
 
 const formSchema = z.object({
     motivation: z.array(z.string()).min(1, "Please select at least one motivation factor"),
-    customMotivation: z.string().optional(),
+    otherMotivation: z.array(z.string()).optional(),
     progressTracking: z.array(z.string()).min(1, "Please select at least one progress tracking method"),
-    customProgressTracking: z.string().optional(),
+    otherProgressTracking: z.array(z.string()).optional(),
 })
+    .refine(
+        (data) => {
+            // If "Other" is selected in motivation, at least one custom motivation must be added
+            return !data.motivation.includes("Other") || (data.otherMotivation && data.otherMotivation.length > 0);
+        },
+        {
+            message: "Please add at least one custom motivation",
+            path: ["otherMotivation"],
+        }
+    )
+    .refine(
+        (data) => {
+            // If "Other" is selected in progress tracking, at least one custom method must be added
+            return !data.progressTracking.includes("Other") || (data.otherProgressTracking && data.otherProgressTracking.length > 0);
+        },
+        {
+            message: "Please add at least one custom tracking method",
+            path: ["otherProgressTracking"],
+        }
+    );
 
 export default function MotivationForm({ isFirstStep, isLastStep, currentStep }: MotivationFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [customMotivationInput, setCustomMotivationInput] = useState("");
+    const [customProgressTrackingInput, setCustomProgressTrackingInput] = useState("");
     const { register, handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
             motivation: [],
-            customMotivation: "",
+            otherMotivation: [],
             progressTracking: [],
-            customProgressTracking: "",
+            otherProgressTracking: [],
         }
     });
-
 
     const handleMotivationChange = (motivation: string) => {
         const currentMotivations = watch("motivation");
@@ -55,21 +76,29 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
     };
 
     const handleCustomMotivation = () => {
-        const customMotivation = watch("customMotivation") || "";
-        if (customMotivation.trim()) {
-            const currentMotivations = watch("motivation");
-            setValue("motivation", [...currentMotivations, customMotivation]);
-            setValue("customMotivation", "");
+        if (customMotivationInput.trim()) {
+            const currentOtherMotivations = watch("otherMotivation") || [];
+            setValue("otherMotivation", [...currentOtherMotivations, customMotivationInput]);
+            setCustomMotivationInput("");
         }
     };
 
     const handleCustomProgressTracking = () => {
-        const customMethod = watch("customProgressTracking") || "";
-        if (customMethod.trim()) {
-            const currentMethods = watch("progressTracking");
-            setValue("progressTracking", [...currentMethods, customMethod]);
-            setValue("customProgressTracking", "");
+        if (customProgressTrackingInput.trim()) {
+            const currentOtherMethods = watch("otherProgressTracking") || [];
+            setValue("otherProgressTracking", [...currentOtherMethods, customProgressTrackingInput]);
+            setCustomProgressTrackingInput("");
         }
+    };
+
+    const removeOtherMotivation = (motivation: string) => {
+        const currentOtherMotivations = watch("otherMotivation") || [];
+        setValue("otherMotivation", currentOtherMotivations.filter(m => m !== motivation));
+    };
+
+    const removeOtherProgressTracking = (method: string) => {
+        const currentOtherMethods = watch("otherProgressTracking") || [];
+        setValue("otherProgressTracking", currentOtherMethods.filter(m => m !== method));
     };
 
     const onSubmit = async (): Promise<boolean> => {
@@ -121,10 +150,12 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                         />
                         {watch("motivation").includes("Other") && <div className="mt-4 flex gap-2">
                             <Input
-                                {...register("customMotivation")}
+                                value={customMotivationInput}
+                                onChange={(e) => setCustomMotivationInput(e.target.value)}
                                 type="text"
                                 placeholder="Add custom motivation"
-                                className="flex-1"
+                                className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.otherMotivation ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
+                                    }`}
                             />
                             <button
                                 type="button"
@@ -134,21 +165,22 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                                 Add
                             </button>
                         </div>}
+                        {errors.otherMotivation && watch("motivation").includes("Other") && (
+                            <p className="mt-2 text-sm text-red-600">{errors.otherMotivation.message}</p>
+                        )}
                         <div className="mt-3 space-y-2">
-                            {watch("motivation")
-                                .filter(motivation => !["Health benefits", "Stress relief", "Social aspects", "Weight management", "Athletic performance", "Mental wellbeing", "Appearance", "Doctor's recommendation", "Other"].includes(motivation))
-                                .map((motivation) => (
-                                    <div key={motivation} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                                        <span className="text-sm text-gray-700">{motivation}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleMotivationChange(motivation)}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
+                            {watch("otherMotivation")?.map((motivation) => (
+                                <div key={motivation} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                                    <span className="text-sm text-gray-700">{motivation}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeOtherMotivation(motivation)}
+                                        className="text-red-600 hover:text-red-800"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
@@ -172,10 +204,12 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                         />
                         {watch("progressTracking").includes("Other") && <div className="mt-4 flex gap-2">
                             <Input
-                                {...register("customProgressTracking")}
+                                value={customProgressTrackingInput}
+                                onChange={(e) => setCustomProgressTrackingInput(e.target.value)}
                                 type="text"
                                 placeholder="Add custom tracking method"
-                                className="flex-1"
+                                className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.otherProgressTracking ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
+                                    }`}
                             />
                             <button
                                 type="button"
@@ -185,21 +219,22 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                                 Add
                             </button>
                         </div>}
+                        {errors.otherProgressTracking && watch("progressTracking").includes("Other") && (
+                            <p className="mt-2 text-sm text-red-600">{errors.otherProgressTracking.message}</p>
+                        )}
                         <div className="mt-3 space-y-2">
-                            {watch("progressTracking")
-                                .filter(method => !["Body measurements", "Progress photos", "Strength gains", "Flexibility improvements", "Endurance tracking", "Habit tracking", "Journaling", "Other"].includes(method))
-                                .map((method) => (
-                                    <div key={method} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                                        <span className="text-sm text-gray-700">{method}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleProgressTrackingChange(method)}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
+                            {watch("otherProgressTracking")?.map((method) => (
+                                <div key={method} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                                    <span className="text-sm text-gray-700">{method}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeOtherProgressTracking(method)}
+                                        className="text-red-600 hover:text-red-800"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
