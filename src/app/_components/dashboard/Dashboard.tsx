@@ -1,16 +1,48 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarDays, Flame, TrendingUp, CheckCircle2, XCircle, Clock } from "lucide-react"
+import { CalendarDays, Flame, TrendingUp, CheckCircle2, XCircle, Clock, Plus } from "lucide-react"
 import { api } from "@/trpc/react"
 import { type WorkoutStatus } from "@/data/workouts"
 import { Button } from "@/components/ui/button"
+
+import { useState } from "react"
+import RecordWorkout, { type WorkoutFormValues } from "./RecordWorkout"
+import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
+import toast from "react-hot-toast"
 
 export default function Dashboard() {
   const { data: upcomingClasses = [] } = api.workoutPlan.getUpcomingClasses.useQuery()
 
   const { data: pastWorkouts = [] } = api.workoutPlan.getWorkoutsToLog.useQuery()
   const { data: activityHistory = [] } = api.workoutPlan.getActivityHistory.useQuery()
+
+  const [selectedWorkout, setSelectedWorkout] = useState<typeof pastWorkouts[0] | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isManualActivityDialogOpen, setIsManualActivityDialogOpen] = useState(false)
+
+  const handleMarkComplete = (workout: typeof pastWorkouts[0]) => {
+    setSelectedWorkout(workout)
+    setIsDialogOpen(true)
+  }
+
+  const handleSubmitWorkoutDetails = (workoutId: string, data: WorkoutFormValues) => {
+    // TODO: Implement the API call to save workout details
+    console.log({
+      workoutId,
+      data
+    })
+    setIsDialogOpen(false)
+    setSelectedWorkout(null)
+    toast.success("Workout details saved successfully")
+  }
+
+  const handleSubmitManualActivity = (data: ActivityFormValues) => {
+    // TODO: Implement the API call to save manual activity
+    console.log("Manual activity data:", data)
+    setIsManualActivityDialogOpen(false)
+    toast.success("Activity recorded successfully")
+  }
 
   const getStatusIcon = (status: WorkoutStatus | undefined) => {
     if (!status) return <Clock className="h-4 w-4 text-yellow-500" />
@@ -80,6 +112,13 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Workout Logging</CardTitle>
+            <Button
+              onClick={() => setIsManualActivityDialogOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Record Manual Activity
+            </Button>
             <CardDescription>Record your past workouts</CardDescription>
           </CardHeader>
           <CardContent>
@@ -98,12 +137,19 @@ export default function Dashboard() {
                       <p className="text-sm text-muted-foreground">
                         {workout.instructor} &bull; {workout.duration} min
                       </p>
+                      <p className="text-sm text-muted-foreground">
+                        Booked for {new Date(workout.bookedDate).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-3 mt-6 self-end">
                     <Button
                       className="bg-green-600 hover:bg-green-700"
-                    //  onClick={() => { }}
+                      onClick={() => handleMarkComplete(workout)}
                     >
                       Mark Complete
                     </Button>
@@ -122,9 +168,11 @@ export default function Dashboard() {
       )}
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Activity History</CardTitle>
-          <CardDescription>Your recent workouts and progress</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-lg">Activity History</CardTitle>
+            <CardDescription>Your recent workouts and progress</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -182,6 +230,19 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <RecordWorkout
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        handleSubmitWorkoutDetails={handleSubmitWorkoutDetails}
+        workoutId={selectedWorkout?.id ?? ""}
+      />
+
+      <RecordManualActivity
+        isDialogOpen={isManualActivityDialogOpen}
+        setIsDialogOpen={setIsManualActivityDialogOpen}
+        handleSubmitActivity={handleSubmitManualActivity}
+      />
     </div>
   )
 }
