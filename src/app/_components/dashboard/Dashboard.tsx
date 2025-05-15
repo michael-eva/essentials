@@ -3,17 +3,18 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarDays, Flame, TrendingUp, CheckCircle2, XCircle, Clock, Plus } from "lucide-react"
 import { api } from "@/trpc/react"
-import { type WorkoutStatus } from "@/data/workouts"
 import { Button } from "@/components/ui/button"
 
 import { useState } from "react"
 import RecordWorkout, { type WorkoutFormValues } from "./RecordWorkout"
 import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
 import toast from "react-hot-toast"
+import { workoutStatusEnum } from "@/drizzle/src/db/schema"
+
+type WorkoutStatus = typeof workoutStatusEnum.enumValues[number]
 
 export default function Dashboard() {
-  const { data: upcomingClasses = [] } = api.workoutPlan.getUpcomingClasses.useQuery()
-
+  const { data: upcomingClasses } = api.workoutPlan.getUpcomingClasses.useQuery()
   const { data: pastWorkouts = [] } = api.workoutPlan.getWorkoutsToLog.useQuery()
   const { data: activityHistory = [] } = api.workoutPlan.getActivityHistory.useQuery()
 
@@ -44,7 +45,7 @@ export default function Dashboard() {
     toast.success("Activity recorded successfully")
   }
 
-  const getStatusIcon = (status: WorkoutStatus | undefined) => {
+  const getStatusIcon = (status: WorkoutStatus | null | undefined) => {
     if (!status) return <Clock className="h-4 w-4 text-yellow-500" />
 
     switch (status) {
@@ -66,7 +67,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {upcomingClasses.length > 0 ? (
+            {upcomingClasses && upcomingClasses.length > 0 ? (
               upcomingClasses.map((classItem, index) => (
                 <div key={index} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                   <div>
@@ -78,7 +79,7 @@ export default function Dashboard() {
                   <div className="text-right flex flex-col items-end gap-2">
                     <p className="text-sm text-muted-foreground">{classItem.level}</p>
                     <span className="text-sm text-green-600 font-medium">
-                      Booked for {new Date(classItem.bookedDate).toLocaleDateString('en-US', {
+                      Booked for {new Date(classItem.bookedDate ?? '').toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
@@ -138,7 +139,7 @@ export default function Dashboard() {
                         {workout.instructor} &bull; {workout.duration} min
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Booked for {new Date(workout.bookedDate).toLocaleDateString('en-US', {
+                        Booked for {new Date(workout.bookedDate ?? '').toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric'
@@ -182,14 +183,14 @@ export default function Dashboard() {
                 <div key={index} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                   <div>
                     <p className="font-medium">{activity.workout?.name}</p>
-                    <p className="text-sm text-muted-foreground">{new Date(activity.workout?.dateLogged ?? '').toLocaleDateString('en-US', {
+                    <p className="text-sm text-muted-foreground">{new Date(activity.workoutTracking?.dateLogged ?? '').toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric'
                     })}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{activity.workout?.timeLogged} min</p>
+                    <p className="font-medium">{activity.workoutTracking?.timeLogged} min</p>
                   </div>
                 </div>
               ))}
@@ -235,7 +236,7 @@ export default function Dashboard() {
         isDialogOpen={isDialogOpen}
         setIsDialogOpen={setIsDialogOpen}
         handleSubmitWorkoutDetails={handleSubmitWorkoutDetails}
-        workoutId={selectedWorkout?.id ?? ""}
+        workoutId={selectedWorkout?.id?.toString() ?? ""}
       />
 
       <RecordManualActivity

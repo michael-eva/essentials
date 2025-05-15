@@ -6,22 +6,21 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Trash2, RotateCcw, Edit } from "lucide-react"
-import { type WorkoutPlan, type Workout } from "@/data/workouts"
 import { api } from "@/trpc/react"
 import Link from "next/link"
-
+import type { NewWorkoutPlan, Workout } from "@/drizzle/src/db/queries"
 export default function ClassRecommendations() {
   const [timeCommitment, setTimeCommitment] = useState("2")
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])
   const [planName, setPlanName] = useState("")
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false)
-  const [completedWorkouts, setCompletedWorkouts] = useState<Record<string, boolean>>({})
   const [isActivePlan, setIsActivePlan] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [reinstateDialogOpen, setReinstateDialogOpen] = useState(false)
   const [selectedPlanIndex, setSelectedPlanIndex] = useState<number | null>(null)
 
   // Fetch data using tRPC
+  const userId = "fa50f59f-46b1-4596-b77e-ad41e885f22c";
   const { data: previousPlans = [] } = api.workoutPlan.getPreviousPlans.useQuery()
   const { data: activePlan } = api.workoutPlan.getActivePlan.useQuery()
   const { data: supplementaryWorkouts = [] } = api.workoutPlan.getSupplementaryWorkouts.useQuery()
@@ -36,7 +35,7 @@ export default function ClassRecommendations() {
     )
   }
 
-  const handleBookClass = (classItem: Workout) => {
+  const handleBookClass = () => {
     // bookClassMutation.mutate({
     //   name: classItem.name,
     //   instructor: classItem.instructor || "TBD",
@@ -47,41 +46,42 @@ export default function ClassRecommendations() {
   }
 
   const getWeeklySchedules = () => {
-    const weeks = parseInt(timeCommitment)
-    return Array.from({ length: weeks }, (_, i) => {
-      const weekItems = [...(activePlan?.weeklySchedules?.[i]?.items ?? []), ...supplementaryWorkouts].filter(item => item.weekNumber === i + 1)
-      return {
-        weekNumber: i + 1,
-        items: weekItems,
-        sessionsPerWeek: weekItems.filter(item => item.type === 'class').length
-      }
-    })
+    if (activePlan?.weeklySchedules) {
+      // Use the weeklySchedules directly from the activePlan
+      return activePlan.weeklySchedules.map((week) => ({
+        weekNumber: week.weekNumber,
+        items: week.items,
+        sessionsPerWeek: week.items.filter(item => item && item.type === 'class').length,
+      }));
+    }
+    // Fallback (if no activePlan or no weeklySchedules)
+    return [];
   }
 
   // Helper to get weekly breakdown for a given plan
-  const getWeeklySchedulesForPlan = (plan: WorkoutPlan) => {
-    const weeks = parseInt(plan.timeCommitment)
+  const getWeeklySchedulesForPlan = (weeks: number) => {
     return Array.from({ length: weeks }, (_, i) => {
-      const weekItems = [...(activePlan?.weeklySchedules?.[i]?.items ?? []), ...supplementaryWorkouts].filter(item => item.weekNumber === i + 1)
+      const weekItems = [
+        ...(activePlan?.weeklySchedules?.[i]?.items ?? []),
+        ...supplementaryWorkouts
+      ];
       return {
         weekNumber: i + 1,
         items: weekItems,
-        sessionsPerWeek: weekItems.filter(item => item.type === 'class').length
+        sessionsPerWeek: weekItems.filter(item => item && item.type === 'class').length
       }
     })
   }
 
   const handleSavePlan = () => {
     if (isActivePlan) {
-      const newPlan: WorkoutPlan = {
+      const newPlan: NewWorkoutPlan = {
         planName,
-        timeCommitment,
-        selectedClasses,
-        completedWorkouts,
-        savedAt: new Date().toISOString(),
-        weeklySchedules: getWeeklySchedulesForPlan({ timeCommitment, selectedClasses, completedWorkouts } as WorkoutPlan),
+        weeks: parseInt(timeCommitment),
+        savedAt: new Date(),
         archived: false,
-        isActive: true
+        isActive: true,
+        userId: userId,
       }
       console.log("Saving plan:", newPlan)
     }
@@ -105,22 +105,18 @@ export default function ClassRecommendations() {
 
   const handleStartNewPlan = () => {
     if (isActivePlan) {
-      const newPlan: WorkoutPlan = {
+      const newPlan: NewWorkoutPlan = {
         planName,
-        timeCommitment,
-        selectedClasses,
-        completedWorkouts,
-        savedAt: new Date().toISOString(),
-        weeklySchedules: getWeeklySchedulesForPlan({ timeCommitment, selectedClasses, completedWorkouts } as WorkoutPlan),
+        weeks: parseInt(timeCommitment),
+        savedAt: new Date(),
         archived: false,
-        isActive: true
+        isActive: true,
+        userId: userId,
       }
-      console.log("Archiving plan:", newPlan)
     }
     setPlanName("")
     setTimeCommitment("2")
     setSelectedClasses([])
-    setCompletedWorkouts({})
     setIsActivePlan(false)
   }
 
@@ -135,24 +131,20 @@ export default function ClassRecommendations() {
       if (!planToReinstate) return
 
       if (isActivePlan) {
-        const newPlan: WorkoutPlan = {
+        const newPlan: NewWorkoutPlan = {
           planName,
-          timeCommitment,
-          selectedClasses,
-          completedWorkouts,
-          savedAt: new Date().toISOString(),
-          weeklySchedules: getWeeklySchedulesForPlan({ timeCommitment, selectedClasses, completedWorkouts } as WorkoutPlan),
+          weeks: parseInt(planToReinstate.weeks.toString()),
+          savedAt: new Date(),
           archived: false,
-          isActive: true
+          isActive: true,
+          userId: userId,
         }
         console.log("Archiving current plan:", newPlan)
       }
 
       // Set state to reinstated plan
       setPlanName(planToReinstate.planName)
-      setTimeCommitment(planToReinstate.timeCommitment)
-      setSelectedClasses(planToReinstate.selectedClasses)
-      setCompletedWorkouts(planToReinstate.completedWorkouts)
+      setTimeCommitment(planToReinstate.weeks.toString())
       setIsActivePlan(true)
       setReinstateDialogOpen(false)
       setSelectedPlanIndex(null)
@@ -188,63 +180,66 @@ export default function ClassRecommendations() {
                 </AccordionTrigger>
                 <AccordionContent className="px-2 md:px-4 pb-4">
                   <div className="space-y-3">
-                    {week.items.map((item, index) => (
-                      <div
-                        key={index}
-                        className={`py-3 px-3 flex justify-between items-start border-l-4 rounded border-b ${item.type === 'class'
-                          ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/5'
-                          : 'border-[color:var(--chart-4)] bg-[color:var(--chart-4)]/5'
-                          }`}
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            {item.type === 'class' ? (
-                              <span className="inline-flex items-center text-xs text-blue-700">
-                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
-                                Class
+                    {week.items.filter(Boolean).map((item, index) => {
+                      const workout = item as Workout;
+                      return (
+                        <div
+                          key={index}
+                          className={`py-3 px-3 flex justify-between items-start border-l-4 rounded border-b ${workout.type === 'class'
+                            ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/5'
+                            : 'border-[color:var(--chart-4)] bg-[color:var(--chart-4)]/5'
+                            }`}
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              {workout.type === 'class' ? (
+                                <span className="inline-flex items-center text-xs text-blue-700">
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
+                                  Class
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center text-xs text-green-700">
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8" /></svg>
+                                  Workout
+                                </span>
+                              )}
+                              <span className="font-semibold text-base">{workout.name}</span>
+                            </div>
+                            <div className="flex gap-1 mb-1">
+                              <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
+                                {workout.level}
                               </span>
-                            ) : (
-                              <span className="inline-flex items-center text-xs text-green-700">
-                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8" /></svg>
-                                Workout
+                              <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
+                                {workout.duration} min
                               </span>
-                            )}
-                            <span className="font-semibold text-base">{item.name}</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                              {workout.description}
+                            </div>
                           </div>
-                          <div className="flex gap-1 mb-1">
-                            <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
-                              {item.level}
-                            </span>
-                            <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
-                              {item.duration} min
-                            </span>
-                          </div>
-                          <div className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                            {item.description}
-                          </div>
+                          {workout.type === 'class' && (
+                            <div className="flex gap-2">
+                              <Button
+                                variant={selectedClasses.includes(workout.name) ? "secondary" : "outline"}
+                                size="sm"
+                                onClick={() => handleClassSelection(workout.name)}
+                                className="text-xs px-3 py-1 h-7"
+                              >
+                                {selectedClasses.includes(workout.name) ? "Selected" : "Select"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleBookClass()}
+                                className="text-xs px-3 py-1 h-7"
+                              >
+                                Book
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                        {item.type === 'class' && (
-                          <div className="flex gap-2">
-                            <Button
-                              variant={selectedClasses.includes(item.name) ? "secondary" : "outline"}
-                              size="sm"
-                              onClick={() => handleClassSelection(item.name)}
-                              className="text-xs px-3 py-1 h-7"
-                            >
-                              {selectedClasses.includes(item.name) ? "Selected" : "Select"}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleBookClass(item)}
-                              className="text-xs px-3 py-1 h-7"
-                            >
-                              Book
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -307,7 +302,7 @@ export default function ClassRecommendations() {
                   <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                       <CardTitle className="text-base">{plan.planName}</CardTitle>
-                      <CardDescription>{plan.timeCommitment} Week Plan</CardDescription>
+                      <CardDescription>{plan.weeks} Week Plan</CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">{new Date(plan.savedAt).toLocaleDateString()}</span>
@@ -322,50 +317,53 @@ export default function ClassRecommendations() {
                   <CardContent>
                     {/* Accordion for weekly details */}
                     <Accordion type="multiple" className="w-full">
-                      {plan.weeklySchedules?.map((week: { items: Workout[]; weekNumber?: number }) => (
+                      {getWeeklySchedulesForPlan(parseInt(plan.weeks.toString())).map((week) => (
                         <AccordionItem key={week.weekNumber} value={`week-${week.weekNumber}-prev-${idx}`}>
                           <AccordionTrigger className="font-bold text-base px-4 py-3 bg-muted/30">
-                            Week {week.weekNumber} <span className="ml-2 font-normal text-sm text-muted-foreground">{week.items.filter(item => item.type === 'class').length} classes per week</span>
+                            Week {week.weekNumber} <span className="ml-2 font-normal text-sm text-muted-foreground">{week.items.filter(item => item?.type === 'class').length} classes per week</span>
                           </AccordionTrigger>
                           <AccordionContent className="px-2 md:px-4 pb-4">
                             <div className="space-y-3">
-                              {week.items.map((item: Workout, index: number) => (
-                                <div
-                                  key={index}
-                                  className={`py-3 px-3 flex justify-between items-start border-l-4 rounded border-b ${item.type === 'class'
-                                    ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/5'
-                                    : 'border-[color:var(--chart-4)] bg-[color:var(--chart-4)]/5'
-                                    }`}
-                                >
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      {item.type === 'class' ? (
-                                        <span className="inline-flex items-center text-xs text-blue-700">
-                                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
-                                          Class
+                              {week.items.filter(Boolean).map((item, index) => {
+                                const workout = item as Workout;
+                                return (
+                                  <div
+                                    key={index}
+                                    className={`py-3 px-3 flex justify-between items-start border-l-4 rounded border-b ${workout.type === 'class'
+                                      ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/5'
+                                      : 'border-[color:var(--chart-4)] bg-[color:var(--chart-4)]/5'
+                                      }`}
+                                  >
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        {workout.type === 'class' ? (
+                                          <span className="inline-flex items-center text-xs text-blue-700">
+                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
+                                            Class
+                                          </span>
+                                        ) : (
+                                          <span className="inline-flex items-center text-xs text-green-700">
+                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8" /></svg>
+                                            Workout
+                                          </span>
+                                        )}
+                                        <span className="font-semibold text-base">{workout.name}</span>
+                                      </div>
+                                      <div className="flex gap-1 mb-1">
+                                        <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
+                                          {workout.level}
                                         </span>
-                                      ) : (
-                                        <span className="inline-flex items-center text-xs text-green-700">
-                                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8" /></svg>
-                                          Workout
+                                        <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
+                                          {workout.duration} min
                                         </span>
-                                      )}
-                                      <span className="font-semibold text-base">{item.name}</span>
-                                    </div>
-                                    <div className="flex gap-1 mb-1">
-                                      <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
-                                        {item.level}
-                                      </span>
-                                      <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
-                                        {item.duration} min
-                                      </span>
-                                    </div>
-                                    <div className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                                      {item.description}
+                                      </div>
+                                      <div className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                                        {workout.description}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </AccordionContent>
                         </AccordionItem>
