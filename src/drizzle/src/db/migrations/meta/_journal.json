@@ -15,6 +15,41 @@
       "when": 1747382589990,
       "tag": "0001_striped_inhumans",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747394506221,
+      "tag": "0002_clean_odin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747394898621,
+      "tag": "0003_sharp_hellcat",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1747394988073,
+      "tag": "0004_flashy_lizard",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1747395090055,
+      "tag": "0005_lumpy_union_jack",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1747395265422,
+      "tag": "0006_pale_galactus",
+      "breakpoints": true
     }
   ]
 }

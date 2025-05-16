@@ -55,13 +55,7 @@ export const workoutTracking = pgTable("workout_tracking", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  workoutId: uuid("workout_id")
-    .notNull()
-    .references(() => workout.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    })
-    .unique(),
+  workoutId: uuid("workout_id"),
   activityType: text("activity_type").notNull(),
   date: timestamp("date").notNull(),
   durationHours: integer("duration_hours"),
@@ -70,9 +64,6 @@ export const workoutTracking = pgTable("workout_tracking", {
   distanceUnit: text("distance_unit"),
   notes: text("notes"),
   ratings: text("ratings").array(),
-  journalEntry: text("journal_entry"),
-  timeLogged: integer("time_logged"),
-  dateLogged: text("date_logged"),
   name: text("name"),
 });
 

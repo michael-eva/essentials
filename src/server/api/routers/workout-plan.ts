@@ -5,6 +5,7 @@ import {
 } from "@/server/api/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { v4 as uuidv4 } from "uuid";
 import {
   getUpcomingClasses,
   getPreviousPlans,
@@ -13,6 +14,8 @@ import {
   getActivityHistory,
   getSupplementaryWorkouts,
 } from "@/drizzle/src/db/queries";
+import { insertManualActivity } from "@/drizzle/src/db/mutations";
+import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
 
 export const workoutPlanRouter = createTRPCRouter({
   getPreviousPlans: protectedProcedure.query(async ({ ctx }) => {
@@ -85,4 +88,41 @@ export const workoutPlanRouter = createTRPCRouter({
       });
     }
   }),
+
+  insertManualActivity: protectedProcedure
+    .input(
+      z.object({
+        activityType: z.string(),
+        date: z.date(),
+        durationHours: z.number().optional(),
+        durationMinutes: z.number().optional(),
+        distance: z.string().optional(),
+        distanceUnit: z.string().optional(),
+        notes: z.string().optional(),
+        ratings: z.array(z.string()).optional(),
+        name: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const newActivity: NewWorkoutTracking = {
+          userId: ctx.userId,
+          workoutId: uuidv4(),
+          activityType: "workout",
+          date: input.date,
+          durationHours: input.durationHours,
+          durationMinutes: input.durationMinutes,
+          distance: input.distance,
+          distanceUnit: input.distanceUnit,
+          notes: input.notes,
+          ratings: input.ratings,
+          name: input.name,
+        };
+
+        return await insertManualActivity(newActivity);
+      } catch (error) {
+        console.error("Error inserting manual activity:", error);
+        throw error;
+      }
+    }),
 });

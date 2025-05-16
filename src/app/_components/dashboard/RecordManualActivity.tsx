@@ -18,20 +18,14 @@ const activityFormSchema = z.object({
   activityType: z.string({
     required_error: "Please select an activity type",
   }),
-  date: z.date().optional(),
+  date: z.date(),
   durationHours: z.number().min(0, "Hours must be 0 or greater"),
   durationMinutes: z.number().min(0, "Minutes must be 0 or greater").max(59, "Minutes must be less than 60"),
-  distance: z.string().optional(),
+  distance: z.string().min(1, "Distance must be greater than 0"),
   distanceUnit: z.enum(["miles", "kilometers"], {
     required_error: "Please select a distance unit",
   }),
   ratings: z.array(z.string()).min(1, "Please select at least one rating"),
-  // wouldDoAgain: z.enum(["yes", "no"], {
-  //   required_error: "Please select whether you would do this activity again",
-  // }),
-  // location: z.enum(["indoor", "outdoor"], {
-  //   required_error: "Please select whether this was done indoors or outdoors",
-  // }),
   notes: z.string().optional(),
 })
 
@@ -152,7 +146,7 @@ export default function RecordManualActivity({
             <Label>Date</Label>
             <DatePicker
               date={form.watch("date")}
-              onSelect={(date) => form.setValue("date", date)}
+              onSelect={(date) => form.setValue("date", date ?? new Date())}
               error={form.formState.errors.date?.message}
             />
           </div>

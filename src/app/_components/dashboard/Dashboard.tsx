@@ -17,6 +17,7 @@ export default function Dashboard() {
   const { data: upcomingClasses } = api.workoutPlan.getUpcomingClasses.useQuery()
   const { data: pastWorkouts = [] } = api.workoutPlan.getWorkoutsToLog.useQuery()
   const { data: activityHistory = [] } = api.workoutPlan.getActivityHistory.useQuery()
+  const { mutate: insertManualActivity } = api.workoutPlan.insertManualActivity.useMutation()
 
   const [selectedWorkout, setSelectedWorkout] = useState<typeof pastWorkouts[0] | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -38,9 +39,8 @@ export default function Dashboard() {
     toast.success("Workout details saved successfully")
   }
 
-  const handleSubmitManualActivity = (data: ActivityFormValues) => {
-    // TODO: Implement the API call to save manual activity
-    console.log("Manual activity data:", data)
+  const handleSubmitManualActivity = async (data: ActivityFormValues) => {
+    insertManualActivity(data)
     setIsManualActivityDialogOpen(false)
     toast.success("Activity recorded successfully")
   }
@@ -183,14 +183,14 @@ export default function Dashboard() {
                 <div key={index} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                   <div>
                     <p className="font-medium">{activity.workout?.name}</p>
-                    <p className="text-sm text-muted-foreground">{new Date(activity.workoutTracking?.dateLogged ?? '').toLocaleDateString('en-US', {
+                    <p className="text-sm text-muted-foreground">{new Date(activity.workoutTracking?.date ?? '').toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric'
                     })}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{activity.workoutTracking?.timeLogged} min</p>
+                    <p className="font-medium">{activity.workoutTracking?.durationHours}h {activity.workoutTracking?.durationMinutes}m</p>
                   </div>
                 </div>
               ))}
