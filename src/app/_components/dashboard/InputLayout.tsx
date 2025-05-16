@@ -27,7 +27,7 @@ const InputLayout = React.forwardRef<HTMLButtonElement, CustomInputProps>(
           {...props}
         >
           {Icon && <Icon className="w-4 h-4 mr-2 text-muted-foreground" />}
-          <span className="flex-1 text-left">{value || placeholder}</span>
+          <span className="flex-1 text-left">{value ?? placeholder}</span>
           <ChevronDown className="w-4 h-4 ml-2 text-gray-300" />
         </button>
         {error && (

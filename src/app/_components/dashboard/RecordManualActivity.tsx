@@ -1,7 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { MultiSelectPills } from "../global/multi-select-pills"
@@ -86,9 +85,9 @@ export default function RecordManualActivity({
   const [tempHours, setTempHours] = useState(form.watch("durationHours"))
   const [tempMinutes, setTempMinutes] = useState(form.watch("durationMinutes"))
   const [isDistancePickerOpen, setIsDistancePickerOpen] = useState(false)
-  const distanceValue = form.watch("distance") || "0.0"
-  const [tempDistanceInt, setTempDistanceInt] = useState(parseInt(distanceValue.split(".")[0] || "0", 10))
-  const [tempDistanceDec, setTempDistanceDec] = useState(parseInt(distanceValue.split(".")[1] || "0", 10))
+  const distanceValue = form.watch("distance") ?? "0.0"
+  const [tempDistanceInt, setTempDistanceInt] = useState(parseInt(distanceValue.split(".")[0] ?? "0", 10))
+  const [tempDistanceDec, setTempDistanceDec] = useState(parseInt(distanceValue.split(".")[1] ?? "0", 10))
   const [tempDistanceUnit, setTempDistanceUnit] = useState(form.watch("distanceUnit") === "miles" ? "mi" : "km")
 
   return (
@@ -157,7 +156,7 @@ export default function RecordManualActivity({
               value={form.watch("durationHours") === 0 && form.watch("durationMinutes") === 0 ? undefined : `${form.watch("durationHours")}h ${form.watch("durationMinutes").toString().padStart(2, '0')}m`}
               placeholder="Set duration"
               onClick={() => setIsTimePickerOpen(true)}
-              error={form.formState.errors.durationHours?.message || form.formState.errors.durationMinutes?.message}
+              error={form.formState.errors.durationHours?.message ?? form.formState.errors.durationMinutes?.message}
             />
           </div>
 
@@ -211,9 +210,9 @@ export default function RecordManualActivity({
             isOpen={isDistancePickerOpen}
             onClose={() => {
               setIsDistancePickerOpen(false)
-              const dVal = form.watch("distance") || "0.0"
-              setTempDistanceInt(parseInt(dVal.split(".")[0] || "0", 10))
-              setTempDistanceDec(parseInt(dVal.split(".")[1] || "0", 10))
+              const dVal = form.watch("distance") ?? "0.0"
+              setTempDistanceInt(parseInt(dVal.split(".")[0] ?? "0", 10))
+              setTempDistanceDec(parseInt(dVal.split(".")[1] ?? "0", 10))
               setTempDistanceUnit(form.watch("distanceUnit") === "miles" ? "mi" : "km")
             }}
             title="Set Distance"

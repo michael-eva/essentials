@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
+import type { MouseEvent } from "react"
 
 // Column type: number range or options
 export type WheelPickerColumn =
@@ -61,7 +62,7 @@ export function WheelPicker({
                 const value = col.value
                 const min = col.min
                 const max = col.max
-                const format = col.format || ((v: number) => v.toString())
+                const format = col.format ?? ((v: number) => v.toString())
                 return (
                   <div key={colKey} className="flex flex-col items-center">
                     <div
@@ -97,8 +98,8 @@ export function WheelPicker({
                       </div>
                       {/* Clickable overlay */}
                       <div className="absolute inset-0 z-10 cursor-pointer" style={{ background: 'transparent' }}
-                        onClick={e => {
-                          const y = (e.nativeEvent as any).offsetY;
+                        onClick={(e: MouseEvent<HTMLDivElement>) => {
+                          const y = e.nativeEvent.offsetY;
                           if (y < 44 && value > min) col.setValue(value - 1);
                           if (y > 88 && value < max) col.setValue(value + 1);
                         }}
@@ -155,9 +156,9 @@ export function WheelPicker({
                       </div>
                       {/* Clickable overlay */}
                       <div className="absolute inset-0 z-10 cursor-pointer" style={{ background: 'transparent' }}
-                        onClick={e => {
+                        onClick={(e: MouseEvent<HTMLDivElement>) => {
                           if (idxValue === -1) return;
-                          const y = (e.nativeEvent as any).offsetY;
+                          const y = e.nativeEvent.offsetY;
                           if (y < 44 && idxValue > 0) {
                             const prevOption = options[idxValue - 1];
                             if (typeof prevOption === 'string') col.setValue(prevOption);
