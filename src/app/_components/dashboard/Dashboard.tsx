@@ -6,18 +6,27 @@ import { api } from "@/trpc/react"
 import { Button } from "@/components/ui/button"
 
 import { useState } from "react"
-import RecordWorkout, { type WorkoutFormValues } from "./RecordWorkout"
-import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
+import RecordWorkout from "./RecordWorkout"
+import type { WorkoutFormValues } from "./RecordWorkout"
+import RecordManualActivity from "./RecordManualActivity"
+import type { ActivityFormValues } from "./RecordManualActivity"
 import toast from "react-hot-toast"
 import { workoutStatusEnum } from "@/drizzle/src/db/schema"
 
 type WorkoutStatus = typeof workoutStatusEnum.enumValues[number]
 
 export default function Dashboard() {
+  const utils = api.useUtils();
   const { data: upcomingClasses } = api.workoutPlan.getUpcomingClasses.useQuery()
   const { data: pastWorkouts = [] } = api.workoutPlan.getWorkoutsToLog.useQuery()
   const { data: activityHistory = [] } = api.workoutPlan.getActivityHistory.useQuery()
   const { mutate: insertManualActivity } = api.workoutPlan.insertManualActivity.useMutation()
+  const { mutate: insertCompletedClass } = api.workoutPlan.insertCompletedClass.useMutation({
+    onSuccess: () => {
+      void toast.success("Workout details saved successfully");
+      void utils.workoutPlan.getWorkoutsToLog.invalidate();
+    }
+  })
 
   const [selectedWorkout, setSelectedWorkout] = useState<typeof pastWorkouts[0] | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -28,15 +37,19 @@ export default function Dashboard() {
     setIsDialogOpen(true)
   }
 
-  const handleSubmitWorkoutDetails = (workoutId: string, data: WorkoutFormValues) => {
-    // TODO: Implement the API call to save workout details
-    console.log({
+  const handleSubmitWorkoutDetails = (workoutId: string, data: WorkoutFormValues, bookedDate: Date, name: string) => {
+    insertCompletedClass({
       workoutId,
-      data
+      activityType: "class",
+      date: bookedDate,
+      notes: data.notes,
+      ratings: data.ratings,
+      wouldDoAgain: data.wouldDoAgain === "yes" ? true : false,
+      name
     })
+
     setIsDialogOpen(false)
     setSelectedWorkout(null)
-    toast.success("Workout details saved successfully")
   }
 
   const handleSubmitManualActivity = async (data: ActivityFormValues) => {
@@ -237,6 +250,8 @@ export default function Dashboard() {
         setIsDialogOpen={setIsDialogOpen}
         handleSubmitWorkoutDetails={handleSubmitWorkoutDetails}
         workoutId={selectedWorkout?.id?.toString() ?? ""}
+        bookedDate={selectedWorkout?.bookedDate ? new Date(selectedWorkout.bookedDate) : new Date()}
+        name={selectedWorkout?.name ?? ""}
       />
 
       <RecordManualActivity

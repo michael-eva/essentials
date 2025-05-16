@@ -65,6 +65,7 @@ export const workoutTracking = pgTable("workout_tracking", {
   notes: text("notes"),
   ratings: text("ratings").array(),
   name: text("name"),
+  wouldDoAgain: boolean("would_do_again"),
 });
 
 export const workoutPlan = pgTable("workout_plan", {

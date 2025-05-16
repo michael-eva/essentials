@@ -14,7 +14,10 @@ import {
   getActivityHistory,
   getSupplementaryWorkouts,
 } from "@/drizzle/src/db/queries";
-import { insertManualActivity } from "@/drizzle/src/db/mutations";
+import {
+  insertWorkoutActivity,
+  updateCompletedClass,
+} from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
 
 export const workoutPlanRouter = createTRPCRouter({
@@ -92,7 +95,7 @@ export const workoutPlanRouter = createTRPCRouter({
   insertManualActivity: protectedProcedure
     .input(
       z.object({
-        activityType: z.string(),
+        workoutType: z.string(),
         date: z.date(),
         durationHours: z.number().optional(),
         durationMinutes: z.number().optional(),
@@ -100,7 +103,6 @@ export const workoutPlanRouter = createTRPCRouter({
         distanceUnit: z.string().optional(),
         notes: z.string().optional(),
         ratings: z.array(z.string()).optional(),
-        name: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -116,10 +118,42 @@ export const workoutPlanRouter = createTRPCRouter({
           distanceUnit: input.distanceUnit,
           notes: input.notes,
           ratings: input.ratings,
-          name: input.name,
+          name: input.workoutType,
         };
 
-        return await insertManualActivity(newActivity);
+        return await insertWorkoutActivity(newActivity);
+      } catch (error) {
+        console.error("Error inserting manual activity:", error);
+        throw error;
+      }
+    }),
+
+  insertCompletedClass: protectedProcedure
+    .input(
+      z.object({
+        workoutId: z.string(),
+        activityType: z.string(),
+        date: z.date(),
+        notes: z.string().optional(),
+        ratings: z.array(z.string()).optional(),
+        name: z.string(),
+        wouldDoAgain: z.boolean().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const newActivity: NewWorkoutTracking = {
+          userId: ctx.userId,
+          workoutId: input.workoutId,
+          activityType: "class",
+          date: input.date,
+          notes: input.notes,
+          ratings: input.ratings,
+          name: input.name,
+          wouldDoAgain: input.wouldDoAgain,
+        };
+        await updateCompletedClass(input.workoutId, "completed");
+        return await insertWorkoutActivity(newActivity);
       } catch (error) {
         console.error("Error inserting manual activity:", error);
         throw error;

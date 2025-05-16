@@ -14,13 +14,13 @@ import { CustomInput } from "@/app/_components/dashboard/InputLayout"
 import { DatePicker } from "@/components/ui/date-picker"
 
 const activityFormSchema = z.object({
-  activityType: z.string({
+  workoutType: z.string({
     required_error: "Please select an activity type",
   }),
   date: z.date(),
   durationHours: z.number().min(0, "Hours must be 0 or greater"),
   durationMinutes: z.number().min(0, "Minutes must be 0 or greater").max(59, "Minutes must be less than 60"),
-  distance: z.string().min(1, "Distance must be greater than 0"),
+  distance: z.string().optional(),
   distanceUnit: z.enum(["miles", "kilometers"], {
     required_error: "Please select a distance unit",
   }),
@@ -51,6 +51,10 @@ const workoutRatingOptions = [
   "Boring"
 ]
 
+function safeParseInt(val: string | undefined) {
+  return /^\d+$/.test(val ?? "") ? parseInt(val!, 10) : 0;
+}
+
 export default function RecordManualActivity({
   isDialogOpen,
   setIsDialogOpen,
@@ -63,15 +67,13 @@ export default function RecordManualActivity({
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activityFormSchema),
     defaultValues: {
-      activityType: "",
+      workoutType: "",
       date: new Date(),
       durationHours: 0,
       durationMinutes: 0,
       distance: "",
       distanceUnit: "kilometers",
       ratings: [],
-      // wouldDoAgain: undefined,
-      // location: undefined,
       notes: "",
     },
   })
@@ -86,8 +88,9 @@ export default function RecordManualActivity({
   const [tempMinutes, setTempMinutes] = useState(form.watch("durationMinutes"))
   const [isDistancePickerOpen, setIsDistancePickerOpen] = useState(false)
   const distanceValue = form.watch("distance") ?? "0.0"
-  const [tempDistanceInt, setTempDistanceInt] = useState(parseInt(distanceValue.split(".")[0] ?? "0", 10))
-  const [tempDistanceDec, setTempDistanceDec] = useState(parseInt(distanceValue.split(".")[1] ?? "0", 10))
+  const [intPart, decPart] = distanceValue.toString().split(".")
+  const [tempDistanceInt, setTempDistanceInt] = useState(safeParseInt(intPart))
+  const [tempDistanceDec, setTempDistanceDec] = useState(safeParseInt(decPart))
   const [tempDistanceUnit, setTempDistanceUnit] = useState(form.watch("distanceUnit") === "miles" ? "mi" : "km")
 
   return (
@@ -100,8 +103,8 @@ export default function RecordManualActivity({
           <div className="space-y-2">
             <Label>Activity Type</Label>
             <Select
-              value={form.watch("activityType")}
-              onValueChange={(value) => form.setValue("activityType", value)}
+              value={form.watch("workoutType")}
+              onValueChange={(value) => form.setValue("workoutType", value)}
             >
               <SelectTrigger className="flex items-center w-full border rounded-md px-3 py-2 text-left bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors gap-2">
                 <Activity className="w-4 h-4 text-muted-foreground" />
@@ -117,8 +120,8 @@ export default function RecordManualActivity({
                 ))}
               </SelectContent>
             </Select>
-            {form.formState.errors.activityType && (
-              <p className="text-sm text-destructive">{form.formState.errors.activityType.message}</p>
+            {form.formState.errors.workoutType && (
+              <p className="text-sm text-destructive">{form.formState.errors.workoutType.message}</p>
             )}
           </div>
           {/* <div className="space-y-2">
@@ -211,8 +214,9 @@ export default function RecordManualActivity({
             onClose={() => {
               setIsDistancePickerOpen(false)
               const dVal = form.watch("distance") ?? "0.0"
-              setTempDistanceInt(parseInt(dVal.split(".")[0] ?? "0", 10))
-              setTempDistanceDec(parseInt(dVal.split(".")[1] ?? "0", 10))
+              const [intPart, decPart] = dVal.split(".")
+              setTempDistanceInt(safeParseInt(intPart))
+              setTempDistanceDec(safeParseInt(decPart))
               setTempDistanceUnit(form.watch("distanceUnit") === "miles" ? "mi" : "km")
             }}
             title="Set Distance"

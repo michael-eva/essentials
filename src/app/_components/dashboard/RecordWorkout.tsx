@@ -19,7 +19,7 @@ const workoutFormSchema = z.object({
 
 export type WorkoutFormValues = z.infer<typeof workoutFormSchema>
 
-export default function RecordWorkout({ isDialogOpen, setIsDialogOpen, handleSubmitWorkoutDetails, workoutId }: { isDialogOpen: boolean, setIsDialogOpen: (isOpen: boolean) => void, handleSubmitWorkoutDetails: (workoutId: string, data: WorkoutFormValues) => void, workoutId: string }) {
+export default function RecordWorkout({ isDialogOpen, setIsDialogOpen, handleSubmitWorkoutDetails, workoutId, bookedDate, name }: { isDialogOpen: boolean, setIsDialogOpen: (isOpen: boolean) => void, handleSubmitWorkoutDetails: (workoutId: string, data: WorkoutFormValues, bookedDate: Date, name: string) => void, workoutId: string, bookedDate: Date, name: string }) {
   const workoutRatingOptions = [
     "Great",
     "Good",
@@ -41,7 +41,7 @@ export default function RecordWorkout({ isDialogOpen, setIsDialogOpen, handleSub
   })
 
   const onSubmit = (data: WorkoutFormValues) => {
-    handleSubmitWorkoutDetails(workoutId, data)
+    handleSubmitWorkoutDetails(workoutId, data, bookedDate, name)
     form.reset()
   }
 
