@@ -2,24 +2,36 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { MultiSelectPills } from "../global/multi-select-pills"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { useState } from "react"
+import { Clock, Ruler, Activity } from "lucide-react"
+import { WheelPicker } from "./WheelPicker"
+import { CustomInput } from "@/app/_components/dashboard/InputLayout"
+import { DatePicker } from "@/components/ui/date-picker"
 
 const activityFormSchema = z.object({
   activityType: z.string({
     required_error: "Please select an activity type",
   }),
-  duration: z.string().min(1, "Please enter the duration"),
+  date: z.date().optional(),
+  durationHours: z.number().min(0, "Hours must be 0 or greater"),
+  durationMinutes: z.number().min(0, "Minutes must be 0 or greater").max(59, "Minutes must be less than 60"),
   distance: z.string().optional(),
-  ratings: z.array(z.string()).min(1, "Please select at least one rating"),
-  wouldDoAgain: z.enum(["yes", "no"], {
-    required_error: "Please select whether you would do this activity again",
+  distanceUnit: z.enum(["miles", "kilometers"], {
+    required_error: "Please select a distance unit",
   }),
+  ratings: z.array(z.string()).min(1, "Please select at least one rating"),
+  // wouldDoAgain: z.enum(["yes", "no"], {
+  //   required_error: "Please select whether you would do this activity again",
+  // }),
+  // location: z.enum(["indoor", "outdoor"], {
+  //   required_error: "Please select whether this was done indoors or outdoors",
+  // }),
   notes: z.string().optional(),
 })
 
@@ -31,10 +43,8 @@ const ACTIVITY_TYPES = [
   "Swimming",
   "Walking",
   "Hiking",
-  "Weightlifting",
-  "Yoga",
-  "Stretching",
-  "Other"
+  "Rowing",
+  "Elliptical",
 ]
 
 const workoutRatingOptions = [
@@ -61,10 +71,14 @@ export default function RecordManualActivity({
     resolver: zodResolver(activityFormSchema),
     defaultValues: {
       activityType: "",
-      duration: "",
+      date: new Date(),
+      durationHours: 0,
+      durationMinutes: 0,
       distance: "",
+      distanceUnit: "kilometers",
       ratings: [],
-      wouldDoAgain: undefined,
+      // wouldDoAgain: undefined,
+      // location: undefined,
       notes: "",
     },
   })
@@ -74,8 +88,14 @@ export default function RecordManualActivity({
     form.reset()
   }
 
-  const selectedActivity = form.watch("activityType")
-  const isCardioActivity = ["Running", "Cycling", "Swimming", "Walking", "Hiking"].includes(selectedActivity)
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false)
+  const [tempHours, setTempHours] = useState(form.watch("durationHours"))
+  const [tempMinutes, setTempMinutes] = useState(form.watch("durationMinutes"))
+  const [isDistancePickerOpen, setIsDistancePickerOpen] = useState(false)
+  const distanceValue = form.watch("distance") || "0.0"
+  const [tempDistanceInt, setTempDistanceInt] = useState(parseInt(distanceValue.split(".")[0] || "0", 10))
+  const [tempDistanceDec, setTempDistanceDec] = useState(parseInt(distanceValue.split(".")[1] || "0", 10))
+  const [tempDistanceUnit, setTempDistanceUnit] = useState(form.watch("distanceUnit") === "miles" ? "mi" : "km")
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -90,8 +110,11 @@ export default function RecordManualActivity({
               value={form.watch("activityType")}
               onValueChange={(value) => form.setValue("activityType", value)}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select activity type" />
+              <SelectTrigger className="flex items-center w-full border rounded-md px-3 py-2 text-left bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors gap-2">
+                <Activity className="w-4 h-4 text-muted-foreground" />
+                <span className="flex-1 text-left">
+                  <SelectValue placeholder="Select activity type" />
+                </span>
               </SelectTrigger>
               <SelectContent>
                 {ACTIVITY_TYPES.map((type) => (
@@ -105,33 +128,131 @@ export default function RecordManualActivity({
               <p className="text-sm text-destructive">{form.formState.errors.activityType.message}</p>
             )}
           </div>
-
-          <div className="space-y-2">
-            <Label>Duration (minutes)</Label>
-            <Input
-              type="number"
-              placeholder="Enter duration"
-              {...form.register("duration")}
-            />
-            {form.formState.errors.duration && (
-              <p className="text-sm text-destructive">{form.formState.errors.duration.message}</p>
+          {/* <div className="space-y-2">
+            <Label>Location</Label>
+            <RadioGroup
+              value={form.watch("location")}
+              onValueChange={(value) => form.setValue("location", value as "indoor" | "outdoor")}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="indoor" id="location-indoor" />
+                <Label htmlFor="location-indoor">Indoor (Machine)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="outdoor" id="location-outdoor" />
+                <Label htmlFor="location-outdoor">Outdoor</Label>
+              </div>
+            </RadioGroup>
+            {form.formState.errors.location && (
+              <p className="text-sm text-destructive">{form.formState.errors.location.message}</p>
             )}
+          </div> */}
+          <div className="space-y-2">
+            <Label>Date</Label>
+            <DatePicker
+              date={form.watch("date")}
+              onSelect={(date) => form.setValue("date", date)}
+              error={form.formState.errors.date?.message}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Duration</Label>
+            <CustomInput
+              icon={Clock}
+              value={form.watch("durationHours") === 0 && form.watch("durationMinutes") === 0 ? undefined : `${form.watch("durationHours")}h ${form.watch("durationMinutes").toString().padStart(2, '0')}m`}
+              placeholder="Set duration"
+              onClick={() => setIsTimePickerOpen(true)}
+              error={form.formState.errors.durationHours?.message || form.formState.errors.durationMinutes?.message}
+            />
           </div>
 
-          {isCardioActivity && (
-            <div className="space-y-2">
-              <Label>Distance (miles)</Label>
-              <Input
-                type="number"
-                step="0.1"
-                placeholder="Enter distance"
-                {...form.register("distance")}
-              />
-              {form.formState.errors.distance && (
-                <p className="text-sm text-destructive">{form.formState.errors.distance.message}</p>
-              )}
-            </div>
-          )}
+          <WheelPicker
+            isOpen={isTimePickerOpen}
+            onClose={() => {
+              setIsTimePickerOpen(false)
+              setTempHours(form.watch("durationHours"))
+              setTempMinutes(form.watch("durationMinutes"))
+            }}
+            title="Select Duration"
+            columns={[
+              {
+                label: "Hours",
+                value: tempHours,
+                setValue: setTempHours,
+                min: 0,
+                max: 24,
+                format: (v) => v.toString(),
+                unit: "h",
+              },
+              {
+                label: "Minutes",
+                value: tempMinutes,
+                setValue: setTempMinutes,
+                min: 0,
+                max: 59,
+                format: (v) => v.toString().padStart(2, '0'),
+                unit: "m",
+              },
+            ]}
+            onConfirm={() => {
+              form.setValue("durationHours", tempHours)
+              form.setValue("durationMinutes", tempMinutes)
+              setIsTimePickerOpen(false)
+            }}
+          />
+
+          <div className="space-y-2">
+            <Label>Distance</Label>
+            <CustomInput
+              icon={Ruler}
+              value={form.watch("distance") ? `${form.watch("distance")}${form.watch("distanceUnit") === "miles" ? " mi" : " km"}` : undefined}
+              placeholder="Set distance"
+              onClick={() => setIsDistancePickerOpen(true)}
+              error={form.formState.errors.distance?.message}
+            />
+          </div>
+
+          <WheelPicker
+            isOpen={isDistancePickerOpen}
+            onClose={() => {
+              setIsDistancePickerOpen(false)
+              const dVal = form.watch("distance") || "0.0"
+              setTempDistanceInt(parseInt(dVal.split(".")[0] || "0", 10))
+              setTempDistanceDec(parseInt(dVal.split(".")[1] || "0", 10))
+              setTempDistanceUnit(form.watch("distanceUnit") === "miles" ? "mi" : "km")
+            }}
+            title="Set Distance"
+            columns={[
+              {
+                label: "",
+                value: tempDistanceInt,
+                setValue: setTempDistanceInt,
+                min: 0,
+                max: 99,
+                format: (v) => v.toString(),
+              },
+              {
+                label: "",
+                value: tempDistanceDec,
+                setValue: setTempDistanceDec,
+                min: 0,
+                max: 9,
+                format: (v) => "." + v.toString(),
+              },
+              {
+                label: "",
+                value: tempDistanceUnit,
+                setValue: (v: string) => setTempDistanceUnit(v as "km" | "mi"),
+                options: ["km", "mi"],
+              },
+            ]}
+            onConfirm={() => {
+              form.setValue("distance", `${tempDistanceInt}.${tempDistanceDec}`)
+              form.setValue("distanceUnit", tempDistanceUnit === "mi" ? "miles" : "kilometers")
+              setIsDistancePickerOpen(false)
+            }}
+          />
 
           <div className="space-y-2">
             <Label>How was the activity?</Label>
@@ -149,27 +270,6 @@ export default function RecordManualActivity({
             />
             {form.formState.errors.ratings && (
               <p className="text-sm text-destructive">{form.formState.errors.ratings.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Would you do this activity again?</Label>
-            <RadioGroup
-              value={form.watch("wouldDoAgain")}
-              onValueChange={(value) => form.setValue("wouldDoAgain", value as "yes" | "no")}
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="would-do-yes" />
-                <Label htmlFor="would-do-yes">Yes</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="would-do-no" />
-                <Label htmlFor="would-do-no">No</Label>
-              </div>
-            </RadioGroup>
-            {form.formState.errors.wouldDoAgain && (
-              <p className="text-sm text-destructive">{form.formState.errors.wouldDoAgain.message}</p>
             )}
           </div>
 
