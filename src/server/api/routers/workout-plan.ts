@@ -13,6 +13,7 @@ import {
   getWorkoutsToLog,
   getActivityHistory,
   getSupplementaryWorkouts,
+  getActivityHistoryCount,
 } from "@/drizzle/src/db/queries";
 import {
   insertWorkoutActivity,
@@ -80,14 +81,39 @@ export const workoutPlanRouter = createTRPCRouter({
     }
   }),
 
-  getActivityHistory: protectedProcedure.query(async ({ ctx }) => {
+  getActivityHistory: protectedProcedure
+    .input(
+      z
+        .object({
+          limit: z.number().default(5),
+          offset: z.number().default(0),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        return await getActivityHistory(
+          ctx.userId,
+          input?.limit ?? 5,
+          input?.offset ?? 0,
+        );
+      } catch (error) {
+        console.error("Error fetching activity history:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch activity history",
+        });
+      }
+    }),
+
+  getActivityHistoryCount: protectedProcedure.query(async ({ ctx }) => {
     try {
-      return await getActivityHistory(ctx.userId);
+      return await getActivityHistoryCount(ctx.userId);
     } catch (error) {
-      console.error("Error fetching activity history:", error);
+      console.error("Error fetching activity history count:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to fetch activity history",
+        message: "Failed to fetch activity history count",
       });
     }
   }),

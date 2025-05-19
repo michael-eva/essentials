@@ -1,4 +1,4 @@
-import { eq, and, gt, lt, inArray, desc } from "drizzle-orm";
+import { eq, and, gt, lt, inArray, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
@@ -152,11 +152,23 @@ export async function getWorkoutsToLog(userId: string): Promise<Workout[]> {
 
 export async function getActivityHistory(
   userId: string,
+  limit: number = 5,
+  offset: number = 0,
 ): Promise<WorkoutTracking[]> {
   const trackingData = await db
     .select()
     .from(workoutTracking)
     .where(eq(workoutTracking.userId, userId))
-    .orderBy(desc(workoutTracking.date));
+    .orderBy(desc(workoutTracking.date))
+    .limit(limit)
+    .offset(offset);
   return trackingData;
+}
+
+export async function getActivityHistoryCount(userId: string): Promise<number> {
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(workoutTracking)
+    .where(eq(workoutTracking.userId, userId));
+  return result[0]?.count ?? 0;
 }
