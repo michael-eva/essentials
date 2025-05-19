@@ -20,13 +20,18 @@ export default function Dashboard() {
   const { data: upcomingClasses } = api.workoutPlan.getUpcomingClasses.useQuery()
   const { data: pastWorkouts = [] } = api.workoutPlan.getWorkoutsToLog.useQuery()
   const { data: activityHistory = [] } = api.workoutPlan.getActivityHistory.useQuery()
-  const { mutate: insertManualActivity } = api.workoutPlan.insertManualActivity.useMutation()
+  const { mutate: insertManualActivity } = api.workoutPlan.insertManualActivity.useMutation({
+    onSuccess: () => {
+      void utils.workoutPlan.getActivityHistory.invalidate();
+    }
+  })
   const { mutate: insertCompletedClass } = api.workoutPlan.insertCompletedClass.useMutation({
     onSuccess: () => {
       void toast.success("Workout details saved successfully");
       void utils.workoutPlan.getWorkoutsToLog.invalidate();
     }
   })
+
 
   const [selectedWorkout, setSelectedWorkout] = useState<typeof pastWorkouts[0] | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -191,19 +196,19 @@ export default function Dashboard() {
         <CardContent>
           <div className="space-y-4">
             {activityHistory
-              .filter(activity => activity.workout)
+              .filter(activity => activity.name)
               .map((activity, index) => (
                 <div key={index} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                   <div>
-                    <p className="font-medium">{activity.workout?.name}</p>
-                    <p className="text-sm text-muted-foreground">{new Date(activity.workoutTracking?.date ?? '').toLocaleDateString('en-US', {
+                    <p className="font-medium">{activity.name}</p>
+                    <p className="text-sm text-muted-foreground">{new Date(activity?.date ?? '').toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric'
                     })}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{activity.workoutTracking?.durationHours}h {activity.workoutTracking?.durationMinutes}m</p>
+                    {activity.activityType === "workout" && <p className="font-medium">{activity.durationHours}h {activity.durationMinutes}m</p>}
                   </div>
                 </div>
               ))}

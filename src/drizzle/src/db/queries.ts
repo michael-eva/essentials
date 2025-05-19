@@ -1,4 +1,4 @@
-import { eq, and, gt, lt, inArray } from "drizzle-orm";
+import { eq, and, gt, lt, inArray, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
@@ -152,29 +152,11 @@ export async function getWorkoutsToLog(userId: string): Promise<Workout[]> {
 
 export async function getActivityHistory(
   userId: string,
-): Promise<{ workout: Workout; workoutTracking: WorkoutTracking }[]> {
-  const completedWorkouts = await db
-    .select()
-    .from(workout)
-    .where(and(eq(workout.status, "completed"), eq(workout.userId, userId)));
-
-  const workoutIds = completedWorkouts.map((w) => w.id);
+): Promise<WorkoutTracking[]> {
   const trackingData = await db
     .select()
     .from(workoutTracking)
-    .where(inArray(workoutTracking.workoutId, workoutIds));
-
-  return completedWorkouts
-    .map((workout) => {
-      const tracking = trackingData.find((t) => t.workoutId === workout.id);
-      if (!tracking) return null;
-      return {
-        workout,
-        workoutTracking: tracking,
-      };
-    })
-    .filter(
-      (item): item is { workout: Workout; workoutTracking: WorkoutTracking } =>
-        item !== null,
-    );
+    .where(eq(workoutTracking.userId, userId))
+    .orderBy(desc(workoutTracking.date));
+  return trackingData;
 }
