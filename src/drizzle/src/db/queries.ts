@@ -81,13 +81,52 @@ export async function getSupplementaryWorkouts(
   }));
 }
 
-export async function getPreviousPlans(userId: string): Promise<WorkoutPlan[]> {
-  return db
+export async function getPreviousPlans(userId: string): Promise<
+  (WorkoutPlan & {
+    weeklySchedules: { weekNumber: number; items: Workout[] }[];
+  })[]
+> {
+  const plans = await db
     .select()
     .from(workoutPlan)
-    .where(
-      and(eq(workoutPlan.isActive, false), eq(workoutPlan.userId, userId)),
-    );
+    .where(and(eq(workoutPlan.isActive, false), eq(workoutPlan.userId, userId)))
+    .orderBy(desc(workoutPlan.savedAt));
+
+  const plansWithSchedules = await Promise.all(
+    plans.map(async (plan) => {
+      const planWeeklySchedules = await db
+        .select()
+        .from(weeklySchedule)
+        .where(eq(weeklySchedule.planId, plan.id));
+
+      const workoutIds = planWeeklySchedules.map((ws) => ws.workoutId);
+      const planWorkouts = await db
+        .select()
+        .from(workout)
+        .where(inArray(workout.id, workoutIds));
+
+      const weeks = Array.from({ length: plan.weeks }, (_, i) => {
+        const weekNumber = i + 1;
+        const weekSchedules = planWeeklySchedules.filter(
+          (ws) => ws.weekNumber === weekNumber,
+        );
+        const weekWorkouts = weekSchedules
+          .map((ws) => planWorkouts.find((w) => w.id === ws.workoutId))
+          .filter((w): w is Workout => w !== undefined);
+        return {
+          weekNumber,
+          items: weekWorkouts,
+        };
+      });
+
+      return {
+        ...plan,
+        weeklySchedules: weeks,
+      };
+    }),
+  );
+
+  return plansWithSchedules;
 }
 
 export async function getActivePlan(): Promise<

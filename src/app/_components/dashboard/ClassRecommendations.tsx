@@ -3,21 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Trash2, RotateCcw, Edit, Play, Pause, X, Plus } from "lucide-react"
 import { api } from "@/trpc/react"
 import Link from "next/link"
-import type { NewWorkoutPlan, Workout } from "@/drizzle/src/db/queries"
+import type { Workout } from "@/drizzle/src/db/queries"
 import { ConfirmationDialog } from "./ConfirmationDialog"
 
 export default function ClassRecommendations() {
-  const [timeCommitment, setTimeCommitment] = useState("2")
-  const [selectedClasses, setSelectedClasses] = useState<string[]>([])
-  const [planName, setPlanName] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [reinstateDialogOpen, setReinstateDialogOpen] = useState(false)
   const [selectedPlanIndex, setSelectedPlanIndex] = useState<number | null>(null)
+  const [editPlanNameDialogOpen, setEditPlanNameDialogOpen] = useState(false)
+  const [editedPlanName, setEditedPlanName] = useState("")
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -63,7 +62,12 @@ export default function ClassRecommendations() {
       void utils.workoutPlan.getPreviousPlans.invalidate();
     },
   });
-  const showActivePlan = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate
+  const updatePlanName = api.workoutPlan.updatePlanName.useMutation({
+    onSuccess: () => {
+      void utils.workoutPlan.getActivePlan.invalidate();
+    },
+  });
+  const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
   const handleBookClass = () => {
     // bookClassMutation.mutate({
@@ -89,10 +93,13 @@ export default function ClassRecommendations() {
   }
 
   // Helper to get weekly breakdown for a given plan
-  const getWeeklySchedulesForPlan = (weeks: number) => {
+  const getWeeklySchedulesForPlan = (weeks: number, planIndex: number) => {
+    const plan = previousPlans[planIndex];
+    if (!plan) return [];
+
     return Array.from({ length: weeks }, (_, i) => {
       const weekItems = [
-        ...(activePlan?.weeklySchedules?.[i]?.items ?? []),
+        ...(plan.weeklySchedules?.[i]?.items ?? []),
         ...supplementaryWorkouts
       ];
       return {
@@ -201,8 +208,6 @@ export default function ClassRecommendations() {
       title: "Cancel Plan",
       description: "Are you sure you want to cancel this plan? This action cannot be undone.",
       onConfirm: () => {
-        setPlanName("")
-        setSelectedClasses([])
         setConfirmationDialog({ ...confirmationDialog, open: false })
         if (activePlan?.id) {
           cancelPlan.mutate({
@@ -225,28 +230,62 @@ export default function ClassRecommendations() {
       if (!planToReinstate) return
 
       // Set state to reinstated plan
-      setPlanName(planToReinstate.planName)
-      setTimeCommitment(planToReinstate.weeks.toString())
       setReinstateDialogOpen(false)
       setSelectedPlanIndex(null)
     }
   }
 
-  return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h2 className="text-xl md:text-2xl font-bold">Your Personalized Plan</h2>
-        {showActivePlan && (
-          <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 rounded text-sm font-semibold ${activePlan.pausedAt ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-              {activePlan.pausedAt ? 'Paused Plan' : 'Active Plan'}
-            </span>
-            <span className="font-medium text-base">{activePlan.planName}</span>
-          </div>
-        )}
-      </div>
+  const handlePlanNameEdit = () => {
+    if (activePlan?.planName) {
+      setEditedPlanName(activePlan.planName)
+      setEditPlanNameDialogOpen(true)
+    }
+  }
 
-      <Card>
+  const handlePlanNameSave = () => {
+    if (activePlan?.id) {
+      updatePlanName.mutate({
+        planId: activePlan.id,
+        newName: editedPlanName
+      })
+    }
+    setEditPlanNameDialogOpen(false)
+  }
+  return (
+    <div className="space-y- md:space-y-6">
+      {!activePlan && (
+        <div className="flex flex-col items-center justify-center py-12">
+          <h2 className="text-xl md:text-2xl font-bold mb-2">No Active Plan</h2>
+          <p className="text-muted-foreground mb-4 text-center">
+            You don't have an active workout plan yet. Create a new plan to get started on your fitness journey!
+          </p>
+          <Button variant="outline" onClick={() => { /* handle create new plan */ }}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create New Plan
+          </Button>
+        </div>
+      )}
+
+      {activePlan && (
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h2 className="text-xl md:text-2xl font-bold">Your Personalized Plan</h2>
+          <div className="flex items-center gap-2">
+            <span className={`px-3 py-1 rounded text-sm font-semibold ${planStatus === 'active' ? 'bg-green-100 text-green-800' : planStatus === 'paused' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+              {planStatus === 'active' ? 'Active Plan' : planStatus === 'paused' ? 'Paused Plan' : 'Not Started'}
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-base">{activePlan?.planName || 'Not Started'}</span>
+              {activePlan?.planName && (
+                <Button size="sm" variant="ghost" onClick={handlePlanNameEdit}>
+                  <Edit className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activePlan && <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-lg">Your Weekly Plan</CardTitle>
@@ -320,9 +359,9 @@ export default function ClassRecommendations() {
             ))}
           </Accordion>
         </CardContent>
-      </Card>
+      </Card>}
 
-      {!showActivePlan && (
+      {activePlan && planStatus === 'not started' && (
         <div className="flex w-full gap-2 pt-2 justify-between">
           <Button
             variant="outline"
@@ -340,9 +379,9 @@ export default function ClassRecommendations() {
         </div>
       )}
 
-      {showActivePlan && (
+      {(planStatus === 'active' || planStatus === 'paused') && (
         <div className="flex w-full gap-2 pt-2 justify-between">
-          {!activePlan.pausedAt ? (
+          {planStatus === 'active' ? (
             <Button variant="outline" onClick={handlePausePlan}>
               <Pause className="w-4 h-4 mr-2" />
               Pause
@@ -392,7 +431,7 @@ export default function ClassRecommendations() {
                   <CardContent>
                     {/* Accordion for weekly details */}
                     <Accordion type="multiple" className="w-full">
-                      {getWeeklySchedulesForPlan(parseInt(plan.weeks.toString())).map((week) => (
+                      {getWeeklySchedulesForPlan(parseInt(plan.weeks.toString()), idx).map((week) => (
                         <AccordionItem key={week.weekNumber} value={`week-${week.weekNumber}-prev-${idx}`}>
                           <AccordionTrigger className="font-bold text-base px-4 py-3 bg-muted/30">
                             Week {week.weekNumber} <span className="ml-2 font-normal text-sm text-muted-foreground">{week.items.filter(item => item?.type === 'class').length} classes per week</span>
@@ -479,6 +518,36 @@ export default function ClassRecommendations() {
         onConfirm={confirmationDialog.onConfirm}
         variant={confirmationDialog.variant}
       />
+
+      {/* Edit Plan Name Dialog */}
+      <Dialog open={editPlanNameDialogOpen} onOpenChange={setEditPlanNameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Plan Name</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="planName" className="text-sm font-medium">
+                Plan Name
+              </label>
+              <Input
+                id="planName"
+                value={editedPlanName}
+                onChange={(e) => setEditedPlanName(e.target.value)}
+                placeholder="Enter plan name"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditPlanNameDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handlePlanNameSave}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

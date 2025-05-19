@@ -1,8 +1,4 @@
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
@@ -18,11 +14,9 @@ import {
 import {
   insertWorkoutActivity,
   updateCompletedClass,
-  updateWorkoutPlanTiming,
+  updateWorkoutPlan,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
-import { type inferAsyncReturnType } from "@trpc/server";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
 export const workoutPlanRouter = createTRPCRouter({
   getPreviousPlans: protectedProcedure.query(async ({ ctx }) => {
@@ -197,7 +191,7 @@ export const workoutPlanRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        return await updateWorkoutPlanTiming(input.planId, {
+        return await updateWorkoutPlan(input.planId, {
           startDate: new Date(),
           pausedAt: null,
           resumedAt: null,
@@ -220,7 +214,7 @@ export const workoutPlanRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        return await updateWorkoutPlanTiming(input.planId, {
+        return await updateWorkoutPlan(input.planId, {
           pausedAt: new Date(),
         });
       } catch (error) {
@@ -266,7 +260,7 @@ export const workoutPlanRouter = createTRPCRouter({
         const newTotalPausedDuration =
           (currentPlan.totalPausedDuration || 0) + pauseDuration;
 
-        return await updateWorkoutPlanTiming(input.planId, {
+        return await updateWorkoutPlan(input.planId, {
           resumedAt: now,
           pausedAt: null,
           totalPausedDuration: newTotalPausedDuration,
@@ -288,7 +282,7 @@ export const workoutPlanRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const result = await updateWorkoutPlanTiming(input.planId, {
+        const result = await updateWorkoutPlan(input.planId, {
           isActive: false,
         });
 
@@ -310,7 +304,7 @@ export const workoutPlanRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       try {
-        const result = await updateWorkoutPlanTiming(input.planId, {
+        const result = await updateWorkoutPlan(input.planId, {
           isActive: true,
           startDate: null,
           pausedAt: null,
@@ -324,6 +318,22 @@ export const workoutPlanRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to restart workout plan",
+        });
+      }
+    }),
+
+  updatePlanName: protectedProcedure
+    .input(z.object({ planId: z.string(), newName: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        return await updateWorkoutPlan(input.planId, {
+          planName: input.newName,
+        });
+      } catch (error) {
+        console.error("Error updating workout plan name:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update workout plan name",
         });
       }
     }),

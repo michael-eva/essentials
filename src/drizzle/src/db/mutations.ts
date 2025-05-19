@@ -28,7 +28,7 @@ export async function updateCompletedClass(
   return activity;
 }
 
-export async function updateWorkoutPlanTiming(
+export async function updateWorkoutPlan(
   planId: string,
   data: {
     startDate?: Date | null;
@@ -36,6 +36,7 @@ export async function updateWorkoutPlanTiming(
     resumedAt?: Date | null;
     totalPausedDuration?: number;
     isActive?: boolean;
+    planName?: string;
   },
 ) {
   const updatedPlan = await db
