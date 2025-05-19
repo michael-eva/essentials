@@ -18,8 +18,11 @@ import {
 import {
   insertWorkoutActivity,
   updateCompletedClass,
+  updateWorkoutPlanTiming,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
+import { type inferAsyncReturnType } from "@trpc/server";
+import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
 export const workoutPlanRouter = createTRPCRouter({
   getPreviousPlans: protectedProcedure.query(async ({ ctx }) => {
@@ -183,6 +186,145 @@ export const workoutPlanRouter = createTRPCRouter({
       } catch (error) {
         console.error("Error inserting manual activity:", error);
         throw error;
+      }
+    }),
+
+  startWorkoutPlan: protectedProcedure
+    .input(
+      z.object({
+        planId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await updateWorkoutPlanTiming(input.planId, {
+          startDate: new Date(),
+          pausedAt: null,
+          resumedAt: null,
+          totalPausedDuration: 0,
+        });
+      } catch (error) {
+        console.error("Error starting workout plan:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to start workout plan",
+        });
+      }
+    }),
+
+  pauseWorkoutPlan: protectedProcedure
+    .input(
+      z.object({
+        planId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await updateWorkoutPlanTiming(input.planId, {
+          pausedAt: new Date(),
+        });
+      } catch (error) {
+        console.error("Error pausing workout plan:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to pause workout plan",
+        });
+      }
+    }),
+
+  resumeWorkoutPlan: protectedProcedure
+    .input(
+      z.object({
+        planId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // First get the current plan to calculate pause duration
+        const currentPlan = await getActivePlan();
+        if (!currentPlan) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "No active plan found",
+          });
+        }
+
+        const now = new Date();
+        const pausedAt = currentPlan.pausedAt;
+
+        if (!pausedAt) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Plan is not paused",
+          });
+        }
+
+        // Calculate new pause duration
+        const pauseDuration = Math.floor(
+          (now.getTime() - pausedAt.getTime()) / 1000,
+        );
+        const newTotalPausedDuration =
+          (currentPlan.totalPausedDuration || 0) + pauseDuration;
+
+        return await updateWorkoutPlanTiming(input.planId, {
+          resumedAt: now,
+          pausedAt: null,
+          totalPausedDuration: newTotalPausedDuration,
+        });
+      } catch (error) {
+        console.error("Error resuming workout plan:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to resume workout plan",
+        });
+      }
+    }),
+
+  cancelWorkoutPlan: protectedProcedure
+    .input(
+      z.object({
+        planId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const result = await updateWorkoutPlanTiming(input.planId, {
+          isActive: false,
+        });
+
+        return result;
+      } catch (error) {
+        console.error("Error canceling workout plan:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to cancel workout plan",
+        });
+      }
+    }),
+
+  restartWorkoutPlan: protectedProcedure
+    .input(
+      z.object({
+        planId: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const result = await updateWorkoutPlanTiming(input.planId, {
+          isActive: true,
+          startDate: null,
+          pausedAt: null,
+          resumedAt: null,
+          totalPausedDuration: 0,
+        });
+
+        return result;
+      } catch (error) {
+        console.error("Error restarting workout plan:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to restart workout plan",
+        });
       }
     }),
 });

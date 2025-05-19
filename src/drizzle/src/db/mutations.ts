@@ -1,6 +1,11 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { workout, workoutTracking, workoutStatusEnum } from "./schema";
+import {
+  workout,
+  workoutTracking,
+  workoutStatusEnum,
+  workoutPlan,
+} from "./schema";
 import type { NewWorkoutTracking } from "./queries";
 import { eq } from "drizzle-orm";
 
@@ -21,4 +26,21 @@ export async function updateCompletedClass(
     .set({ status })
     .where(eq(workout.id, id));
   return activity;
+}
+
+export async function updateWorkoutPlanTiming(
+  planId: string,
+  data: {
+    startDate?: Date | null;
+    pausedAt?: Date | null;
+    resumedAt?: Date | null;
+    totalPausedDuration?: number;
+    isActive?: boolean;
+  },
+) {
+  const updatedPlan = await db
+    .update(workoutPlan)
+    .set(data)
+    .where(eq(workoutPlan.id, planId));
+  return updatedPlan;
 }

@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
   pgTable,
-  serial,
   text,
   integer,
   boolean,
@@ -84,6 +83,10 @@ export const workoutPlan = pgTable("workout_plan", {
   archived: boolean("archived").notNull().default(false),
   archivedAt: timestamp("archived_at"),
   isActive: boolean("is_active").notNull().default(false),
+  startDate: timestamp("start_date"),
+  pausedAt: timestamp("paused_at"),
+  resumedAt: timestamp("resumed_at"),
+  totalPausedDuration: integer("total_paused_duration").notNull().default(0),
 });
 
 export const weeklySchedule = pgTable("weekly_schedule", {
