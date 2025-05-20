@@ -12,6 +12,7 @@ import {
   getActivityHistoryCount,
 } from "@/drizzle/src/db/queries";
 import {
+  deleteWorkoutPlan,
   insertWorkoutActivity,
   updateCompletedClass,
   updateWorkoutPlan,
@@ -334,6 +335,20 @@ export const workoutPlanRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to update workout plan name",
+        });
+      }
+    }),
+
+  deleteWorkoutPlan: protectedProcedure
+    .input(z.object({ planId: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        return await deleteWorkoutPlan(input.planId);
+      } catch (error) {
+        console.error("Error deleting workout plan:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete workout plan",
         });
       }
     }),

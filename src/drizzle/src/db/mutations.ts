@@ -45,3 +45,9 @@ export async function updateWorkoutPlan(
     .where(eq(workoutPlan.id, planId));
   return updatedPlan;
 }
+export async function deleteWorkoutPlan(planId: string) {
+  const deletedPlan = await db
+    .delete(workoutPlan)
+    .where(eq(workoutPlan.id, planId));
+  return deletedPlan;
+}
