@@ -33,7 +33,7 @@ export function ConfirmationDialog({
               Cancel
             </Button>
             <Button variant={variant} onClick={onConfirm}>
-              {confirmText || title}
+              {confirmText ?? title}
             </Button>
           </div>
         </div>

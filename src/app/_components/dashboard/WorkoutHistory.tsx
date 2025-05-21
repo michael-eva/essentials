@@ -101,7 +101,7 @@ export default function WorkoutHistory() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-                          {activityTypeIcons[workout.name as keyof typeof activityTypeIcons] || <Activity className="h-5 w-5 text-primary" />}
+                          {activityTypeIcons[workout.name!] ?? <Activity className="h-5 w-5 text-primary" />}
                         </div>
                         <span className="font-semibold text-base">{workout.name}</span>
                       </div>

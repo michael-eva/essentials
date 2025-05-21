@@ -28,7 +28,7 @@ export default function ClassRecommendations() {
     open: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => { console.log("confirm") },
     variant: "default"
   })
   const [planToDeleteId, setPlanToDeleteId] = useState<string | null>(null)
@@ -193,7 +193,7 @@ export default function ClassRecommendations() {
       onConfirm: () => {
         setConfirmationDialog({ ...confirmationDialog, open: false })
         pausePlan.mutate({
-          planId: activePlan?.id || "",
+          planId: activePlan?.id ?? "",
         })
       }
     })
@@ -333,7 +333,7 @@ export default function ClassRecommendations() {
         <div className="flex flex-col items-center justify-center py-12">
           <h2 className="text-xl md:text-2xl font-bold mb-2">No Active Plan</h2>
           <p className="text-muted-foreground mb-4 text-center">
-            You don't have an active workout plan yet. Create a new plan to get started on your fitness journey!
+            You don&apos;t have an active workout plan yet. Create a new plan to get started on your fitness journey!
           </p>
           <Button variant="outline" onClick={() => { /* handle create new plan */ }}>
             <Plus className="w-4 h-4 mr-2" />
@@ -385,7 +385,7 @@ export default function ClassRecommendations() {
         <div className="flex w-full gap-2 pt-2 justify-between">
           <Button
             variant="outline"
-            onClick={() => { }}
+            onClick={() => { console.log("create new plan") }}
           >
             <Plus className="w-4 h-4 mr-2" />
             Create New Plan

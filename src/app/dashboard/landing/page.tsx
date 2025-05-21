@@ -20,8 +20,8 @@ export default function LandingPage() {
 
         <div className="space-y-6">
           <p className="text-xl text-muted-foreground leading-relaxed">
-            We've crafted something special just for you. Your fitness goals, your current level, your unique journey -
-            <span className="font-semibold text-foreground"> it's all been carefully considered</span> to create your perfect workout companion.
+            We&apos;ve crafted something special just for you. Your fitness goals, your current level, your unique journey -
+            <span className="font-semibold text-foreground"> it&apos;s all been carefully considered</span> to create your perfect workout companion.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-6">

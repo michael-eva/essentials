@@ -193,8 +193,8 @@ export async function getWorkoutsToLog(userId: string): Promise<Workout[]> {
 
 export async function getActivityHistory(
   userId: string,
-  limit: number = 5,
-  offset: number = 0,
+  limit = 5,
+  offset = 0,
 ): Promise<WorkoutTracking[]> {
   const trackingData = await db
     .select()
