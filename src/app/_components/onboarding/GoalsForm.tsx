@@ -7,6 +7,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Textarea } from "@/components/ui/textarea";
 import FormLayout from "./FormLayout";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
+import { api } from "@/trpc/react";
 
 interface GoalsFormProps {
     isFirstStep?: boolean;
@@ -33,7 +34,7 @@ export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: Goal
             specificGoals: "",
         }
     });
-
+    const { mutate: postFitnessGoals } = api.onboarding.postFitnessGoals.useMutation()
     const handleFitnessGoalsChange = (goal: string) => {
         const currentGoals = watch("fitnessGoals");
         const newGoals = currentGoals.includes(goal)
@@ -48,7 +49,7 @@ export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: Goal
         try {
             let isValid = false;
             await handleSubmit(async (data) => {
-                console.log("Goals data submitted:", data);
+                postFitnessGoals(data);
                 isValid = true;
             })();
             return isValid;

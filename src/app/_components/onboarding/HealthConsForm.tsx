@@ -9,6 +9,7 @@ import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import { Textarea } from "@/components/ui/textarea";
 import FormLayout from "./FormLayout";
+import { api } from "@/trpc/react";
 
 interface HealthConsFormProps {
     isFirstStep?: boolean;
@@ -78,7 +79,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
             pregnancy: undefined,
         }
     });
-
+    const { mutate: postHealthConsiderations } = api.onboarding.postHealthConsiderations.useMutation()
     const hasInjuries = watch("injuries");
     const hasRecentSurgery = watch("recentSurgery");
 
@@ -169,7 +170,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
             setIsSubmitting(true);
             try {
                 // Your submit logic here (e.g., API call)
-                console.log("Health considerations data submitted:", data);
+                postHealthConsiderations(data);
                 isValid = true;
             } catch (error) {
                 console.error("Form validation failed:", error);

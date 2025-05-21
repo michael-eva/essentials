@@ -17,7 +17,7 @@ export const workoutStatusEnum = pgEnum("workout_status", [
 ]);
 
 export const user = pgTable("user", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().unique(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
 });
@@ -106,4 +106,60 @@ export const weeklySchedule = pgTable("weekly_schedule", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+});
+
+export const onboarding = pgTable("onboarding", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id)
+    .unique(),
+  step: text("step").notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .default(sql`now()`),
+
+  name: text("name"),
+  age: integer("age"),
+  height: integer("height"),
+  weight: integer("weight"),
+  gender: text("gender"),
+
+  fitnessLevel: text("fitness_level"),
+  exercises: text("exercises").array(),
+  otherExercises: text("other_exercises").array(),
+  exerciseFrequency: text("exercise_frequency"),
+  sessionLength: text("session_length"),
+
+  injuries: boolean("injuries"),
+  injuriesDetails: text("injuries_details"),
+  recentSurgery: boolean("recent_surgery"),
+  surgeryDetails: text("surgery_details"),
+  chronicConditions: text("chronic_conditions").array(),
+  otherHealthConditions: text("other_health_conditions").array(),
+  pregnancy: text("pregnancy"),
+
+  fitnessGoals: text("fitness_goals").array(),
+  goalTimeline: text("goal_timeline"),
+  specificGoals: text("specific_goals"),
+
+  pilatesExperience: boolean("pilates_experience"),
+  pilatesDuration: text("pilates_duration"),
+  studioFrequency: text("studio_frequency"),
+  sessionPreference: text("session_preference"),
+  instructors: text("instructors").array(),
+  customInstructor: text("custom_instructor"),
+  apparatusPreference: text("apparatus_preference").array(),
+  customApparatus: text("custom_apparatus"),
+
+  motivation: text("motivation").array(),
+  otherMotivation: text("other_motivation").array(),
+  progressTracking: text("progress_tracking").array(),
+  otherProgressTracking: text("other_progress_tracking").array(),
 });

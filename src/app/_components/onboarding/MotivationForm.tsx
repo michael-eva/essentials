@@ -1,3 +1,4 @@
+'use client'
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,6 +7,8 @@ import { STEPS } from "@/app/onboarding/constants";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import FormLayout from "./FormLayout";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 
 interface MotivationFormProps {
     isFirstStep?: boolean;
@@ -44,7 +47,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [customMotivationInput, setCustomMotivationInput] = useState("");
     const [customProgressTrackingInput, setCustomProgressTrackingInput] = useState("");
-    const { register, handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
+    const { register, handleSubmit, formState: { errors, isValid }, control, watch, setValue } = useForm({
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
@@ -54,7 +57,8 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
             otherProgressTracking: [],
         }
     });
-
+    const router = useRouter();
+    const { mutate: postMotivation } = api.onboarding.postMotivation.useMutation()
     const handleMotivationChange = (motivation: string) => {
         const currentMotivations = watch("motivation");
         const newMotivations = currentMotivations.includes(motivation)
@@ -101,14 +105,19 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
         setIsSubmitting(true);
 
         try {
-            let isValid = false;
-            await handleSubmit(async (data) => {
-                console.log("Motivation preferences data submitted:", data);
-                isValid = true;
-            })();
-            return isValid;
+            await handleSubmit(
+                async (data) => {
+                    postMotivation(data);
+                    router.push("/dashboard/landing");
+                },
+                (errors) => {
+                    console.error("Form validation errors:", errors);
+                }
+            )();
+
+            return true;
         } catch (error) {
-            console.error("Form validation failed:", error);
+            console.error("Form submission failed:", error);
             return false;
         } finally {
             setIsSubmitting(false);

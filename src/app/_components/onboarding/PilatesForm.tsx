@@ -8,6 +8,7 @@ import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import FormLayout from "./FormLayout";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { api } from "@/trpc/react";
 
 interface PilatesFormProps {
     isFirstStep?: boolean;
@@ -56,6 +57,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
             customApparatus: "",
         }
     });
+    const { mutate: postPilatesExperience } = api.onboarding.postPilatesExperience.useMutation()
     const pilatesExperience = watch("pilatesExperience");
     const handleInstructorsChange = (instructor: string) => {
         const currentInstructors = watch("instructors");
@@ -97,7 +99,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
         try {
             let isValid = false;
             await handleSubmit(async (data) => {
-                console.log("Pilates preferences data submitted:", data);
+                postPilatesExperience(data);
                 isValid = true;
             })();
             return isValid;

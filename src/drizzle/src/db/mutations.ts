@@ -5,8 +5,9 @@ import {
   workoutTracking,
   workoutStatusEnum,
   workoutPlan,
+  onboarding,
 } from "./schema";
-import type { NewWorkoutTracking } from "./queries";
+import type { NewOnboarding, NewWorkoutTracking } from "./queries";
 import { eq } from "drizzle-orm";
 
 const client = postgres(process.env.DATABASE_URL!);
@@ -50,4 +51,23 @@ export async function deleteWorkoutPlan(planId: string) {
     .delete(workoutPlan)
     .where(eq(workoutPlan.id, planId));
   return deletedPlan;
+}
+
+export async function insertOnboarding(data: NewOnboarding) {
+  try {
+    const result = await db
+      .insert(onboarding)
+      .values(data)
+      .onConflictDoUpdate({
+        target: onboarding.userId,
+        set: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      });
+    return result;
+  } catch (error) {
+    console.error("Database error:", error);
+    throw new Error("Failed to insert/update onboarding data");
+  }
 }

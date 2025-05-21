@@ -1,5 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { workoutPlanRouter } from "./routers/workout-plan";
+import { onboardingRouter } from "./routers/onboarding";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +9,7 @@ import { workoutPlanRouter } from "./routers/workout-plan";
  */
 export const appRouter = createTRPCRouter({
   workoutPlan: workoutPlanRouter,
+  onboarding: onboardingRouter,
 });
 
 // export type definition of API

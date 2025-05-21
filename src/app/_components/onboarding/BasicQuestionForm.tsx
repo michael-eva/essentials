@@ -7,6 +7,7 @@ import Input from "../global/Input";
 import { STEPS } from "@/app/onboarding/constants";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import FormLayout from "./FormLayout";
+import { api } from "@/trpc/react";
 
 const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -56,14 +57,14 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
         resolver: zodResolver(formSchema),
         mode: "onChange",
     });
-
+    const { mutate: postBasicQuestions } = api.onboarding.postBasicQuestions.useMutation();
     const onSubmit = async (): Promise<boolean> => {
         setIsSubmitting(true);
 
         try {
             let isValid = false;
             await handleSubmit(async (data) => {
-                console.log("Form data submitted:", data);
+                postBasicQuestions(data);
                 isValid = true;
             })();
             return isValid;

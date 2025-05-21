@@ -8,6 +8,7 @@ import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import FormLayout from "./FormLayout";
 import { Button } from "@/components/ui/button";
+import { api } from "@/trpc/react";
 
 interface FitnessBgFormProps {
     isFirstStep?: boolean;
@@ -56,7 +57,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
             customExercise: "",
         }
     });
-
+    const { mutate: postFitnessBackground } = api.onboarding.postFitnessBackground.useMutation()
     const handleExerciseChange = (exercise: string) => {
         const currentExercises = watch("exercises");
         const newExercises = currentExercises.includes(exercise)
@@ -85,7 +86,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
         try {
             let isValid = false;
             await handleSubmit(async (data) => {
-                console.log("Fitness background data submitted:", data);
+                postFitnessBackground(data);
                 isValid = true;
             })();
             return isValid;
