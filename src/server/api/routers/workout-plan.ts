@@ -10,6 +10,7 @@ import {
   getActivityHistory,
   getSupplementaryWorkouts,
   getActivityHistoryCount,
+  checkOnboardingCompletion,
 } from "@/drizzle/src/db/queries";
 import {
   deleteWorkoutPlan,
@@ -352,4 +353,14 @@ export const workoutPlanRouter = createTRPCRouter({
         });
       }
     }),
+  generatePlan: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.userId;
+    const isCompleted = await checkOnboardingCompletion(userId);
+
+    if (!isCompleted) {
+      throw new Error("Onboarding is not completed");
+    }
+
+    console.log("Generating plan");
+  }),
 });

@@ -8,12 +8,12 @@ import { Trash2, RotateCcw, Edit, Play, Pause, X, Plus } from "lucide-react"
 import { api } from "@/trpc/react"
 import { ConfirmationDialog } from "./ConfirmationDialog"
 import WeeklySchedule from "./WeeklySchedule"
+import useGeneratePlan from "@/hooks/useGeneratePlan"
 
 
 
 export default function ClassRecommendations() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [reinstateDialogOpen, setReinstateDialogOpen] = useState(false)
   const [editPlanNameDialogOpen, setEditPlanNameDialogOpen] = useState(false)
   const [editedPlanName, setEditedPlanName] = useState("")
   const [editingWeeks, setEditingWeeks] = useState<Set<number>>(new Set())
@@ -74,6 +74,7 @@ export default function ClassRecommendations() {
       void utils.workoutPlan.getPreviousPlans.invalidate();
     },
   });
+  const { generatePlan } = useGeneratePlan();
   const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
   const handleBookClass = () => {
@@ -327,6 +328,10 @@ export default function ClassRecommendations() {
     })
   }
 
+  const handleGeneratePlan = () => {
+    generatePlan();
+  }
+
   return (
     <div>
       {!activePlan && (
@@ -335,7 +340,7 @@ export default function ClassRecommendations() {
           <p className="text-muted-foreground mb-4 text-center">
             You don&apos;t have an active workout plan yet. Create a new plan to get started on your fitness journey!
           </p>
-          <Button variant="outline" onClick={() => { /* handle create new plan */ }}>
+          <Button variant="outline" onClick={handleGeneratePlan}>
             <Plus className="w-4 h-4 mr-2" />
             Create New Plan
           </Button>
@@ -385,7 +390,7 @@ export default function ClassRecommendations() {
         <div className="flex w-full gap-2 pt-2 justify-between">
           <Button
             variant="outline"
-            onClick={() => { console.log("create new plan") }}
+            onClick={handleGeneratePlan}
           >
             <Plus className="w-4 h-4 mr-2" />
             Create New Plan

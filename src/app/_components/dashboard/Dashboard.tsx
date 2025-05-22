@@ -14,6 +14,7 @@ import type { ActivityFormValues } from "./RecordManualActivity"
 import toast from "react-hot-toast"
 import { workoutStatusEnum } from "@/drizzle/src/db/schema"
 import { useRouter } from "next/navigation"
+import useGeneratePlan from "@/hooks/useGeneratePlan"
 type WorkoutStatus = typeof workoutStatusEnum.enumValues[number]
 
 export default function Dashboard() {
@@ -32,6 +33,7 @@ export default function Dashboard() {
       void utils.workoutPlan.getWorkoutsToLog.invalidate();
     }
   })
+  const { generatePlan } = useGeneratePlan();
 
   const router = useRouter()
 
@@ -96,7 +98,7 @@ export default function Dashboard() {
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
               <Button
                 className="w-full"
-                onClick={() => router.push('/plans')}
+                onClick={() => generatePlan()}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Workout Plan

@@ -183,4 +183,10 @@ export const onboardingRouter = createTRPCRouter({
         step: isCompleted ? "completed" : "motivation",
       });
     }),
+
+  checkOnboardingCompletion: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.userId;
+    const isCompleted = await checkOnboardingCompletion(userId);
+    return isCompleted;
+  }),
 });
