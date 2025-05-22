@@ -92,7 +92,7 @@ export default function Dashboard() {
               <CalendarDays className="h-12 w-12 text-muted-foreground" />
               <h3 className="text-lg font-semibold">No Upcoming Classes</h3>
               <p className="text-sm text-muted-foreground max-w-sm">
-                You don't have any classes scheduled. Create a workout plan to get started with your fitness journey!
+                You don&apos;t have any classes scheduled. Create a workout plan to get started with your fitness journey!
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">

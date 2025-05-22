@@ -224,7 +224,7 @@ export async function checkOnboardingCompletion(
 
   if (onboardingData.length === 0) return false;
 
-  const data = onboardingData[0] as NonNullable<(typeof onboardingData)[0]>;
+  const data = onboardingData[0]!;
 
   return (
     data.name !== null &&
