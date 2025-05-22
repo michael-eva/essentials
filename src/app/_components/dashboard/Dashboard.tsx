@@ -82,9 +82,35 @@ export default function Dashboard() {
     <div className="space-y-4">
       <DashboardCardLayout
         title="Upcoming Classes"
-        description="Your scheduled sessions"
+        description={upcomingClasses ? "Your scheduled sessions:" : "No upcoming classes scheduled"}
       >
-        {upcomingClasses && upcomingClasses.length > 0 ? (
+        {!upcomingClasses ? (
+          <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-4 bg-muted/50 rounded-lg border border-dashed">
+            <div className="flex flex-col items-center space-y-2">
+              <CalendarDays className="h-12 w-12 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">No Upcoming Classes</h3>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                You don't have any classes scheduled. Create a workout plan to get started with your fitness journey!
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+              <Button
+                className="w-full"
+                onClick={() => router.push('/plans')}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Workout Plan
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setIsManualActivityDialogOpen(true)}
+              >
+                Record Activity
+              </Button>
+            </div>
+          </div>
+        ) : (
           upcomingClasses.map((classItem, index) => (
             <div key={index} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
               <div>
@@ -111,8 +137,6 @@ export default function Dashboard() {
               </div>
             </div>
           ))
-        ) : (
-          <p className="text-sm text-muted-foreground">No upcoming classes scheduled</p>
         )}
       </DashboardCardLayout>
 
