@@ -63,7 +63,7 @@ export default function LandingPage() {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => router.push("/dashboard/1/dashboard")}
+            onClick={() => router.push("/dashboard/overview")}
             className="hover:bg-muted/50"
           >
             Skip for Now

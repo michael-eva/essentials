@@ -8,17 +8,16 @@ import { cn } from "@/lib/utils"
 
 type PageProps = {
   params: Promise<{
-    userId: string;
     tabs: string;
   }>;
 }
 
 export default function Home({ params }: PageProps) {
-  const { userId, tabs } = use(params);
+  const { tabs } = use(params);
 
   const renderContent = () => {
     switch (tabs) {
-      case 'dashboard':
+      case 'overview':
         return <Dashboard />;
       case 'your-plan':
         return <ClassRecommendations />;
@@ -36,16 +35,16 @@ export default function Home({ params }: PageProps) {
       <div className="w-full">
         <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground mb-8 w-full">
           <Link
-            href={`/dashboard/${userId}/dashboard`}
+            href={`/dashboard/overview`}
             className={cn(
               "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-              tabs === 'dashboard' ? "bg-background text-foreground shadow-sm" : "hover:bg-background hover:text-foreground"
+              tabs === 'overview' ? "bg-background text-foreground shadow-sm" : "hover:bg-background hover:text-foreground"
             )}
           >
             Dashboard
           </Link>
           <Link
-            href={`/dashboard/${userId}/your-plan`}
+            href={`/dashboard/your-plan`}
             className={cn(
               "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
               tabs === 'your-plan' ? "bg-background text-foreground shadow-sm" : "hover:bg-background hover:text-foreground"
@@ -54,7 +53,7 @@ export default function Home({ params }: PageProps) {
             Your Plan
           </Link>
           <Link
-            href={`/dashboard/${userId}/history`}
+            href={`/dashboard/history`}
             className={cn(
               "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
               tabs === 'history' ? "bg-background text-foreground shadow-sm" : "hover:bg-background hover:text-foreground"
