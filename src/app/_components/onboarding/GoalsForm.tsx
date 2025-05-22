@@ -16,7 +16,7 @@ interface GoalsFormProps {
     currentStep: typeof STEPS[number];
 }
 
-const formSchema = z.object({
+export const formSchema = z.object({
     fitnessGoals: z.array(z.string()).min(1, "Please select at least one goal"),
     goalTimeline: z.enum(["1-3 months", "3-6 months", "6-12 months", "More than a year"], {
         required_error: "Please select your goal timeline",

@@ -6,6 +6,7 @@ import { Geist } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/react";
 import { ThemeProvider } from "./_components/theme-provider";
 import { Toaster } from 'react-hot-toast'
+import AppLayout from "./_components/common/AppLayout";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -24,10 +25,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground">
-        <ThemeProvider defaultTheme="light" storageKey="app-theme">
-          <TRPCReactProvider>{children}</TRPCReactProvider>
-        </ThemeProvider>
-        <Toaster />
+        <AppLayout>
+          <ThemeProvider defaultTheme="light" storageKey="app-theme">
+            <TRPCReactProvider>{children}</TRPCReactProvider>
+          </ThemeProvider>
+          <Toaster />
+        </AppLayout>
       </body>
     </html>
   );

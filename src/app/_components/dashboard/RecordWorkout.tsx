@@ -8,6 +8,7 @@ import { MultiSelectPills } from "../global/multi-select-pills"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { Card } from "@/components/ui/card"
 
 const workoutFormSchema = z.object({
   ratings: z.array(z.string()).min(1, "Please select at least one rating"),
@@ -106,6 +107,7 @@ export default function RecordWorkout({ isDialogOpen, setIsDialogOpen, handleSub
             <Button
               type="button"
               variant="outline"
+              className="border-[var(--border)] text-[var(--primary)]"
               onClick={() => {
                 setIsDialogOpen(false)
                 form.reset()
@@ -113,7 +115,7 @@ export default function RecordWorkout({ isDialogOpen, setIsDialogOpen, handleSub
             >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[color:var(--primary)]/90">
               Save Details
             </Button>
           </DialogFooter>

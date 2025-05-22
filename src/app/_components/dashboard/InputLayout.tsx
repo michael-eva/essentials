@@ -19,9 +19,9 @@ const InputLayout = React.forwardRef<HTMLButtonElement, CustomInputProps>(
           ref={ref}
           type="button"
           className={cn(
-            "flex items-center w-full border rounded-md px-3 py-2 text-left bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors",
-            !value && "text-muted-foreground",
-            error && "border-destructive focus:ring-destructive/50",
+            "flex items-center w-full border rounded-md px-3 py-2 text-left bg-[var(--background)] text-[var(--foreground)] border-[var(--input)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 transition-colors",
+            !value && "text-[var(--muted-foreground)]",
+            error && "border-[var(--destructive)] focus:ring-[var(--destructive)]/50",
             className
           )}
           {...props}

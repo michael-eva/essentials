@@ -21,6 +21,7 @@ export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
 export type NewWorkoutPlan = InferInsertModel<typeof workoutPlan>;
 export type NewWeeklySchedule = InferInsertModel<typeof weeklySchedule>;
 export type NewOnboarding = InferInsertModel<typeof onboarding>;
+export type Onboarding = InferSelectModel<typeof onboarding>;
 
 // Initialize database connection
 const client = postgres(process.env.DATABASE_URL!);
@@ -249,4 +250,13 @@ export async function checkOnboardingCompletion(
     data.motivation !== null &&
     data.progressTracking !== null
   );
+}
+
+export async function getOnboardingData(userId: string): Promise<Onboarding> {
+  const onboardingData = await db
+    .select()
+    .from(onboarding)
+    .where(eq(onboarding.userId, userId));
+
+  return onboardingData[0]!;
 }

@@ -17,7 +17,7 @@ interface MotivationFormProps {
     currentStep: typeof STEPS[number];
 }
 
-const formSchema = z.object({
+export const formSchema = z.object({
     motivation: z.array(z.string()).min(1, "Please select at least one motivation factor"),
     otherMotivation: z.array(z.string()).optional(),
     progressTracking: z.array(z.string()).min(1, "Please select at least one progress tracking method"),

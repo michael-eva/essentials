@@ -18,7 +18,7 @@ interface HealthConsFormProps {
     currentStep: typeof STEPS[number];
 }
 
-const formSchema = z.object({
+export const formSchema = z.object({
     injuries: z.boolean({
         required_error: "Please indicate if you have any injuries",
     }),

@@ -50,7 +50,7 @@
   --radius: 0.625rem;
   
   /* Vibrant color palette - Light theme */
-  --background: hsl(0 0% 100%);
+  --background: hsl(0.00,0.00%,96.08%);
   --foreground: hsl(222 47% 25%);
   
   --card: hsl(210 40% 98%);

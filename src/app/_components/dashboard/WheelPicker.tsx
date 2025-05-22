@@ -81,19 +81,19 @@ export function WheelPicker({
                       }}
                     >
                       {/* Top faded value */}
-                      <div className="h-[44px] flex items-center justify-center text-lg text-muted-foreground opacity-50 select-none">
+                      <div className="h-[44px] flex items-center justify-center text-lg text-[var(--muted-foreground)] opacity-50 select-none">
                         {value > min ? format(value - 1) : ''}
                       </div>
                       {/* Divider */}
-                      <div className="absolute left-0 right-0 top-[44px] h-px bg-border" />
+                      <div className="absolute left-0 right-0 top-[44px] h-px bg-[var(--border)]" />
                       {/* Selected value */}
-                      <div className="h-[44px] flex items-center justify-center text-2xl font-bold text-foreground select-none">
+                      <div className="h-[44px] flex items-center justify-center text-2xl font-bold text-[var(--foreground)] select-none">
                         {format(value)} {col.unit && <span className="text-base font-normal ml-1">{col.unit}</span>}
                       </div>
                       {/* Divider */}
-                      <div className="absolute left-0 right-0 top-[88px] h-px bg-border" />
+                      <div className="absolute left-0 right-0 top-[88px] h-px bg-[var(--border)]" />
                       {/* Bottom faded value */}
-                      <div className="h-[44px] flex items-center justify-center text-lg text-muted-foreground opacity-50 select-none">
+                      <div className="h-[44px] flex items-center justify-center text-lg text-[var(--muted-foreground)] opacity-50 select-none">
                         {value < max ? format(value + 1) : ''}
                       </div>
                       {/* Clickable overlay */}
@@ -105,7 +105,7 @@ export function WheelPicker({
                         }}
                       />
                     </div>
-                    <div className="mt-1 text-xs text-muted-foreground">{col.label}</div>
+                    <div className="mt-1 text-xs text-[var(--muted-foreground)]">{col.label}</div>
                   </div>
                 )
               }
@@ -139,19 +139,19 @@ export function WheelPicker({
                       }}
                     >
                       {/* Top faded value */}
-                      <div className="h-[44px] flex items-center justify-center text-lg text-muted-foreground opacity-50 select-none">
+                      <div className="h-[44px] flex items-center justify-center text-lg text-[var(--muted-foreground)] opacity-50 select-none">
                         {idxValue > 0 && options[idxValue - 1] ? options[idxValue - 1] : ''}
                       </div>
                       {/* Divider */}
-                      <div className="absolute left-0 right-0 top-[44px] h-px bg-border" />
+                      <div className="absolute left-0 right-0 top-[44px] h-px bg-[var(--border)]" />
                       {/* Selected value */}
-                      <div className="h-[44px] flex items-center justify-center text-2xl font-bold text-foreground select-none">
+                      <div className="h-[44px] flex items-center justify-center text-2xl font-bold text-[var(--foreground)] select-none">
                         {value}
                       </div>
                       {/* Divider */}
-                      <div className="absolute left-0 right-0 top-[88px] h-px bg-border" />
+                      <div className="absolute left-0 right-0 top-[88px] h-px bg-[var(--border)]" />
                       {/* Bottom faded value */}
-                      <div className="h-[44px] flex items-center justify-center text-lg text-muted-foreground opacity-50 select-none">
+                      <div className="h-[44px] flex items-center justify-center text-lg text-[var(--muted-foreground)] opacity-50 select-none">
                         {idxValue < options.length - 1 && options[idxValue + 1] ? options[idxValue + 1] : ''}
                       </div>
                       {/* Clickable overlay */}
@@ -170,7 +170,7 @@ export function WheelPicker({
                         }}
                       />
                     </div>
-                    <div className="mt-1 text-xs text-muted-foreground">{col.label}</div>
+                    <div className="mt-1 text-xs text-[var(--muted-foreground)]">{col.label}</div>
                   </div>
                 )
               }

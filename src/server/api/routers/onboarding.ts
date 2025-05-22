@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { insertOnboarding } from "@/drizzle/src/db/mutations";
-import { checkOnboardingCompletion } from "@/drizzle/src/db/queries";
+import {
+  checkOnboardingCompletion,
+  getOnboardingData,
+} from "@/drizzle/src/db/queries";
 
 export const onboardingRouter = createTRPCRouter({
   postBasicQuestions: protectedProcedure
@@ -188,5 +191,10 @@ export const onboardingRouter = createTRPCRouter({
     const userId = ctx.userId;
     const isCompleted = await checkOnboardingCompletion(userId);
     return isCompleted;
+  }),
+  getOnboardingData: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.userId;
+    const onboardingData = await getOnboardingData(userId);
+    return onboardingData;
   }),
 });

@@ -9,6 +9,7 @@ import { api } from "@/trpc/react"
 import { ConfirmationDialog } from "./ConfirmationDialog"
 import WeeklySchedule from "./WeeklySchedule"
 import useGeneratePlan from "@/hooks/useGeneratePlan"
+import { motion } from "framer-motion"
 
 
 
@@ -333,155 +334,223 @@ export default function ClassRecommendations() {
   }
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
       {!activePlan && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <h2 className="text-xl md:text-2xl font-bold mb-2">No Active Plan</h2>
-          <p className="text-muted-foreground mb-4 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-lg border border-gray-100"
+        >
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">No Active Plan</h2>
+          <p className="text-gray-500 mb-6 text-center max-w-md">
             You don&apos;t have an active workout plan yet. Create a new plan to get started on your fitness journey!
           </p>
-          <Button variant="outline" onClick={handleGeneratePlan}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create New Plan
-          </Button>
-        </div>
-      )}
-
-      {activePlan && (
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-xl md:text-2xl font-bold">Your Personalized Plan</h2>
-          <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 rounded text-sm font-semibold ${planStatus === 'active' ? 'bg-green-100 text-green-800' : planStatus === 'paused' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
-              {planStatus === 'active' ? 'Active Plan' : planStatus === 'paused' ? 'Paused Plan' : 'Not Started'}
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-base">{activePlan?.planName || 'Not Started'}</span>
-              {activePlan?.planName && (
-                <Button size="sm" variant="ghost" onClick={handlePlanNameEdit}>
-                  <Edit className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activePlan && <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-lg">Your Weekly Plan</CardTitle>
-          </div>
-          <CardDescription>Combined classes and supplementary workouts</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <WeeklySchedule
-            weeks={getWeeklySchedules()}
-            isEditing={planStatus === 'not started'}
-            onDeleteClass={handleDeleteClass}
-            onAddClass={handleAddNewClass}
-            onBookClass={handleBookClass}
-            editingWeeks={editingWeeks}
-            onToggleWeekEdit={toggleWeekEdit}
-          />
-        </CardContent>
-      </Card>}
-
-      {activePlan && planStatus === 'not started' && (
-        <div className="flex w-full gap-2 pt-2 justify-between">
           <Button
             variant="outline"
             onClick={handleGeneratePlan}
+            className="border-gray-200 text-accent hover:bg-gray-50 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create New Plan
+          </Button>
+        </motion.div>
+      )}
+
+      {activePlan && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
+            <CardHeader className="px-6 pt-6 pb-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-2xl font-semibold text-gray-900">Your Personalized Plan</CardTitle>
+                  <CardDescription className="text-gray-500">Combined classes and supplementary workouts</CardDescription>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${planStatus === 'active'
+                    ? 'bg-[#34C759]/10 text-[#34C759]'
+                    : planStatus === 'paused'
+                      ? 'bg-[#FF9500]/10 text-[#FF9500]'
+                      : 'bg-gray-100 text-gray-600'
+                    }`}>
+                    {planStatus === 'active' ? 'Active Plan' : planStatus === 'paused' ? 'Paused Plan' : 'Not Started'}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900">{activePlan?.planName || 'Not Started'}</span>
+                    {activePlan?.planName && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handlePlanNameEdit}
+                        className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <WeeklySchedule
+                weeks={getWeeklySchedules()}
+                isEditing={planStatus === 'not started'}
+                onDeleteClass={handleDeleteClass}
+                onAddClass={handleAddNewClass}
+                onBookClass={handleBookClass}
+                editingWeeks={editingWeeks}
+                onToggleWeekEdit={toggleWeekEdit}
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {activePlan && planStatus === 'not started' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="flex w-full gap-3 pt-2 justify-between"
+        >
+          <Button
+            variant="outline"
+            onClick={handleGeneratePlan}
+            className="border-gray-200 text-accent hover:bg-gray-50 transition-colors"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create New Plan
           </Button>
           <Button
             onClick={handleStartPlan}
+            className="bg-accent text-white hover:bg-accent/90 transition-colors"
           >
             <Play className="w-4 h-4 mr-2" />
             Start Plan
           </Button>
-        </div>
+        </motion.div>
       )}
 
       {(planStatus === 'active' || planStatus === 'paused') && (
-        <div className="flex w-full gap-2 pt-2 justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="flex w-full gap-3 pt-2 justify-between"
+        >
           {planStatus === 'active' ? (
-            <Button variant="outline" onClick={handlePausePlan}>
+            <Button
+              variant="outline"
+              onClick={handlePausePlan}
+              className="border-gray-200 text-[#FF9500] hover:bg-[#FF9500]/10 transition-colors"
+            >
               <Pause className="w-4 h-4 mr-2" />
               Pause
             </Button>
           ) : (
-            <Button variant="outline" onClick={handleStartPlan}>
+            <Button
+              variant="outline"
+              onClick={handleStartPlan}
+              className="border-gray-200 text-[#34C759] hover:bg-[#34C759]/10 transition-colors"
+            >
               <Play className="w-4 h-4 mr-2" />
               Resume
             </Button>
           )}
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleRestartPlan} className="bg-muted-foreground/40">
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleRestartPlan}
+              className="border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+            >
               <RotateCcw className="w-4 h-4 mr-2" />
               Reset
             </Button>
-            <Button variant="destructive" onClick={handleCancelPlan}>
+            <Button
+              variant="destructive"
+              onClick={handleCancelPlan}
+              className="bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90 transition-colors"
+            >
               <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {previousPlans.length > 0 && (
-        <div className="pt-8">
-          <h3 className="text-lg font-semibold mb-4">Previous Plans</h3>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="pt-8"
+        >
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Previous Plans</h3>
           <div className="space-y-4">
             {[...previousPlans]
               .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime())
               .map((plan, idx) => (
-                <Card key={idx} className="border border-muted-foreground/10">
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle className="text-base">{plan.planName}</CardTitle>
-                      <CardDescription>{plan.weeks} Week Plan</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{new Date(plan.savedAt).toLocaleDateString()}</span>
-                      <div className="flex gap-1 ml-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleReinstatePlan(idx)}
-                          className="h-8"
-                          aria-label="Reinstate plan"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-                          <span className="hidden sm:inline">Reinstate</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeletePreviousPlan(idx)}
-                          className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                          aria-label="Delete plan"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                          <span className="hidden sm:inline">Delete</span>
-                        </Button>
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.1 }}
+                >
+                  <Card className="border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all">
+                    <CardHeader className="flex flex-row items-center justify-between px-6 py-4">
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-gray-900">{plan.planName}</CardTitle>
+                        <CardDescription className="text-gray-500">{plan.weeks} Week Plan</CardDescription>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <WeeklySchedule
-                      weeks={getWeeklySchedulesForPlan(parseInt(plan.weeks.toString()), idx)}
-                      accordionValuePrefix={`prev-${idx}-`}
-                    />
-                  </CardContent>
-                </Card>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">{new Date(plan.savedAt).toLocaleDateString()}</span>
+                        <div className="flex gap-2 ml-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleReinstatePlan(idx)}
+                            className="h-8 border-gray-200 text-[#007AFF] hover:bg-gray-50 transition-colors"
+                            aria-label="Reinstate plan"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                            <span className="hidden sm:inline">Reinstate</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeletePreviousPlan(idx)}
+                            className="h-8 border-gray-200 text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
+                            aria-label="Delete plan"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                            <span className="hidden sm:inline">Delete</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <WeeklySchedule
+                        weeks={getWeeklySchedulesForPlan(parseInt(plan.weeks.toString()), idx)}
+                        accordionValuePrefix={`prev-${idx}-`}
+                      />
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Dialogs */}
       <ConfirmationDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
@@ -491,7 +560,6 @@ export default function ClassRecommendations() {
         variant="destructive"
       />
 
-      {/* Reusable Confirmation Dialog */}
       <ConfirmationDialog
         open={confirmationDialog.open}
         onOpenChange={(open) => setConfirmationDialog({ ...confirmationDialog, open })}
@@ -501,15 +569,14 @@ export default function ClassRecommendations() {
         variant={confirmationDialog.variant}
       />
 
-      {/* Edit Plan Name Dialog */}
       <Dialog open={editPlanNameDialogOpen} onOpenChange={setEditPlanNameDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit Plan Name</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-gray-900">Edit Plan Name</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label htmlFor="planName" className="text-sm font-medium">
+              <label htmlFor="planName" className="text-sm font-medium text-gray-700">
                 Plan Name
               </label>
               <Input
@@ -517,13 +584,21 @@ export default function ClassRecommendations() {
                 value={editedPlanName}
                 onChange={(e) => setEditedPlanName(e.target.value)}
                 placeholder="Enter plan name"
+                className="border-gray-200 focus:border-[#007AFF] focus:ring-[#007AFF]"
               />
             </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setEditPlanNameDialogOpen(false)}>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setEditPlanNameDialogOpen(false)}
+                className="border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+              >
                 Cancel
               </Button>
-              <Button onClick={handlePlanNameSave}>
+              <Button
+                onClick={handlePlanNameSave}
+                className="bg-[#007AFF] text-white hover:bg-[#007AFF]/90 transition-colors"
+              >
                 Save Changes
               </Button>
             </div>
@@ -531,29 +606,35 @@ export default function ClassRecommendations() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Class Dialog */}
       <Dialog open={addClassDialogOpen} onOpenChange={setAddClassDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add New Class</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-gray-900">Add New Class</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {/* TODO: Add class selection UI here */}
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setAddClassDialogOpen(false)}>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setAddClassDialogOpen(false)}
+                className="border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+              >
                 Cancel
               </Button>
-              <Button onClick={() => {
-                // TODO: Implement add class mutation
-                setAddClassDialogOpen(false)
-              }}>
+              <Button
+                onClick={() => {
+                  // TODO: Implement add class mutation
+                  setAddClassDialogOpen(false)
+                }}
+                className="bg-[#007AFF] text-white hover:bg-[#007AFF]/90 transition-colors"
+              >
                 Add Class
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   )
 }
 

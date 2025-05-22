@@ -17,7 +17,7 @@ interface PilatesFormProps {
     currentStep: typeof STEPS[number];
 }
 
-const formSchema = z.object({
+export const formSchema = z.object({
     pilatesExperience: z.boolean({
         required_error: "Please indicate if you have Pilates experience",
     }),

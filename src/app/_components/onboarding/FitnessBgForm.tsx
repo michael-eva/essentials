@@ -17,7 +17,7 @@ interface FitnessBgFormProps {
     currentStep: typeof STEPS[number];
 }
 
-const formSchema = z.object({
+export const formSchema = z.object({
     fitnessLevel: z.enum(["Beginner", "Intermediate", "Advanced"], {
         required_error: "Fitness level is required",
     }),

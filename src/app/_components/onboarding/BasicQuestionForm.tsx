@@ -10,7 +10,7 @@ import FormLayout from "./FormLayout";
 import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
 
-const formSchema = z.object({
+export const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
     age: z.preprocess(
         (val) => {

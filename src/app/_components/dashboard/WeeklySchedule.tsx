@@ -64,8 +64,8 @@ export default function WeeklySchedule({
                   <div
                     key={index}
                     className={`py-3 px-3 flex flex-col gap-2 border-l-4 rounded border-b ${workout.type === 'class'
-                      ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/5'
-                      : 'border-[color:var(--chart-4)] bg-[color:var(--chart-4)]/5'
+                      ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/10'
+                      : 'border-[color:var(--chart-4)] bg-[color:var(--chart-4)]/10'
                       }`}
                   >
                     <div className="flex justify-between items-start">
@@ -85,10 +85,10 @@ export default function WeeklySchedule({
                           <span className="font-semibold text-base">{workout.name}</span>
                         </div>
                         <div className="flex gap-1 mb-1">
-                          <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
+                          <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
                             {workout.level}
                           </span>
-                          <span className="text-xs rounded bg-secondary/10 text-secondary px-2 py-0.5">
+                          <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
                             {workout.duration} min
                           </span>
                         </div>
