@@ -213,3 +213,40 @@ export async function getActivityHistoryCount(userId: string): Promise<number> {
     .where(eq(workoutTracking.userId, userId));
   return result[0]?.count ?? 0;
 }
+
+export async function checkOnboardingCompletion(
+  userId: string,
+): Promise<boolean> {
+  const onboardingData = await db
+    .select()
+    .from(onboarding)
+    .where(eq(onboarding.userId, userId));
+
+  if (onboardingData.length === 0) return false;
+
+  const data = onboardingData[0] as NonNullable<(typeof onboardingData)[0]>;
+
+  return (
+    data.name !== null &&
+    data.age !== null &&
+    data.weight !== null &&
+    data.gender !== null &&
+    data.fitnessLevel !== null &&
+    data.exercises !== null &&
+    data.exerciseFrequency !== null &&
+    data.sessionLength !== null &&
+    data.injuries !== null &&
+    data.recentSurgery !== null &&
+    data.chronicConditions !== null &&
+    data.pregnancy !== null &&
+    data.fitnessGoals !== null &&
+    data.goalTimeline !== null &&
+    data.pilatesExperience !== null &&
+    data.studioFrequency !== null &&
+    data.sessionPreference !== null &&
+    data.instructors !== null &&
+    data.apparatusPreference !== null &&
+    data.motivation !== null &&
+    data.progressTracking !== null
+  );
+}

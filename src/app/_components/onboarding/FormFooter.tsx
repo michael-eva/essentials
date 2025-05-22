@@ -52,6 +52,10 @@ export default function FormFooter({
         }
     };
 
+    const handleSkip = () => {
+        router.push(`/dashboard/overview`);
+    };
+
     return (
         <div className="px-8 py-6 bg-gray-50 border-t border-gray-100">
             <div className="flex justify-between items-center">
@@ -63,14 +67,24 @@ export default function FormFooter({
                 >
                     Previous
                 </Button>
-                <Button
-                    type="button"
-                    onClick={handleNext}
-                    disabled={loading}
-                    className={`rounded-full ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                    {loading ? 'Processing...' : isLastStep ? 'Finish' : 'Next'}
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        type="button"
+                        onClick={handleSkip}
+                        className={`rounded-full`}
+                    >
+                        Skip for now
+                    </Button>
+                    <Button
+                        type="button"
+                        onClick={handleNext}
+                        disabled={loading}
+                        className={`rounded-full ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {loading ? 'Processing...' : isLastStep ? 'Finish' : 'Next'}
+                    </Button>
+                </div>
             </div>
         </div>
     );

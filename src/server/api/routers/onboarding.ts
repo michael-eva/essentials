@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { insertOnboarding } from "@/drizzle/src/db/mutations";
+import { checkOnboardingCompletion } from "@/drizzle/src/db/queries";
 
 export const onboardingRouter = createTRPCRouter({
   postBasicQuestions: protectedProcedure
@@ -169,6 +170,8 @@ export const onboardingRouter = createTRPCRouter({
         otherProgressTracking,
       } = input;
       const userId = ctx.userId;
+      // required fields are: name, age, weight, gender, fitnessLevel, exercises, exerciseFrequency, sessionLength, injuries, recentSurgery, chronicConditions, pregnancy, fitnessGoals, goalTimeline, pilatesExperience, studioFrequency, sessionPreference, instructors, apparatusPreference, motivation, progressTracking
+      const isCompleted = await checkOnboardingCompletion(userId);
 
       await insertOnboarding({
         userId,
@@ -176,8 +179,8 @@ export const onboardingRouter = createTRPCRouter({
         otherMotivation,
         progressTracking,
         otherProgressTracking,
-        completedAt: new Date(),
-        step: "completed",
+        completedAt: isCompleted ? new Date() : null,
+        step: isCompleted ? "completed" : "motivation",
       });
     }),
 });
