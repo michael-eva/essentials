@@ -8,6 +8,7 @@ import { STEPS } from "@/app/onboarding/constants";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import FormLayout from "./FormLayout";
 import { api } from "@/trpc/react";
+import { isDeveloper } from "@/app/_utils/user-role";
 
 const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -56,6 +57,13 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
     const { register, handleSubmit, formState: { errors }, control } = useForm({
         resolver: zodResolver(formSchema),
         mode: "onChange",
+        defaultValues: {
+            name: isDeveloper() ? "Developer User" : "",
+            age: isDeveloper() ? 25 : undefined,
+            height: isDeveloper() ? 170 : undefined,
+            weight: isDeveloper() ? 70 : undefined,
+            gender: isDeveloper() ? "Prefer not to say" : undefined,
+        }
     });
     const { mutate: postBasicQuestions } = api.onboarding.postBasicQuestions.useMutation();
     const onSubmit = async (): Promise<boolean> => {

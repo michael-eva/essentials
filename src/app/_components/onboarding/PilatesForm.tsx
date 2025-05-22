@@ -9,6 +9,7 @@ import Input from "../global/Input";
 import FormLayout from "./FormLayout";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { api } from "@/trpc/react";
+import { isDeveloper } from "@/app/_utils/user-role";
 
 interface PilatesFormProps {
     isFirstStep?: boolean;
@@ -47,13 +48,13 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
-            pilatesExperience: undefined,
-            pilatesDuration: undefined,
-            studioFrequency: undefined,
-            sessionPreference: undefined,
-            instructors: [],
-            customInstructor: "",
-            apparatusPreference: [],
+            pilatesExperience: isDeveloper() ? false : undefined,
+            pilatesDuration: isDeveloper() ? "3-6 months" : undefined,
+            studioFrequency: isDeveloper() ? "1 time per week" : undefined,
+            sessionPreference: isDeveloper() ? "Group classes" : undefined,
+            instructors: isDeveloper() ? ["Instructor 1", "Instructor 2"] : [],
+            customInstructor: isDeveloper() ? "Instructor 3" : "",
+            apparatusPreference: isDeveloper() ? ["Reformer", "Cadillac"] : [],
             customApparatus: "",
         }
     });

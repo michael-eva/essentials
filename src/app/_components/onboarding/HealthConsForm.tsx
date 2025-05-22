@@ -10,6 +10,7 @@ import Input from "../global/Input";
 import { Textarea } from "@/components/ui/textarea";
 import FormLayout from "./FormLayout";
 import { api } from "@/trpc/react";
+import { isDeveloper } from "@/app/_utils/user-role";
 
 interface HealthConsFormProps {
     isFirstStep?: boolean;
@@ -70,13 +71,13 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
-            injuries: undefined,
-            injuriesDetails: "",
-            recentSurgery: undefined,
-            surgeryDetails: "",
-            chronicConditions: [],
-            otherHealthConditions: [],
-            pregnancy: undefined,
+            injuries: isDeveloper() ? false : undefined,
+            injuriesDetails: isDeveloper() ? "" : undefined,
+            recentSurgery: isDeveloper() ? false : undefined,
+            surgeryDetails: isDeveloper() ? "" : undefined,
+            chronicConditions: isDeveloper() ? ["Back pain"] : [],
+            otherHealthConditions: isDeveloper() ? [] : undefined,
+            pregnancy: isDeveloper() ? "Pregnant" : undefined,
         }
     });
     const { mutate: postHealthConsiderations } = api.onboarding.postHealthConsiderations.useMutation()

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import FormLayout from "./FormLayout";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import { api } from "@/trpc/react";
+import { isDeveloper } from "@/app/_utils/user-role";
 
 interface GoalsFormProps {
     isFirstStep?: boolean;
@@ -29,9 +30,9 @@ export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: Goal
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
-            fitnessGoals: [],
-            goalTimeline: undefined,
-            specificGoals: "",
+            fitnessGoals: isDeveloper() ? ["Weight loss"] : [],
+            goalTimeline: isDeveloper() ? "3-6 months" : undefined,
+            specificGoals: isDeveloper() ? "Developer testing" : "",
         }
     });
     const { mutate: postFitnessGoals } = api.onboarding.postFitnessGoals.useMutation()

@@ -9,6 +9,7 @@ import Input from "../global/Input";
 import FormLayout from "./FormLayout";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
+import { isDeveloper } from "@/app/_utils/user-role";
 
 interface MotivationFormProps {
     isFirstStep?: boolean;
@@ -51,10 +52,10 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
-            motivation: [],
-            otherMotivation: [],
-            progressTracking: [],
-            otherProgressTracking: [],
+            motivation: isDeveloper() ? ["Health benefits", "Other"] : [],
+            otherMotivation: isDeveloper() ? ["Developer testing"] : [],
+            progressTracking: isDeveloper() ? ["Body measurements", "Other"] : [],
+            otherProgressTracking: isDeveloper() ? ["Developer testing"] : [],
         }
     });
     const router = useRouter();

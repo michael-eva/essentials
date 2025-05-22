@@ -9,6 +9,7 @@ import Input from "../global/Input";
 import FormLayout from "./FormLayout";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
+import { isDeveloper } from "@/app/_utils/user-role";
 
 interface FitnessBgFormProps {
     isFirstStep?: boolean;
@@ -49,12 +50,12 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
-            fitnessLevel: undefined,
-            exercises: [],
-            otherExercises: [],
-            exerciseFrequency: undefined,
-            sessionLength: undefined,
-            customExercise: "",
+            fitnessLevel: isDeveloper() ? "Intermediate" : undefined,
+            exercises: isDeveloper() ? ["Running"] : [],
+            otherExercises: isDeveloper() ? [] : undefined,
+            exerciseFrequency: isDeveloper() ? "3-4" : undefined,
+            sessionLength: isDeveloper() ? "30-45 minutes" : undefined,
+            customExercise: isDeveloper() ? "" : undefined,
         }
     });
     const { mutate: postFitnessBackground } = api.onboarding.postFitnessBackground.useMutation()
