@@ -95,7 +95,7 @@ export default function Dashboard() {
                 You don&apos;t have any classes scheduled. Create a workout plan to get started with your fitness journey!
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+            <div className="flex flex-col gap-3 w-full max-w-sm">
               <Button
                 className="w-full"
                 onClick={() => generatePlan()}
