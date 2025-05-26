@@ -11,6 +11,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 
 /**
  * 1. CONTEXT
@@ -30,7 +31,32 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: cookieStore,
+      cookies: {
+        getAll: () => {
+          const allCookies = cookieStore.getAll();
+          return allCookies.map((cookie: RequestCookie) => ({
+            ...cookie,
+            path: "/",
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+          }));
+        },
+        setAll: (cookies) => {
+          cookies.forEach((cookie) => {
+            cookieStore.set(cookie.name, cookie.value, {
+              path: "/",
+              sameSite: "lax",
+              secure: process.env.NODE_ENV === "production",
+            });
+          });
+        },
+      },
+      cookieOptions: {
+        name: "sb-auth-token",
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      },
     },
   );
 
