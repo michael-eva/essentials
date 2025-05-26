@@ -5,6 +5,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 type AuthMode = "existing" | "new";
 
@@ -17,72 +18,72 @@ export default function SignInPage() {
   const searchParams = useSearchParams();
   const mode = (searchParams.get("mode") as AuthMode) || "existing";
 
-  // const supabase = createBrowserClient(
-  //   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  //   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  // );
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // try {
-    //   if (mode === "existing") {
-    //     const { error } = await supabase.auth.signInWithPassword({
-    //       email,
-    //       password,
-    //     });
+    try {
+      if (mode === "existing") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-    //     if (error) {
-    //       toast.error(error.message);
-    //       return;
-    //     }
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
 
-    //     toast.success("Welcome back! Let's crush your fitness goals!");
-    //   } else {
-    //     const { error } = await supabase.auth.signUp({
-    //       email,
-    //       password,
-    //       options: {
-    //         emailRedirectTo: `${window.location.origin}/auth/callback`,
-    //       },
-    //     });
+        toast.success("Welcome back! Let's crush your fitness goals!");
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
 
-    //     if (error) {
-    //       toast.error(error.message);
-    //       return;
-    //     }
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
 
-    //     toast.success("Account created! Check your email to verify your account.");
-    //   }
+        toast.success("Account created! Check your email to verify your account.");
+      }
 
-    //   router.push("/dashboard");
-    //   router.refresh();
-    // } catch (error) {
-    //   toast.error("Something went wrong. Please try again.");
-    // } finally {
-    //   setIsLoading(false);
-    // }
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSocialSignIn = async (provider: "google" | "apple") => {
     setSocialLoading(provider);
-    // try {
-    //   const { error } = await supabase.auth.signInWithOAuth({
-    //     provider,
-    //     options: {
-    //       redirectTo: `${window.location.origin}/auth/callback`,
-    //     },
-    //   });
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
-    //   if (error) {
-    //     toast.error(error.message);
-    //   }
-    // } catch (error) {
-    //   toast.error("Something went wrong. Please try again.");
-    // } finally {
-    //   setSocialLoading(null);
-    // }
+      if (error) {
+        toast.error(error.message);
+      }
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setSocialLoading(null);
+    }
   };
 
   const toggleMode = () => {
@@ -91,31 +92,39 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
+    <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black animate-gradient" />
+
+      {/* Animated pattern overlay */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-500/20 via-transparent to-transparent animate-pulse" />
+        <div className="absolute inset-0 bg-[linear-gradient(45deg,_transparent_25%,_rgba(255,255,255,0.05)_25%,_rgba(255,255,255,0.05)_50%,_transparent_50%,_transparent_75%,_rgba(255,255,255,0.05)_75%)] bg-[length:20px_20px]" />
+      </div>
+
+      {/* Glowing accent elements - adjusted for mobile */}
+      <div className="absolute top-1/4 left-1/4 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-red-500/20 rounded-full blur-3xl animate-blob" />
+      <div className="absolute bottom-1/4 right-1/4 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-blue-500/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
+
+      <motion.div className="relative z-10 bg-black/40 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl border border-white/10 shadow-2xl w-full max-w-[90vw] sm:max-w-md">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
             {mode === "existing" ? "Welcome Back" : "Join the Movement"}
           </h1>
-          <p className="text-gray-400">
+          <p className="text-gray-400 text-sm sm:text-base">
             {mode === "existing"
               ? "Ready to push your limits?"
               : "Start your fitness journey today"}
           </p>
         </div>
 
-        <div className="space-y-4 mb-8">
+        <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleSocialSignIn("google")}
             disabled={!!socialLoading}
-            className="w-full bg-white text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-white text-gray-900 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -143,7 +152,7 @@ export default function SignInPage() {
             whileTap={{ scale: 0.98 }}
             onClick={() => handleSocialSignIn("apple")}
             disabled={!!socialLoading}
-            className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-gray-700"
+            className="w-full bg-black text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-gray-700 text-sm sm:text-base"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M17.05 20.28c-.98.95-2.05.88-3.08.41-1.09-.47-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.41C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.19 2.31-.89 3.51-.84 1.54.07 2.7.61 3.44 1.57-3.14 1.88-2.29 5.13.89 6.41-.65 1.29-1.51 2.58-2.92 4.03zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
@@ -152,23 +161,23 @@ export default function SignInPage() {
           </motion.button>
         </div>
 
-        <div className="relative my-8">
+        <div className="relative my-6 sm:my-8">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-700"></div>
           </div>
-          <div className="relative flex justify-center text-sm">
+          <div className="relative flex justify-center text-xs sm:text-sm">
             <span className="px-2 bg-gray-900 text-gray-400">or continue with email</span>
           </div>
         </div>
 
-        <form onSubmit={handleAuth} className="space-y-6">
+        <form onSubmit={handleAuth} className="space-y-4 sm:space-y-6">
           <div>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
               required
             />
           </div>
@@ -179,7 +188,7 @@ export default function SignInPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
               required
             />
           </div>
@@ -189,7 +198,7 @@ export default function SignInPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isLoading}
-            className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-accent text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
             {isLoading
               ? mode === "existing"
@@ -201,21 +210,21 @@ export default function SignInPage() {
           </motion.button>
         </form>
 
-        <div className="mt-8 text-center">
-          <p className="text-gray-400">
+        <div className="mt-6 sm:mt-8 text-center">
+          <p className="text-gray-400 text-sm sm:text-base">
             {mode === "existing" ? "Don't have an account?" : "Already have an account?"}{" "}
-            <button
+            <Button
               onClick={toggleMode}
-              className="text-red-500 hover:text-red-400 font-semibold"
+              className="bg-background text-black font-semibold hover:bg-accent/90 text-sm sm:text-base"
             >
               {mode === "existing" ? "Sign Up" : "Sign In"}
-            </button>
+            </Button>
           </p>
         </div>
 
-        <div className="mt-12 text-center">
-          <p className="text-gray-500 text-sm italic">
-            "Just Do It. Your future self will thank you."
+        <div className="mt-8 sm:mt-12 text-center">
+          <p className="text-gray-500 text-xs sm:text-sm italic">
+            "Insert motivational quote here"
           </p>
         </div>
       </motion.div>
