@@ -17,6 +17,7 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = (searchParams.get("mode") as AuthMode) || "existing";
+  const redirectedFrom = searchParams.get("redirectedFrom") || "/dashboard";
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -57,7 +58,7 @@ export default function SignInPage() {
         toast.success("Account created! Check your email to verify your account.");
       }
 
-      router.push("/dashboard");
+      router.push(redirectedFrom);
       router.refresh();
     } catch (error) {
       toast.error("Something went wrong. Please try again.");

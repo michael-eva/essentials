@@ -9,6 +9,8 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 /**
  * 1. CONTEXT
@@ -23,9 +25,24 @@ import { ZodError } from "zod";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: cookieStore,
+    },
+  );
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   return {
     ...opts,
-    userId: "fa50f59f-46b1-4596-b77e-ad41e885f22c",
+    supabase,
+    session,
+    userId: session?.user?.id,
   };
 };
 
@@ -105,19 +122,26 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+/**
+ * Protected (authenticated) procedure
+ */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(async ({ ctx, next }) => {
-    if (!ctx.userId) {
+    if (!ctx.session) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "You must be logged in to access this resource",
       });
     }
+
     return next({
       ctx: {
         ...ctx,
-        userId: ctx.userId,
+        // infers the `session` as non-nullable
+        session: ctx.session,
+        userId: ctx.session.user.id,
       },
     });
   });
