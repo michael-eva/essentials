@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import AppHeader from "./AppHeader"
+import AppHeader from "./DashboardHeader"
 
 interface AppLayoutProps {
   children: React.ReactNode
