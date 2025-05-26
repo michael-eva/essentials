@@ -10,6 +10,7 @@ import { ConfirmationDialog } from "./ConfirmationDialog"
 import WeeklySchedule from "./WeeklySchedule"
 import useGeneratePlan from "@/hooks/useGeneratePlan"
 import { motion } from "framer-motion"
+import { ActivePlanSkeleton, PreviousPlansSkeleton } from "./ClassRecommendationsSkeleton"
 
 
 
@@ -35,9 +36,9 @@ export default function ClassRecommendations() {
   const [planToDeleteId, setPlanToDeleteId] = useState<string | null>(null)
   // Fetch data using tRPC
   const utils = api.useUtils();
-  const { data: previousPlans = [] } = api.workoutPlan.getPreviousPlans.useQuery()
-  const { data: activePlan } = api.workoutPlan.getActivePlan.useQuery()
-  const { data: supplementaryWorkouts = [] } = api.workoutPlan.getSupplementaryWorkouts.useQuery()
+  const { data: previousPlans = [], isLoading: isLoadingPreviousPlans } = api.workoutPlan.getPreviousPlans.useQuery()
+  const { data: activePlan, isLoading: isLoadingActivePlan } = api.workoutPlan.getActivePlan.useQuery()
+  const { data: supplementaryWorkouts = [], isLoading: isLoadingSupplementaryWorkouts } = api.workoutPlan.getSupplementaryWorkouts.useQuery()
   const startPlan = api.workoutPlan.startWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
@@ -340,7 +341,9 @@ export default function ClassRecommendations() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {!activePlan && (
+      {isLoadingActivePlan ? (
+        <ActivePlanSkeleton />
+      ) : !activePlan ? (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -360,9 +363,7 @@ export default function ClassRecommendations() {
             Create New Plan
           </Button>
         </motion.div>
-      )}
-
-      {activePlan && (
+      ) : (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -487,7 +488,17 @@ export default function ClassRecommendations() {
         </motion.div>
       )}
 
-      {previousPlans.length > 0 && (
+      {isLoadingPreviousPlans ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="pt-8"
+        >
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Previous Plans</h3>
+          <PreviousPlansSkeleton />
+        </motion.div>
+      ) : previousPlans.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

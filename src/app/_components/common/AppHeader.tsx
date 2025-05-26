@@ -21,6 +21,10 @@ const navigationItems = [
 export default function AppHeader() {
   const pathname = usePathname()
   const router = useRouter()
+  const isLandingPage = pathname.includes("landing")
+  if (isLandingPage) {
+    return null
+  }
 
   return (
     <motion.header

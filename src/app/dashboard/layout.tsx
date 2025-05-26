@@ -11,10 +11,11 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname()
   const currentTab = pathname.split('/').pop() ?? 'overview'
+  const isLandingPage = pathname.includes("landing")
 
   return (
     <div className="container max-w-md mx-auto pb-6 md:max-w-2xl">
-      <motion.div
+      {!isLandingPage && <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -54,7 +55,7 @@ export default function DashboardLayout({
             </Link>
           </div>
         </div>
-      </motion.div>
+      </motion.div>}
 
       <div className="w-full px-4">
         {children}
