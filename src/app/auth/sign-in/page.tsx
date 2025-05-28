@@ -217,7 +217,7 @@ function SignInForm() {
               className="w-full bg-accent text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               {isLoading
-                ? "Sending code..."
+                ? "Thinking..."
                 : mode === "existing"
                   ? "Sign In"
                   : "Create Account"}
