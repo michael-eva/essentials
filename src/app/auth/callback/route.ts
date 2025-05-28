@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       {
         cookies: cookieStore,
         cookieOptions: {
-          name: "sb-auth-token",
+          name: "sb-rflvcogfitcffdappsuz-auth-token",
           path: "/",
           sameSite: "lax",
           secure: process.env.NODE_ENV === "production",

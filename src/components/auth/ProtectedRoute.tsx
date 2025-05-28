@@ -2,20 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    cookieOptions: {
-      name: 'sb-rflvcogfitcffdappsuz-auth-token',
-      path: '/',
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production'
-    }
-  }
-);
+import { supabase } from '@/lib/supabase/client';
 
 // List of public routes that don't require authentication
 const publicRoutes = ['/auth', '/api/trpc'];

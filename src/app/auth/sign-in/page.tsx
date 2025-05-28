@@ -1,20 +1,15 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { login } from "@/services/auth-helpers";
+import { supabase } from "@/lib/supabase/client";
 
 type AuthMode = "existing" | "new";
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 function SignInForm() {
   const [email, setEmail] = useState("");
@@ -80,7 +75,6 @@ function SignInForm() {
       await handleSignUp(e);
     }
   };
-
 
   const handleSocialSignIn = async (provider: "google" | "apple") => {
     setSocialLoading(provider);
