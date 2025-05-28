@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import z from "zod";
 import { TRPCError } from "@trpc/server";
 import SendEmail from "@/services/resend";
+import { insertUser } from "@/drizzle/src/db/mutations";
 
 export const authRouter = createTRPCRouter({
   generateOtp: publicProcedure
@@ -57,5 +58,14 @@ export const authRouter = createTRPCRouter({
     .input(z.object({ email: z.string(), token: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return await verifyOtp(input.email, input.token, ctx.supabase);
+    }),
+  insertUser: publicProcedure
+    .input(z.object({ email: z.string(), name: z.string().optional() }))
+    .mutation(async ({ input, ctx }) => {
+      return await insertUser({
+        id: ctx.userId!,
+        email: input.email,
+        name: input.name ?? null,
+      });
     }),
 });

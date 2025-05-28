@@ -6,8 +6,9 @@ import {
   workoutStatusEnum,
   workoutPlan,
   onboarding,
+  user,
 } from "./schema";
-import type { NewOnboarding, NewWorkoutTracking } from "./queries";
+import type { NewOnboarding, NewWorkoutTracking, User } from "./queries";
 import { eq } from "drizzle-orm";
 
 const client = postgres(process.env.DATABASE_URL!);
@@ -70,4 +71,9 @@ export async function insertOnboarding(data: NewOnboarding) {
     console.error("Database error:", error);
     throw new Error("Failed to insert/update onboarding data");
   }
+}
+
+export async function insertUser(data: User) {
+  const result = await db.insert(user).values(data);
+  return result;
 }

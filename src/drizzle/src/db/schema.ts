@@ -19,7 +19,7 @@ export const workoutStatusEnum = pgEnum("workout_status", [
 export const user = pgTable("user", {
   id: uuid("id").primaryKey().unique(),
   email: text("email").notNull().unique(),
-  name: text("name").notNull(),
+  name: text("name"),
 });
 
 export const workout = pgTable("workout", {

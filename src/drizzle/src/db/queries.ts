@@ -7,6 +7,7 @@ import {
   workoutPlan,
   weeklySchedule,
   onboarding,
+  user,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -22,6 +23,7 @@ export type NewWorkoutPlan = InferInsertModel<typeof workoutPlan>;
 export type NewWeeklySchedule = InferInsertModel<typeof weeklySchedule>;
 export type NewOnboarding = InferInsertModel<typeof onboarding>;
 export type Onboarding = InferSelectModel<typeof onboarding>;
+export type User = InferSelectModel<typeof user>;
 
 // Initialize database connection
 const client = postgres(process.env.DATABASE_URL!);
