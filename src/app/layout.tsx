@@ -5,8 +5,10 @@ import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { ThemeProvider } from "./_components/theme-provider";
-import { Toaster } from 'react-hot-toast'
-import AppLayout from "./_components/common/AppLayout";
+import { Toaster } from 'sonner'
+import AppLayout from "./_components/common/DashboardLayout";
+import { SessionProvider } from '@/contexts/SessionContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -16,21 +18,26 @@ export const metadata: Metadata = {
 
 const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
 });
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground">
-        <AppLayout>
+    <html lang="en">
+      <body className={geist.className}>
+        <TRPCReactProvider>
           <ThemeProvider defaultTheme="light" storageKey="app-theme">
-            <TRPCReactProvider>{children}</TRPCReactProvider>
+            <SessionProvider>
+              <ProtectedRoute>
+                {children}
+              </ProtectedRoute>
+            </SessionProvider>
+            <Toaster />
           </ThemeProvider>
-          <Toaster />
-        </AppLayout>
+        </TRPCReactProvider>
       </body>
     </html>
   );

@@ -85,6 +85,13 @@
       "when": 1747815968285,
       "tag": "0011_strange_namorita",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1748228774321,
+      "tag": "0012_black_chameleon",
+      "breakpoints": true
     }
   ]
 }

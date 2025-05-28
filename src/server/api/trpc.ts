@@ -9,6 +9,9 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import type { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 
 /**
  * 1. CONTEXT
@@ -23,9 +26,49 @@ import { ZodError } from "zod";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll: () => {
+          const allCookies = cookieStore.getAll();
+          return allCookies.map((cookie: RequestCookie) => ({
+            ...cookie,
+            path: "/",
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+          }));
+        },
+        setAll: (cookies) => {
+          cookies.forEach((cookie) => {
+            cookieStore.set(cookie.name, cookie.value, {
+              path: "/",
+              sameSite: "lax",
+              secure: process.env.NODE_ENV === "production",
+            });
+          });
+        },
+      },
+      cookieOptions: {
+        name: "sb-rflvcogfitcffdappsuz-auth-token",
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  );
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   return {
     ...opts,
-    userId: "fa50f59f-46b1-4596-b77e-ad41e885f22c",
+    supabase,
+    session,
+    userId: session?.user?.id,
   };
 };
 
@@ -105,19 +148,26 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+/**
+ * Protected (authenticated) procedure
+ */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(async ({ ctx, next }) => {
-    if (!ctx.userId) {
+    if (!ctx.session) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "You must be logged in to access this resource",
       });
     }
+
     return next({
       ctx: {
         ...ctx,
-        userId: ctx.userId,
+        // infers the `session` as non-nullable
+        session: ctx.session,
+        userId: ctx.session.user.id,
       },
     });
   });

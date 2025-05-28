@@ -114,7 +114,10 @@ export const onboarding = pgTable("onboarding", {
     .default(sql`gen_random_uuid()`),
   userId: uuid("user_id")
     .notNull()
-    .references(() => user.id)
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
     .unique(),
   step: text("step").notNull(),
   completedAt: timestamp("completed_at"),
