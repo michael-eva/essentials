@@ -14,7 +14,7 @@ function VerifyForm() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
   const mode = searchParams.get("mode") ?? "existing";
-  const redirectedFrom = searchParams.get("redirectedFrom") ?? "/onboarding";
+  const redirectedFrom = searchParams.get("redirectedFrom") ?? "/welcome";
 
   const { mutateAsync: verifyOtp } = api.auth.verifyOtp.useMutation();
 
