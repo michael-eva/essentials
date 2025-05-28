@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -12,14 +12,14 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function VerifyPage() {
+function VerifyForm() {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "";
-  const mode = searchParams.get("mode") || "existing";
-  const redirectedFrom = searchParams.get("redirectedFrom") || "/onboarding";
+  const email = searchParams.get("email") ?? "";
+  const mode = searchParams.get("mode") ?? "existing";
+  const redirectedFrom = searchParams.get("redirectedFrom") ?? "/onboarding";
 
   const { mutateAsync: verifyOtp } = api.auth.verifyOtp.useMutation();
 
@@ -138,5 +138,17 @@ export default function VerifyPage() {
         </form>
       </motion.div>
     </div>
+  );
+
+}
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent"></div>
+      </div>
+    }>
+      <VerifyForm />
+    </Suspense>
   );
 }

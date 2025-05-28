@@ -1,15 +1,10 @@
-import { login, logout, updatePassword, verifyOtp } from "@/lib/auth-helpers";
+import { verifyOtp } from "@/services/auth-helpers";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import z from "zod";
 import { TRPCError } from "@trpc/server";
 import SendEmail from "@/services/resend";
 
 export const authRouter = createTRPCRouter({
-  login: publicProcedure
-    .input(z.object({ email: z.string(), password: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      return await login(input.email, input.password, ctx.supabase);
-    }),
   generateOtp: publicProcedure
     .input(z.object({ email: z.string(), password: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -62,13 +57,5 @@ export const authRouter = createTRPCRouter({
     .input(z.object({ email: z.string(), token: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return await verifyOtp(input.email, input.token, ctx.supabase);
-    }),
-  logout: protectedProcedure.mutation(async ({ ctx }) => {
-    return await logout(ctx.supabase);
-  }),
-  updatePassword: protectedProcedure
-    .input(z.object({ password: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      return await updatePassword(input.password, ctx.supabase);
     }),
 });

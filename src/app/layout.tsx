@@ -8,6 +8,7 @@ import { ThemeProvider } from "./_components/theme-provider";
 import { Toaster } from 'sonner'
 import AppLayout from "./_components/common/DashboardLayout";
 import { SessionProvider } from '@/contexts/SessionContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -17,21 +18,26 @@ export const metadata: Metadata = {
 
 const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
 });
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground">
-        <ThemeProvider defaultTheme="light" storageKey="app-theme">
-          <SessionProvider>
-            <TRPCReactProvider>{children}</TRPCReactProvider>
-          </SessionProvider>
-        </ThemeProvider>
-        <Toaster />
+    <html lang="en">
+      <body className={geist.className}>
+        <TRPCReactProvider>
+          <ThemeProvider defaultTheme="light" storageKey="app-theme">
+            <SessionProvider>
+              <ProtectedRoute>
+                {children}
+              </ProtectedRoute>
+            </SessionProvider>
+            <Toaster />
+          </ThemeProvider>
+        </TRPCReactProvider>
       </body>
     </html>
   );

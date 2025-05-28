@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
+import { login } from "@/services/auth-helpers";
 
 type AuthMode = "existing" | "new";
 
@@ -15,7 +16,7 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function SignInPage() {
+function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -34,28 +35,22 @@ export default function SignInPage() {
       toast.error(error.message || 'Failed to create account');
     }
   });
-  const { mutateAsync: login } = api.auth.login.useMutation({
-    onSuccess: (data) => {
-      console.log("Mutation success:", data);
-      toast.success("Logged in successfully!");
-    },
-    onError: (error) => {
-      console.error("Mutation error:", error);
-      toast.error(error.message || 'Failed to login');
-    }
-  });
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login({
-        email,
-        password,
-      });
+      const response = await login(email, password);
+      if (!response) {
+        throw new Error("Failed to login");
+      }
+
+      toast.success("Logged in successfully!");
       router.push('/dashboard');
+      router.refresh();
     } catch (error) {
       console.error('Unexpected Error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to login');
     } finally {
       setIsLoading(false);
     }
@@ -250,10 +245,22 @@ export default function SignInPage() {
 
         <div className="mt-8 sm:mt-12 text-center">
           <p className="text-gray-500 text-xs sm:text-sm italic">
-            "Insert motivational quote here"
+            &quot;Insert motivational quote here&quot;
           </p>
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent"></div>
+      </div>
+    }>
+      <SignInForm />
+    </Suspense>
   );
 }

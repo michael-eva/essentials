@@ -1,4 +1,9 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 export async function verifyOtp(
   email: string,
@@ -19,11 +24,7 @@ export async function verifyOtp(
   return data;
 }
 
-export async function login(
-  email: string,
-  password: string,
-  supabase: SupabaseClient,
-) {
+export async function login(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -36,17 +37,14 @@ export async function login(
   return data;
 }
 
-export async function logout(supabase: SupabaseClient) {
+export async function logout() {
   const { error } = await supabase.auth.signOut();
 
   if (error) {
     throw new Error(error.message);
   }
 }
-export async function updatePassword(
-  password: string,
-  supabase: SupabaseClient,
-) {
+export async function updatePassword(password: string) {
   const { data, error } = await supabase.auth.updateUser({
     password,
   });
