@@ -57,9 +57,8 @@ export async function middleware(req: NextRequest) {
 // Define which routes should be protected
 function isProtectedRoute(pathname: string): boolean {
   // List of public routes that don't require authentication
-  const publicRoutes = [
-    "/auth/*", // All auth routes including callback // Allow tRPC auth-related routes
-  ];
+  const publicRoutes = ["/*"];
+  // const publicRoutes = ["/auth/*", "/api/trpc/*"];
 
   // Check if the current path starts with any of the public routes
   return !publicRoutes.some((route) => {

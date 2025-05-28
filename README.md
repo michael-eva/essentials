@@ -15,3 +15,7 @@
 
 - The plan generation code should be stored in /services and called by the generatePlan in srcserver/api/routers/workout-plan
 - There is already a hook used in the frontend to orchestrate the generation
+
+TODO:
+
+- Middleware is not currently protecting routes
