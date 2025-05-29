@@ -18,6 +18,7 @@ function VerifyForm() {
 
   const { mutateAsync: verifyOtp } = api.auth.verifyOtp.useMutation();
   const { mutateAsync: insertUser } = api.auth.insertUser.useMutation();
+  const { mutateAsync: generateOtp } = api.auth.generateOtp.useMutation();
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,18 +45,11 @@ function VerifyForm() {
   const handleResendOtp = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      await generateOtp({
         email,
-        options: {
-          shouldCreateUser: false,
-        },
+        password: "",
       });
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("New code sent to your email!");
-      }
+      toast.success("New code sent to your email!");
     } catch (error) {
       toast.error("Failed to resend code. Please try again.");
     } finally {
