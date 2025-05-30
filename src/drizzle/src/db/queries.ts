@@ -264,3 +264,9 @@ export async function getOnboardingData(
 
   return onboardingData[0] ?? null;
 }
+
+export async function getUser(userId: string): Promise<User | null> {
+  const userData = await db.select().from(user).where(eq(user.id, userId));
+
+  return userData[0] ?? null;
+}

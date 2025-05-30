@@ -17,7 +17,6 @@ function VerifyForm() {
   const redirectedFrom = searchParams.get("redirectedFrom") ?? "/welcome";
 
   const { mutateAsync: verifyOtp } = api.auth.verifyOtp.useMutation();
-  const { mutateAsync: insertUser } = api.auth.insertUser.useMutation();
   const { mutateAsync: generateOtp } = api.auth.generateOtp.useMutation();
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
@@ -30,8 +29,6 @@ function VerifyForm() {
         toast.error("Verification failed. Please try again.");
         return;
       }
-      //insert user into database
-      await insertUser({ email });
       toast.success(mode === "existing" ? "Welcome back! Let's crush your fitness goals!" : "Account verified! Let's crush your fitness goals!");
       router.push(redirectedFrom);
       router.refresh();
