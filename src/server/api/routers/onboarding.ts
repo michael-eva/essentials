@@ -195,6 +195,42 @@ export const onboardingRouter = createTRPCRouter({
   getOnboardingData: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
     const onboardingData = await getOnboardingData(userId);
+    if (!onboardingData) {
+      return {
+        name: null,
+        age: null,
+        height: null,
+        weight: null,
+        gender: null,
+        fitnessLevel: null,
+        exercises: [],
+        otherExercises: [],
+        exerciseFrequency: null,
+        sessionLength: null,
+        injuries: false,
+        injuriesDetails: null,
+        recentSurgery: false,
+        surgeryDetails: null,
+        chronicConditions: [],
+        otherHealthConditions: [],
+        pregnancy: null,
+        fitnessGoals: [],
+        goalTimeline: null,
+        specificGoals: null,
+        pilatesExperience: false,
+        pilatesDuration: null,
+        studioFrequency: null,
+        sessionPreference: null,
+        instructors: [],
+        customInstructor: null,
+        apparatusPreference: [],
+        customApparatus: null,
+        motivation: [],
+        otherMotivation: [],
+        progressTracking: [],
+        otherProgressTracking: [],
+      };
+    }
     return onboardingData;
   }),
 });

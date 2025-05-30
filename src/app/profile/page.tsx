@@ -1,458 +1,530 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { User, Briefcase, MapPin, GraduationCap, Heart, CheckCircle, Activity } from "lucide-react"
-
 import { motion } from "framer-motion"
-// import SuccessToast from "./SuccessToast"
-import { formSchema as basicQuestionFormSchema } from "../_components/onboarding/BasicQuestionForm"
-import { formSchema as fitnessBgFormSchema } from "../_components/onboarding/FitnessBgForm"
-import { formSchema as goalsFormSchema } from "../_components/onboarding/GoalsForm"
-import { formSchema as healthConsFormSchema } from "../_components/onboarding/HealthConsForm"
-import { formSchema as motivationFormSchema } from "../_components/onboarding/MotivationForm"
-import { formSchema as pilatesFormSchema } from "../_components/onboarding/PilatesForm"
-import { z } from "zod"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { toast } from "sonner"
+import { useSession } from "@/contexts/SessionContext"
 import { api } from "@/trpc/react"
-import EditFormDialog from "../_components/onboarding/profile/EditFormDialog"
-import FormSection from "../_components/onboarding/profile/FormSection"
-// Form types
-type FormType = "basicQuestion" | "fitnessBg" | "goals" | "healthCons" | "motivation" | "pilates"
+import EditFormDialog from "@/app/_components/onboarding/profile/EditFormDialog"
+import { User, Dumbbell, Target, Heart, Sparkles, Activity } from "lucide-react"
 
-// Form data interface
+// Form data interface with proper optional types
 interface FormData {
-  basicQuestion: z.infer<typeof basicQuestionFormSchema>
-  fitnessBg: z.infer<typeof fitnessBgFormSchema>
-  goals: z.infer<typeof goalsFormSchema>
-  healthCons: z.infer<typeof healthConsFormSchema>
-  motivation: z.infer<typeof motivationFormSchema>
-  pilates: z.infer<typeof pilatesFormSchema>
+  basicQuestion: {
+    name: string | null;
+    age: number | null;
+    height: number | null;
+    weight: number | null;
+    gender: "Male" | "Female" | "Prefer not to say" | null;
+  };
+  fitnessBg: {
+    fitnessLevel: "Beginner" | "Intermediate" | "Advanced" | null;
+    exercises: string[];
+    exerciseFrequency: "0" | "1-2" | "3-4" | "5+" | null;
+    sessionLength: "Less than 15 minutes" | "15-30 minutes" | "30-45 minutes" | "45-60 minutes" | "More than 60 minutes" | null;
+    customExercise: string | null;
+  };
+  goals: {
+    fitnessGoals: string[];
+    goalTimeline: "1-3 months" | "3-6 months" | "6-12 months" | "More than a year" | null;
+    specificGoals: string | null;
+  };
+  healthCons: {
+    injuries: boolean;
+    recentSurgery: boolean;
+    chronicConditions: string[];
+    pregnancy: "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)" | null;
+    injuriesDetails: string | null;
+    surgeryDetails: string | null;
+    otherHealthConditions: string[];
+  };
+  motivation: {
+    motivation: string[];
+    progressTracking: string[];
+    otherMotivation: string[];
+    otherProgressTracking: string[];
+  };
+  pilates: {
+    pilatesExperience: boolean;
+    pilatesDuration: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null;
+    studioFrequency: "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null;
+    sessionPreference: "Group classes" | "Private sessions" | "Both" | "No preference" | null;
+    instructors: string[];
+    customInstructor: string | null;
+    apparatusPreference: string[];
+    customApparatus: string | null;
+  };
 }
 
-export default function ProfileComponent() {
-  const { data: onboardingData } = api.onboarding.getOnboardingData.useQuery();
-  // Initial form data
+type FormType = keyof FormData
+
+export default function ProfilePage() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
   const [formData, setFormData] = useState<FormData>({
     basicQuestion: {
-      name: "",
-      age: 0,
-      height: 0,
-      weight: 0,
-      gender: "Prefer not to say"
+      name: null,
+      age: null,
+      height: null,
+      weight: null,
+      gender: null
     },
     fitnessBg: {
-      fitnessLevel: "Beginner",
+      fitnessLevel: null,
       exercises: [],
-      exerciseFrequency: "0",
-      sessionLength: "30-45 minutes",
-      customExercise: ""
+      exerciseFrequency: null,
+      sessionLength: null,
+      customExercise: null
     },
     goals: {
       fitnessGoals: [],
-      goalTimeline: "3-6 months",
-      specificGoals: ""
+      goalTimeline: null,
+      specificGoals: null
     },
     healthCons: {
       injuries: false,
       recentSurgery: false,
       chronicConditions: [],
-      pregnancy: "Not applicable",
-      injuriesDetails: "",
-      surgeryDetails: "",
+      pregnancy: null,
+      injuriesDetails: null,
+      surgeryDetails: null,
       otherHealthConditions: []
+    },
+    pilates: {
+      pilatesExperience: false,
+      pilatesDuration: null,
+      studioFrequency: null,
+      sessionPreference: null,
+      instructors: [],
+      customInstructor: null,
+      apparatusPreference: [],
+      customApparatus: null
     },
     motivation: {
       motivation: [],
       progressTracking: [],
       otherMotivation: [],
       otherProgressTracking: []
-    },
-    pilates: {
-      pilatesExperience: false,
-      pilatesDuration: undefined,
-      studioFrequency: "Never",
-      sessionPreference: "No preference",
-      instructors: [],
-      customInstructor: "",
-      apparatusPreference: [],
-      customApparatus: ""
     }
   })
+  const [selectedForm, setSelectedForm] = useState<FormType | null>(null)
 
-  // Update form data when onboardingData changes
+  const { data: onboardingData } = api.onboarding.getOnboardingData.useQuery()
+
   useEffect(() => {
     if (onboardingData) {
-      setFormData({
+      const transformedData: FormData = {
         basicQuestion: {
-          name: onboardingData.name ?? "",
-          age: onboardingData.age ?? 0,
-          height: onboardingData.height ?? 0,
-          weight: onboardingData.weight ?? 0,
-          gender: (onboardingData.gender as "Male" | "Female" | "Prefer not to say") ?? "Prefer not to say"
+          name: onboardingData.name,
+          age: onboardingData.age,
+          height: onboardingData.height,
+          weight: onboardingData.weight,
+          gender: onboardingData.gender as "Male" | "Female" | "Prefer not to say" | null
         },
         fitnessBg: {
-          fitnessLevel: (onboardingData.fitnessLevel as "Beginner" | "Intermediate" | "Advanced") ?? "Beginner",
+          fitnessLevel: onboardingData.fitnessLevel as "Beginner" | "Intermediate" | "Advanced" | null,
           exercises: onboardingData.exercises ?? [],
-          exerciseFrequency: (onboardingData.exerciseFrequency as "0" | "1-2" | "3-4" | "5+") ?? "0",
-          sessionLength: (onboardingData.sessionLength as "Less than 15 minutes" | "15-30 minutes" | "30-45 minutes" | "45-60 minutes" | "More than 60 minutes") ?? "30-45 minutes",
-          customExercise: onboardingData.otherExercises?.[0] ?? ""
+          exerciseFrequency: onboardingData.exerciseFrequency as "0" | "1-2" | "3-4" | "5+" | null,
+          sessionLength: onboardingData.sessionLength as "Less than 15 minutes" | "15-30 minutes" | "30-45 minutes" | "45-60 minutes" | "More than 60 minutes" | null,
+          customExercise: onboardingData.otherExercises?.[0] ?? null
         },
         goals: {
           fitnessGoals: onboardingData.fitnessGoals ?? [],
-          goalTimeline: (onboardingData.goalTimeline as "1-3 months" | "3-6 months" | "6-12 months" | "More than a year") ?? "3-6 months",
-          specificGoals: onboardingData.specificGoals ?? ""
+          goalTimeline: onboardingData.goalTimeline as "1-3 months" | "3-6 months" | "6-12 months" | "More than a year" | null,
+          specificGoals: onboardingData.specificGoals
         },
         healthCons: {
           injuries: onboardingData.injuries ?? false,
           recentSurgery: onboardingData.recentSurgery ?? false,
           chronicConditions: onboardingData.chronicConditions ?? [],
-          pregnancy: (onboardingData.pregnancy as "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)") ?? "Not applicable",
-          injuriesDetails: onboardingData.injuriesDetails ?? "",
-          surgeryDetails: onboardingData.surgeryDetails ?? "",
+          pregnancy: onboardingData.pregnancy as "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)" | null,
+          injuriesDetails: onboardingData.injuriesDetails,
+          surgeryDetails: onboardingData.surgeryDetails,
           otherHealthConditions: onboardingData.otherHealthConditions ?? []
+        },
+        pilates: {
+          pilatesExperience: onboardingData.pilatesExperience ?? false,
+          pilatesDuration: onboardingData.pilatesDuration as "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null,
+          studioFrequency: onboardingData.studioFrequency as "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null,
+          sessionPreference: onboardingData.sessionPreference as "Group classes" | "Private sessions" | "Both" | "No preference" | null,
+          instructors: onboardingData.instructors ?? [],
+          customInstructor: onboardingData.customInstructor,
+          apparatusPreference: onboardingData.apparatusPreference ?? [],
+          customApparatus: onboardingData.customApparatus
         },
         motivation: {
           motivation: onboardingData.motivation ?? [],
           progressTracking: onboardingData.progressTracking ?? [],
-          otherMotivation: Array.isArray(onboardingData.otherMotivation) ? onboardingData.otherMotivation : [],
-          otherProgressTracking: Array.isArray(onboardingData.otherProgressTracking) ? onboardingData.otherProgressTracking : []
-        },
-        pilates: {
-          pilatesExperience: onboardingData.pilatesExperience ?? false,
-          pilatesDuration: (onboardingData.pilatesDuration as "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | undefined) ?? undefined,
-          studioFrequency: (onboardingData.studioFrequency as "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week") ?? "Never",
-          sessionPreference: (onboardingData.sessionPreference as "Group classes" | "Private sessions" | "Both" | "No preference") ?? "No preference",
-          instructors: onboardingData.instructors ?? [],
-          customInstructor: onboardingData.customInstructor ?? "",
-          apparatusPreference: onboardingData.apparatusPreference ?? [],
-          customApparatus: onboardingData.customApparatus ?? ""
+          otherMotivation: onboardingData.otherMotivation ?? [],
+          otherProgressTracking: onboardingData.otherProgressTracking ?? []
         }
-      })
+      }
+      setFormData(transformedData)
     }
+    setIsLoading(false)
   }, [onboardingData])
 
-  // Convert form data to string format for display
-  const convertFormDataToStrings = (data: FormData[FormType]): Record<string, string> => {
-    const result: Record<string, string> = {}
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        result[key] = value.join(", ")
-      } else if (typeof value === "boolean") {
-        result[key] = value ? "Yes" : "No"
-      } else if (value === null || value === undefined) {
-        result[key] = ""
-      } else if (typeof value === "object") {
-        result[key] = JSON.stringify(value)
-      } else if (typeof value === "number") {
-        result[key] = value.toString()
-      } else if (typeof value === "string") {
-        result[key] = value
-      } else {
-        result[key] = String(value)
-      }
-    })
-
-    return result
-  }
-
-  // Track completion status for each form
-  const [completion, setCompletion] = useState({
-    basicQuestion: 0,
-    fitnessBg: 0,
-    goals: 0,
-    healthCons: 0,
-    motivation: 0,
-    pilates: 0,
-  })
-
-  // Update completion when formData changes
-  useEffect(() => {
-    setCompletion({
-      basicQuestion: calculateCompletion("basicQuestion", formData.basicQuestion),
-      fitnessBg: calculateCompletion("fitnessBg", formData.fitnessBg),
-      goals: calculateCompletion("goals", formData.goals),
-      healthCons: calculateCompletion("healthCons", formData.healthCons),
-      motivation: calculateCompletion("motivation", formData.motivation),
-      pilates: calculateCompletion("pilates", formData.pilates),
-    })
-  }, [formData])
-
-  // Helper function to calculate completion percentage for each form type
-  function calculateCompletion(formType: FormType, data: FormData[FormType]): number {
-    if (!data) return 0;
-
-    const isValueValid = (value: unknown): boolean => {
-      if (value === null || value === undefined) return false;
-      if (typeof value === "string") return value !== "";
-      if (Array.isArray(value)) return value.length > 0;
-      if (typeof value === "boolean") return true;
-      return true;
-    };
-
-    switch (formType) {
-      case "basicQuestion": {
-        const basicData = data as FormData["basicQuestion"];
-        const basicFields = ["name", "age", "height", "weight", "gender"] as const;
-        return Math.round((basicFields.filter(field => isValueValid(basicData[field])).length / basicFields.length) * 100);
-      }
-
-      case "fitnessBg": {
-        const fitnessData = data as FormData["fitnessBg"];
-        const fitnessFields = ["fitnessLevel", "exercises", "exerciseFrequency", "sessionLength"] as const;
-        const hasExercises = Array.isArray(fitnessData.exercises) && fitnessData.exercises.length > 0;
-        const hasCustomExercise = fitnessData.exercises?.includes("Other") ? (fitnessData.customExercise?.length ?? 0) > 0 : true;
-        return Math.round((fitnessFields.filter(field => isValueValid(fitnessData[field])).length + (hasExercises ? 1 : 0) + (hasCustomExercise ? 1 : 0)) / (fitnessFields.length + 2) * 100);
-      }
-
-      case "goals": {
-        const goalsData = data as FormData["goals"];
-        const goalsFields = ["fitnessGoals", "goalTimeline"] as const;
-        const hasGoals = Array.isArray(goalsData.fitnessGoals) && goalsData.fitnessGoals.length > 0;
-        return Math.round((goalsFields.filter(field => isValueValid(goalsData[field])).length + (hasGoals ? 1 : 0)) / (goalsFields.length + 1) * 100);
-      }
-
-      case "healthCons": {
-        const healthData = data as FormData["healthCons"];
-        const healthFields = ["injuries", "recentSurgery", "chronicConditions", "pregnancy"] as const;
-        const hasConditions = Array.isArray(healthData.chronicConditions) && healthData.chronicConditions.length > 0;
-        const hasInjuryDetails = !healthData.injuries || (healthData.injuries && healthData.injuriesDetails?.trim());
-        const hasSurgeryDetails = !healthData.recentSurgery || (healthData.recentSurgery && healthData.surgeryDetails?.trim());
-        const hasCustomConditions = healthData.chronicConditions?.includes("Other") ? (healthData.otherHealthConditions?.length ?? 0) > 0 : true;
-        return Math.round((healthFields.filter(field => isValueValid(healthData[field])).length + (hasConditions ? 1 : 0) + (hasInjuryDetails ? 1 : 0) + (hasSurgeryDetails ? 1 : 0) + (hasCustomConditions ? 1 : 0)) / (healthFields.length + 4) * 100);
-      }
-
-      case "motivation": {
-        const motivationData = data as FormData["motivation"];
-        const motivationFields = ["motivation", "progressTracking"] as const;
-        const hasMotivation = Array.isArray(motivationData.motivation) && motivationData.motivation.length > 0;
-        const hasTracking = Array.isArray(motivationData.progressTracking) && motivationData.progressTracking.length > 0;
-        const hasCustomMotivation = motivationData.motivation?.includes("Other") ? (motivationData.otherMotivation?.length ?? 0) > 0 : true;
-        const hasCustomTracking = motivationData.progressTracking?.includes("Other") ? (motivationData.otherProgressTracking?.length ?? 0) > 0 : true;
-        return Math.round((motivationFields.filter(field => isValueValid(motivationData[field])).length + (hasMotivation ? 1 : 0) + (hasTracking ? 1 : 0) + (hasCustomMotivation ? 1 : 0) + (hasCustomTracking ? 1 : 0)) / (motivationFields.length + 4) * 100);
-      }
-
-      case "pilates": {
-        const pilatesData = data as FormData["pilates"];
-        const pilatesFields = ["pilatesExperience", "studioFrequency", "sessionPreference", "instructors", "apparatusPreference"] as const;
-        const hasInstructors = Array.isArray(pilatesData.instructors) && pilatesData.instructors.length > 0;
-        const hasApparatus = Array.isArray(pilatesData.apparatusPreference) && pilatesData.apparatusPreference.length > 0;
-        const hasDuration = !pilatesData.pilatesExperience || (pilatesData.pilatesExperience && pilatesData.pilatesDuration);
-        return Math.round((pilatesFields.filter(field => isValueValid(pilatesData[field])).length + (hasInstructors ? 1 : 0) + (hasApparatus ? 1 : 0) + (hasDuration ? 1 : 0)) / (pilatesFields.length + 3) * 100);
-      }
-
-      default:
-        return 0;
+  const { mutate: postBasicQuestions } = api.onboarding.postBasicQuestions.useMutation({
+    onSuccess: () => {
+      toast.success("Your profile has been updated successfully.")
+      setSelectedForm(null)
+    },
+    onError: (error) => {
+      console.error("Error updating form data:", error)
+      toast.error("Failed to update your profile. Please try again.")
     }
-  }
-
-  // Calculate overall completion percentage
-  const overallCompletion =
-    Object.values(completion).reduce((sum, value) => sum + value, 0) / Object.values(completion).length
-
-  // State for the edit dialog
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [currentForm, setCurrentForm] = useState<FormType>("basicQuestion")
-
-  // State for success toast
-
-  const [recentlyCompleted, setRecentlyCompleted] = useState<FormType | null>(null)
-
-  // State for completed sections
-  const [completedSections, setCompletedSections] = useState<Record<FormType, boolean>>({
-    basicQuestion: false,
-    fitnessBg: false,
-    goals: false,
-    healthCons: false,
-    motivation: false,
-    pilates: false,
   })
 
-  // Get completed count
-  const completedCount = Object.values(completedSections).filter(Boolean).length
+  const { mutate: postFitnessBackground } = api.onboarding.postFitnessBackground.useMutation({
+    onSuccess: () => {
+      toast.success("Your profile has been updated successfully.")
+      setSelectedForm(null)
+    },
+    onError: (error) => {
+      console.error("Error updating form data:", error)
+      toast.error("Failed to update your profile. Please try again.")
+    }
+  })
 
-  // Form section configurations with Apple-inspired colors
+  const { mutate: postHealthConsiderations } = api.onboarding.postHealthConsiderations.useMutation({
+    onSuccess: () => {
+      toast.success("Your profile has been updated successfully.")
+      setSelectedForm(null)
+    },
+    onError: (error) => {
+      console.error("Error updating form data:", error)
+      toast.error("Failed to update your profile. Please try again.")
+    }
+  })
+
+  const { mutate: postFitnessGoals } = api.onboarding.postFitnessGoals.useMutation({
+    onSuccess: () => {
+      toast.success("Your profile has been updated successfully.")
+      setSelectedForm(null)
+    },
+    onError: (error) => {
+      console.error("Error updating form data:", error)
+      toast.error("Failed to update your profile. Please try again.")
+    }
+  })
+
+  const { mutate: postPilatesExperience } = api.onboarding.postPilatesExperience.useMutation({
+    onSuccess: () => {
+      toast.success("Your profile has been updated successfully.")
+      setSelectedForm(null)
+    },
+    onError: (error) => {
+      console.error("Error updating form data:", error)
+      toast.error("Failed to update your profile. Please try again.")
+    }
+  })
+
+  const { mutate: postMotivation } = api.onboarding.postMotivation.useMutation({
+    onSuccess: () => {
+      toast.success("Your profile has been updated successfully.")
+      setSelectedForm(null)
+    },
+    onError: (error) => {
+      console.error("Error updating form data:", error)
+      toast.error("Failed to update your profile. Please try again.")
+    }
+  })
+
   const formSections = [
     {
       type: "basicQuestion" as FormType,
       title: "Basic Info",
-      description: "Personal information",
-      icon: <User className="h-5 w-5" />,
-      completion: completion.basicQuestion,
-      color: "#007AFF", // iOS blue
+      description: "Tell us about yourself",
+      icon: <User className="w-5 h-5" />,
+      completion: calculateCompletion("basicQuestion"),
+      color: "#007AFF"
     },
     {
       type: "fitnessBg" as FormType,
       title: "Fitness Background",
-      description: "Your fitness journey",
-      icon: <Briefcase className="h-5 w-5" />,
-      completion: completion.fitnessBg,
-      color: "#5856D6", // iOS purple
+      description: "Your exercise history",
+      icon: <Dumbbell className="w-5 h-5" />,
+      completion: calculateCompletion("fitnessBg"),
+      color: "#FF9500"
     },
     {
       type: "goals" as FormType,
       title: "Goals",
-      description: "Your fitness goals",
-      icon: <MapPin className="h-5 w-5" />,
-      completion: completion.goals,
-      color: "#34C759", // iOS green
+      description: "What you want to achieve",
+      icon: <Target className="w-5 h-5" />,
+      completion: calculateCompletion("goals"),
+      color: "#FF2D55"
     },
     {
       type: "healthCons" as FormType,
       title: "Health Considerations",
-      description: "Health information",
-      icon: <GraduationCap className="h-5 w-5" />,
-      completion: completion.healthCons,
-      color: "#FF2D55", // iOS pink
+      description: "Important health information",
+      icon: <Heart className="w-5 h-5" />,
+      completion: calculateCompletion("healthCons"),
+      color: "#5856D6"
     },
     {
       type: "motivation" as FormType,
       title: "Motivation",
       description: "What drives you",
-      icon: <Heart className="h-5 w-5" />,
-      completion: completion.motivation,
-      color: "#FF9500", // iOS orange
+      icon: <Sparkles className="w-5 h-5" />,
+      completion: calculateCompletion("motivation"),
+      color: "#FFCC00"
     },
     {
       type: "pilates" as FormType,
       title: "Pilates",
-      description: "Pilates preferences",
-      icon: <Activity className="h-5 w-5" />,
-      completion: completion.pilates,
-      color: "#AF52DE", // iOS deep purple
-    },
+      description: "Your Pilates experience",
+      icon: <Activity className="w-5 h-5" />,
+      completion: calculateCompletion("pilates"),
+      color: "#34C759"
+    }
   ]
 
-  // Check for newly completed sections
-  useEffect(() => {
-    const newCompletedSections = { ...completedSections }
-    let sectionCompleted = false
+  function calculateCompletion(formType: FormType): number {
+    const section = formData[formType]
+    if (!section) return 0
 
-    Object.entries(completion).forEach(([form, value]) => {
-      if (value === 100 && !completedSections[form as FormType]) {
-        newCompletedSections[form as FormType] = true
-        sectionCompleted = true
-        setRecentlyCompleted(form as FormType)
+    let totalFields = 0
+    let filledFields = 0
+
+    switch (formType) {
+      case "basicQuestion": {
+        const data = section as FormData["basicQuestion"]
+        totalFields = 5
+        filledFields = [
+          data.name,
+          data.age,
+          data.height,
+          data.weight,
+          data.gender
+        ].filter(value => value !== null).length
+        break
       }
-    })
-
-    if (sectionCompleted) {
-      setCompletedSections(newCompletedSections)
+      case "fitnessBg": {
+        const data = section as FormData["fitnessBg"]
+        totalFields = 5
+        filledFields = [
+          data.fitnessLevel,
+          data.exercises.length > 0,
+          data.exerciseFrequency,
+          data.sessionLength,
+          data.customExercise
+        ].filter(Boolean).length
+        break
+      }
+      case "goals": {
+        const data = section as FormData["goals"]
+        totalFields = 3
+        filledFields = [
+          data.fitnessGoals.length > 0,
+          data.goalTimeline,
+          data.specificGoals
+        ].filter(Boolean).length
+        break
+      }
+      case "healthCons": {
+        const data = section as FormData["healthCons"]
+        totalFields = 7
+        filledFields = [
+          data.injuries,
+          data.recentSurgery,
+          data.chronicConditions.length > 0,
+          data.pregnancy,
+          data.injuriesDetails,
+          data.surgeryDetails,
+          data.otherHealthConditions.length > 0
+        ].filter(Boolean).length
+        break
+      }
+      case "motivation": {
+        const data = section as FormData["motivation"]
+        totalFields = 4
+        filledFields = [
+          data.motivation.length > 0,
+          data.progressTracking.length > 0,
+          data.otherMotivation.length > 0,
+          data.otherProgressTracking.length > 0
+        ].filter(Boolean).length
+        break
+      }
+      case "pilates": {
+        const data = section as FormData["pilates"]
+        totalFields = 8
+        filledFields = [
+          data.pilatesExperience,
+          data.pilatesDuration,
+          data.studioFrequency,
+          data.sessionPreference,
+          data.instructors.length > 0,
+          data.customInstructor,
+          data.apparatusPreference.length > 0,
+          data.customApparatus
+        ].filter(Boolean).length
+        break
+      }
     }
-  }, [completion, completedSections, formSections])
 
-  // Handle opening the edit dialog
-  const handleEditForm = (formType: FormType) => {
-    setCurrentForm(formType)
-    setIsDialogOpen(true)
+    return Math.round((filledFields / totalFields) * 100)
   }
 
-  // Handle form submission
-  const handleFormSubmit = (formType: FormType, data: FormData[FormType]) => {
-    // Update form data
-    setFormData((prev) => ({
-      ...prev,
-      [formType]: data,
-    }))
+  const handleFormSubmit = async (formType: FormType, data: FormData[FormType]) => {
+    try {
+      const updatedData = { ...formData, [formType]: data }
+      setFormData(updatedData)
 
-    // Calculate new completion percentage based on filled fields
-    const totalFields = Object.keys(data).length
-    const filledFields = Object.values(data).filter((value) => {
-      if (value === null || value === undefined) return false;
-      if (typeof value === "string") return value !== "";
-      if (Array.isArray(value)) return value.length > 0;
-      if (typeof value === "boolean") return true;
-      return true;
-    }).length
-    const newCompletionPercentage = Math.round((filledFields / totalFields) * 100)
-
-    // Update completion state
-    setCompletion((prev) => ({
-      ...prev,
-      [formType]: newCompletionPercentage,
-    }))
-
-    // Close the dialog
-    setIsDialogOpen(false)
+      switch (formType) {
+        case "basicQuestion": {
+          const basicData = data as FormData["basicQuestion"]
+          if (basicData.name && basicData.age && basicData.height && basicData.weight && basicData.gender) {
+            postBasicQuestions({
+              name: basicData.name,
+              age: basicData.age,
+              height: basicData.height,
+              weight: basicData.weight,
+              gender: basicData.gender
+            })
+          }
+          break
+        }
+        case "fitnessBg": {
+          const fitnessData = data as FormData["fitnessBg"]
+          if (fitnessData.fitnessLevel && fitnessData.exerciseFrequency && fitnessData.sessionLength) {
+            postFitnessBackground({
+              fitnessLevel: fitnessData.fitnessLevel,
+              exercises: fitnessData.exercises,
+              exerciseFrequency: fitnessData.exerciseFrequency,
+              sessionLength: fitnessData.sessionLength,
+              otherExercises: fitnessData.customExercise ? [fitnessData.customExercise] : undefined
+            })
+          }
+          break
+        }
+        case "healthCons": {
+          const healthData = data as FormData["healthCons"]
+          if (healthData.pregnancy) {
+            postHealthConsiderations({
+              injuries: healthData.injuries,
+              recentSurgery: healthData.recentSurgery,
+              chronicConditions: healthData.chronicConditions,
+              pregnancy: healthData.pregnancy,
+              injuriesDetails: healthData.injuriesDetails ?? undefined,
+              surgeryDetails: healthData.surgeryDetails ?? undefined,
+              otherHealthConditions: healthData.otherHealthConditions
+            })
+          }
+          break
+        }
+        case "goals": {
+          const goalsData = data as FormData["goals"]
+          if (goalsData.goalTimeline) {
+            postFitnessGoals({
+              fitnessGoals: goalsData.fitnessGoals,
+              goalTimeline: goalsData.goalTimeline,
+              specificGoals: goalsData.specificGoals ?? undefined
+            })
+          }
+          break
+        }
+        case "pilates": {
+          const pilatesData = data as FormData["pilates"]
+          if (pilatesData.studioFrequency && pilatesData.sessionPreference) {
+            postPilatesExperience({
+              pilatesExperience: pilatesData.pilatesExperience,
+              studioFrequency: pilatesData.studioFrequency,
+              sessionPreference: pilatesData.sessionPreference,
+              instructors: pilatesData.instructors,
+              apparatusPreference: pilatesData.apparatusPreference,
+              pilatesDuration: pilatesData.pilatesDuration ?? undefined,
+              customInstructor: pilatesData.customInstructor ?? undefined,
+              customApparatus: pilatesData.customApparatus ?? undefined
+            })
+          }
+          break
+        }
+        case "motivation": {
+          const motivationData = data as FormData["motivation"]
+          postMotivation({
+            motivation: motivationData.motivation,
+            progressTracking: motivationData.progressTracking,
+            otherMotivation: motivationData.otherMotivation,
+            otherProgressTracking: motivationData.otherProgressTracking
+          })
+          break
+        }
+      }
+    } catch (error) {
+      console.error("Error updating form data:", error)
+      toast.error("Failed to update your profile. Please try again.")
+    }
   }
 
-  // Get motivational message based on completion
-  const getMotivationalMessage = () => {
-    if (overallCompletion < 20) return "Let's get started"
-    if (overallCompletion < 40) return "Making progress"
-    if (overallCompletion < 60) return "Halfway there"
-    if (overallCompletion < 80) return "Almost complete"
-    if (overallCompletion < 100) return "Nearly perfect"
-    return "Profile complete"
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      {/* <AnimatePresence>{showToast && <SuccessToast message={toastMessage} />}</AnimatePresence> */}
-
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="shadow-lg overflow-hidden bg-white"
-      >
-        <div className="px-6 pt-6 pb-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-900">Profile</h2>
-            <div className="flex items-center space-x-1 bg-gray-100 px-3 py-1 rounded-full">
-              <span className="text-sm font-medium text-gray-500">{completedCount}/6</span>
-              <CheckCircle className="h-4 w-4 text-gray-400" />
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-500">{getMotivationalMessage()}</span>
-              <span className="text-sm font-medium text-gray-900">{Math.round(overallCompletion)}%</span>
-            </div>
-
-            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${overallCompletion}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      <div className="space-y-3 px-4">
-        {formSections.map((section, index) => (
-          <motion.div
-            key={section.type}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Profile</h1>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/dashboard")}
+            className="rounded-xl"
           >
-            <FormSection
-              title={section.title}
-              description={section.description}
-              icon={section.icon}
-              completion={section.completion}
-              onClick={() => handleEditForm(section.type)}
-              data={convertFormDataToStrings(formData[section.type])}
-              color={section.color}
-              isComplete={completedSections[section.type]}
-              isHighlighted={recentlyCompleted === section.type}
-            />
-          </motion.div>
-        ))}
+            Back to Dashboard
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {formSections.map((section) => (
+            <Card
+              key={section.type}
+              className="p-4 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setSelectedForm(section.type)}
+            >
+              <div className="flex items-start space-x-4">
+                <div
+                  className="p-2 rounded-lg"
+                  style={{ backgroundColor: `${section.color}20` }}
+                >
+                  <div style={{ color: section.color }}>{section.icon}</div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900">{section.title}</h3>
+                  <p className="text-sm text-gray-500">{section.description}</p>
+                  <div className="mt-2">
+                    <Progress value={section.completion} className="h-2" />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {section.completion}% Complete
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
 
-      <EditFormDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        formType={currentForm}
-        formData={formData[currentForm]}
-        onSubmit={(data) => handleFormSubmit(currentForm, data)}
-        formSections={formSections}
-      />
+      {selectedForm && (
+        <EditFormDialog
+          open={!!selectedForm}
+          onOpenChange={(open) => !open && setSelectedForm(null)}
+          formType={selectedForm}
+          formData={formData[selectedForm]}
+          onSubmit={(data) => handleFormSubmit(selectedForm, data)}
+          formSections={formSections}
+        />
+      )}
     </div>
   )
-}
+} 
