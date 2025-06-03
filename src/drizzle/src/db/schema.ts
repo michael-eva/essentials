@@ -7,6 +7,8 @@ import {
   pgEnum,
   timestamp,
   uuid,
+  jsonb,
+  type PgTableWithColumns,
 } from "drizzle-orm/pg-core";
 
 export const workoutTypeEnum = pgEnum("workout_type", ["class", "workout"]);
@@ -166,3 +168,28 @@ export const onboarding = pgTable("onboarding", {
   progressTracking: text("progress_tracking").array(),
   otherProgressTracking: text("other_progress_tracking").array(),
 });
+
+export const personalTrainerInteractions: PgTableWithColumns<any> = pgTable(
+  "personal_trainer_interactions",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`now()`),
+    type: text("type").notNull(), // 'question' or 'response'
+    content: text("content").notNull(),
+    context: jsonb("context"), // Store additional context like workout data, progress metrics, etc.
+    parentId: uuid("parent_id").references(
+      () => personalTrainerInteractions.id,
+    ), // For linking questions to responses
+    metadata: jsonb("metadata"), // For storing any additional metadata like sentiment, key topics, etc.
+  },
+);
