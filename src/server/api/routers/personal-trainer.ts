@@ -6,6 +6,11 @@ import {
   getPersonalTrainerInteraction,
 } from "@/drizzle/src/db/queries";
 import { insertPersonalTrainerInteraction } from "@/drizzle/src/db/mutations";
+import {
+  buildUserContext,
+  updateContextWithWorkout,
+} from "@/services/context-manager";
+import { getLatestProgress } from "@/services/progress-tracker";
 
 export const personalTrainerRouter = createTRPCRouter({
   // Get all interactions for a user
@@ -38,9 +43,9 @@ export const personalTrainerRouter = createTRPCRouter({
       z.object({
         type: z.enum(["question", "response"]),
         content: z.string(),
-        context: z.record(z.unknown()).optional(),
+        context: z.record(z.string(), z.unknown()).optional(),
         parentId: z.string().optional(),
-        metadata: z.record(z.unknown()).optional(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -93,4 +98,53 @@ export const personalTrainerRouter = createTRPCRouter({
         });
       }
     }),
+
+  getContext: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    return buildUserContext(userId);
+  }),
+
+  interact: protectedProcedure
+    .input(
+      z.object({
+        message: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const context = await buildUserContext(userId);
+
+      // Save the interaction
+      const interaction = await insertPersonalTrainerInteraction({
+        userId,
+        type: "question",
+        content: input.message,
+        metadata: {
+          sentiment: "neutral",
+          keyTopics: [] as string[],
+          suggestedActions: [] as string[],
+        },
+      });
+
+      // For now, return a simple response
+      // TODO: Replace with actual AI integration
+      return {
+        response: "I'm your AI personal trainer. How can I help you today?",
+        interaction,
+        updatedContext: context, // Return the same context for now
+      };
+    }),
+
+  // Get latest progress tracking data
+  getLatestProgress: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      return await getLatestProgress(ctx.userId);
+    } catch (error) {
+      console.error("Error fetching latest progress:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch latest progress",
+      });
+    }
+  }),
 });

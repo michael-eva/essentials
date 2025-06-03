@@ -5,6 +5,7 @@ import type {
 import {
   getProgressTracking,
   getLatestProgressTracking,
+  getWorkoutTracking,
 } from "@/drizzle/src/db/queries";
 import { insertProgressTracking } from "@/drizzle/src/db/mutations";
 
@@ -23,12 +24,27 @@ export async function trackWorkoutProgress(
   userId: string,
   workout: WorkoutTracking,
 ): Promise<void> {
-  const metrics = await calculateWorkoutMetrics(userId, workout);
+  // Get recent workouts for context
+  const recentWorkouts = await getWorkoutTracking(userId, {
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+    end: new Date(),
+  });
+
+  // Calculate metrics
+  const metrics = await calculateWorkoutMetrics(
+    userId,
+    workout,
+    recentWorkouts,
+  );
+
+  // Analyze progress
   const { achievements, challenges } = await analyzeWorkoutProgress(
     workout,
     metrics,
+    recentWorkouts,
   );
 
+  // Insert progress tracking entry
   await insertProgressTracking({
     userId,
     date: new Date(),
@@ -46,13 +62,8 @@ export async function trackWorkoutProgress(
 async function calculateWorkoutMetrics(
   userId: string,
   workout: WorkoutTracking,
+  recentWorkouts: WorkoutTracking[],
 ): Promise<ProgressMetrics> {
-  // Get recent workouts for comparison
-  const recentWorkouts = await getProgressTracking(userId, {
-    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
-    end: new Date(),
-  });
-
   // Calculate duration in minutes
   const duration =
     (workout.durationHours ?? 0) * 60 + (workout.durationMinutes ?? 0);
@@ -81,6 +92,7 @@ async function calculateWorkoutMetrics(
 async function analyzeWorkoutProgress(
   workout: WorkoutTracking,
   metrics: ProgressMetrics,
+  recentWorkouts: WorkoutTracking[],
 ): Promise<{ achievements: string[]; challenges: string[] }> {
   const achievements: string[] = [];
   const challenges: string[] = [];
@@ -96,6 +108,12 @@ async function analyzeWorkoutProgress(
     achievements.push("Maintained consistent workout schedule");
   }
 
+  // Check for streaks
+  const streak = calculateStreak(recentWorkouts);
+  if (streak >= 3) {
+    achievements.push(`Maintained a ${streak}-day workout streak`);
+  }
+
   // Identify challenges
   if (metrics.duration < 15) {
     challenges.push("Workout duration was shorter than recommended");
@@ -105,6 +123,12 @@ async function analyzeWorkoutProgress(
   }
   if (metrics.consistency < 0.5) {
     challenges.push("Inconsistent workout schedule");
+  }
+
+  // Check for gaps in workout schedule
+  const gaps = findWorkoutGaps(recentWorkouts);
+  if (gaps.length > 0) {
+    challenges.push(`Gaps in workout schedule: ${gaps.join(", ")}`);
   }
 
   return { achievements, challenges };
@@ -125,7 +149,7 @@ function calculateIntensity(workout: WorkoutTracking): number {
 /**
  * Calculates workout consistency
  */
-function calculateConsistency(recentWorkouts: ProgressTracking[]): number {
+function calculateConsistency(recentWorkouts: WorkoutTracking[]): number {
   if (recentWorkouts.length === 0) return 1;
 
   // Calculate consistency based on workout frequency
@@ -138,15 +162,77 @@ function calculateConsistency(recentWorkouts: ProgressTracking[]): number {
 /**
  * Calculates workout completion rate
  */
-function calculateCompletionRate(recentWorkouts: ProgressTracking[]): number {
+function calculateCompletionRate(recentWorkouts: WorkoutTracking[]): number {
   if (recentWorkouts.length === 0) return 1;
 
   // Calculate completion rate based on workout duration
-  const completedWorkouts = recentWorkouts.filter(
-    (workout) => (workout.metrics as ProgressMetrics).duration >= 15,
-  ).length;
+  const completedWorkouts = recentWorkouts.filter((workout) => {
+    const duration =
+      (workout.durationHours ?? 0) * 60 + (workout.durationMinutes ?? 0);
+    return duration >= 15;
+  }).length;
 
   return completedWorkouts / recentWorkouts.length;
+}
+
+/**
+ * Calculates current workout streak
+ */
+function calculateStreak(workouts: WorkoutTracking[]): number {
+  if (workouts.length === 0) return 0;
+
+  // Sort workouts by date in descending order
+  const sortedWorkouts = [...workouts].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+
+  let streak = 1;
+  let currentDate = new Date(sortedWorkouts[0]!.date);
+  currentDate.setHours(0, 0, 0, 0);
+
+  for (let i = 1; i < sortedWorkouts.length; i++) {
+    const workoutDate = new Date(sortedWorkouts[i]!.date);
+    workoutDate.setHours(0, 0, 0, 0);
+
+    const dayDiff = Math.floor(
+      (currentDate.getTime() - workoutDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    if (dayDiff === 1) {
+      streak++;
+      currentDate = workoutDate;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+/**
+ * Finds gaps in workout schedule
+ */
+function findWorkoutGaps(workouts: WorkoutTracking[]): string[] {
+  if (workouts.length < 2) return [];
+
+  const gaps: string[] = [];
+  const sortedWorkouts = [...workouts].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+
+  for (let i = 1; i < sortedWorkouts.length; i++) {
+    const prevDate = new Date(sortedWorkouts[i - 1]!.date);
+    const currDate = new Date(sortedWorkouts[i]!.date);
+    const dayDiff = Math.floor(
+      (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    if (dayDiff > 3) {
+      gaps.push(`${dayDiff} days`);
+    }
+  }
+
+  return gaps;
 }
 
 /**

@@ -1,4 +1,7 @@
-import type { PersonalTrainerInteraction } from "@/drizzle/src/db/queries";
+import type {
+  PersonalTrainerInteraction,
+  WorkoutTracking,
+} from "@/drizzle/src/db/queries";
 
 /**
  * Analyzes user input and generates an appropriate response
@@ -11,7 +14,7 @@ export async function generateAIResponse(
     userProfile: {
       fitnessLevel: string;
       goals: string[];
-      workoutHistory: any[]; // Replace with proper type
+      workoutHistory: WorkoutTracking[];
     };
   },
 ): Promise<{
@@ -90,7 +93,7 @@ export async function generateFollowUpQuestions(
   userId: string,
   context: {
     lastInteraction: PersonalTrainerInteraction;
-    recentWorkouts: any[]; // Replace with proper type
+    recentWorkouts: WorkoutTracking[];
     currentGoals: string[];
   },
 ): Promise<
@@ -116,7 +119,7 @@ export async function updateUserProfile(
   userId: string,
   interaction: PersonalTrainerInteraction,
 ): Promise<{
-  updatedPreferences: Record<string, any>;
+  updatedPreferences: Record<string, string>;
   newGoals: string[];
   removedGoals: string[];
 }> {

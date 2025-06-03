@@ -221,7 +221,7 @@ export async function getActivityHistory(
 
 export async function getActivityHistoryCount(userId: string): Promise<number> {
   const result = await db
-    .select({ count: sql<number>`count(*)` })
+    .select({ count: sql<number>`count(*)::int` })
     .from(workoutTracking)
     .where(eq(workoutTracking.userId, userId));
   return result[0]?.count ?? 0;

@@ -23,13 +23,19 @@ import type {
   User,
 } from "./queries";
 import { eq } from "drizzle-orm";
+import { trackWorkoutProgress } from "@/services/progress-tracker";
 
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
 
-export async function insertWorkoutActivity(data: NewWorkoutTracking) {
-  const activity = await db.insert(workoutTracking).values(data);
-  return activity;
+export async function insertWorkoutTracking(data: NewWorkoutTracking) {
+  const result = await db.insert(workoutTracking).values(data).returning();
+  const newWorkout = result[0]!;
+
+  // Automatically update progress tracking
+  await trackWorkoutProgress(data.userId, newWorkout);
+
+  return newWorkout;
 }
 
 export async function updateCompletedClass(

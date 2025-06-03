@@ -14,7 +14,7 @@ import {
 } from "@/drizzle/src/db/queries";
 import {
   deleteWorkoutPlan,
-  insertWorkoutActivity,
+  insertWorkoutTracking,
   updateCompletedClass,
   updateWorkoutPlan,
 } from "@/drizzle/src/db/mutations";
@@ -146,7 +146,7 @@ export const workoutPlanRouter = createTRPCRouter({
           name: input.workoutType,
         };
 
-        return await insertWorkoutActivity(newActivity);
+        return await insertWorkoutTracking(newActivity);
       } catch (error) {
         console.error("Error inserting manual activity:", error);
         throw error;
@@ -178,7 +178,7 @@ export const workoutPlanRouter = createTRPCRouter({
           wouldDoAgain: input.wouldDoAgain,
         };
         await updateCompletedClass(input.workoutId, "completed");
-        return await insertWorkoutActivity(newActivity);
+        return await insertWorkoutTracking(newActivity);
       } catch (error) {
         console.error("Error inserting manual activity:", error);
         throw error;

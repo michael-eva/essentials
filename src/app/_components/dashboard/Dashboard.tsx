@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { workoutStatusEnum } from "@/drizzle/src/db/schema"
 import useGeneratePlan from "@/hooks/useGeneratePlan"
 import { UpcomingClassesSkeleton, WorkoutLoggingSkeleton, ActivityHistorySkeleton } from "./DashboardSkeleton"
+import { ProgressSection } from "./ProgressSection"
 type WorkoutStatus = typeof workoutStatusEnum.enumValues[number]
 
 export default function Dashboard() {
@@ -80,6 +81,13 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <DashboardCardLayout
+        title="Progress Tracking"
+        description="Your progress over the past 7 days"
+        showViewAll={false}
+      >
+        <ProgressSection />
+      </DashboardCardLayout>
       <DashboardCardLayout
         title="Upcoming Classes"
         description={upcomingClasses && upcomingClasses?.length > 0 ? "Your scheduled sessions:" : "No upcoming classes scheduled"}
@@ -232,7 +240,7 @@ export default function Dashboard() {
         )}
       </DashboardCardLayout>
 
-      <DashboardCardLayout
+      {/* <DashboardCardLayout
         title="Health Summary"
         description="Your stats for the past 7 days"
         showViewAll={false}
@@ -255,7 +263,7 @@ export default function Dashboard() {
             <span className="font-medium text-gray-900">1,842</span>
           </div>
         </div>
-      </DashboardCardLayout>
+      </DashboardCardLayout> */}
 
       <RecordWorkout
         isDialogOpen={isDialogOpen}
@@ -271,6 +279,6 @@ export default function Dashboard() {
         setIsDialogOpen={setIsManualActivityDialogOpen}
         handleSubmitActivity={handleSubmitManualActivity}
       />
-    </div>
+    </div >
   )
 }

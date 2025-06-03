@@ -169,7 +169,7 @@ export const onboarding = pgTable("onboarding", {
   otherProgressTracking: text("other_progress_tracking").array(),
 });
 
-export const personalTrainerInteractions: PgTableWithColumns<any> = pgTable(
+export const personalTrainerInteractions = pgTable(
   "personal_trainer_interactions",
   {
     id: uuid("id")
@@ -187,9 +187,7 @@ export const personalTrainerInteractions: PgTableWithColumns<any> = pgTable(
     type: text("type").notNull(), // 'question' or 'response'
     content: text("content").notNull(),
     context: jsonb("context"), // Store additional context like workout data, progress metrics, etc.
-    parentId: uuid("parent_id").references(
-      () => personalTrainerInteractions.id,
-    ), // For linking questions to responses
+    parentId: uuid("parent_id"), // For linking questions to responses
     metadata: jsonb("metadata"), // For storing any additional metadata like sentiment, key topics, etc.
   },
 );
