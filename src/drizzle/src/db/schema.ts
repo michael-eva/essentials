@@ -193,3 +193,29 @@ export const personalTrainerInteractions: PgTableWithColumns<any> = pgTable(
     metadata: jsonb("metadata"), // For storing any additional metadata like sentiment, key topics, etc.
   },
 );
+
+export const progressTracking = pgTable("progress_tracking", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  date: timestamp("date")
+    .notNull()
+    .default(sql`now()`),
+  type: text("type").notNull(), // 'cardio' | 'pilates' | 'overall'
+  metrics: jsonb("metrics").notNull().default({}), // Store duration, intensity, consistency, etc.
+  achievements: text("achievements").array().default([]),
+  challenges: text("challenges").array().default([]),
+  notes: text("notes"),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .default(sql`now()`),
+});

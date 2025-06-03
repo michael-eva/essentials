@@ -1,4 +1,4 @@
-import { eq, and, gt, lt, inArray, desc, sql } from "drizzle-orm";
+import { eq, and, gt, lt, inArray, desc, sql, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
@@ -9,6 +9,7 @@ import {
   onboarding,
   user,
   personalTrainerInteractions,
+  progressTracking,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -17,6 +18,7 @@ export type Workout = InferSelectModel<typeof workout>;
 export type WorkoutTracking = InferSelectModel<typeof workoutTracking>;
 export type WorkoutPlan = InferSelectModel<typeof workoutPlan>;
 export type WeeklySchedule = InferSelectModel<typeof weeklySchedule>;
+export type ProgressTracking = InferSelectModel<typeof progressTracking>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -31,6 +33,7 @@ export type PersonalTrainerInteraction = InferSelectModel<
 export type NewPersonalTrainerInteraction = InferInsertModel<
   typeof personalTrainerInteractions
 >;
+export type NewProgressTracking = InferInsertModel<typeof progressTracking>;
 
 // Initialize database connection
 const client = postgres(process.env.DATABASE_URL!);
@@ -313,4 +316,51 @@ export async function getPersonalTrainerInteraction(
     .limit(1);
 
   return interaction[0] ?? null;
+}
+
+export async function getWorkoutTracking(
+  userId: string,
+  timeRange: { start: Date; end: Date },
+): Promise<WorkoutTracking[]> {
+  return db
+    .select()
+    .from(workoutTracking)
+    .where(
+      and(
+        eq(workoutTracking.userId, userId),
+        gt(workoutTracking.date, timeRange.start),
+        lt(workoutTracking.date, timeRange.end),
+      ),
+    )
+    .orderBy(desc(workoutTracking.date));
+}
+
+export async function getProgressTracking(
+  userId: string,
+  timeRange: { start: Date; end: Date },
+): Promise<ProgressTracking[]> {
+  return db
+    .select()
+    .from(progressTracking)
+    .where(
+      and(
+        eq(progressTracking.userId, userId),
+        gte(progressTracking.date, timeRange.start),
+        lte(progressTracking.date, timeRange.end),
+      ),
+    )
+    .orderBy(desc(progressTracking.date));
+}
+
+export async function getLatestProgressTracking(
+  userId: string,
+): Promise<ProgressTracking | null> {
+  const result = await db
+    .select()
+    .from(progressTracking)
+    .where(eq(progressTracking.userId, userId))
+    .orderBy(desc(progressTracking.date))
+    .limit(1);
+
+  return result[0] ?? null;
 }

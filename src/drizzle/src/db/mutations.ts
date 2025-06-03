@@ -5,15 +5,22 @@ import {
   workoutTracking,
   workoutStatusEnum,
   workoutPlan,
+  weeklySchedule,
   onboarding,
   user,
   personalTrainerInteractions,
+  progressTracking,
 } from "./schema";
 import type {
-  NewOnboarding,
+  NewWorkout,
   NewWorkoutTracking,
-  User,
+  NewWorkoutPlan,
+  NewWeeklySchedule,
+  NewOnboarding,
   NewPersonalTrainerInteraction,
+  NewProgressTracking,
+  ProgressTracking,
+  User,
 } from "./queries";
 import { eq } from "drizzle-orm";
 
@@ -89,4 +96,11 @@ export async function insertPersonalTrainerInteraction(
 ) {
   const interaction = await db.insert(personalTrainerInteractions).values(data);
   return interaction;
+}
+
+export async function insertProgressTracking(
+  data: NewProgressTracking,
+): Promise<ProgressTracking> {
+  const result = await db.insert(progressTracking).values(data).returning();
+  return result[0]!;
 }
