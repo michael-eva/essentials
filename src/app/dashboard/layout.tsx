@@ -24,9 +24,6 @@ export default function DashboardLayout({
           className="shadow-lg overflow-hidden bg-white mb-6"
         >
           <div className="px-6 pt-6 pb-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold text-gray-900">Health Tracker</h2>
-            </div>
             <div className="shadow-sm bg-background inline-flex h-10 items-center justify-center rounded-md p-1 text-muted-foreground w-full">
               <Link
                 href={`/dashboard/overview`}
