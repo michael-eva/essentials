@@ -64,7 +64,7 @@ export const workoutTracking = pgTable("workout_tracking", {
   distance: text("distance"),
   distanceUnit: text("distance_unit"),
   notes: text("notes"),
-  ratings: text("ratings").array(),
+  intensity: integer("intensity"),
   name: text("name"),
   wouldDoAgain: boolean("would_do_again"),
 });

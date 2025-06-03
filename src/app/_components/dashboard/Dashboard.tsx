@@ -51,7 +51,7 @@ export default function Dashboard() {
       activityType: "class",
       date: bookedDate,
       notes: data.notes,
-      ratings: data.ratings,
+      intensity: data.intensity,
       wouldDoAgain: data.wouldDoAgain === "yes" ? true : false,
       name
     })
@@ -94,7 +94,7 @@ export default function Dashboard() {
       >
         {isLoadingUpcomingClasses ? (
           <UpcomingClassesSkeleton />
-        ) : !upcomingClasses ? (
+        ) : !upcomingClasses || upcomingClasses?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
             <div className="flex flex-col items-center space-y-2">
               <CalendarDays className="h-12 w-12 text-gray-400" />

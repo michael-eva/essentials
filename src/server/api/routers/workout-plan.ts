@@ -127,7 +127,7 @@ export const workoutPlanRouter = createTRPCRouter({
         distance: z.string().optional(),
         distanceUnit: z.string().optional(),
         notes: z.string().optional(),
-        ratings: z.array(z.string()).optional(),
+        intensity: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -142,7 +142,7 @@ export const workoutPlanRouter = createTRPCRouter({
           distance: input.distance,
           distanceUnit: input.distanceUnit,
           notes: input.notes,
-          ratings: input.ratings,
+          intensity: input.intensity,
           name: input.workoutType,
         };
 
@@ -160,7 +160,7 @@ export const workoutPlanRouter = createTRPCRouter({
         activityType: z.string(),
         date: z.date(),
         notes: z.string().optional(),
-        ratings: z.array(z.string()).optional(),
+        intensity: z.number().optional(),
         name: z.string(),
         wouldDoAgain: z.boolean().optional(),
       }),
@@ -173,7 +173,7 @@ export const workoutPlanRouter = createTRPCRouter({
           activityType: "class",
           date: input.date,
           notes: input.notes,
-          ratings: input.ratings,
+          intensity: input.intensity,
           name: input.name,
           wouldDoAgain: input.wouldDoAgain,
         };

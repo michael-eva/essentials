@@ -138,12 +138,7 @@ async function analyzeWorkoutProgress(
  * Calculates workout intensity (placeholder implementation)
  */
 function calculateIntensity(workout: WorkoutTracking): number {
-  // TODO: Implement proper intensity calculation based on:
-  // - Heart rate data
-  // - Perceived exertion
-  // - Workout type
-  // - Duration
-  return 5; // Placeholder: scale of 1-10
+  return workout.intensity ?? 5;
 }
 
 /**

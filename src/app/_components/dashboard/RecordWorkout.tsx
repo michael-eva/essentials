@@ -9,9 +9,10 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Card } from "@/components/ui/card"
+import { Slider } from "@/components/ui/slider"
 
 const workoutFormSchema = z.object({
-  ratings: z.array(z.string()).min(1, "Please select at least one rating"),
+  intensity: z.number().min(1, "Please select an intensity"),
   wouldDoAgain: z.enum(["yes", "no"], {
     required_error: "Please select whether you would do this workout again",
   }),
@@ -21,21 +22,12 @@ const workoutFormSchema = z.object({
 export type WorkoutFormValues = z.infer<typeof workoutFormSchema>
 
 export default function RecordWorkout({ isDialogOpen, setIsDialogOpen, handleSubmitWorkoutDetails, workoutId, bookedDate, name }: { isDialogOpen: boolean, setIsDialogOpen: (isOpen: boolean) => void, handleSubmitWorkoutDetails: (workoutId: string, data: WorkoutFormValues, bookedDate: Date, name: string) => void, workoutId: string, bookedDate: Date, name: string }) {
-  const workoutRatingOptions = [
-    "Great",
-    "Good",
-    "Struggled a bit",
-    "Challenging",
-    "Easy",
-    "Intense",
-    "Fun",
-    "Boring"
-  ]
+
 
   const form = useForm<WorkoutFormValues>({
     resolver: zodResolver(workoutFormSchema),
     defaultValues: {
-      ratings: [],
+      intensity: 5,
       wouldDoAgain: undefined,
       notes: "",
     },
@@ -55,20 +47,15 @@ export default function RecordWorkout({ isDialogOpen, setIsDialogOpen, handleSub
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
           <div className="space-y-2">
             <Label>How was the workout?</Label>
-            <MultiSelectPills
-              options={workoutRatingOptions}
-              selectedValues={form.watch("ratings")}
-              onChange={(rating) => {
-                const currentRatings = form.getValues("ratings")
-                const newRatings = currentRatings.includes(rating)
-                  ? currentRatings.filter(r => r !== rating)
-                  : [...currentRatings, rating]
-                form.setValue("ratings", newRatings)
-              }}
-              className="mt-2"
+            <Slider
+              value={[form.watch("intensity")]}
+              onValueChange={(value) => form.setValue("intensity", value[0] ?? 5)}
+              min={1}
+              max={10}
+              step={1}
             />
-            {form.formState.errors.ratings && (
-              <p className="text-sm text-destructive">{form.formState.errors.ratings.message}</p>
+            {form.formState.errors.intensity && (
+              <p className="text-sm text-destructive">{form.formState.errors.intensity.message}</p>
             )}
           </div>
 

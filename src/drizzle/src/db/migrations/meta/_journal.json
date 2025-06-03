@@ -134,6 +134,20 @@
       "when": 1748945592508,
       "tag": "0018_magenta_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1748946202057,
+      "tag": "0019_calm_multiple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1748946513954,
+      "tag": "0020_aspiring_magneto",
+      "breakpoints": true
     }
   ]
 }
