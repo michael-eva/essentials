@@ -2,6 +2,7 @@
 import ClassRecommendations from "@/app/_components/dashboard/ClassRecommendations"
 import Dashboard from "@/app/_components/dashboard/Dashboard"
 import WorkoutHistory from "@/app/_components/dashboard/WorkoutHistory"
+import PersonalTrainer from "@/app/_components/dashboard/PersonalTrainer"
 import { use } from "react"
 
 type PageProps = {
@@ -20,6 +21,8 @@ export default function Home({ params }: PageProps) {
       return <ClassRecommendations />;
     case 'history':
       return <WorkoutHistory />;
+    case 'mypt':
+      return <PersonalTrainer />;
     default:
       return <Dashboard />;
   }

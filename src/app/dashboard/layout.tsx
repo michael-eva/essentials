@@ -32,7 +32,7 @@ export default function DashboardLayout({
                   currentTab === 'overview' ? "bg-accent text-popover shadow-sm" : "hover:bg-background hover:text-foreground"
                 )}
               >
-                Dashboard
+                Home
               </Link>
               <Link
                 href={`/dashboard/your-plan`}
@@ -42,6 +42,15 @@ export default function DashboardLayout({
                 )}
               >
                 Your Plan
+              </Link>
+              <Link
+                href={`/dashboard/mypt`}
+                className={cn(
+                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                  currentTab === 'mypt' ? "bg-accent text-popover shadow-sm" : "hover:bg-background hover:text-foreground"
+                )}
+              >
+                MyPT
               </Link>
               <Link
                 href={`/dashboard/history`}
