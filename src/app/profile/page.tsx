@@ -34,8 +34,8 @@ interface FormData {
     specificGoals: string | null;
   };
   healthCons: {
-    injuries: boolean;
-    recentSurgery: boolean;
+    injuries: boolean | null;
+    recentSurgery: boolean | null;
     chronicConditions: string[];
     pregnancy: "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)" | null;
     injuriesDetails: string | null;
@@ -49,7 +49,7 @@ interface FormData {
     otherProgressTracking: string[];
   };
   pilates: {
-    pilatesExperience: boolean;
+    pilatesExperience: boolean | null;
     pilatesDuration: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null;
     studioFrequency: "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null;
     sessionPreference: "Group classes" | "Private sessions" | "Both" | "No preference" | null;
@@ -86,8 +86,8 @@ export default function ProfilePage() {
       specificGoals: null
     },
     healthCons: {
-      injuries: false,
-      recentSurgery: false,
+      injuries: null,
+      recentSurgery: null,
       chronicConditions: [],
       pregnancy: null,
       injuriesDetails: null,
@@ -95,7 +95,7 @@ export default function ProfilePage() {
       otherHealthConditions: []
     },
     pilates: {
-      pilatesExperience: false,
+      pilatesExperience: null,
       pilatesDuration: null,
       studioFrequency: null,
       sessionPreference: null,
@@ -138,8 +138,8 @@ export default function ProfilePage() {
           specificGoals: onboardingData.specificGoals
         },
         healthCons: {
-          injuries: onboardingData.injuries ?? false,
-          recentSurgery: onboardingData.recentSurgery ?? false,
+          injuries: onboardingData.injuries ?? null,
+          recentSurgery: onboardingData.recentSurgery ?? null,
           chronicConditions: onboardingData.chronicConditions ?? [],
           pregnancy: onboardingData.pregnancy as "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)" | null,
           injuriesDetails: onboardingData.injuriesDetails,
@@ -147,7 +147,7 @@ export default function ProfilePage() {
           otherHealthConditions: onboardingData.otherHealthConditions ?? []
         },
         pilates: {
-          pilatesExperience: onboardingData.pilatesExperience ?? false,
+          pilatesExperience: onboardingData.pilatesExperience ?? null,
           pilatesDuration: onboardingData.pilatesDuration as "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null,
           studioFrequency: onboardingData.studioFrequency as "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null,
           sessionPreference: onboardingData.sessionPreference as "Group classes" | "Private sessions" | "Both" | "No preference" | null,
@@ -307,7 +307,7 @@ export default function ProfilePage() {
       }
       case "fitnessBg": {
         const data = section as FormData["fitnessBg"]
-        totalFields = 5
+        totalFields = 4 + (data.exercises.includes("Other") ? 1 : 0)
         filledFields = [
           data.fitnessLevel,
           data.exercises.length > 0,
@@ -329,10 +329,10 @@ export default function ProfilePage() {
       }
       case "healthCons": {
         const data = section as FormData["healthCons"]
-        totalFields = 7
+        totalFields = 4 + (data.chronicConditions.includes("Other") ? 1 : 0) + (data.injuries ? 1 : 0) + (data.recentSurgery ? 1 : 0)
         filledFields = [
-          data.injuries,
-          data.recentSurgery,
+          data.injuries !== null,
+          data.recentSurgery !== null,
           data.chronicConditions.length > 0,
           data.pregnancy,
           data.injuriesDetails,
@@ -343,7 +343,7 @@ export default function ProfilePage() {
       }
       case "motivation": {
         const data = section as FormData["motivation"]
-        totalFields = 4
+        totalFields = 2 + (data.motivation.includes("Other") ? 1 : 0) + (data.progressTracking.includes("Other") ? 1 : 0)
         filledFields = [
           data.motivation.length > 0,
           data.progressTracking.length > 0,
@@ -354,9 +354,9 @@ export default function ProfilePage() {
       }
       case "pilates": {
         const data = section as FormData["pilates"]
-        totalFields = 8
+        totalFields = 5 + (data.pilatesExperience ? 1 : 0) + (data.customInstructor ? 1 : 0) + (data.customApparatus ? 1 : 0)
         filledFields = [
-          data.pilatesExperience,
+          data.pilatesExperience !== null,
           data.pilatesDuration,
           data.studioFrequency,
           data.sessionPreference,
@@ -380,70 +380,60 @@ export default function ProfilePage() {
       switch (formType) {
         case "basicQuestion": {
           const basicData = data as FormData["basicQuestion"]
-          if (basicData.name && basicData.age && basicData.height && basicData.weight && basicData.gender) {
-            postBasicQuestions({
-              name: basicData.name,
-              age: basicData.age,
-              height: basicData.height,
-              weight: basicData.weight,
-              gender: basicData.gender
-            })
-          }
+          postBasicQuestions({
+            name: basicData.name,
+            age: basicData.age,
+            height: basicData.height,
+            weight: basicData.weight,
+            gender: basicData.gender
+          })
           break
         }
         case "fitnessBg": {
           const fitnessData = data as FormData["fitnessBg"]
-          if (fitnessData.fitnessLevel && fitnessData.exerciseFrequency && fitnessData.sessionLength) {
-            postFitnessBackground({
-              fitnessLevel: fitnessData.fitnessLevel,
-              exercises: fitnessData.exercises,
-              exerciseFrequency: fitnessData.exerciseFrequency,
-              sessionLength: fitnessData.sessionLength,
-              otherExercises: fitnessData.customExercise ? [fitnessData.customExercise] : undefined
-            })
-          }
+          postFitnessBackground({
+            fitnessLevel: fitnessData.fitnessLevel,
+            exercises: fitnessData.exercises,
+            exerciseFrequency: fitnessData.exerciseFrequency,
+            sessionLength: fitnessData.sessionLength,
+            otherExercises: fitnessData.customExercise ? [fitnessData.customExercise] : undefined
+          })
           break
         }
         case "healthCons": {
           const healthData = data as FormData["healthCons"]
-          if (healthData.pregnancy) {
-            postHealthConsiderations({
-              injuries: healthData.injuries,
-              recentSurgery: healthData.recentSurgery,
-              chronicConditions: healthData.chronicConditions,
-              pregnancy: healthData.pregnancy,
-              injuriesDetails: healthData.injuriesDetails ?? undefined,
-              surgeryDetails: healthData.surgeryDetails ?? undefined,
-              otherHealthConditions: healthData.otherHealthConditions
-            })
-          }
+          postHealthConsiderations({
+            injuries: healthData.injuries ?? false,
+            recentSurgery: healthData.recentSurgery ?? false,
+            chronicConditions: healthData.chronicConditions,
+            pregnancy: healthData.pregnancy ?? "Not applicable",
+            injuriesDetails: healthData.injuriesDetails ?? undefined,
+            surgeryDetails: healthData.surgeryDetails ?? undefined,
+            otherHealthConditions: healthData.otherHealthConditions
+          })
           break
         }
         case "goals": {
           const goalsData = data as FormData["goals"]
-          if (goalsData.goalTimeline) {
-            postFitnessGoals({
-              fitnessGoals: goalsData.fitnessGoals,
-              goalTimeline: goalsData.goalTimeline,
-              specificGoals: goalsData.specificGoals ?? undefined
-            })
-          }
+          postFitnessGoals({
+            fitnessGoals: goalsData.fitnessGoals,
+            goalTimeline: goalsData.goalTimeline,
+            specificGoals: goalsData.specificGoals ?? undefined
+          })
           break
         }
         case "pilates": {
           const pilatesData = data as FormData["pilates"]
-          if (pilatesData.studioFrequency && pilatesData.sessionPreference) {
-            postPilatesExperience({
-              pilatesExperience: pilatesData.pilatesExperience,
-              studioFrequency: pilatesData.studioFrequency,
-              sessionPreference: pilatesData.sessionPreference,
-              instructors: pilatesData.instructors,
-              apparatusPreference: pilatesData.apparatusPreference,
-              pilatesDuration: pilatesData.pilatesDuration ?? undefined,
-              customInstructor: pilatesData.customInstructor ?? undefined,
-              customApparatus: pilatesData.customApparatus ?? undefined
-            })
-          }
+          postPilatesExperience({
+            pilatesExperience: pilatesData.pilatesExperience,
+            studioFrequency: pilatesData.studioFrequency,
+            sessionPreference: pilatesData.sessionPreference,
+            instructors: pilatesData.instructors,
+            apparatusPreference: pilatesData.apparatusPreference,
+            pilatesDuration: pilatesData.pilatesDuration ?? undefined,
+            customInstructor: pilatesData.customInstructor ?? undefined,
+            customApparatus: pilatesData.customApparatus ?? undefined
+          })
           break
         }
         case "motivation": {

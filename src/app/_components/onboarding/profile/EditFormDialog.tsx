@@ -36,8 +36,8 @@ interface FormData {
     specificGoals: string | null;
   };
   healthCons: {
-    injuries: boolean;
-    recentSurgery: boolean;
+    injuries: boolean | null;
+    recentSurgery: boolean | null;
     chronicConditions: string[];
     pregnancy: "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)" | null;
     injuriesDetails: string | null;
@@ -51,7 +51,7 @@ interface FormData {
     otherProgressTracking: string[];
   };
   pilates: {
-    pilatesExperience: boolean;
+    pilatesExperience: boolean | null;
     pilatesDuration: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null;
     studioFrequency: "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null;
     sessionPreference: "Group classes" | "Private sessions" | "Both" | "No preference" | null;
@@ -106,8 +106,8 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
         } as FormData["goals"]
       case "healthCons":
         return {
-          injuries: false,
-          recentSurgery: false,
+          injuries: null,
+          recentSurgery: null,
           chronicConditions: [],
           pregnancy: null,
           injuriesDetails: null,
@@ -116,7 +116,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
         } as FormData["healthCons"]
       case "pilates":
         return {
-          pilatesExperience: false,
+          pilatesExperience: null,
           pilatesDuration: null,
           studioFrequency: null,
           sessionPreference: null,
@@ -171,8 +171,8 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
         specificGoals: null
       },
       healthCons: {
-        injuries: false,
-        recentSurgery: false,
+        injuries: null,
+        recentSurgery: null,
         chronicConditions: [],
         pregnancy: null,
         injuriesDetails: null,
@@ -180,7 +180,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
         otherHealthConditions: []
       },
       pilates: {
-        pilatesExperience: false,
+        pilatesExperience: null,
         pilatesDuration: null,
         studioFrequency: null,
         sessionPreference: null,
@@ -409,8 +409,8 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
               <div>
                 <Label>Injuries</Label>
                 <RadioGroup
-                  value={typedData.injuries ? "true" : "false"}
-                  onValueChange={(value) => setData({ ...typedData, injuries: value === "true" })}
+                  value={typedData.injuries === null ? "" : typedData.injuries ? "true" : "false"}
+                  onValueChange={(value) => setData({ ...typedData, injuries: value === "" ? null : value === "true" })}
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="true" id="injuries-yes" />
@@ -434,8 +434,8 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
               <div>
                 <Label>Recent Surgery</Label>
                 <RadioGroup
-                  value={typedData.recentSurgery ? "true" : "false"}
-                  onValueChange={(value) => setData({ ...typedData, recentSurgery: value === "true" })}
+                  value={typedData.recentSurgery === null ? "" : typedData.recentSurgery ? "true" : "false"}
+                  onValueChange={(value) => setData({ ...typedData, recentSurgery: value === "" ? null : value === "true" })}
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="true" id="surgery-yes" />
@@ -509,8 +509,8 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
               <div>
                 <Label>Pilates Experience</Label>
                 <RadioGroup
-                  value={typedData.pilatesExperience ? "true" : "false"}
-                  onValueChange={(value) => setData({ ...typedData, pilatesExperience: value === "true" })}
+                  value={typedData.pilatesExperience === null ? "" : typedData.pilatesExperience ? "true" : "false"}
+                  onValueChange={(value) => setData({ ...typedData, pilatesExperience: value === "" ? null : value === "true" })}
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="true" id="pilates-yes" />
