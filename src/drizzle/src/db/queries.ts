@@ -8,6 +8,7 @@ import {
   weeklySchedule,
   onboarding,
   user,
+  personalTrainerInteractions,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -24,6 +25,12 @@ export type NewWeeklySchedule = InferInsertModel<typeof weeklySchedule>;
 export type NewOnboarding = InferInsertModel<typeof onboarding>;
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;
+export type PersonalTrainerInteraction = InferSelectModel<
+  typeof personalTrainerInteractions
+>;
+export type NewPersonalTrainerInteraction = InferInsertModel<
+  typeof personalTrainerInteractions
+>;
 
 // Initialize database connection
 const client = postgres(process.env.DATABASE_URL!);
@@ -269,4 +276,41 @@ export async function getUser(userId: string): Promise<User | null> {
   const userData = await db.select().from(user).where(eq(user.id, userId));
 
   return userData[0] ?? null;
+}
+
+export async function getPersonalTrainerInteractions(
+  userId: string,
+  limit = 10,
+  cursor?: string,
+): Promise<{ items: PersonalTrainerInteraction[]; nextCursor?: string }> {
+  const items = await db
+    .select()
+    .from(personalTrainerInteractions)
+    .where(eq(personalTrainerInteractions.userId, userId))
+    .orderBy(desc(personalTrainerInteractions.createdAt))
+    .limit(limit + 1)
+    .offset(cursor ? parseInt(cursor) : 0);
+
+  let nextCursor: string | undefined = undefined;
+  if (items.length > limit) {
+    const nextItem = items.pop();
+    nextCursor = (parseInt(cursor ?? "0") + limit).toString();
+  }
+
+  return {
+    items,
+    nextCursor,
+  };
+}
+
+export async function getPersonalTrainerInteraction(
+  id: string,
+): Promise<PersonalTrainerInteraction | null> {
+  const interaction = await db
+    .select()
+    .from(personalTrainerInteractions)
+    .where(eq(personalTrainerInteractions.id, id))
+    .limit(1);
+
+  return interaction[0] ?? null;
 }

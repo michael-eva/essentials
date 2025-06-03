@@ -7,8 +7,14 @@ import {
   workoutPlan,
   onboarding,
   user,
+  personalTrainerInteractions,
 } from "./schema";
-import type { NewOnboarding, NewWorkoutTracking, User } from "./queries";
+import type {
+  NewOnboarding,
+  NewWorkoutTracking,
+  User,
+  NewPersonalTrainerInteraction,
+} from "./queries";
 import { eq } from "drizzle-orm";
 
 const client = postgres(process.env.DATABASE_URL!);
@@ -76,4 +82,11 @@ export async function insertOnboarding(data: NewOnboarding) {
 export async function insertUser(data: User) {
   const result = await db.insert(user).values(data);
   return result;
+}
+
+export async function insertPersonalTrainerInteraction(
+  data: NewPersonalTrainerInteraction,
+) {
+  const interaction = await db.insert(personalTrainerInteractions).values(data);
+  return interaction;
 }
