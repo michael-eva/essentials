@@ -3,7 +3,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { MultiSelectPills } from "../global/multi-select-pills"
+import { Slider } from "@/components/ui/slider"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -24,7 +24,7 @@ const activityFormSchema = z.object({
   distanceUnit: z.enum(["miles", "kilometers"], {
     required_error: "Please select a distance unit",
   }),
-  ratings: z.array(z.string()).min(1, "Please select at least one rating"),
+  intensity: z.number().min(1, "Please rate the intensity from 1-10").max(10, "Rating must be between 1-10"),
   notes: z.string().optional(),
 })
 
@@ -38,17 +38,6 @@ const ACTIVITY_TYPES = [
   "Hiking",
   "Rowing",
   "Elliptical",
-]
-
-const workoutRatingOptions = [
-  "Great",
-  "Good",
-  "Struggled a bit",
-  "Challenging",
-  "Easy",
-  "Intense",
-  "Fun",
-  "Boring"
 ]
 
 function safeParseInt(val: string | undefined) {
@@ -73,7 +62,7 @@ export default function RecordManualActivity({
       durationMinutes: 0,
       distance: "",
       distanceUnit: "kilometers",
-      ratings: [],
+      intensity: 5,
       notes: "",
     },
   })
@@ -252,21 +241,24 @@ export default function RecordManualActivity({
           />
 
           <div className="space-y-2">
-            <Label>How was the activity?</Label>
-            <MultiSelectPills
-              options={workoutRatingOptions}
-              selectedValues={form.watch("ratings")}
-              onChange={(rating) => {
-                const currentRatings = form.getValues("ratings")
-                const newRatings = currentRatings.includes(rating)
-                  ? currentRatings.filter(r => r !== rating)
-                  : [...currentRatings, rating]
-                form.setValue("ratings", newRatings)
-              }}
-              className="mt-2"
-            />
-            {form.formState.errors.ratings && (
-              <p className="text-sm text-destructive">{form.formState.errors.ratings.message}</p>
+            <Label>How was the activity? (1-10)</Label>
+            <div className="space-y-4">
+              <Slider
+                value={[form.watch("intensity")]}
+                onValueChange={(value) => form.setValue("intensity", value[0] ?? 5)}
+                max={10}
+                min={1}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>1 - Very Easy</span>
+                <span className="font-medium text-foreground">{form.watch("intensity")}</span>
+                <span>10 - Very Hard</span>
+              </div>
+            </div>
+            {form.formState.errors.intensity && (
+              <p className="text-sm text-destructive">{form.formState.errors.intensity.message}</p>
             )}
           </div>
 

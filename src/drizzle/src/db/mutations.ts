@@ -5,18 +5,37 @@ import {
   workoutTracking,
   workoutStatusEnum,
   workoutPlan,
+  weeklySchedule,
   onboarding,
   user,
+  personalTrainerInteractions,
+  progressTracking,
 } from "./schema";
-import type { NewOnboarding, NewWorkoutTracking, User } from "./queries";
+import type {
+  NewWorkout,
+  NewWorkoutTracking,
+  NewWorkoutPlan,
+  NewWeeklySchedule,
+  NewOnboarding,
+  NewPersonalTrainerInteraction,
+  NewProgressTracking,
+  ProgressTracking,
+  User,
+} from "./queries";
 import { eq } from "drizzle-orm";
+import { trackWorkoutProgress } from "@/services/progress-tracker";
 
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
 
-export async function insertWorkoutActivity(data: NewWorkoutTracking) {
-  const activity = await db.insert(workoutTracking).values(data);
-  return activity;
+export async function insertWorkoutTracking(data: NewWorkoutTracking) {
+  const result = await db.insert(workoutTracking).values(data).returning();
+  const newWorkout = result[0]!;
+
+  // Automatically update progress tracking
+  await trackWorkoutProgress(data.userId, newWorkout);
+
+  return newWorkout;
 }
 
 export async function updateCompletedClass(
@@ -76,4 +95,18 @@ export async function insertOnboarding(data: NewOnboarding) {
 export async function insertUser(data: User) {
   const result = await db.insert(user).values(data);
   return result;
+}
+
+export async function insertPersonalTrainerInteraction(
+  data: NewPersonalTrainerInteraction,
+) {
+  const interaction = await db.insert(personalTrainerInteractions).values(data);
+  return interaction;
+}
+
+export async function insertProgressTracking(
+  data: NewProgressTracking,
+): Promise<ProgressTracking> {
+  const result = await db.insert(progressTracking).values(data).returning();
+  return result[0]!;
 }

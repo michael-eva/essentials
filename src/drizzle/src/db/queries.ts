@@ -1,4 +1,4 @@
-import { eq, and, gt, lt, inArray, desc, sql } from "drizzle-orm";
+import { eq, and, gt, lt, inArray, desc, sql, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
@@ -8,6 +8,8 @@ import {
   weeklySchedule,
   onboarding,
   user,
+  personalTrainerInteractions,
+  progressTracking,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -16,6 +18,7 @@ export type Workout = InferSelectModel<typeof workout>;
 export type WorkoutTracking = InferSelectModel<typeof workoutTracking>;
 export type WorkoutPlan = InferSelectModel<typeof workoutPlan>;
 export type WeeklySchedule = InferSelectModel<typeof weeklySchedule>;
+export type ProgressTracking = InferSelectModel<typeof progressTracking>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -24,6 +27,13 @@ export type NewWeeklySchedule = InferInsertModel<typeof weeklySchedule>;
 export type NewOnboarding = InferInsertModel<typeof onboarding>;
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;
+export type PersonalTrainerInteraction = InferSelectModel<
+  typeof personalTrainerInteractions
+>;
+export type NewPersonalTrainerInteraction = InferInsertModel<
+  typeof personalTrainerInteractions
+>;
+export type NewProgressTracking = InferInsertModel<typeof progressTracking>;
 
 // Initialize database connection
 const client = postgres(process.env.DATABASE_URL!);
@@ -211,7 +221,7 @@ export async function getActivityHistory(
 
 export async function getActivityHistoryCount(userId: string): Promise<number> {
   const result = await db
-    .select({ count: sql<number>`count(*)` })
+    .select({ count: sql<number>`count(*)::int` })
     .from(workoutTracking)
     .where(eq(workoutTracking.userId, userId));
   return result[0]?.count ?? 0;
@@ -269,4 +279,88 @@ export async function getUser(userId: string): Promise<User | null> {
   const userData = await db.select().from(user).where(eq(user.id, userId));
 
   return userData[0] ?? null;
+}
+
+export async function getPersonalTrainerInteractions(
+  userId: string,
+  limit = 10,
+  cursor?: string,
+): Promise<{ items: PersonalTrainerInteraction[]; nextCursor?: string }> {
+  const items = await db
+    .select()
+    .from(personalTrainerInteractions)
+    .where(eq(personalTrainerInteractions.userId, userId))
+    .orderBy(desc(personalTrainerInteractions.createdAt))
+    .limit(limit + 1)
+    .offset(cursor ? parseInt(cursor) : 0);
+
+  let nextCursor: string | undefined = undefined;
+  if (items.length > limit) {
+    const nextItem = items.pop();
+    nextCursor = (parseInt(cursor ?? "0") + limit).toString();
+  }
+
+  return {
+    items,
+    nextCursor,
+  };
+}
+
+export async function getPersonalTrainerInteraction(
+  id: string,
+): Promise<PersonalTrainerInteraction | null> {
+  const interaction = await db
+    .select()
+    .from(personalTrainerInteractions)
+    .where(eq(personalTrainerInteractions.id, id))
+    .limit(1);
+
+  return interaction[0] ?? null;
+}
+
+export async function getWorkoutTracking(
+  userId: string,
+  timeRange: { start: Date; end: Date },
+): Promise<WorkoutTracking[]> {
+  return db
+    .select()
+    .from(workoutTracking)
+    .where(
+      and(
+        eq(workoutTracking.userId, userId),
+        gt(workoutTracking.date, timeRange.start),
+        lt(workoutTracking.date, timeRange.end),
+      ),
+    )
+    .orderBy(desc(workoutTracking.date));
+}
+
+export async function getProgressTracking(
+  userId: string,
+  timeRange: { start: Date; end: Date },
+): Promise<ProgressTracking[]> {
+  return db
+    .select()
+    .from(progressTracking)
+    .where(
+      and(
+        eq(progressTracking.userId, userId),
+        gte(progressTracking.date, timeRange.start),
+        lte(progressTracking.date, timeRange.end),
+      ),
+    )
+    .orderBy(desc(progressTracking.date));
+}
+
+export async function getLatestProgressTracking(
+  userId: string,
+): Promise<ProgressTracking | null> {
+  const result = await db
+    .select()
+    .from(progressTracking)
+    .where(eq(progressTracking.userId, userId))
+    .orderBy(desc(progressTracking.date))
+    .limit(1);
+
+  return result[0] ?? null;
 }

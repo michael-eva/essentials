@@ -14,7 +14,7 @@ import {
 } from "@/drizzle/src/db/queries";
 import {
   deleteWorkoutPlan,
-  insertWorkoutActivity,
+  insertWorkoutTracking,
   updateCompletedClass,
   updateWorkoutPlan,
 } from "@/drizzle/src/db/mutations";
@@ -127,7 +127,7 @@ export const workoutPlanRouter = createTRPCRouter({
         distance: z.string().optional(),
         distanceUnit: z.string().optional(),
         notes: z.string().optional(),
-        ratings: z.array(z.string()).optional(),
+        intensity: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -142,11 +142,11 @@ export const workoutPlanRouter = createTRPCRouter({
           distance: input.distance,
           distanceUnit: input.distanceUnit,
           notes: input.notes,
-          ratings: input.ratings,
+          intensity: input.intensity,
           name: input.workoutType,
         };
 
-        return await insertWorkoutActivity(newActivity);
+        return await insertWorkoutTracking(newActivity);
       } catch (error) {
         console.error("Error inserting manual activity:", error);
         throw error;
@@ -160,7 +160,7 @@ export const workoutPlanRouter = createTRPCRouter({
         activityType: z.string(),
         date: z.date(),
         notes: z.string().optional(),
-        ratings: z.array(z.string()).optional(),
+        intensity: z.number().optional(),
         name: z.string(),
         wouldDoAgain: z.boolean().optional(),
       }),
@@ -173,12 +173,12 @@ export const workoutPlanRouter = createTRPCRouter({
           activityType: "class",
           date: input.date,
           notes: input.notes,
-          ratings: input.ratings,
+          intensity: input.intensity,
           name: input.name,
           wouldDoAgain: input.wouldDoAgain,
         };
         await updateCompletedClass(input.workoutId, "completed");
-        return await insertWorkoutActivity(newActivity);
+        return await insertWorkoutTracking(newActivity);
       } catch (error) {
         console.error("Error inserting manual activity:", error);
         throw error;

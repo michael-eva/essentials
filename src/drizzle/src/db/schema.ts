@@ -7,6 +7,8 @@ import {
   pgEnum,
   timestamp,
   uuid,
+  jsonb,
+  type PgTableWithColumns,
 } from "drizzle-orm/pg-core";
 
 export const workoutTypeEnum = pgEnum("workout_type", ["class", "workout"]);
@@ -62,7 +64,7 @@ export const workoutTracking = pgTable("workout_tracking", {
   distance: text("distance"),
   distanceUnit: text("distance_unit"),
   notes: text("notes"),
-  ratings: text("ratings").array(),
+  intensity: integer("intensity"),
   name: text("name"),
   wouldDoAgain: boolean("would_do_again"),
 });
@@ -165,4 +167,53 @@ export const onboarding = pgTable("onboarding", {
   otherMotivation: text("other_motivation").array(),
   progressTracking: text("progress_tracking").array(),
   otherProgressTracking: text("other_progress_tracking").array(),
+});
+
+export const personalTrainerInteractions = pgTable(
+  "personal_trainer_interactions",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`now()`),
+    type: text("type").notNull(), // 'question' or 'response'
+    content: text("content").notNull(),
+    context: jsonb("context"), // Store additional context like workout data, progress metrics, etc.
+    parentId: uuid("parent_id"), // For linking questions to responses
+    metadata: jsonb("metadata"), // For storing any additional metadata like sentiment, key topics, etc.
+  },
+);
+
+export const progressTracking = pgTable("progress_tracking", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  date: timestamp("date")
+    .notNull()
+    .default(sql`now()`),
+  type: text("type").notNull(), // 'cardio' | 'pilates' | 'overall'
+  metrics: jsonb("metrics").notNull().default({}), // Store duration, intensity, consistency, etc.
+  achievements: text("achievements").array().default([]),
+  challenges: text("challenges").array().default([]),
+  notes: text("notes"),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .default(sql`now()`),
 });

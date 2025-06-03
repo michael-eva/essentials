@@ -1,0 +1,1 @@
+ALTER TABLE "workout_tracking" RENAME COLUMN "ratings" TO "intensity";
