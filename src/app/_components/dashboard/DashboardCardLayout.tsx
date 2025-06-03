@@ -37,7 +37,7 @@ export default function DashboardCardLayout({
           <div className="space-y-4">
             {children}
             {showViewAll && (
-              <div className="pt-4">
+              <div>
                 <a
                   href={viewAllHref}
                   className="text-sm text-[var(--accent)] hover:text-[color:var(--accent)]/80 font-medium flex items-center transition-colors"

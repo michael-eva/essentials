@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
-import { Activity, BarChart3, CalendarDays, Clock, Bike, Footprints, Mountain, Waves } from "lucide-react"
+import { Activity, BarChart3, CalendarDays, Clock, Bike, Footprints, Mountain, Waves, Plus } from "lucide-react"
 import { api } from "@/trpc/react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -79,14 +79,28 @@ export default function WorkoutHistory() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <Card className="bg-white text-[var(--card-foreground)] border border-[var(--border)] rounded-xl shadow-lg overflow-hidden">
-        <CardHeader className="px-6 pt-6 pb-4">
-          <div className="flex justify-between items-center mb-4">
-            <CardTitle className="text-2xl font-semibold text-gray-900">Workout History</CardTitle>
-          </div>
-          <CardDescription className="text-[var(--muted-foreground)]">View and filter your past activities</CardDescription>
-        </CardHeader>
-        <CardContent className="px-2 pb-6">
+      <div>
+        {allActivities.length === 0 && !isLoading ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-lg border border-gray-100"
+          >
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">No Workouts Yet</h2>
+            <p className="text-gray-500 mb-6 text-center max-w-md">
+              You haven&apos;t recorded any workouts yet. Start tracking your fitness journey by recording your first workout!
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {/* TODO: Implement record workout action */ }}
+              className="border-gray-200 text-accent hover:bg-gray-50 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Record Workout
+            </Button>
+          </motion.div>
+        ) : (
           <Tabs defaultValue="list" className="w-full">
             <TabsContent value="list" className="space-y-4">
               {allActivities.map((workout, index) => (
@@ -211,8 +225,8 @@ export default function WorkoutHistory() {
               </div>
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </motion.div>
   )
 }

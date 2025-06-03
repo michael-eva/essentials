@@ -82,7 +82,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <DashboardCardLayout
         title="Upcoming Classes"
-        description={upcomingClasses ? "Your scheduled sessions:" : "No upcoming classes scheduled"}
+        description={upcomingClasses && upcomingClasses?.length > 0 ? "Your scheduled sessions:" : "No upcoming classes scheduled"}
       >
         {isLoadingUpcomingClasses ? (
           <UpcomingClassesSkeleton />
@@ -91,7 +91,7 @@ export default function Dashboard() {
             <div className="flex flex-col items-center space-y-2">
               <CalendarDays className="h-12 w-12 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900">No Upcoming Classes</h3>
-              <p className="text-sm text-gray-500 max-w-sm">
+              <p className="text-gray-500 mb-6 text-center max-w-md">
                 You don&apos;t have any classes scheduled. Create a workout plan to get started with your fitness journey!
               </p>
             </div>
