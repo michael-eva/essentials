@@ -10,11 +10,11 @@ export const onboardingRouter = createTRPCRouter({
   postBasicQuestions: protectedProcedure
     .input(
       z.object({
-        name: z.string(),
-        age: z.number(),
-        height: z.number(),
-        weight: z.number(),
-        gender: z.string(),
+        name: z.string().nullable(),
+        age: z.number().nullable(),
+        height: z.number().nullable(),
+        weight: z.number().nullable(),
+        gender: z.string().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -34,11 +34,11 @@ export const onboardingRouter = createTRPCRouter({
   postFitnessBackground: protectedProcedure
     .input(
       z.object({
-        fitnessLevel: z.string(),
+        fitnessLevel: z.string().nullable(),
         exercises: z.array(z.string()),
         otherExercises: z.array(z.string()).optional(),
-        exerciseFrequency: z.string(),
-        sessionLength: z.string(),
+        exerciseFrequency: z.string().nullable(),
+        sessionLength: z.string().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -64,9 +64,9 @@ export const onboardingRouter = createTRPCRouter({
   postHealthConsiderations: protectedProcedure
     .input(
       z.object({
-        injuries: z.boolean(),
+        injuries: z.boolean().nullable(),
         injuriesDetails: z.string().optional(),
-        recentSurgery: z.boolean(),
+        recentSurgery: z.boolean().nullable(),
         surgeryDetails: z.string().optional(),
         chronicConditions: z.array(z.string()),
         otherHealthConditions: z.array(z.string()).optional(),
@@ -101,7 +101,7 @@ export const onboardingRouter = createTRPCRouter({
     .input(
       z.object({
         fitnessGoals: z.array(z.string()),
-        goalTimeline: z.string(),
+        goalTimeline: z.string().nullable(),
         specificGoals: z.string().optional(),
       }),
     )
@@ -120,10 +120,10 @@ export const onboardingRouter = createTRPCRouter({
   postPilatesExperience: protectedProcedure
     .input(
       z.object({
-        pilatesExperience: z.boolean(),
+        pilatesExperience: z.boolean().nullable(),
         pilatesDuration: z.string().optional(),
-        studioFrequency: z.string(),
-        sessionPreference: z.string(),
+        studioFrequency: z.string().nullable(),
+        sessionPreference: z.string().nullable(),
         instructors: z.array(z.string()),
         customInstructor: z.string().optional(),
         apparatusPreference: z.array(z.string()),
@@ -195,6 +195,42 @@ export const onboardingRouter = createTRPCRouter({
   getOnboardingData: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
     const onboardingData = await getOnboardingData(userId);
+    if (!onboardingData) {
+      return {
+        name: null,
+        age: null,
+        height: null,
+        weight: null,
+        gender: null,
+        fitnessLevel: null,
+        exercises: [],
+        otherExercises: [],
+        exerciseFrequency: null,
+        sessionLength: null,
+        injuries: null,
+        injuriesDetails: null,
+        recentSurgery: null,
+        surgeryDetails: null,
+        chronicConditions: [],
+        otherHealthConditions: [],
+        pregnancy: null,
+        fitnessGoals: [],
+        goalTimeline: null,
+        specificGoals: null,
+        pilatesExperience: null,
+        pilatesDuration: null,
+        studioFrequency: null,
+        sessionPreference: null,
+        instructors: [],
+        customInstructor: null,
+        apparatusPreference: [],
+        customApparatus: null,
+        motivation: [],
+        otherMotivation: [],
+        progressTracking: [],
+        otherProgressTracking: [],
+      };
+    }
     return onboardingData;
   }),
 });

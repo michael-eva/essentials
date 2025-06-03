@@ -4,6 +4,7 @@ import z from "zod";
 import { TRPCError } from "@trpc/server";
 import SendEmail from "@/services/resend";
 import { insertUser } from "@/drizzle/src/db/mutations";
+import { getUser } from "@/drizzle/src/db/queries";
 
 export const authRouter = createTRPCRouter({
   generateOtp: publicProcedure
@@ -57,15 +58,20 @@ export const authRouter = createTRPCRouter({
   verifyOtp: publicProcedure
     .input(z.object({ email: z.string(), token: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await verifyOtp(input.email, input.token, ctx.supabase);
-    }),
-  insertUser: publicProcedure
-    .input(z.object({ email: z.string(), name: z.string().optional() }))
-    .mutation(async ({ input, ctx }) => {
-      return await insertUser({
-        id: ctx.userId!,
-        email: input.email,
-        name: input.name ?? null,
-      });
+      const authData = await verifyOtp(input.email, input.token, ctx.supabase);
+
+      // Check if user exists in our database
+      const existingUser = await getUser(authData.user?.id ?? "");
+
+      // If user doesn't exist, insert them
+      if (!existingUser && authData.user) {
+        await insertUser({
+          id: authData.user.id,
+          email: input.email,
+          name: null,
+        });
+      }
+
+      return authData;
     }),
 });

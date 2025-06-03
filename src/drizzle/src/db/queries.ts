@@ -254,11 +254,19 @@ export async function checkOnboardingCompletion(
   );
 }
 
-export async function getOnboardingData(userId: string): Promise<Onboarding> {
+export async function getOnboardingData(
+  userId: string,
+): Promise<Onboarding | null> {
   const onboardingData = await db
     .select()
     .from(onboarding)
     .where(eq(onboarding.userId, userId));
 
-  return onboardingData[0]!;
+  return onboardingData[0] ?? null;
+}
+
+export async function getUser(userId: string): Promise<User | null> {
+  const userData = await db.select().from(user).where(eq(user.id, userId));
+
+  return userData[0] ?? null;
 }
