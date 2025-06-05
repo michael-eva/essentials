@@ -385,7 +385,7 @@ export const workoutPlanRouter = createTRPCRouter({
       savedAt: new Date(),
       archived: false,
       archivedAt: null,
-      isActive: false,
+      isActive: true,
       startDate: new Date(),
       pausedAt: null,
       resumedAt: null,

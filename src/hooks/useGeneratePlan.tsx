@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 
 export default function useGeneratePlan() {
   const router = useRouter();
+  const utils = api.useUtils();
 
   const generatePlanMutation = api.workoutPlan.generatePlan.useMutation({
     onError: (error) => {
@@ -12,6 +13,7 @@ export default function useGeneratePlan() {
     },
     onSuccess: () => {
       console.log("Plan generated successfully");
+      void utils.workoutPlan.getActivePlan.invalidate();
     },
   });
 

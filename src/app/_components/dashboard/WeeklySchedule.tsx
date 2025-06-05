@@ -96,13 +96,20 @@ export default function WeeklySchedule({
                         </div>
                       </div>
                       {workout.type === 'class' && onBookClass && (
-                        <Button
-                          size="sm"
-                          onClick={() => onBookClass(workout.id)}
-                          className={`text-xs px-3 py-1 h-7 ${workout.isBooked ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"}`}
-                        >
-                          {workout.isBooked ? "Booked" : "Book"}
-                        </Button>
+                        workout.status === 'completed' ? (
+                          <span className="inline-flex items-center text-xs px-3 py-1 h-7 bg-green-100 text-green-800 rounded">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" /></svg>
+                            Done
+                          </span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => onBookClass(workout.id)}
+                            className="text-xs px-3 py-1 h-7 bg-orange-100 text-orange-800"
+                          >
+                            {workout.isBooked ? "Booked" : "Book"}
+                          </Button>
+                        )
                       )}
                     </div>
                     {isEditing && editingWeeks.has(week.weekNumber) && workout.type === 'class' && onDeleteClass && (
