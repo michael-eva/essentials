@@ -20,6 +20,7 @@ import {
   insertWorkoutPlan,
   insertWorkouts,
   insertWeeklySchedules,
+  updateWorkoutStatus,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
 
@@ -119,7 +120,16 @@ export const workoutPlanRouter = createTRPCRouter({
       });
     }
   }),
-
+  updateWorkoutStatus: protectedProcedure
+    .input(
+      z.object({
+        workoutId: z.string(),
+        status: z.enum(["completed", "not_completed", "not_recorded"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await updateWorkoutStatus(input.workoutId, input.status);
+    }),
   insertManualActivity: protectedProcedure
     .input(
       z.object({

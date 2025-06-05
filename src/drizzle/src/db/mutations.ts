@@ -147,3 +147,13 @@ export async function insertWeeklySchedules(
   const result = await db.insert(weeklySchedule).values(schedules).returning();
   return result;
 }
+export async function updateWorkoutStatus(
+  workoutId: string,
+  status: (typeof workoutStatusEnum.enumValues)[number],
+) {
+  const result = await db
+    .update(workout)
+    .set({ status })
+    .where(eq(workout.id, workoutId));
+  return result;
+}

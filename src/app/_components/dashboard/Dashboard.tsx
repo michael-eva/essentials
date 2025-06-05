@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import DashboardCardLayout from "./DashboardCardLayout"
 
 import { useState } from "react"
-import RecordWorkout from "./RecordWorkout"
-import type { WorkoutFormValues } from "./RecordWorkout"
+import MarkClassComplete from "./MarkClassComplete"
+import type { WorkoutFormValues } from "./MarkClassComplete"
 import RecordManualActivity from "./RecordManualActivity"
 import type { ActivityFormValues } from "./RecordManualActivity"
 import { toast } from "sonner"
@@ -15,6 +15,7 @@ import { workoutStatusEnum } from "@/drizzle/src/db/schema"
 import useGeneratePlan from "@/hooks/useGeneratePlan"
 import { UpcomingClassesSkeleton, WorkoutLoggingSkeleton, ActivityHistorySkeleton } from "./DashboardSkeleton"
 import { ProgressSection } from "./ProgressSection"
+import MarkClassMissed from "./MarkClassMissed"
 type WorkoutStatus = typeof workoutStatusEnum.enumValues[number]
 
 export default function Dashboard() {
@@ -33,16 +34,33 @@ export default function Dashboard() {
       void utils.workoutPlan.getWorkoutsToLog.invalidate();
     }
   })
+  const { mutate: updateWorkoutStatus } = api.workoutPlan.updateWorkoutStatus.useMutation({
+    onSuccess: () => {
+      void utils.workoutPlan.getWorkoutsToLog.invalidate();
+    }
+  })
   const { generatePlan } = useGeneratePlan();
 
 
   const [selectedWorkout, setSelectedWorkout] = useState<typeof pastWorkouts[0] | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isMarkMissedDialogOpen, setIsMarkMissedDialogOpen] = useState(false)
   const [isManualActivityDialogOpen, setIsManualActivityDialogOpen] = useState(false)
 
   const handleMarkComplete = (workout: typeof pastWorkouts[0]) => {
     setSelectedWorkout(workout)
     setIsDialogOpen(true)
+  }
+
+  const handleMarkMissed = (workout: typeof pastWorkouts[0]) => {
+    setSelectedWorkout(workout)
+    setIsMarkMissedDialogOpen(true)
+  }
+
+  const handleSubmitMarkMissed = (workoutId: string) => {
+    updateWorkoutStatus({ workoutId, status: "not_completed" })
+    setIsMarkMissedDialogOpen(false)
+    setSelectedWorkout(null)
   }
 
   const handleSubmitWorkoutDetails = (workoutId: string, data: WorkoutFormValues, bookedDate: Date, name: string) => {
@@ -199,6 +217,7 @@ export default function Dashboard() {
                       </Button>
                       <Button
                         className="bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90 transition-colors"
+                        onClick={() => handleMarkMissed(workout)}
                       >
                         Mark Missed
                       </Button>
@@ -240,38 +259,19 @@ export default function Dashboard() {
         )}
       </DashboardCardLayout>
 
-      {/* <DashboardCardLayout
-        title="Health Summary"
-        description="Your stats for the past 7 days"
-        showViewAll={false}
-        color="#FF9500" // iOS orange
-      >
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <TrendingUp className="h-4 w-4 mr-2 text-[#007AFF]" />
-              <span className="text-sm text-gray-700">Average Steps</span>
-            </div>
-            <span className="font-medium text-gray-900">8,742</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Flame className="h-4 w-4 mr-2 text-[#FF9500]" />
-              <span className="text-sm text-gray-700">Avg. Calories Burned</span>
-            </div>
-            <span className="font-medium text-gray-900">1,842</span>
-          </div>
-        </div>
-      </DashboardCardLayout> */}
-
-      <RecordWorkout
+      <MarkClassComplete
         isDialogOpen={isDialogOpen}
         setIsDialogOpen={setIsDialogOpen}
         handleSubmitWorkoutDetails={handleSubmitWorkoutDetails}
         workoutId={selectedWorkout?.id?.toString() ?? ""}
         bookedDate={selectedWorkout?.bookedDate ? new Date(selectedWorkout.bookedDate) : new Date()}
         name={selectedWorkout?.name ?? ""}
+      />
+      <MarkClassMissed
+        isDialogOpen={isMarkMissedDialogOpen}
+        setIsDialogOpen={setIsMarkMissedDialogOpen}
+        onSubmit={handleSubmitMarkMissed}
+        workoutId={selectedWorkout?.id?.toString() ?? ""}
       />
 
       <RecordManualActivity
