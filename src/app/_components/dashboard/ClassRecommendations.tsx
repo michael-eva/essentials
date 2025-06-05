@@ -410,6 +410,7 @@ export default function ClassRecommendations() {
                 onBookClass={handleBookClass}
                 editingWeeks={editingWeeks}
                 onToggleWeekEdit={toggleWeekEdit}
+                isActivePlan={true}
               />
             </CardContent>
           </Card>
@@ -552,6 +553,7 @@ export default function ClassRecommendations() {
                       <WeeklySchedule
                         weeks={getWeeklySchedulesForPlan(parseInt(plan.weeks.toString()), idx)}
                         accordionValuePrefix={`prev-${idx}-`}
+                        isActivePlan={false}
                       />
                     </CardContent>
                   </Card>

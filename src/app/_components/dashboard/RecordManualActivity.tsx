@@ -7,11 +7,12 @@ import { Slider } from "@/components/ui/slider"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Clock, Ruler, Activity } from "lucide-react"
 import { WheelPicker } from "./WheelPicker"
 import { CustomInput } from "@/app/_components/dashboard/InputLayout"
 import { DatePicker } from "@/components/ui/date-picker"
+import { activityTypeEnum } from "@/drizzle/src/db/schema"
 
 const activityFormSchema = z.object({
   workoutType: z.string({
@@ -26,19 +27,12 @@ const activityFormSchema = z.object({
   }),
   intensity: z.number().min(1, "Please rate the intensity from 1-10").max(10, "Rating must be between 1-10"),
   notes: z.string().optional(),
+  workoutId: z.string().optional(),
 })
 
 export type ActivityFormValues = z.infer<typeof activityFormSchema>
 
-const ACTIVITY_TYPES = [
-  "Running",
-  "Cycling",
-  "Swimming",
-  "Walking",
-  "Hiking",
-  "Rowing",
-  "Elliptical",
-]
+const ACTIVITY_TYPES = activityTypeEnum.enumValues;
 
 function safeParseInt(val: string | undefined) {
   return /^\d+$/.test(val ?? "") ? parseInt(val!, 10) : 0;
@@ -47,16 +41,21 @@ function safeParseInt(val: string | undefined) {
 export default function RecordManualActivity({
   isDialogOpen,
   setIsDialogOpen,
-  handleSubmitActivity
+  handleSubmitActivity,
+  initialActivityType,
+  workoutId
 }: {
   isDialogOpen: boolean
   setIsDialogOpen: (isOpen: boolean) => void
   handleSubmitActivity: (data: ActivityFormValues) => void
+  initialActivityType?: string
+  workoutId?: string
 }) {
+  console.log(initialActivityType)
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activityFormSchema),
     defaultValues: {
-      workoutType: "",
+      workoutType: initialActivityType ?? "",
       date: new Date(),
       durationHours: 0,
       durationMinutes: 0,
@@ -64,11 +63,18 @@ export default function RecordManualActivity({
       distanceUnit: "kilometers",
       intensity: 5,
       notes: "",
+      workoutId: workoutId,
     },
   })
 
+  useEffect(() => {
+    if (initialActivityType) {
+      form.setValue("workoutType", initialActivityType)
+    }
+  }, [initialActivityType, form])
+
   const onSubmit = (data: ActivityFormValues) => {
-    handleSubmitActivity(data)
+    handleSubmitActivity({ ...data, workoutId })
     form.reset()
   }
 
@@ -104,7 +110,7 @@ export default function RecordManualActivity({
               <SelectContent>
                 {ACTIVITY_TYPES.map((type) => (
                   <SelectItem key={type} value={type}>
-                    {type}
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
                   </SelectItem>
                 ))}
               </SelectContent>

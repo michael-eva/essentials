@@ -4,6 +4,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Trash2, Edit, Plus } from "lucide-react"
 import Link from "next/link"
 import type { Workout } from "@/drizzle/src/db/queries"
+import { useState } from "react"
+import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
+import { activityTypeEnum } from "@/drizzle/src/db/schema"
+import { api } from "@/trpc/react"
 
 interface WeeklyScheduleProps {
   weeks: Array<{
@@ -19,9 +23,46 @@ interface WeeklyScheduleProps {
   editingWeeks?: Set<number>;
   onToggleWeekEdit?: (weekNumber: number) => void;
   accordionValuePrefix?: string;
+  isActivePlan: boolean;
 }
-
+function StatusButton({ workout, onBookingSubmit, isActivePlan, onWorkoutComplete }: { workout: Workout, onBookingSubmit: (workoutId: string, isBooked: boolean) => void, isActivePlan: boolean, onWorkoutComplete: (workoutId: string) => void }) {
+  if (!isActivePlan) return null
+  return (
+    workout.type === 'class' ? (
+      workout.status === 'completed' ? (
+        <span className="inline-flex items-center text-xs px-3 py-1 h-7 bg-green-100 text-green-800 rounded">
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" /></svg>
+          Done
+        </span>
+      ) : (
+        <Button
+          size="sm"
+          onClick={() => onBookingSubmit(workout.id, workout.isBooked)}
+          className="text-xs px-3 py-1 h-7 bg-orange-100 text-orange-800"
+        >
+          {workout.isBooked ? "Booked" : "Book"}
+        </Button>
+      )
+    ) : workout.type === 'workout' ? (
+      workout.status === 'completed' ? (
+        <span className="inline-flex items-center text-xs px-3 py-1 h-7 bg-green-100 text-green-800 rounded">
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" /></svg>
+          Done
+        </span>
+      ) : (
+        <Button
+          size="sm"
+          onClick={() => onWorkoutComplete(workout.id)}
+          className="text-xs px-3 py-1 h-7 bg-orange-100 text-orange-800"
+        >
+          Completed?
+        </Button>
+      )
+    ) : null
+  )
+}
 export default function WeeklySchedule({
+  isActivePlan,
   weeks,
   isEditing = false,
   onDeleteClass,
@@ -31,6 +72,37 @@ export default function WeeklySchedule({
   onToggleWeekEdit,
   accordionValuePrefix = ""
 }: WeeklyScheduleProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [selectedActivityType, setSelectedActivityType] = useState<typeof activityTypeEnum.enumValues[number]>()
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string>()
+  const utils = api.useUtils();
+  const { mutate: insertManualActivity } = api.workoutPlan.insertManualActivity.useMutation({
+    onSuccess: () => {
+      void utils.workoutPlan.getActivityHistory.invalidate();
+    }
+  })
+  const { mutate: updateWorkoutStatus } = api.workoutPlan.updateWorkoutStatus.useMutation({
+    onSuccess: () => {
+      void utils.workoutPlan.getActivePlan.invalidate();
+    }
+  })
+  function onBookingSubmit(workoutId: string, isBooked: boolean) {
+    if (isBooked) return
+    onBookClass?.(workoutId)
+  }
+
+  function onWorkoutComplete(activityType?: typeof activityTypeEnum.enumValues[number], workoutId?: string) {
+    setSelectedActivityType(activityType)
+    setSelectedWorkoutId(workoutId)
+    setIsDialogOpen(true)
+  }
+  function handleSubmitActivity(data: ActivityFormValues) {
+    insertManualActivity(data)
+    if (selectedWorkoutId) {
+      updateWorkoutStatus({ workoutId: selectedWorkoutId, status: "completed" })
+    }
+    setIsDialogOpen(false)
+  }
 
   return (
     <Accordion type="multiple" className="w-full">
@@ -38,7 +110,11 @@ export default function WeeklySchedule({
         <AccordionItem key={week.weekNumber} value={`${accordionValuePrefix}week-${week.weekNumber}`}>
           <AccordionTrigger className="font-bold text-base px-4 py-3 bg-muted/30">
             Week {week.weekNumber} <span className="ml-2 font-normal text-sm text-muted-foreground">{`${week.classesPerWeek > 0 ? `${week.classesPerWeek} Class${week.classesPerWeek === 1 ? '' : 'es'}` : ''}${week.classesPerWeek > 0 && week.workoutsPerWeek > 0 ? ', ' : ''} ${week.workoutsPerWeek > 0 ? `${week.workoutsPerWeek} Workout${week.workoutsPerWeek === 1 ? '' : 's'}` : ''}`}</span>
-
+            {week.items.filter(Boolean).length > 0 && (
+              <span className="ml-2 font-normal text-sm text-muted-foreground">
+                ({Math.round((week.items.filter(Boolean).filter(item => item?.status === 'completed').length / week.items.filter(Boolean).length) * 100)}% completed)
+              </span>
+            )}
           </AccordionTrigger>
           <AccordionContent className="px-2 md:px-4 pb-4">
             {isEditing && onToggleWeekEdit && (
@@ -95,22 +171,7 @@ export default function WeeklySchedule({
                           {workout.description}
                         </div>
                       </div>
-                      {workout.type === 'class' && onBookClass && (
-                        workout.status === 'completed' ? (
-                          <span className="inline-flex items-center text-xs px-3 py-1 h-7 bg-green-100 text-green-800 rounded">
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" /></svg>
-                            Done
-                          </span>
-                        ) : (
-                          <Button
-                            size="sm"
-                            onClick={() => onBookClass(workout.id)}
-                            className="text-xs px-3 py-1 h-7 bg-orange-100 text-orange-800"
-                          >
-                            {workout.isBooked ? "Booked" : "Book"}
-                          </Button>
-                        )
-                      )}
+                      <StatusButton workout={workout} onBookingSubmit={onBookingSubmit} isActivePlan={isActivePlan} onWorkoutComplete={() => onWorkoutComplete(workout.activityType!)} />
                     </div>
                     {isEditing && editingWeeks.has(week.weekNumber) && workout.type === 'class' && onDeleteClass && (
                       <div className="grid grid-cols-1 gap-2 pt-2 border-t">
@@ -144,7 +205,15 @@ export default function WeeklySchedule({
             )}
           </AccordionContent>
         </AccordionItem>
-      ))}
-    </Accordion>
+      ))
+      }
+      <RecordManualActivity
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        handleSubmitActivity={handleSubmitActivity}
+        initialActivityType={selectedActivityType}
+        workoutId={selectedWorkoutId}
+      />
+    </Accordion >
   );
 }

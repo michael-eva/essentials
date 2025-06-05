@@ -17,6 +17,15 @@ export const workoutStatusEnum = pgEnum("workout_status", [
   "not_completed",
   "not_recorded",
 ]);
+export const activityTypeEnum = pgEnum("activity_type", [
+  "run",
+  "cycle",
+  "swim",
+  "walk",
+  "hike",
+  "rowing",
+  "elliptical",
+]);
 
 export const user = pgTable("user", {
   id: uuid("id").primaryKey().unique(),
@@ -44,6 +53,7 @@ export const workout = pgTable("workout", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+  activityType: activityTypeEnum("activity_type"),
 });
 
 export const workoutTracking = pgTable("workout_tracking", {

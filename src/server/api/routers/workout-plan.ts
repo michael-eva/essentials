@@ -410,6 +410,7 @@ export const workoutPlanRouter = createTRPCRouter({
         status: "not_recorded" as const,
         isBooked: false,
         userId,
+        activityType: "run",
       },
       {
         id: uuidv4(),
@@ -437,6 +438,7 @@ export const workoutPlanRouter = createTRPCRouter({
         status: "not_recorded" as const,
         isBooked: false,
         userId,
+        activityType: "swim",
       },
       // Week 2
       {
@@ -465,6 +467,7 @@ export const workoutPlanRouter = createTRPCRouter({
         status: "not_recorded" as const,
         isBooked: false,
         userId,
+        activityType: "hike",
       },
       {
         id: uuidv4(),
@@ -478,6 +481,7 @@ export const workoutPlanRouter = createTRPCRouter({
         status: "not_recorded" as const,
         isBooked: false,
         userId,
+        activityType: "rowing",
       },
       // Week 3
       {
@@ -506,6 +510,7 @@ export const workoutPlanRouter = createTRPCRouter({
         status: "not_recorded" as const,
         isBooked: false,
         userId,
+        activityType: "elliptical",
       },
       {
         id: uuidv4(),
@@ -519,6 +524,7 @@ export const workoutPlanRouter = createTRPCRouter({
         status: "not_recorded" as const,
         isBooked: false,
         userId,
+        activityType: "walk",
       },
       // Week 4
       {
@@ -547,6 +553,7 @@ export const workoutPlanRouter = createTRPCRouter({
         status: "not_recorded" as const,
         isBooked: false,
         userId,
+        activityType: "run",
       },
       {
         id: uuidv4(),
@@ -560,6 +567,7 @@ export const workoutPlanRouter = createTRPCRouter({
         status: "not_recorded" as const,
         isBooked: false,
         userId,
+        activityType: "swim",
       },
     ];
 
