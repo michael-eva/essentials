@@ -157,3 +157,10 @@ export async function updateWorkoutStatus(
     .where(eq(workout.id, workoutId));
   return result;
 }
+export async function bookClass(workoutId: string, date: Date) {
+  const result = await db
+    .update(workout)
+    .set({ isBooked: true, bookedDate: date })
+    .where(eq(workout.id, workoutId));
+  return result;
+}

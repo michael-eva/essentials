@@ -76,17 +76,17 @@ export default function ClassRecommendations() {
       void utils.workoutPlan.getPreviousPlans.invalidate();
     },
   });
+  const bookClass = api.workoutPlan.bookClass.useMutation({
+    onSuccess: () => {
+      void utils.workoutPlan.getUpcomingClasses.invalidate();
+      void utils.workoutPlan.getActivePlan.invalidate();
+    },
+  });
   const { generatePlan } = useGeneratePlan();
   const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
-  const handleBookClass = () => {
-    // bookClassMutation.mutate({
-    //   name: classItem.name,
-    //   instructor: classItem.instructor || "TBD",
-    //   duration: classItem.duration,
-    //   level: classItem.level,
-    //   type: classItem.type
-    // })
+  const handleBookClass = (workoutId: string) => {
+    bookClass.mutate({ workoutId })
   }
 
   const getWeeklySchedules = () => {

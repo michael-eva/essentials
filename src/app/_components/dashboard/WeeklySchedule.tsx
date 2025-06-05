@@ -15,7 +15,7 @@ interface WeeklyScheduleProps {
   isEditing?: boolean;
   onDeleteClass?: (weekNumber: number, classIndex: number) => void;
   onAddClass?: (weekNumber: number) => void;
-  onBookClass?: () => void;
+  onBookClass?: (workoutId: string) => void;
   editingWeeks?: Set<number>;
   onToggleWeekEdit?: (weekNumber: number) => void;
   accordionValuePrefix?: string;
@@ -31,7 +31,6 @@ export default function WeeklySchedule({
   onToggleWeekEdit,
   accordionValuePrefix = ""
 }: WeeklyScheduleProps) {
-  console.log(weeks);
 
   return (
     <Accordion type="multiple" className="w-full">
@@ -99,7 +98,7 @@ export default function WeeklySchedule({
                       {workout.type === 'class' && onBookClass && (
                         <Button
                           size="sm"
-                          onClick={onBookClass}
+                          onClick={() => onBookClass(workout.id)}
                           className={`text-xs px-3 py-1 h-7 ${workout.isBooked ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"}`}
                         >
                           {workout.isBooked ? "Booked" : "Book"}

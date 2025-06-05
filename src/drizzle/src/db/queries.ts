@@ -364,3 +364,12 @@ export async function getLatestProgressTracking(
 
   return result[0] ?? null;
 }
+export async function getWorkoutById(
+  workoutId: string,
+): Promise<Workout | null> {
+  const result = await db
+    .select()
+    .from(workout)
+    .where(eq(workout.id, workoutId));
+  return result[0] ?? null;
+}

@@ -21,6 +21,7 @@ import {
   insertWorkouts,
   insertWeeklySchedules,
   updateWorkoutStatus,
+  bookClass,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
 
@@ -584,4 +585,22 @@ export const workoutPlanRouter = createTRPCRouter({
       })),
     };
   }),
+  bookClass: protectedProcedure
+    .input(z.object({ workoutId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      //add functionality to book class with Hapana here
+
+      // check if the workout is already booked
+      // const workout = await getWorkoutById(input.workoutId);
+      // if (workout?.isBooked) {
+      //   throw new TRPCError({
+      //     code: "BAD_REQUEST",
+      //     message: "Workout is already booked",
+      //   });
+      // }
+      return await bookClass(
+        input.workoutId,
+        new Date(new Date().setDate(new Date().getDate() + 1)),
+      );
+    }),
 });
