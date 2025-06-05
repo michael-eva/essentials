@@ -10,6 +10,7 @@ import {
   user,
   personalTrainerInteractions,
   progressTracking,
+  workoutTypeEnum,
 } from "./schema";
 import type {
   NewWorkout,
@@ -109,4 +110,40 @@ export async function insertProgressTracking(
 ): Promise<ProgressTracking> {
   const result = await db.insert(progressTracking).values(data).returning();
   return result[0]!;
+}
+
+export async function insertWorkoutPlan(data: NewWorkoutPlan) {
+  const result = await db.insert(workoutPlan).values(data).returning();
+  return result[0]!;
+}
+
+export async function insertWorkouts(
+  workouts: Array<{
+    id: string;
+    name: string;
+    instructor: string;
+    duration: number;
+    description: string;
+    level: string;
+    type: (typeof workoutTypeEnum.enumValues)[number];
+    status: (typeof workoutStatusEnum.enumValues)[number];
+    isBooked: boolean;
+    userId: string;
+    classId?: number;
+  }>,
+) {
+  const result = await db.insert(workout).values(workouts).returning();
+  return result;
+}
+
+export async function insertWeeklySchedules(
+  schedules: Array<{
+    id: string;
+    planId: string;
+    weekNumber: number;
+    workoutId: string;
+  }>,
+) {
+  const result = await db.insert(weeklySchedule).values(schedules).returning();
+  return result;
 }
