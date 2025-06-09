@@ -23,6 +23,7 @@ export default function ClassRecommendations() {
   const [editedPlanName, setEditedPlanName] = useState("")
   const [editingWeeks, setEditingWeeks] = useState<Set<number>>(new Set())
   const [addClassDialogOpen, setAddClassDialogOpen] = useState(false)
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false)
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -85,7 +86,7 @@ export default function ClassRecommendations() {
       void utils.workoutPlan.getActivePlan.invalidate();
     },
   });
-  const { generatePlan } = useGeneratePlan();
+  const { generatePlan, OnboardingDialog, isLoading } = useGeneratePlan();
   const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
   const handleBookClass = (workoutId: string, name: string) => {
@@ -341,9 +342,12 @@ export default function ClassRecommendations() {
   }
 
   const handleGeneratePlan = () => {
+    // setIsGeneratingPlan(true);
     generatePlan();
-  }
-
+    // setTimeout(() => {
+    //   setIsGeneratingPlan(false);
+    // }, 1000);
+  };
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -351,6 +355,7 @@ export default function ClassRecommendations() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
+      {OnboardingDialog}
       {isLoadingActivePlan ? (
         <ActivePlanSkeleton />
       ) : !activePlan ? (
@@ -368,9 +373,10 @@ export default function ClassRecommendations() {
             variant="outline"
             onClick={handleGeneratePlan}
             className="border-gray-200 text-accent hover:bg-gray-50 transition-colors"
+            disabled={isLoading}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Create New Plan
+            {isLoading ? "Generating Plan..." : "Create New Plan"}
           </Button>
         </motion.div>
       ) : (

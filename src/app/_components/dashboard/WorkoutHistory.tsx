@@ -1,15 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { Activity, BarChart3, CalendarDays, Clock, Bike, Footprints, Mountain, Waves, Plus } from "lucide-react"
 import { api } from "@/trpc/react"
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
+import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
+import { toast } from "sonner"
 
 // Map activity types to icons
 const activityTypeIcons: Record<string, React.ReactNode> = {
@@ -25,7 +26,9 @@ const activityTypeIcons: Record<string, React.ReactNode> = {
 export default function WorkoutHistory() {
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [page, setPage] = useState(1)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [allActivities, setAllActivities] = useState<typeof activityHistory>([])
+  const utils = api.useUtils();
   const ITEMS_PER_PAGE = 10
 
   const { data: activityHistory = [], isLoading } = api.workoutPlan.getActivityHistory.useQuery({
@@ -34,6 +37,11 @@ export default function WorkoutHistory() {
   })
 
   const { data: totalCount = 0 } = api.workoutPlan.getActivityHistoryCount.useQuery()
+  const { mutate: insertManualActivity } = api.workoutPlan.insertManualActivity.useMutation({
+    onSuccess: () => {
+      void utils.workoutPlan.getActivityHistory.invalidate();
+    }
+  })
 
   // Update allActivities when new data comes in
   useEffect(() => {
@@ -71,7 +79,11 @@ export default function WorkoutHistory() {
     if (diffDays === 1) return `Yesterday, ${workoutDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
     return workoutDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
   }
-
+  const handleSubmitManualActivity = async (data: ActivityFormValues) => {
+    insertManualActivity(data)
+    setIsDialogOpen(false)
+    toast.success("Activity recorded successfully")
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -93,7 +105,7 @@ export default function WorkoutHistory() {
             </p>
             <Button
               variant="outline"
-              onClick={() => {/* TODO: Implement record workout action */ }}
+              onClick={() => setIsDialogOpen(true)}
               className="border-gray-200 text-accent hover:bg-gray-50 transition-colors"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -227,6 +239,11 @@ export default function WorkoutHistory() {
           </Tabs>
         )}
       </div>
+      <RecordManualActivity
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        handleSubmitActivity={handleSubmitManualActivity}
+      />
     </motion.div>
   )
 }

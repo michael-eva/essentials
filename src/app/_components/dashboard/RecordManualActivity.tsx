@@ -278,7 +278,7 @@ export default function RecordManualActivity({
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-row w-full gap-2">
             <Button
               type="button"
               variant="outline"
@@ -286,10 +286,11 @@ export default function RecordManualActivity({
                 setIsDialogOpen(false)
                 form.reset()
               }}
+              className="w-1/2"
             >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="bg-accent w-1/2">
               Save Activity
             </Button>
           </DialogFooter>

@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarDays, Flame, TrendingUp, CheckCircle2, XCircle, Clock, Plus } from "lucide-react"
+import { CalendarDays, Flame, TrendingUp, CheckCircle2, XCircle, Clock, Plus, Activity } from "lucide-react"
 import { api } from "@/trpc/react"
 import { Button } from "@/components/ui/button"
 import DashboardCardLayout from "./DashboardCardLayout"
@@ -24,24 +24,23 @@ export default function Dashboard() {
   const { data: upcomingClasses, isLoading: isLoadingUpcomingClasses } = api.workoutPlan.getUpcomingClasses.useQuery()
   const { data: pastWorkouts = [], isLoading: isLoadingPastWorkouts } = api.workoutPlan.getWorkoutsToLog.useQuery()
   const { data: activityHistory = [], isLoading: isLoadingActivityHistory } = api.workoutPlan.getActivityHistory.useQuery()
-  const { mutate: insertManualActivity } = api.workoutPlan.insertManualActivity.useMutation({
+  const { mutate: insertManualActivity, isPending: isInsertingManualActivity } = api.workoutPlan.insertManualActivity.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivityHistory.invalidate();
     }
   })
-  const { mutate: insertCompletedClass } = api.workoutPlan.insertCompletedClass.useMutation({
+  const { mutate: insertCompletedClass, isPending: isInsertingCompletedClass } = api.workoutPlan.insertCompletedClass.useMutation({
     onSuccess: () => {
       void toast.success("Workout details saved successfully");
       void utils.workoutPlan.getWorkoutsToLog.invalidate();
     }
   })
-  const { mutate: updateWorkoutStatus } = api.workoutPlan.updateWorkoutStatus.useMutation({
+  const { mutate: updateWorkoutStatus, isPending: isUpdatingWorkoutStatus } = api.workoutPlan.updateWorkoutStatus.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getWorkoutsToLog.invalidate();
     }
   })
-  const { generatePlan } = useGeneratePlan();
-
+  const { generatePlan, OnboardingDialog, isLoading } = useGeneratePlan();
 
   const [selectedWorkout, setSelectedWorkout] = useState<typeof pastWorkouts[0] | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -80,9 +79,17 @@ export default function Dashboard() {
   }
 
   const handleSubmitManualActivity = async (data: ActivityFormValues) => {
-    insertManualActivity(data)
-    setIsManualActivityDialogOpen(false)
-    toast.success("Activity recorded successfully")
+    setIsManualActivityDialogOpen(false);
+    insertManualActivity(data, {
+      onSuccess: () => {
+        toast.success("Activity recorded successfully");
+      },
+      onError: (error) => {
+        console.error('Failed to record activity:', error);
+        toast.error('Failed to record activity');
+        setIsManualActivityDialogOpen(true);
+      }
+    });
   }
 
   const getStatusIcon = (status: WorkoutStatus | null | undefined) => {
@@ -98,8 +105,13 @@ export default function Dashboard() {
     }
   }
 
+  const handleGeneratePlan = () => {
+    generatePlan();
+  };
+
   return (
     <div className="space-y-6">
+      {OnboardingDialog}
       <DashboardCardLayout
         title="Progress Tracking"
         description="Your progress over the past 7 days"
@@ -126,17 +138,19 @@ export default function Dashboard() {
             <div className="flex flex-col gap-3 w-full max-w-sm">
               <Button
                 className="w-full bg-accent text-white hover:bg-accent/90 transition-colors"
-                onClick={() => generatePlan()}
+                onClick={handleGeneratePlan}
+                disabled={isLoading}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Workout Plan
+                {isLoading ? "Creating Plan..." : "Create Workout Plan"}
               </Button>
               <Button
                 variant="outline"
                 className="w-full border-gray-200 text-accent hover:bg-gray-50 transition-colors"
                 onClick={() => setIsManualActivityDialogOpen(true)}
+                disabled={isInsertingManualActivity}
               >
-                Record Activity
+                {isInsertingManualActivity ? "Recording..." : "Record Activity"}
               </Button>
             </div>
 
@@ -172,21 +186,40 @@ export default function Dashboard() {
 
       <DashboardCardLayout
         title="Workout Logging"
-        description="Record your past workouts"
+        description={`${pastWorkouts.length > 0 ? "Record your past workouts" : "No past workouts logged yet"}`}
         showViewAll={false}
       >
         {isLoadingPastWorkouts ? (
           <WorkoutLoggingSkeleton />
         ) : (
           <>
-            <Button
+            {pastWorkouts.length > 0 && <Button
               onClick={() => setIsManualActivityDialogOpen(true)}
-              className="flex items-center gap-2 w-full bg-[#34C759] text-white hover:bg-[#34C759]/90 transition-colors"
+              className="flex items-center gap-2 w-full bg-accent text-white hover:bg-accent/90 transition-colors"
+              disabled={isInsertingManualActivity}
             >
               <Plus className="h-4 w-4" />
-              Record Manual Activity
-            </Button>
-            {pastWorkouts.length > 0 && (
+              {isInsertingManualActivity ? "Recording..." : "Record Manual Activity"}
+            </Button>}
+            {pastWorkouts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <div className="flex flex-col items-center space-y-2">
+                  <Activity className="h-12 w-12 text-gray-400" />
+                  <h3 className="text-lg font-semibold text-gray-900">No Past Activities</h3>
+                  <p className="text-gray-500 mb-6 text-center max-w-md">
+                    You haven&apos;t recorded any activities yet. Start tracking your fitness journey by recording your workouts!
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  className="w-full max-w-sm border-gray-200 text-accent hover:bg-gray-50 transition-colors"
+                  onClick={() => setIsManualActivityDialogOpen(true)}
+                  disabled={isInsertingManualActivity}
+                >
+                  {isInsertingManualActivity ? "Recording..." : "Record Activity"}
+                </Button>
+              </div>
+            ) : (
               <div className="space-y-4 mt-4">
                 {pastWorkouts.map((workout, index) => (
                   <div
@@ -215,14 +248,16 @@ export default function Dashboard() {
                       <Button
                         className="bg-[#34C759] text-white hover:bg-[#34C759]/90 transition-colors"
                         onClick={() => handleMarkComplete(workout)}
+                        disabled={isInsertingCompletedClass}
                       >
-                        Mark Complete
+                        {isInsertingCompletedClass ? "Marking..." : "Mark Complete"}
                       </Button>
                       <Button
                         className="bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90 transition-colors"
                         onClick={() => handleMarkMissed(workout)}
+                        disabled={isUpdatingWorkoutStatus}
                       >
-                        Mark Missed
+                        {isUpdatingWorkoutStatus ? "Marking..." : "Mark Missed"}
                       </Button>
                     </div>
                   </div>
@@ -238,9 +273,28 @@ export default function Dashboard() {
         description="Your recent workouts and progress"
         viewAllText="View All Activities"
         viewAllHref="history"
+        showViewAll={activityHistory.length > 0}
       >
         {isLoadingActivityHistory ? (
           <ActivityHistorySkeleton />
+        ) : activityHistory.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+            <div className="flex flex-col items-center space-y-2">
+              <Flame className="h-12 w-12 text-gray-400" />
+              <h3 className="text-lg font-semibold text-gray-900">No Past Activities</h3>
+              <p className="text-gray-500 mb-6 text-center max-w-md">
+                You haven&apos;t recorded any activities yet. Start tracking your fitness journey by recording your workouts!
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full max-w-sm border-gray-200 text-accent hover:bg-gray-50 transition-colors"
+              onClick={() => setIsManualActivityDialogOpen(true)}
+              disabled={isInsertingManualActivity}
+            >
+              {isInsertingManualActivity ? "Recording..." : "Record Activity"}
+            </Button>
+          </div>
         ) : (
           activityHistory
             .filter(activity => activity.name)
