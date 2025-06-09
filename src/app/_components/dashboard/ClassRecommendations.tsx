@@ -11,10 +11,13 @@ import WeeklySchedule from "./WeeklySchedule"
 import useGeneratePlan from "@/hooks/useGeneratePlan"
 import { motion } from "framer-motion"
 import { ActivePlanSkeleton, PreviousPlansSkeleton } from "./ClassRecommendationsSkeleton"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 
 
 export default function ClassRecommendations() {
+  const router = useRouter()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [editPlanNameDialogOpen, setEditPlanNameDialogOpen] = useState(false)
   const [editedPlanName, setEditedPlanName] = useState("")
@@ -85,8 +88,15 @@ export default function ClassRecommendations() {
   const { generatePlan } = useGeneratePlan();
   const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
-  const handleBookClass = (workoutId: string) => {
-    bookClass.mutate({ workoutId })
+  const handleBookClass = (workoutId: string, name: string) => {
+    let sessionType = ""
+    if (name.toLowerCase().includes("reformer")) {
+      sessionType = "Reformer"
+    } else {
+      sessionType = "Pilates"
+    }
+    // bookClass.mutate({ workoutId })
+    router.push(`/dashboard/classes?sessionType=${sessionType}`)
   }
 
   const getWeeklySchedules = () => {

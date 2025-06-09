@@ -19,13 +19,13 @@ interface WeeklyScheduleProps {
   isEditing?: boolean;
   onDeleteClass?: (weekNumber: number, classIndex: number) => void;
   onAddClass?: (weekNumber: number) => void;
-  onBookClass?: (workoutId: string) => void;
+  onBookClass?: (workoutId: string, name: string) => void;
   editingWeeks?: Set<number>;
   onToggleWeekEdit?: (weekNumber: number) => void;
   accordionValuePrefix?: string;
   isActivePlan: boolean;
 }
-function StatusButton({ workout, onBookingSubmit, isActivePlan, onWorkoutComplete }: { workout: Workout, onBookingSubmit: (workoutId: string, isBooked: boolean) => void, isActivePlan: boolean, onWorkoutComplete: (workoutId: string) => void }) {
+function StatusButton({ workout, onBookingSubmit, isActivePlan, onWorkoutComplete }: { workout: Workout, onBookingSubmit: (workoutId: string, isBooked: boolean, name: string) => void, isActivePlan: boolean, onWorkoutComplete: (workoutId: string) => void }) {
   if (!isActivePlan) return null
   return (
     workout.type === 'class' ? (
@@ -37,7 +37,7 @@ function StatusButton({ workout, onBookingSubmit, isActivePlan, onWorkoutComplet
       ) : (
         <Button
           size="sm"
-          onClick={() => onBookingSubmit(workout.id, workout.isBooked)}
+          onClick={() => onBookingSubmit(workout.id, workout.isBooked, workout.name)}
           className="text-xs px-3 py-1 h-7 bg-orange-100 text-orange-800"
         >
           {workout.isBooked ? "Booked" : "Book"}
@@ -86,9 +86,9 @@ export default function WeeklySchedule({
       void utils.workoutPlan.getActivePlan.invalidate();
     }
   })
-  function onBookingSubmit(workoutId: string, isBooked: boolean) {
+  function onBookingSubmit(workoutId: string, isBooked: boolean, name: string) {
     if (isBooked) return
-    onBookClass?.(workoutId)
+    onBookClass?.(workoutId, name)
   }
 
   function onWorkoutComplete(activityType?: typeof activityTypeEnum.enumValues[number], workoutId?: string) {

@@ -4,6 +4,7 @@ import Dashboard from "@/app/_components/dashboard/Dashboard"
 import WorkoutHistory from "@/app/_components/dashboard/WorkoutHistory"
 import PersonalTrainer from "@/app/_components/dashboard/PersonalTrainer"
 import { use } from "react"
+import Classes from "@/app/_components/dashboard/Classes"
 
 type PageProps = {
   params: Promise<{
@@ -23,6 +24,8 @@ export default function Home({ params }: PageProps) {
       return <WorkoutHistory />;
     case 'mypt':
       return <PersonalTrainer />;
+    case 'classes':
+      return <Classes />;
     default:
       return <Dashboard />;
   }

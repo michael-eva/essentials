@@ -13,11 +13,11 @@ export default function DashboardLayout({
   const pathname = usePathname()
   const currentTab = pathname.split('/').pop() ?? 'overview'
   const isLandingPage = pathname.includes("landing")
-
+  const isViewAllClasses = pathname.includes("classes")
   return (
     <AppLayout>
       <div className="container max-w-md mx-auto pb-6 md:max-w-2xl">
-        {!isLandingPage && <motion.div
+        {!isLandingPage && !isViewAllClasses && <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}

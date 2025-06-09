@@ -4,8 +4,9 @@ import { CalendarDays, Flame, TrendingUp, CheckCircle2, XCircle, Clock, Plus } f
 import { api } from "@/trpc/react"
 import { Button } from "@/components/ui/button"
 import DashboardCardLayout from "./DashboardCardLayout"
+import Script from "next/script"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import MarkClassComplete from "./MarkClassComplete"
 import type { WorkoutFormValues } from "./MarkClassComplete"
 import RecordManualActivity from "./RecordManualActivity"
@@ -109,6 +110,7 @@ export default function Dashboard() {
       <DashboardCardLayout
         title="Upcoming Classes"
         description={upcomingClasses && upcomingClasses?.length > 0 ? "Your scheduled sessions:" : "No upcoming classes scheduled"}
+        viewAllHref="classes"
       >
         {isLoadingUpcomingClasses ? (
           <UpcomingClassesSkeleton />
@@ -137,6 +139,7 @@ export default function Dashboard() {
                 Record Activity
               </Button>
             </div>
+
           </div>
         ) : (
           upcomingClasses.map((classItem, index) => (
@@ -279,6 +282,7 @@ export default function Dashboard() {
         setIsDialogOpen={setIsManualActivityDialogOpen}
         handleSubmitActivity={handleSubmitManualActivity}
       />
+
     </div >
   )
 }
