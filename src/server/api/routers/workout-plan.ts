@@ -24,6 +24,24 @@ import {
   bookClass,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
+import { generateAIResponse } from "@/services/personal-trainer";
+import { buildUserContext } from "@/services/context-manager";
+import { createGzip } from "zlib";
+
+// Helper function to safely parse dates
+function safeDateParse(dateString: string | null, fieldName: string): Date | null {
+  if (!dateString) return null;
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new Error(`Invalid date format for ${fieldName}: ${dateString}`);
+    }
+    return date;
+  } catch (error) {
+    throw new Error(`Failed to parse date for ${fieldName}: ${dateString}. ${error}`);
+  }
+}
 
 export const workoutPlanRouter = createTRPCRouter({
   getPreviousPlans: protectedProcedure.query(async ({ ctx }) => {
@@ -40,7 +58,7 @@ export const workoutPlanRouter = createTRPCRouter({
 
   getActivePlan: protectedProcedure.query(async ({ ctx }) => {
     try {
-      return await getActivePlan();
+      return await getActivePlan(ctx.userId);
     } catch (error) {
       console.error("Error fetching active plan:", error);
       throw new TRPCError({
@@ -251,7 +269,7 @@ export const workoutPlanRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         // First get the current plan to calculate pause duration
-        const currentPlan = await getActivePlan();
+        const currentPlan = await getActivePlan(ctx.userId);
         if (!currentPlan) {
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -375,223 +393,82 @@ export const workoutPlanRouter = createTRPCRouter({
       throw new Error("Onboarding is not completed");
     }
 
-    // Create the workout plan
-    const planId = uuidv4();
-    const plan = {
-      id: planId,
-      userId,
-      planName: "Balanced Fitness Journey",
-      weeks: 4,
-      savedAt: new Date(),
-      archived: false,
-      archivedAt: null,
-      isActive: true,
-      startDate: new Date(),
-      pausedAt: null,
-      resumedAt: null,
-      totalPausedDuration: 0,
-    };
+    const userContext = await buildUserContext(ctx.userId);
 
-    // Insert the plan
-    await insertWorkoutPlan(plan);
+    const generatedPlan = await generateAIResponse(ctx.userId, userContext);
 
-    // Create workouts for each week
-    const workouts = [
-      // Week 1
-      {
-        id: uuidv4(),
-        name: "Morning Run",
-        instructor: "Self-guided",
-        duration: 30,
-        description:
-          "Steady-state run at a comfortable pace. Focus on maintaining consistent breathing and form.",
-        level: "beginner",
-        type: "workout" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        userId,
-        activityType: "run",
-      },
-      {
-        id: uuidv4(),
-        name: "Essentials Reformer",
-        instructor: "TBD",
-        duration: 50,
-        description:
-          "Our signature open level flow style Reformer class. Using a variety of props, this 50 minute workout is designed to challenge the whole body, while focusing on alignment and strengthening from within.",
-        level: "All levels",
-        type: "class" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        classId: 3,
-        userId,
-      },
-      {
-        id: uuidv4(),
-        name: "Swimming Session",
-        instructor: "Self-guided",
-        duration: 45,
-        description:
-          "Swimming workout focusing on freestyle and backstroke. Include warm-up laps and technique drills.",
-        level: "beginner",
-        type: "workout" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        userId,
-        activityType: "swim",
-      },
-      // Week 2
-      {
-        id: uuidv4(),
-        name: "Power Reformer",
-        instructor: "TBD",
-        duration: 50,
-        description:
-          "Elevate your Pilates practice with our Power Reformer class. We take the fundamentals of reformer and kick it up a notch to bring you an extra strong and spicy flow.",
-        level: "Intermediate",
-        type: "class" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        classId: 6,
-        userId,
-      },
-      {
-        id: uuidv4(),
-        name: "Hiking Adventure",
-        instructor: "Self-guided",
-        duration: 90,
-        description:
-          "Moderate intensity hike on a scenic trail. Focus on maintaining steady pace and proper form on inclines.",
-        level: "intermediate",
-        type: "workout" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        userId,
-        activityType: "hike",
-      },
-      {
-        id: uuidv4(),
-        name: "Rowing Session",
-        instructor: "Self-guided",
-        duration: 40,
-        description:
-          "Rowing machine workout with intervals of high and low intensity. Focus on proper form and full range of motion.",
-        level: "beginner",
-        type: "workout" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        userId,
-        activityType: "rowing",
-      },
-      // Week 3
-      {
-        id: uuidv4(),
-        name: "Jump Reformer",
-        instructor: "TBD",
-        duration: 50,
-        description:
-          "Get ready to jump into action with our Jump Reformer class! This open level dynamic workout will challenge your entire body while working up a sweat.",
-        level: "All levels",
-        type: "class" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        classId: 4,
-        userId,
-      },
-      {
-        id: uuidv4(),
-        name: "Elliptical Training",
-        instructor: "Self-guided",
-        duration: 45,
-        description:
-          "Elliptical machine workout with varying resistance levels. Include intervals of high intensity and recovery periods.",
-        level: "beginner",
-        type: "workout" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        userId,
-        activityType: "elliptical",
-      },
-      {
-        id: uuidv4(),
-        name: "Power Walking",
-        instructor: "Self-guided",
-        duration: 60,
-        description:
-          "Brisk walking workout focusing on maintaining a fast pace and proper posture. Great for active recovery.",
-        level: "beginner",
-        type: "workout" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        userId,
-        activityType: "walk",
-      },
-      // Week 4
-      {
-        id: uuidv4(),
-        name: "Barre",
-        instructor: "TBD",
-        duration: 45,
-        description:
-          "A fitness style barre class combining bodyweight and equipment based pilates exercises in a seamless flow for a total body workout.",
-        level: "All levels",
-        type: "class" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        classId: 5,
-        userId,
-      },
-      {
-        id: uuidv4(),
-        name: "HIIT Running",
-        instructor: "Self-guided",
-        duration: 35,
-        description:
-          "High-intensity interval training on the track or treadmill. Alternate between sprinting and walking recovery periods.",
-        level: "intermediate",
-        type: "workout" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        userId,
-        activityType: "run",
-      },
-      {
-        id: uuidv4(),
-        name: "Swimming Intervals",
-        instructor: "Self-guided",
-        duration: 50,
-        description:
-          "Interval-based swimming workout focusing on speed and endurance. Include different stroke variations.",
-        level: "intermediate",
-        type: "workout" as const,
-        status: "not_recorded" as const,
-        isBooked: false,
-        userId,
-        activityType: "swim",
-      },
-    ];
+    // Insert the plan with better date parsing error handling
+    try {
+      const planWithDates = {
+        ...generatedPlan.plan,
+        savedAt: safeDateParse(generatedPlan.plan.savedAt, "savedAt") || new Date(),
+        archivedAt: safeDateParse(generatedPlan.plan.archivedAt, "archivedAt"),
+        startDate: safeDateParse(generatedPlan.plan.startDate, "startDate"),
+        pausedAt: safeDateParse(generatedPlan.plan.pausedAt, "pausedAt"),
+        resumedAt: safeDateParse(generatedPlan.plan.resumedAt, "resumedAt"),
+      };
+      const plan = await insertWorkoutPlan(planWithDates);
 
-    // Insert all workouts
-    await insertWorkouts(workouts);
-
-    // Create weekly schedules
-    const weeklySchedules = workouts.map((workout, index) => ({
-      id: uuidv4(),
-      planId,
-      weekNumber: Math.floor(index / 3) + 1,
-      workoutId: workout.id,
-    }));
-
-    // Insert weekly schedules
-    await insertWeeklySchedules(weeklySchedules);
-
-    return {
-      ...plan,
-      workouts: workouts.map((workout, index) => ({
+      // Insert all workouts first with better date parsing
+      const workoutsWithIds = generatedPlan.workouts.map((workout) => ({
         ...workout,
-        weekNumber: Math.floor(index / 3) + 1,
-      })),
-    };
+        id: uuidv4(),
+        classId: workout.classId === null ? undefined : workout.classId,
+        bookedDate: safeDateParse(workout.bookedDate, "bookedDate") || undefined,
+        activityType:
+          workout.activityType === null ? undefined : workout.activityType,
+      }));
+      const workouts = await insertWorkouts(workoutsWithIds);
+
+      // Create a mapping from original workout IDs to inserted workout IDs
+      const workoutIdMap = new Map();
+      generatedPlan.workouts.forEach((originalWorkout, index) => {
+        const insertedWorkout = workouts[index];
+        if (insertedWorkout) {
+          workoutIdMap.set(originalWorkout.userId, insertedWorkout.id);
+        }
+      });
+
+      // Insert weekly schedules with correct workout IDs
+      const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(
+        (schedule, index) => {
+          const workout = workouts[index % workouts.length];
+          return {
+            ...schedule,
+            id: uuidv4(),
+            planId: plan.id,
+            workoutId: workout?.id || schedule.workoutId, // Use actual workout ID or fallback
+          };
+        },
+      );
+      const weeklySchedules = await insertWeeklySchedules(weeklySchedulesWithIds);
+
+      console.log("Created plan with ID: ", plan.id)
+
+      return {
+        ...plan,
+        workouts: workouts.map((workout, index) => ({
+          ...workout,
+          weekNumber: Math.floor(index / 3) + 1,
+        })),
+      };
+    } catch (error) {
+      console.error("Error in generatePlan:", error);
+      console.error("Generated plan data:", JSON.stringify(generatedPlan, null, 2));
+      
+      // Check if it's a date parsing error
+      if (error instanceof Error && error.message.includes("Invalid time value")) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "AI returned invalid date format. Please try again.",
+        });
+      }
+      
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to generate workout plan",
+      });
+    }
   }),
   bookClass: protectedProcedure
     .input(z.object({ workoutId: z.string() }))

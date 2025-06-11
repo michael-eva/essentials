@@ -1,48 +1,183 @@
 import type {
   PersonalTrainerInteraction,
-  WorkoutTracking,
+  WorkoutTracking
 } from "@/drizzle/src/db/queries";
 
-/**
- * Analyzes user input and generates an appropriate response
- * This would integrate with an AI model (e.g., OpenAI) to generate contextual responses
- */
+import { z } from "zod";
+
+import { pilatesClasses } from "@/data";
+import { nonPilates } from "@/data";
+
+import OpenAI from "openai";
+import { zodTextFormat } from "openai/helpers/zod";
+
+
+
+
+import type { UserContext } from "./context-manager";
+
+// create a zod schema for the response
+
+const NewWorkoutPlanSchema = z.object({
+  userId: z.string().uuid(),
+  planName: z.string(),
+  weeks: z.number().int(),
+  savedAt: z.string().datetime(),
+  archived: z.boolean().default(false),
+  archivedAt: z.string().datetime().nullable(),
+  isActive: z.boolean().default(false),
+  startDate: z.string().datetime().nullable(),
+  pausedAt: z.string().datetime().nullable(),
+  resumedAt: z.string().datetime().nullable(),
+  totalPausedDuration: z.number().int().default(0),
+});
+
+const NewWorkoutSchema = z.object({
+  name: z.string(),
+  instructor: z.string(),
+  duration: z.number().int(),
+  description: z.string(),
+  level: z.string(),
+  bookedDate: z.string().datetime().nullable(),
+  type: z.enum(["class", "workout"]),
+  status: z.enum(["completed", "not_completed", "not_recorded"]).default("not_recorded"),
+  isBooked: z.boolean().default(false),
+  classId: z.number().int().nullable(),
+  userId: z.string().uuid(),
+  activityType: z.enum(["run", "cycle", "swim", "walk", "hike", "rowing", "elliptical"]).nullable(),
+});
+
+const NewWeeklyScheduleSchema = z.object({
+  planId: z.string().uuid(),
+  weekNumber: z.number().int(),
+  workoutId: z.string().uuid(),
+});
+
+const GeneratedWorkoutPlanResponseSchema = z.object({
+  plan: NewWorkoutPlanSchema,
+  workouts: z.array(NewWorkoutSchema),
+  weeklySchedules: z.array(NewWeeklyScheduleSchema),
+});
+
+type GeneratedWorkoutPlanResponse = z.infer<typeof GeneratedWorkoutPlanResponseSchema>
+
 export async function generateAIResponse(
   userInput: string,
-  context: {
-    previousInteractions: PersonalTrainerInteraction[];
-    userProfile: {
-      fitnessLevel: string;
-      goals: string[];
-      workoutHistory: WorkoutTracking[];
-    };
-  },
-): Promise<{
-  response: string;
-  followUpQuestions: string[];
-  metadata: {
-    sentiment: "positive" | "negative" | "neutral";
-    keyTopics: string[];
-    suggestedActions: string[];
-  };
-}> {
-  // TODO: Implement AI response generation
-  // 1. Process user input
-  // 2. Analyze context and user profile
-  // 3. Generate response using AI model
-  // 4. Generate follow-up questions
-  // 5. Analyze sentiment and extract key topics
-  // 6. Suggest actions based on input
+  context: UserContext,
+): Promise<GeneratedWorkoutPlanResponse> {
+  const openai = new OpenAI();
 
-  return {
-    response: "",
-    followUpQuestions: [],
-    metadata: {
-      sentiment: "neutral",
-      keyTopics: [],
-      suggestedActions: [],
-    },
+  // get nonPilates and pilates as the possible classes for context for the AI to generate
+  const availableClasses = {
+    pilates: pilatesClasses,
+    nonPilates: nonPilates,
   };
+
+  // Create a comprehensive prompt for the AI
+  const systemPrompt = `You are a professional personal trainer and fitness expert. Your task is to generate a personalized workout plan based on the user's input, fitness level, goals, and available classes.
+
+IMPORTANT DATE FORMAT REQUIREMENTS:
+- All date fields (savedAt, archivedAt, startDate, pausedAt, resumedAt, bookedDate) must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)
+- Use the current date/time for savedAt: "${new Date().toISOString()}"
+- Set archivedAt, startDate, pausedAt, resumedAt to null (they should be null for a new plan)
+- Set bookedDate to null for workouts (they will be booked later)
+
+Available Classes:
+Pilates Classes: ${JSON.stringify(availableClasses.pilates, null, 2)}
+Non-Pilates Classes: ${JSON.stringify(availableClasses.nonPilates, null, 2)}
+
+Note the "type" field of all Pilates classes is "class" and the "type" field of all non-Pilates classes is "workout".
+
+Releveant context about the user, that you should use to generate the workout plan:
+- Name: ${context.profile.name || 'Not specified'}
+- Age: ${context.profile.age || 'Not specified'}
+- Height: ${context.profile.height || 'Not specified'} cm
+- Weight: ${context.profile.weight || 'Not specified'} kg
+- Gender: ${context.profile.gender || 'Not specified'}
+- Exercises: ${context.profile.exercises?.join(', ') || 'Not specified'}
+- Custom Exercises: ${context.profile.otherExercises?.join(', ') || 'Not specified'}
+- Fitness Level: ${context.profile.fitnessLevel || 'Not specified'}
+- Goals: ${context.profile.fitnessGoals?.join(', ') || 'Not specified'}
+- Workout Frequency (preference for how many workouts to assign to each week): ${context.profile.exerciseFrequency || 'Not specified'}
+- Session Length (per session): ${context.profile.sessionLength || 'Not specified'}
+- Pilates Experience: ${context.profile.pilatesExperience ? 'Yes' : 'No'}
+- Studio Frequency (max number of workouts of type "class"  - which is derived from the available PIlates classes - to assign to each week): ${context.profile.studioFrequency || 'Not specified'}
+- Session Preference: ${context.profile.sessionPreference || 'Not specified'}
+- Apparatus Preference: ${context.profile.apparatusPreference?.join(', ') || 'Not specified'}
+- Health Considerations: ${context.profile.health.injuries ? `Has injuries: ${context.profile.health.injuriesDetails}` : 'No injuries reported'}
+- Chronic Conditions: ${context.profile.health.chronicConditions?.join(', ') || 'None'}
+- Pregnancy: ${context.profile.health.pregnancy || 'Not specified'}
+- Recent Activity: ${context.recentActivity.recentWorkouts.length} workouts in the last 30 days
+- Recent Workouts: ${
+    context.recentActivity.recentWorkouts.length > 0
+      ? context.recentActivity.recentWorkouts
+          .slice(-10)
+          .map(
+            (workout) =>
+              `Name: ${workout.name}, Activity Type: ${workout.activityType}, Would Do Again: ${
+                workout.wouldDoAgain ? "Yes" : "No"
+              }, Duration: ${workout.durationHours} hours ${workout.durationMinutes} mins, Intensity: ${workout.intensity}`
+          )
+          .join("; ")
+      : "None yet"
+  }
+- Consistency: ${context.recentActivity.consistency.weeklyAverage} workouts per week, ${context.recentActivity.consistency.monthlyAverage} workouts per month, ${context.recentActivity.consistency.streak} days in a row
+- Challenges: ${context.progress.challenges?.join(', ') || 'Not specified'}
+- Improvements: ${context.progress.improvements?.join(', ') || 'Not specified'}
+- Motivations: ${context.profile.motivation?.join(', ') || 'Not specified'}
+- Progress Tracking: ${context.profile.progressTracking?.join(', ') || 'Not specified'}
+- Other Progress Tracking: ${context.profile.otherProgressTracking?.join(', ') || 'Not specified'}
+- Other Motivations: ${context.profile.otherMotivation?.join(', ') || 'Not specified'}
+
+Generate a comprehensive workout plan for the user that takes into account their fitness level, goals, health considerations, and preferences.
+
+Make sure the plan is realistic, progressive, and aligned with the user's context.
+
+You should generate a plan that is 4 weeks long (meaning 4 weekly_schedules are to be created from week number 1 through 4).
+`;
+
+
+  console.log(`#########################`)
+  console.log(systemPrompt)
+  console.log(`#########################`)
+
+  const response = await openai.responses.parse({
+    model: "gpt-4o-2024-08-06",
+    input: [
+      { role: "system", content: systemPrompt },
+      {
+        role: "user",
+        content: userInput,
+      },
+    ],
+    text: {
+      format: zodTextFormat(GeneratedWorkoutPlanResponseSchema, "workout_plan"),
+    },
+  });
+
+  const parsedResponse = response.output_parsed;
+  if (!parsedResponse) {
+    throw new Error("Failed to parse AI response");
+  }
+
+  // Transform the response to match our expected types
+  const transformedResponse: GeneratedWorkoutPlanResponse = {
+    plan: {
+      ...parsedResponse.plan,
+      savedAt: parsedResponse.plan.savedAt,
+      archived: parsedResponse.plan.archived ?? false,
+      isActive: parsedResponse.plan.isActive ?? false,
+      totalPausedDuration: parsedResponse.plan.totalPausedDuration ?? 0,
+    },
+    workouts: parsedResponse.workouts.map((workout: any) => ({
+      ...workout,
+      isBooked: workout.isBooked ?? false,
+      status: "not_recorded" as const,
+    })),
+    weeklySchedules: parsedResponse.weeklySchedules,
+  };
+
+  return transformedResponse;
 }
 
 /**

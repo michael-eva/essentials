@@ -6,17 +6,49 @@ import {
 
 export type UserContext = {
   profile: {
+    // Basic info
+    name: string | null;
+    age: number | null;
+    height: number | null;
+    weight: number | null;
+    gender: string | null;
+    
+    // Fitness info
     fitnessLevel: string | null;
-    goals: string[] | null;
-    preferences: {
-      exerciseFrequency: string | null;
-      sessionLength: string | null;
-      apparatusPreference: string[] | null;
-    };
+    exercises: string[] | null;
+    otherExercises: string[] | null;
+    exerciseFrequency: string | null;
+    sessionLength: string | null;
+    
+    // Goals
+    fitnessGoals: string[] | null;
+    goalTimeline: string | null;
+    specificGoals: string | null;
+    
+    // Pilates experience
+    pilatesExperience: boolean | null;
+    pilatesDuration: string | null;
+    studioFrequency: string | null;
+    sessionPreference: string | null;
+    instructors: string[] | null;
+    customInstructor: string | null;
+    apparatusPreference: string[] | null;
+    customApparatus: string | null;
+    
+    // Motivation
+    motivation: string[] | null;
+    otherMotivation: string[] | null;
+    progressTracking: string[] | null;
+    otherProgressTracking: string[] | null;
+    
     health: {
       injuries: boolean | null;
       injuriesDetails: string | null;
+      recentSurgery: boolean | null;
+      surgeryDetails: string | null;
       chronicConditions: string[] | null;
+      otherHealthConditions: string[] | null;
+      pregnancy: string | null;
     };
   };
   recentActivity: {
@@ -59,17 +91,39 @@ export async function buildUserContext(
 
   return {
     profile: {
+      name: onboardingData?.name ?? null,
+      age: onboardingData?.age ?? null,
+      height: onboardingData?.height ?? null,
+      weight: onboardingData?.weight ?? null,
+      gender: onboardingData?.gender ?? null,
       fitnessLevel: onboardingData?.fitnessLevel ?? null,
-      goals: onboardingData?.fitnessGoals ?? null,
-      preferences: {
-        exerciseFrequency: onboardingData?.exerciseFrequency ?? null,
-        sessionLength: onboardingData?.sessionLength ?? null,
-        apparatusPreference: onboardingData?.apparatusPreference ?? null,
-      },
+      exercises: onboardingData?.exercises ?? null,
+      otherExercises: onboardingData?.otherExercises ?? null,
+      exerciseFrequency: onboardingData?.exerciseFrequency ?? null,
+      sessionLength: onboardingData?.sessionLength ?? null,
+      fitnessGoals: onboardingData?.fitnessGoals ?? null,
+      goalTimeline: onboardingData?.goalTimeline ?? null,
+      specificGoals: onboardingData?.specificGoals ?? null,
+      pilatesExperience: onboardingData?.pilatesExperience ?? null,
+      pilatesDuration: onboardingData?.pilatesDuration ?? null,
+      studioFrequency: onboardingData?.studioFrequency ?? null,
+      sessionPreference: onboardingData?.sessionPreference ?? null,
+      instructors: onboardingData?.instructors ?? null,
+      customInstructor: onboardingData?.customInstructor ?? null,
+      apparatusPreference: onboardingData?.apparatusPreference ?? null,
+      customApparatus: onboardingData?.customApparatus ?? null,
+      motivation: onboardingData?.motivation ?? null,
+      otherMotivation: onboardingData?.otherMotivation ?? null,
+      progressTracking: onboardingData?.progressTracking ?? null,
+      otherProgressTracking: onboardingData?.otherProgressTracking ?? null,
       health: {
         injuries: onboardingData?.injuries ?? null,
         injuriesDetails: onboardingData?.injuriesDetails ?? null,
+        recentSurgery: onboardingData?.recentSurgery ?? null,
+        surgeryDetails: onboardingData?.surgeryDetails ?? null,
         chronicConditions: onboardingData?.chronicConditions ?? null,
+        otherHealthConditions: onboardingData?.otherHealthConditions ?? null,
+        pregnancy: onboardingData?.pregnancy ?? null,
       },
     },
     recentActivity: {

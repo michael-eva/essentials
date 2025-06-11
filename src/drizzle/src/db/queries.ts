@@ -144,7 +144,7 @@ export async function getPreviousPlans(userId: string): Promise<
   return plansWithSchedules;
 }
 
-export async function getActivePlan(): Promise<
+export async function getActivePlan(userId: string): Promise<
   | (WorkoutPlan & {
       weeklySchedules: { weekNumber: number; items: Workout[] }[];
     })
@@ -153,7 +153,7 @@ export async function getActivePlan(): Promise<
   const plan = await db
     .select()
     .from(workoutPlan)
-    .where(eq(workoutPlan.isActive, true))
+    .where(and(eq(workoutPlan.isActive, true), eq(workoutPlan.userId, userId)))
     .limit(1);
 
   if (!plan[0]) return null;

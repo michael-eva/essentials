@@ -1,3 +1,5 @@
+import { activityTypeEnum } from "./drizzle/src/db/schema";
+
 export const pilatesClasses = [
   {
     name: "Strength",
@@ -60,3 +62,6 @@ export const pilatesClasses = [
     classId: 6,
   },
 ];
+
+
+export const nonPilates = activityTypeEnum.enumValues;
