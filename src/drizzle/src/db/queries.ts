@@ -10,6 +10,8 @@ import {
   user,
   personalTrainerInteractions,
   progressTracking,
+  AiChatMessages,
+  AiSystemPrompt,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -19,12 +21,16 @@ export type WorkoutTracking = InferSelectModel<typeof workoutTracking>;
 export type WorkoutPlan = InferSelectModel<typeof workoutPlan>;
 export type WeeklySchedule = InferSelectModel<typeof weeklySchedule>;
 export type ProgressTracking = InferSelectModel<typeof progressTracking>;
+export type AiChatMessages = InferSelectModel<typeof AiChatMessages>;
+export type AiSystemPrompt = InferSelectModel<typeof AiSystemPrompt>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
 export type NewWorkoutPlan = InferInsertModel<typeof workoutPlan>;
 export type NewWeeklySchedule = InferInsertModel<typeof weeklySchedule>;
 export type NewOnboarding = InferInsertModel<typeof onboarding>;
+export type NewAiChatMessages = InferInsertModel<typeof AiChatMessages>;
+export type NewAiSystemPrompt = InferInsertModel<typeof AiSystemPrompt>;
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;
 export type PersonalTrainerInteraction = InferSelectModel<
@@ -371,5 +377,24 @@ export async function getWorkoutById(
     .select()
     .from(workout)
     .where(eq(workout.id, workoutId));
+  return result[0] ?? null;
+}
+
+export async function getMessages(userId: string): Promise<AiChatMessages[]> {
+  const result = await db
+    .select()
+    .from(AiChatMessages)
+    .where(eq(AiChatMessages.userId, userId))
+    .orderBy(desc(AiChatMessages.createdAt));
+  return result;
+}
+
+export async function getAiSystemPrompt(userId: string): Promise<AiSystemPrompt | null> {
+  const result = await db
+    .select()
+    .from(AiSystemPrompt)
+    .where(eq(AiSystemPrompt.userId, userId))
+    .orderBy(desc(AiSystemPrompt.createdAt))
+    .limit(1);
   return result[0] ?? null;
 }

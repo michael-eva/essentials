@@ -27,6 +27,12 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "elliptical",
 ]);
 
+export const roleEnum = pgEnum("role", [
+  "developer",
+  "user",
+  "assistant",
+]);
+
 export const user = pgTable("user", {
   id: uuid("id").primaryKey().unique(),
   email: text("email").notNull().unique(),
@@ -99,6 +105,8 @@ export const workoutPlan = pgTable("workout_plan", {
   pausedAt: timestamp("paused_at"),
   resumedAt: timestamp("resumed_at"),
   totalPausedDuration: integer("total_paused_duration").notNull().default(0),
+  isAI: boolean("ai_generated").notNull().default(false),
+  explanation: text("ai_explanation"),
 });
 
 export const weeklySchedule = pgTable("weekly_schedule", {
@@ -227,3 +235,38 @@ export const progressTracking = pgTable("progress_tracking", {
     .notNull()
     .default(sql`now()`),
 });
+
+export const AiSystemPrompt = pgTable("ai_system_prompt", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  name: text("name").notNull(),
+  prompt: text("prompt").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+});
+
+export const AiChatMessages = pgTable(
+  "ai_chat", {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    message: text("message").notNull(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`now()`),
+    role: roleEnum("role").notNull(),
+    content: text("content").notNull(),
+  },
+);

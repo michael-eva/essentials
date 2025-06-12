@@ -4,16 +4,10 @@ import type {
 } from "@/drizzle/src/db/queries";
 
 import { z } from "zod";
-
 import { pilatesClasses } from "@/data";
 import { nonPilates } from "@/data";
-
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
-
-
-
-
 import type { UserContext } from "./context-manager";
 
 // create a zod schema for the response

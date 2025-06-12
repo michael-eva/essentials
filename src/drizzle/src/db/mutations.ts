@@ -11,6 +11,8 @@ import {
   personalTrainerInteractions,
   progressTracking,
   workoutTypeEnum,
+  AiChatMessages,
+  AiSystemPrompt,
 } from "./schema";
 import type {
   NewWorkout,
@@ -22,6 +24,8 @@ import type {
   NewProgressTracking,
   ProgressTracking,
   User,
+  NewAiChatMessages,
+  NewAiSystemPrompt,
 } from "./queries";
 import { eq } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
@@ -163,4 +167,20 @@ export async function bookClass(workoutId: string, date: Date) {
     .set({ isBooked: true, bookedDate: date })
     .where(eq(workout.id, workoutId));
   return result;
+}
+
+export async function insertAiChatMessages(data: NewAiChatMessages) {
+  const result = await db.insert(AiChatMessages).values(data).returning();
+  return result[0]!;
+}
+
+export async function insertAiSystemPrompt(data: NewAiSystemPrompt) {
+  const result = await db.insert(AiSystemPrompt).values(data).returning();
+  return result[0]!;
+}
+
+
+export async function updateAiSystemPrompt(id: string, data: NewAiSystemPrompt) {
+  const result = await db.update(AiSystemPrompt).set(data).where(eq(AiSystemPrompt.id, id)).returning();
+  return result[0]!;
 }
