@@ -1,9 +1,7 @@
 import type {
   WorkoutTracking,
   Onboarding,
-  WorkoutPlan,
   Workout,
-  WeeklySchedule,
 } from "@/drizzle/src/db/queries";
 import {
   getWorkoutTracking,
@@ -87,7 +85,7 @@ export type UserContext = {
  */
 export async function buildUserContext(
   userId: string,
-  timeRange: { start: Date; end: Date } = {
+  _timeRange: { start: Date; end: Date } = {
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
     end: new Date(),
   },
@@ -95,11 +93,11 @@ export async function buildUserContext(
   // Fetch user data
   const [onboardingData, recentWorkoutTracking] = await Promise.all([
     getOnboardingData(userId),
-    getWorkoutTracking(userId, timeRange),
+    getWorkoutTracking(userId, _timeRange),
   ]);
 
   // Calculate consistency metrics
-  const consistency = calculateConsistency(recentWorkoutTracking, timeRange);
+  const consistency = calculateConsistency(recentWorkoutTracking, _timeRange);
 
   // Calculate goal progress
   const goalProgress = calculateGoalProgress(recentWorkoutTracking, onboardingData);
@@ -112,7 +110,7 @@ export async function buildUserContext(
     workoutList = activePlan.weeklySchedules.flatMap((week) => week.items);
   }
 
-  let completedWorkouts: completedWorkout[] = [];
+  const completedWorkouts: completedWorkout[] = [];
 
   for (const workoutTrack of recentWorkoutTracking) {
     const workoutData = await getWorkoutById(workoutTrack.id);
@@ -235,7 +233,7 @@ function getWeekNumber(date: Date): number {
   const d = new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
   );
-  const dayNum = d.getUTCDay() || 7;
+  const dayNum = d.getUTCDay() ?? 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
@@ -384,7 +382,7 @@ function calculateWorkoutVariety(workouts: WorkoutTracking[]): number {
  */
 export async function updateContextWithWorkout(
   userId: string,
-  newWorkout: WorkoutTracking,
+  _newWorkout: WorkoutTracking,
 ): Promise<UserContext> {
   // TODO: Implement context update
   // 1. Fetch current context

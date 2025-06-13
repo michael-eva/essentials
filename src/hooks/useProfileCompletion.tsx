@@ -252,7 +252,7 @@ export function useProfileCompletion() {
       completion: calculateCompletion("pilates"),
       color: "#34C759"
     }
-  ], [formData]) as FormSection[]
+  ], [calculateCompletion, formData]) as FormSection[]
 
   const totalCompletion = useMemo(() => {
     if (!formData) return 0

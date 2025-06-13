@@ -45,7 +45,7 @@ export function WheelPicker({
     if (isOpen) {
       wheelDeltas.current = columns.map(() => 0)
     }
-  }, [isOpen, columns.length])
+  }, [isOpen, columns])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

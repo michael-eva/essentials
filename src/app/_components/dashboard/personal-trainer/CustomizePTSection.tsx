@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Settings, Save, RotateCcw, Sparkles } from "lucide-react";
+import { Settings, Save, RotateCcw, Sparkles, Info } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import type { AppRouter } from "@/server/api/root";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, CheckCircle, Info } from "lucide-react";
+import { AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const DEFAULT_PROMPT = `You are a helpful and encouraging personal trainer AI assistant. You provide personalized fitness advice, workout suggestions, and motivation based on the user's profile, goals, and fitness level. 
@@ -54,19 +54,19 @@ export function CustomizePTSection() {
   // Load existing data when available
   useEffect(() => {
     if (systemPrompt) {
-      setName(systemPrompt.name || DEFAULT_NAME);
-      setPrompt(systemPrompt.prompt || DEFAULT_PROMPT);
+      setName(systemPrompt.name ?? DEFAULT_NAME);
+      setPrompt(systemPrompt.prompt ?? DEFAULT_PROMPT);
     }
   }, [systemPrompt]);
 
   // Track changes
   useEffect(() => {
-    const currentName = systemPrompt?.name || DEFAULT_NAME;
-    const currentPrompt = systemPrompt?.prompt || DEFAULT_PROMPT;
+    const currentName = systemPrompt?.name ?? DEFAULT_NAME;
+    const currentPrompt = systemPrompt?.prompt ?? DEFAULT_PROMPT;
     setHasChanges(name !== currentName || prompt !== currentPrompt);
   }, [name, prompt, systemPrompt]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       toast.error("Please enter a name for your AI trainer");
       return;
@@ -76,16 +76,20 @@ export function CustomizePTSection() {
       return;
     }
 
-    savePrompt({
-      id: systemPrompt?.id,
-      name: name.trim(),
-      prompt: prompt.trim(),
-    });
+    try {
+      await savePrompt({
+        id: systemPrompt?.id,
+        name: name.trim(),
+        prompt: prompt.trim(),
+      });
+    } catch (error) {
+      console.error("Failed to save:", error);
+    }
   };
 
   const handleReset = () => {
-    setName(systemPrompt?.name || DEFAULT_NAME);
-    setPrompt(systemPrompt?.prompt || DEFAULT_PROMPT);
+    setName(systemPrompt?.name ?? DEFAULT_NAME);
+    setPrompt(systemPrompt?.prompt ?? DEFAULT_PROMPT);
     setHasChanges(false);
   };
 

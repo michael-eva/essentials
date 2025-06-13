@@ -6,7 +6,7 @@ import Link from "next/link"
 import type { Workout } from "@/drizzle/src/db/queries"
 import { useState } from "react"
 import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
-import { activityTypeEnum } from "@/drizzle/src/db/schema"
+import type { activityTypeEnum } from "@/drizzle/src/db/schema"
 import { api } from "@/trpc/react"
 
 interface WeeklyScheduleProps {

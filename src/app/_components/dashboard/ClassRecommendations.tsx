@@ -42,7 +42,7 @@ export default function ClassRecommendations() {
   const utils = api.useUtils();
   const { data: previousPlans = [], isLoading: isLoadingPreviousPlans } = api.workoutPlan.getPreviousPlans.useQuery()
   const { data: activePlan, isLoading: isLoadingActivePlan } = api.workoutPlan.getActivePlan.useQuery()
-  const { data: supplementaryWorkouts = [], isLoading: isLoadingSupplementaryWorkouts } = api.workoutPlan.getSupplementaryWorkouts.useQuery()
+  const { data: supplementaryWorkouts = [] } = api.workoutPlan.getSupplementaryWorkouts.useQuery()
   const startPlan = api.workoutPlan.startWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
@@ -312,21 +312,12 @@ export default function ClassRecommendations() {
     setEditPlanNameDialogOpen(false)
   }
 
-  const handleDeleteClass = (weekNumber: number, classIndex: number) => {
-    setConfirmationDialog({
-      open: true,
-      title: "Delete Class",
-      description: "Are you sure you want to remove this class from your plan?",
-      onConfirm: () => {
-        // TODO: Implement delete class mutation
-        setConfirmationDialog({ ...confirmationDialog, open: false })
-      },
-      variant: "destructive"
-    })
+  const handleDeleteClass = (_weekNumber: number, _classIndex: number) => {
+    // Implementation
   }
 
-  const handleAddNewClass = (weekNumber: number) => {
-    setAddClassDialogOpen(true)
+  const handleAddNewClass = (_weekNumber: number) => {
+    // Implementation
   }
 
   const toggleWeekEdit = (weekNumber: number) => {

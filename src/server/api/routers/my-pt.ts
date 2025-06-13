@@ -87,7 +87,7 @@ export const myPtRouter = createTRPCRouter({
         return {
           messages: paginatedMessages.map(msg => ({
             id: msg.id,
-            content: msg.content || msg.message,
+            content: msg.content ?? msg.message,
             role: msg.role,
             createdAt: msg.createdAt,
           })),
@@ -218,7 +218,7 @@ export const myPtRouter = createTRPCRouter({
           isOnboardingComplete,
           hasSystemPrompt: !!systemPrompt,
           messageCount: messages.length,
-          lastMessageAt: messages[0]?.createdAt || null,
+          lastMessageAt: messages[0]?.createdAt ?? null,
         };
       } catch (error) {
         console.error("Error fetching trainer info:", error);

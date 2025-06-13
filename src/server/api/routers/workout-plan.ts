@@ -11,6 +11,9 @@ import {
   getSupplementaryWorkouts,
   getActivityHistoryCount,
   checkOnboardingCompletion,
+  getOnboardingData,
+  getPersonalTrainerInteractions,
+  getPersonalTrainerInteraction,
 } from "@/drizzle/src/db/queries";
 import {
   deleteWorkoutPlan,
@@ -48,7 +51,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getPreviousPlans(ctx.userId);
     } catch (error) {
-      console.error("Error fetching previous plans:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Error fetching previous plans:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch previous plans",
@@ -60,7 +64,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getActivePlan(ctx.userId);
     } catch (error) {
-      console.error("Error fetching active plan:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Error fetching active plan:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch active plan",
@@ -72,7 +77,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getUpcomingClasses(ctx.userId);
     } catch (error) {
-      console.error("Error fetching upcoming classes:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Error fetching upcoming classes:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch upcoming classes",
@@ -83,7 +89,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getSupplementaryWorkouts(ctx.userId);
     } catch (error) {
-      console.error("Error fetching supplementary workouts:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Error fetching supplementary workouts:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch supplementary workouts",
@@ -93,9 +100,19 @@ export const workoutPlanRouter = createTRPCRouter({
 
   getWorkoutsToLog: protectedProcedure.query(async ({ ctx }) => {
     try {
-      return await getWorkoutsToLog(ctx.userId);
+      const workouts = await getWorkoutsToLog(ctx.userId);
+
+      if (!workouts || workouts.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No workouts found to log",
+        });
+      }
+
+      return workouts;
     } catch (error) {
-      console.error("Error fetching workouts to log:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Error fetching workouts to log:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch workouts to log",
@@ -105,22 +122,22 @@ export const workoutPlanRouter = createTRPCRouter({
 
   getActivityHistory: protectedProcedure
     .input(
-      z
-        .object({
-          limit: z.number().default(5),
-          offset: z.number().default(0),
-        })
-        .optional(),
+      z.object({
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
-        return await getActivityHistory(
+        const history = await getActivityHistory(
           ctx.userId,
-          input?.limit ?? 5,
-          input?.offset ?? 0,
+          input.limit ?? 5,
+          input.offset ?? 0,
         );
+        return history;
       } catch (error) {
-        console.error("Error fetching activity history:", error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error("Error fetching activity history:", errorMessage);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch activity history",
@@ -132,7 +149,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getActivityHistoryCount(ctx.userId);
     } catch (error) {
-      console.error("Error fetching activity history count:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Error fetching activity history count:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch activity history count",
@@ -169,18 +187,19 @@ export const workoutPlanRouter = createTRPCRouter({
           workoutId: uuidv4(),
           activityType: "workout",
           date: input.date,
-          durationHours: input.durationHours,
-          durationMinutes: input.durationMinutes,
-          distance: input.distance,
-          distanceUnit: input.distanceUnit,
-          notes: input.notes,
-          intensity: input.intensity,
+          durationHours: input.durationHours ?? undefined,
+          durationMinutes: input.durationMinutes ?? undefined,
+          distance: input.distance ?? undefined,
+          distanceUnit: input.distanceUnit ?? undefined,
+          notes: input.notes ?? undefined,
+          intensity: input.intensity ?? undefined,
           name: input.workoutType,
         };
 
         return await insertWorkoutTracking(newActivity);
       } catch (error) {
-        console.error("Error inserting manual activity:", error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error("Error inserting manual activity:", errorMessage);
         throw error;
       }
     }),
@@ -292,7 +311,7 @@ export const workoutPlanRouter = createTRPCRouter({
           (now.getTime() - pausedAt.getTime()) / 1000,
         );
         const newTotalPausedDuration =
-          (currentPlan.totalPausedDuration || 0) + pauseDuration;
+          (currentPlan.totalPausedDuration ?? 0) + pauseDuration;
 
         return await updateWorkoutPlan(input.planId, {
           resumedAt: now,
@@ -401,7 +420,7 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       const planWithDates = {
         ...generatedPlan.plan,
-        savedAt: safeDateParse(generatedPlan.plan.savedAt, "savedAt") || new Date(),
+        savedAt: safeDateParse(generatedPlan.plan.savedAt, "savedAt") ?? new Date(),
         archivedAt: safeDateParse(generatedPlan.plan.archivedAt, "archivedAt"),
         startDate: safeDateParse(generatedPlan.plan.startDate, "startDate"),
         pausedAt: safeDateParse(generatedPlan.plan.pausedAt, "pausedAt"),
@@ -414,7 +433,7 @@ export const workoutPlanRouter = createTRPCRouter({
         ...workout,
         id: uuidv4(),
         classId: workout.classId === null ? undefined : workout.classId,
-        bookedDate: safeDateParse(workout.bookedDate, "bookedDate") || undefined,
+        bookedDate: safeDateParse(workout.bookedDate, "bookedDate") ?? undefined,
         activityType:
           workout.activityType === null ? undefined : workout.activityType,
       }));
@@ -437,7 +456,7 @@ export const workoutPlanRouter = createTRPCRouter({
             ...schedule,
             id: uuidv4(),
             planId: plan.id,
-            workoutId: workout?.id || schedule.workoutId, // Use actual workout ID or fallback
+            workoutId: workout?.id ?? schedule.workoutId, // Use actual workout ID or fallback
           };
         },
       );
@@ -487,5 +506,76 @@ export const workoutPlanRouter = createTRPCRouter({
         input.workoutId,
         new Date(new Date().setDate(new Date().getDate() + 1)),
       );
+    }),
+  getOnboardingCompletion: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      return await checkOnboardingCompletion(ctx.userId);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Error checking onboarding completion:", errorMessage);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to check onboarding completion",
+      });
+    }
+  }),
+
+  getOnboardingData: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      return await getOnboardingData(ctx.userId);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("Error fetching onboarding data:", errorMessage);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch onboarding data",
+      });
+    }
+  }),
+
+  getPersonalTrainerInteractions: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().optional(),
+        cursor: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        return await getPersonalTrainerInteractions(
+          ctx.userId,
+          input.limit ?? 10,
+          input.cursor,
+        );
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error("Error fetching personal trainer interactions:", errorMessage);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch personal trainer interactions",
+        });
+      }
+    }),
+
+  getPersonalTrainerInteraction: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const interaction = await getPersonalTrainerInteraction(input.id);
+        if (!interaction) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Personal trainer interaction not found",
+          });
+        }
+        return interaction;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error("Error fetching personal trainer interaction:", errorMessage);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch personal trainer interaction",
+        });
+      }
     }),
 });
