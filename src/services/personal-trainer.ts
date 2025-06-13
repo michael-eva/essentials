@@ -108,9 +108,9 @@ Releveant context about the user, that you should use to generate the workout pl
           .slice(-10)
           .map(
             (workout) =>
-              `Name: ${workout.name}, Activity Type: ${workout.activityType}, Would Do Again: ${
-                workout.wouldDoAgain ? "Yes" : "No"
-              }, Duration: ${workout.durationHours} hours ${workout.durationMinutes} mins, Intensity: ${workout.intensity}`
+              `Name: ${workout.workout?.name}, Activity Type: ${workout.workout?.activityType}, Would Do Again: ${
+                workout.workoutTracking.wouldDoAgain ? "Yes" : "No"
+              }, Duration: ${workout.workoutTracking.durationHours} hours ${workout.workoutTracking.durationMinutes} mins, Intensity: ${workout.workoutTracking.intensity}`
           )
           .join("; ")
       : "None yet"

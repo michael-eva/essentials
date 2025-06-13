@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, Settings } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import type { AppRouter } from "@/server/api/root";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Info } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { CustomizePTSection } from "./CustomizePTSection";
 
 type Message = {
   id: string;
@@ -22,6 +24,8 @@ export function AIInteractionSection() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCustomize, setShowCustomize] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   // Get trainer info and status
   const { data: trainerInfo, isLoading: isLoadingInfo } = api.myPt.getTrainerInfo.useQuery();
@@ -44,6 +48,12 @@ export function AIInteractionSection() {
       setMessages(formattedMessages);
     }
   }, [chatHistory]);
+
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   // Mutation for sending messages
   const { mutate: sendMessage } = api.myPt.sendMessage.useMutation({
@@ -87,7 +97,7 @@ export function AIInteractionSection() {
   // Show loading state while fetching trainer info
   if (isLoadingInfo) {
     return (
-      <Card className="h-[600px] flex flex-col">
+      <Card className="h-full flex flex-col">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
@@ -110,7 +120,7 @@ export function AIInteractionSection() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            AI Personal Trainer
+            My PT
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex items-center justify-center">
@@ -126,42 +136,64 @@ export function AIInteractionSection() {
   }
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
-          AI Personal Trainer
-          {trainerInfo && (
-            <span className="text-sm text-muted-foreground ml-auto">
-              {trainerInfo.messageCount} messages
-            </span>
-          )}
-        </CardTitle>
+    <div className="flex flex-col h-[700px]">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            AI Personal Trainer
+          </CardTitle>
+          <div className="flex items-center gap-4">
+            {trainerInfo && (
+              <span className="text-sm text-muted-foreground">
+                {trainerInfo.messageCount} messages
+              </span>
+            )}
+            <Dialog open={showCustomize} onOpenChange={setShowCustomize}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowCustomize(true)}
+                  className="h-8 w-8"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl p-0">
+                <DialogTitle className="px-6 pt-6 pb-2">Customize My PT</DialogTitle>
+                <CustomizePTSection />
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-4">
-        <ScrollArea className="flex-1 rounded-md border p-4">
-          <div className="space-y-4">
-            {isLoadingHistory && messages.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                Loading chat history...
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Start a conversation with your AI personal trainer!</p>
-                <p className="text-sm mt-2">Ask about workouts, nutrition, goals, or anything fitness-related.</p>
-              </div>
-            ) : (
-              messages.map((message) => (
+      <CardContent className="flex-1 flex flex-col p-0">
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          {isLoadingHistory && messages.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              Loading chat history...
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Start a conversation with your AI personal trainer!</p>
+              <p className="text-sm mt-2">Ask about workouts, nutrition, goals, or anything fitness-related.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`rounded-lg px-4 py-2 max-w-[80%] ${message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                      }`}
+                    className={`rounded-lg px-4 py-2 max-w-full break-words ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    }`}
+                    style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
                   >
                     <div className="text-sm">{message.content}</div>
                     <div className="text-xs opacity-70 mt-1">
@@ -169,39 +201,42 @@ export function AIInteractionSection() {
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-muted rounded-lg px-4 py-2">
-                  <div className="flex items-center gap-2">
-                    <div className="animate-pulse">Thinking...</div>
-                  </div>
+              ))}
+              <div ref={bottomRef} />
+            </div>
+          )}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-muted rounded-lg px-4 py-2">
+                <div className="flex items-center gap-2">
+                  <div className="animate-pulse">Thinking...</div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
+        </div>
+        <div className="p-4 border-t bg-white sticky bottom-0">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Ask your AI trainer anything..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+              disabled={isLoading}
+              className="flex-1"
+            />
+            <Button onClick={handleSend} disabled={isLoading || !input.trim()}>
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
-        </ScrollArea>
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        <div className="flex gap-2">
-          <Input
-            placeholder="Ask your AI trainer anything..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <Button onClick={handleSend} disabled={isLoading || !input.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
         </div>
       </CardContent>
-    </Card>
+    </div>
   );
 } 

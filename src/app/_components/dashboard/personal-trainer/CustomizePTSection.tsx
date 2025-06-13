@@ -96,17 +96,6 @@ export function CustomizePTSection() {
 
   return (
     <Card className="h-[600px] flex flex-col">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Customize My PT
-          {systemPrompt && (
-            <span className="text-sm text-muted-foreground ml-auto">
-              Last updated: {new Date(systemPrompt.createdAt).toLocaleDateString()}
-            </span>
-          )}
-        </CardTitle>
-      </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-4">
         {isLoadingPrompt ? (
           <div className="flex-1 flex items-center justify-center">

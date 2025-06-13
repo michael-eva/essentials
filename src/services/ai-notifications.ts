@@ -1,100 +1,71 @@
 import type { UserContext } from "./context-manager";
-import { getMessages, getAiSystemPrompt } from "@/drizzle/src/db/queries";
+import { getAiSystemPrompt } from "@/drizzle/src/db/queries";
 import { insertAiChatMessages } from "@/drizzle/src/db/mutations";
 import OpenAI from "openai";
 
 const openai = new OpenAI();
 
-export interface ChatMessage {
-  role: "user" | "assistant" | "developer";
-  content: string;
-}
-
 /**
- * Generates an AI chat response based on user input, context, and chat history
+ * Generates an AI notification based on user context
  */
-export async function generateAiChatResponse(
-  userInput: string,
+export async function generateAiNotification(
   userId: string,
   userContext: UserContext,
 ): Promise<string> {
   // Fetch user's system prompt
   const systemPrompt = await getAiSystemPrompt(userId);
 
-  // Fetch chat history
-  const chatHistory = await getMessages(userId);
-
   // Build the full system context including user context
-  const fullSystemContext = buildSystemContext(
+  const fullSystemContext = buildNotificationContext(
     systemPrompt?.prompt,
     systemPrompt?.name,
     userContext,
   );
 
-  // Convert chat history to OpenAI format (in chronological order)
-  const conversationHistory = chatHistory
-    .reverse() // Reverse since getMessages returns in desc order
-    .map((msg) => ({
-      role:
-        msg.role === "assistant" ? ("assistant" as const) : ("user" as const),
-      content: msg.content || msg.message, // Use content first, fallback to message
-    }));
-
-  // Add the current user input
-  const currentInput = { role: "user" as const, content: userInput };
-
   try {
     const response = await openai.responses.create({
       model: "gpt-4.1-2025-04-14",
       instructions: fullSystemContext,
-      input: [...conversationHistory, currentInput],
-      max_output_tokens: 500,
+      input: [], // No input needed as this is a notification
+      max_output_tokens: 300, // Shorter than chat responses
     });
 
-    const aiResponse =
+    const notification =
       response.output_text ||
-      "I apologize, but I couldn't generate a response. Please try again.";
+      "Keep up the great work! Remember your fitness goals and stay consistent.";
 
-    // Save both user message and AI response to database
-    await Promise.all([
-      insertAiChatMessages({
-        userId,
-        message: userInput,
-        content: userInput,
-        role: "user",
-      }),
-      insertAiChatMessages({
-        userId,
-        message: aiResponse,
-        content: aiResponse,
-        role: "assistant",
-      }),
-    ]);
+    // Save the notification as an assistant message
+    await insertAiChatMessages({
+      userId,
+      message: notification,
+      content: notification,
+      role: "assistant",
+    });
 
-    return aiResponse;
+    return notification;
   } catch (error) {
-    console.error("Error generating AI chat response:", error);
-    throw new Error("Failed to generate AI response");
+    console.error("Error generating AI notification:", error);
+    throw new Error("Failed to generate AI notification");
   }
 }
 
 /**
- * Builds the full system context including user context and system prompt
+ * Builds the notification context including user context and system prompt
  */
-function buildSystemContext(
+function buildNotificationContext(
   systemPrompt: string | undefined,
   trainerName: string | undefined,
   userContext: UserContext,
 ): string {
   const defaultPrompt =
-    "You are a helpful personal trainer AI assistant. Provide personalized fitness advice and support based on the user's profile and goals.";
+    "You are a motivational personal trainer AI assistant. Create encouraging and accountability-focused messages that inspire users to stay on track with their fitness goals.";
 
   const userContextText = formatUserContextForAI(userContext);
   const name = trainerName || "AI Trainer";
 
   const basePrompt = systemPrompt || defaultPrompt;
 
-  return `You are ${name}, a personal trainer AI assistant. 
+  return `You are ${name}, a motivational personal trainer AI assistant. 
   
 Here is how the user would like you to behave:
 ${basePrompt}
@@ -102,9 +73,21 @@ ${basePrompt}
 USER CONTEXT:
 ${userContextText}
 
-Please use this context to provide personalized and relevant responses to the user's questions and requests. Remember to embody the personality and approach described in your system prompt while staying true to your role as ${name}.
+Create a short, motivational notification that:
+1. Encourages the user based on their recent activity and progress
+2. Motivates them to stay consistent with their fitness journey
+3. Holds them accountable to their goals
+4. Reminds them of their upcoming planned workouts
+5. Reinforces their fitness goals
 
-Your answers should not be very long, they should be about 5 sentences maximum. They should be concise and the length of a normal text message.`;
+The notification should be:
+- Brief and impactful (4-5 sentences maximum)
+- Personal and specific to their context
+- Positive and encouraging
+- Action-oriented
+- Focused on their specific goals and recent activity
+
+Format the notification as a friendly, direct message from you (${name}) to the user.`;
 }
 
 /**
@@ -173,37 +156,13 @@ ${
     : "- No planned workouts"
 }
 
-
 PROGRESS & CHALLENGES:
 - Current Challenges: ${context.progress.challenges?.join(", ") || "Not specified"}
 - Recent Improvements: ${context.progress.improvements?.join(", ") || "Not specified"}
-
 
 MOTIVATION:
 - Motivation Factors: ${context.profile.motivation?.join(", ") || "Not specified"}
 - Other Motivations: ${context.profile.otherMotivation?.join(", ") || "Not specified"}
 - Progress Tracking Methods: ${context.profile.progressTracking?.join(", ") || "Not specified"}
 `;
-}
-
-/**
- * Fetches chat history for a user
- */
-export async function getChatHistory(userId: string): Promise<ChatMessage[]> {
-  const messages = await getMessages(userId);
-
-  return messages.map((msg) => ({
-    role: msg.role as "user" | "assistant" | "developer",
-    content: msg.content || msg.message,
-  }));
-}
-
-/**
- * Clears chat history for a user (if needed)
- */
-export async function clearChatHistory(userId: string): Promise<void> {
-  // This would need a new mutation function to delete messages
-  // For now, we'll just log it
-  console.log(`Would clear chat history for user: ${userId}`);
-  // TODO: Implement clearChatMessages mutation if needed
 }

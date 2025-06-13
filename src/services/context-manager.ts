@@ -1,8 +1,21 @@
-import type { WorkoutTracking, Onboarding } from "@/drizzle/src/db/queries";
+import type {
+  WorkoutTracking,
+  Onboarding,
+  WorkoutPlan,
+  Workout,
+  WeeklySchedule,
+} from "@/drizzle/src/db/queries";
 import {
   getWorkoutTracking,
   getOnboardingData,
+  getActivePlan,
+  getWorkoutById
 } from "@/drizzle/src/db/queries";
+
+export type completedWorkout = {
+  workout: Workout | null;
+  workoutTracking: WorkoutTracking;
+};
 
 export type UserContext = {
   profile: {
@@ -12,19 +25,19 @@ export type UserContext = {
     height: number | null;
     weight: number | null;
     gender: string | null;
-    
+
     // Fitness info
     fitnessLevel: string | null;
     exercises: string[] | null;
     otherExercises: string[] | null;
     exerciseFrequency: string | null;
     sessionLength: string | null;
-    
+
     // Goals
     fitnessGoals: string[] | null;
     goalTimeline: string | null;
     specificGoals: string | null;
-    
+
     // Pilates experience
     pilatesExperience: boolean | null;
     pilatesDuration: string | null;
@@ -34,13 +47,13 @@ export type UserContext = {
     customInstructor: string | null;
     apparatusPreference: string[] | null;
     customApparatus: string | null;
-    
+
     // Motivation
     motivation: string[] | null;
     otherMotivation: string[] | null;
     progressTracking: string[] | null;
     otherProgressTracking: string[] | null;
-    
+
     health: {
       injuries: boolean | null;
       injuriesDetails: string | null;
@@ -52,8 +65,7 @@ export type UserContext = {
     };
   };
   recentActivity: {
-    lastWorkout: WorkoutTracking | null;
-    recentWorkouts: WorkoutTracking[];
+    recentWorkouts: completedWorkout[];
     consistency: {
       weeklyAverage: number;
       monthlyAverage: number;
@@ -64,6 +76,9 @@ export type UserContext = {
     goalProgress: Record<string, number>;
     improvements: string[];
     challenges: string[];
+  };
+  workoutPlan: {
+    plannedWorkouts: Workout[];
   };
 };
 
@@ -78,16 +93,36 @@ export async function buildUserContext(
   },
 ): Promise<UserContext> {
   // Fetch user data
-  const [onboardingData, recentWorkouts] = await Promise.all([
+  const [onboardingData, recentWorkoutTracking] = await Promise.all([
     getOnboardingData(userId),
     getWorkoutTracking(userId, timeRange),
   ]);
 
   // Calculate consistency metrics
-  const consistency = calculateConsistency(recentWorkouts, timeRange);
+  const consistency = calculateConsistency(recentWorkoutTracking, timeRange);
 
   // Calculate goal progress
-  const goalProgress = calculateGoalProgress(recentWorkouts, onboardingData);
+  const goalProgress = calculateGoalProgress(recentWorkoutTracking, onboardingData);
+
+  const activePlan = await getActivePlan(userId);
+  
+  let workoutList: Workout[] = [];
+
+  if (activePlan) {
+    workoutList = activePlan.weeklySchedules.flatMap((week) => week.items);
+  }
+
+  let completedWorkouts: completedWorkout[] = [];
+
+  for (const workoutTrack of recentWorkoutTracking) {
+    const workoutData = await getWorkoutById(workoutTrack.id);
+    if (workoutData) {
+      completedWorkouts.push({
+        workout: workoutData,
+        workoutTracking: workoutTrack,
+      });
+    }
+  }
 
   return {
     profile: {
@@ -127,14 +162,16 @@ export async function buildUserContext(
       },
     },
     recentActivity: {
-      lastWorkout: recentWorkouts[0] ?? null,
-      recentWorkouts: recentWorkouts.slice(0, 5), // Last 5 workouts
+      recentWorkouts: completedWorkouts,
       consistency,
     },
     progress: {
       goalProgress,
       improvements: [], // To be implemented in progress tracking
       challenges: [], // To be implemented in progress tracking
+    },
+    workoutPlan: {
+      plannedWorkouts: workoutList,
     },
   };
 }
