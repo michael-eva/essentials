@@ -37,7 +37,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <TRPCReactProvider>
-          <ThemeProvider defaultTheme="dark" storageKey="app-theme">
+          <ThemeProvider defaultTheme="light" storageKey="app-theme">
             <SessionProvider>
               <ProtectedRoute>
                 {children}
