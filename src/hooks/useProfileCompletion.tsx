@@ -43,8 +43,6 @@ export interface FormData {
     pilatesDuration: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null;
     studioFrequency: "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null;
     sessionPreference: "Group classes" | "Private sessions" | "Both" | "No preference" | null;
-    instructors: string[];
-    customInstructor: string | null;
     apparatusPreference: string[];
     customApparatus: string | null;
   };
@@ -101,8 +99,6 @@ export function useProfileCompletion() {
         pilatesDuration: onboardingData.pilatesDuration as "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null,
         studioFrequency: onboardingData.studioFrequency as "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null,
         sessionPreference: onboardingData.sessionPreference as "Group classes" | "Private sessions" | "Both" | "No preference" | null,
-        instructors: onboardingData.instructors ?? [],
-        customInstructor: onboardingData.customInstructor,
         apparatusPreference: onboardingData.apparatusPreference ?? [],
         customApparatus: onboardingData.customApparatus
       },
@@ -185,16 +181,14 @@ export function useProfileCompletion() {
       }
       case "pilates": {
         const data = section as FormData["pilates"]
-        totalFields = 5 + (data.pilatesExperience ? 1 : 0) + (data.customInstructor ? 1 : 0) + (data.customApparatus ? 1 : 0)
+        totalFields = 4 + (data.pilatesExperience ? 1 : 0) + (data.apparatusPreference.includes("Other") ? 1 : 0)
         filledFields = [
           data.pilatesExperience !== null,
-          data.pilatesDuration,
-          data.studioFrequency,
-          data.sessionPreference,
-          data.instructors.length > 0,
-          data.customInstructor,
+          data.pilatesExperience ? data.pilatesDuration !== null : null,
+          data.studioFrequency !== null,
+          data.sessionPreference !== null,
           data.apparatusPreference.length > 0,
-          data.customApparatus
+          data.apparatusPreference.includes("Other") ? data.customApparatus !== null : null
         ].filter(Boolean).length
         break
       }
@@ -202,6 +196,7 @@ export function useProfileCompletion() {
 
     return Math.round((filledFields / totalFields) * 100)
   }
+  console.log(calculateCompletion("pilates"))
 
   const formSections = useMemo(() => [
     {

@@ -27,11 +27,7 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "elliptical",
 ]);
 
-export const roleEnum = pgEnum("role", [
-  "developer",
-  "user",
-  "assistant",
-]);
+export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
 
 export const user = pgTable("user", {
   id: uuid("id").primaryKey().unique(),
@@ -176,8 +172,6 @@ export const onboarding = pgTable("onboarding", {
   pilatesDuration: text("pilates_duration"),
   studioFrequency: text("studio_frequency"),
   sessionPreference: text("session_preference"),
-  instructors: text("instructors").array(),
-  customInstructor: text("custom_instructor"),
   apparatusPreference: text("apparatus_preference").array(),
   customApparatus: text("custom_apparatus"),
 
@@ -251,22 +245,20 @@ export const AiSystemPrompt = pgTable("ai_system_prompt", {
   createdAt: timestamp("created_at").notNull(),
 });
 
-export const AiChatMessages = pgTable(
-  "ai_chat", {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    message: text("message").notNull(),
-    createdAt: timestamp("created_at")
-      .notNull()
-      .default(sql`now()`),
-    role: roleEnum("role").notNull(),
-    content: text("content").notNull(),
-  },
-);
+export const AiChatMessages = pgTable("ai_chat", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  role: roleEnum("role").notNull(),
+  content: text("content").notNull(),
+});

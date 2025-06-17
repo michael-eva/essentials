@@ -263,7 +263,6 @@ export async function checkOnboardingCompletion(
     data.pilatesExperience !== null &&
     data.studioFrequency !== null &&
     data.sessionPreference !== null &&
-    data.instructors !== null &&
     data.apparatusPreference !== null &&
     data.motivation !== null &&
     data.progressTracking !== null
@@ -389,7 +388,9 @@ export async function getMessages(userId: string): Promise<AiChatMessages[]> {
   return result;
 }
 
-export async function getAiSystemPrompt(userId: string): Promise<AiSystemPrompt | null> {
+export async function getAiSystemPrompt(
+  userId: string,
+): Promise<AiSystemPrompt | null> {
   const result = await db
     .select()
     .from(AiSystemPrompt)

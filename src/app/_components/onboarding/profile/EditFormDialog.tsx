@@ -55,8 +55,8 @@ interface FormData {
     pilatesDuration: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null;
     studioFrequency: "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null;
     sessionPreference: "Group classes" | "Private sessions" | "Both" | "No preference" | null;
-    instructors: string[];
-    customInstructor: string | null;
+    // instructors: string[];
+    // customInstructor: string | null;
     apparatusPreference: string[];
     customApparatus: string | null;
   };
@@ -120,8 +120,8 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
           pilatesDuration: null,
           studioFrequency: null,
           sessionPreference: null,
-          instructors: [],
-          customInstructor: null,
+          // instructors: [],
+          // customInstructor: null,
           apparatusPreference: [],
           customApparatus: null
         } as FormData["pilates"]
@@ -578,29 +578,6 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 </Select>
               </div>
               <div>
-                <Label>Instructors</Label>
-                <MultiSelectPills
-                  options={["None yet"]}
-                  selectedValues={typedData.instructors}
-                  onChange={(value) => {
-                    const currentInstructors = typedData.instructors
-                    const newInstructors = currentInstructors.includes(value)
-                      ? currentInstructors.filter(i => i !== value)
-                      : [...currentInstructors, value]
-                    setData({ ...typedData, instructors: newInstructors })
-                  }}
-                />
-                <div className="mt-2">
-                  <Input
-                    placeholder="Add instructor name"
-                    value={typedData.customInstructor ?? ""}
-                    onChange={(e) => setData({ ...typedData, customInstructor: e.target.value || null })}
-                    className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
-                    style={{ height: "44px", fontSize: "15px" }}
-                  />
-                </div>
-              </div>
-              <div>
                 <Label>Apparatus Preference</Label>
                 <MultiSelectPills
                   options={["Reformer", "Cadillac", "Chair", "Barrel", "Tower", "Mat work only", "Not sure yet"]}
@@ -613,14 +590,49 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                     setData({ ...typedData, apparatusPreference: newPreference })
                   }}
                 />
-                <div className="mt-2">
+                <div className="mt-4 flex gap-2">
                   <Input
                     placeholder="Add custom apparatus"
                     value={typedData.customApparatus ?? ""}
                     onChange={(e) => setData({ ...typedData, customApparatus: e.target.value || null })}
-                    className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
+                    className="flex-1 rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
                     style={{ height: "44px", fontSize: "15px" }}
                   />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (typedData.customApparatus) {
+                        const newPreference = [...typedData.apparatusPreference, typedData.customApparatus]
+                        setData({
+                          ...typedData,
+                          apparatusPreference: newPreference,
+                          customApparatus: null
+                        })
+                      }
+                    }}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Add
+                  </Button>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {typedData.apparatusPreference
+                    .filter(apparatus => !["Reformer", "Cadillac", "Chair", "Barrel", "Tower", "Mat work only", "Not sure yet"].includes(apparatus))
+                    .map((apparatus) => (
+                      <div key={apparatus} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                        <span className="text-sm text-gray-700">{apparatus}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newPreference = typedData.apparatusPreference.filter(p => p !== apparatus)
+                            setData({ ...typedData, apparatusPreference: newPreference })
+                          }}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>

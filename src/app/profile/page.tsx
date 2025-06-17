@@ -132,10 +132,10 @@ export default function ProfilePage() {
             pilatesExperience: pilatesData.pilatesExperience,
             studioFrequency: pilatesData.studioFrequency,
             sessionPreference: pilatesData.sessionPreference,
-            instructors: pilatesData.instructors,
+            // instructors: pilatesData.instructors,
             apparatusPreference: pilatesData.apparatusPreference,
-            pilatesDuration: pilatesData.pilatesDuration ?? undefined,
-            customInstructor: pilatesData.customInstructor ?? undefined,
+            pilatesDuration: pilatesData.pilatesExperience ? pilatesData.pilatesDuration ?? null : null,
+            // customInstructor: pilatesData.customInstructor ?? null,
             customApparatus: pilatesData.customApparatus ?? undefined
           })
           break
@@ -164,7 +164,7 @@ export default function ProfilePage() {
       </div>
     )
   }
-
+  console.log(formSections)
   return (
     <>
       <DashboardHeader />

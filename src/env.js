@@ -13,6 +13,8 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     SUPABASE_SERVICE_ROLE_KEY: z.string(),
     RESEND_API_KEY: z.string(),
+    OPENAI_API_KEY: z.string(),
+    WEBHOOK_API_KEY: z.string(),
   },
 
   /**
@@ -40,6 +42,8 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    WEBHOOK_API_KEY: process.env.WEBHOOK_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

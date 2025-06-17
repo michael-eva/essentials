@@ -28,8 +28,6 @@ export const formSchema = z.object({
     sessionPreference: z.enum(["Group classes", "Private sessions", "Both", "No preference"], {
         required_error: "Please select your session preference",
     }),
-    instructors: z.array(z.string()).min(1, "Please select at least one instructor or add a custom one"),
-    customInstructor: z.string().optional(),
     apparatusPreference: z.array(z.string()).min(1, "Please select at least one apparatus preference"),
     customApparatus: z.string().optional(),
 }).refine(
@@ -52,21 +50,12 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
             pilatesDuration: isDeveloper() ? "3-6 months" : undefined,
             studioFrequency: isDeveloper() ? "1 time per week" : undefined,
             sessionPreference: isDeveloper() ? "Group classes" : undefined,
-            instructors: isDeveloper() ? ["Instructor 1", "Instructor 2"] : [],
-            customInstructor: isDeveloper() ? "Instructor 3" : "",
             apparatusPreference: isDeveloper() ? ["Reformer", "Cadillac"] : [],
             customApparatus: "",
         }
     });
     const { mutate: postPilatesExperience } = api.onboarding.postPilatesExperience.useMutation()
     const pilatesExperience = watch("pilatesExperience");
-    const handleInstructorsChange = (instructor: string) => {
-        const currentInstructors = watch("instructors");
-        const newInstructors = currentInstructors.includes(instructor)
-            ? currentInstructors.filter(i => i !== instructor)
-            : [...currentInstructors, instructor];
-        setValue("instructors", newInstructors);
-    };
 
     const handleApparatusChange = (apparatus: string) => {
         const currentApparatus = watch("apparatusPreference");
@@ -74,15 +63,6 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
             ? currentApparatus.filter(a => a !== apparatus)
             : [...currentApparatus, apparatus];
         setValue("apparatusPreference", newApparatus);
-    };
-
-    const handleCustomInstructor = () => {
-        const customInstructor = watch("customInstructor") ?? "";
-        if (customInstructor.trim()) {
-            const currentInstructors = watch("instructors");
-            setValue("instructors", [...currentInstructors, customInstructor]);
-            setValue("customInstructor", "");
-        }
     };
 
     const handleCustomApparatus = () => {
@@ -243,57 +223,6 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                                 </Select>
                             )}
                         />
-                    </div>
-
-                    <div>
-                        <label className="block text-base font-medium text-gray-700 mb-4">
-                            Which Pilates instructors at the studio have you worked with before, if any?
-                        </label>
-                        {errors.instructors && (
-                            <p className="mb-2 text-sm text-red-600">{errors.instructors.message}</p>
-                        )}
-                        <Controller
-                            name="instructors"
-                            control={control}
-                            render={({ field }) => (
-                                <MultiSelectPills
-                                    options={["None yet"]}
-                                    selectedValues={field.value}
-                                    onChange={handleInstructorsChange}
-                                />
-                            )}
-                        />
-                        <div className="mt-4 flex gap-2">
-                            <Input
-                                {...register("customInstructor")}
-                                type="text"
-                                placeholder="Add instructor name"
-                                className="flex-1"
-                            />
-                            <button
-                                type="button"
-                                onClick={handleCustomInstructor}
-                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                Add
-                            </button>
-                        </div>
-                        <div className="mt-3 space-y-2">
-                            {watch("instructors")
-                                .filter(instructor => instructor !== "None yet")
-                                .map((instructor) => (
-                                    <div key={instructor} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                                        <span className="text-sm text-gray-700">{instructor}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleInstructorsChange(instructor)}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
-                        </div>
                     </div>
 
                     <div>
