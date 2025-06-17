@@ -77,6 +77,7 @@ export default function ProfilePage() {
     onSuccess: () => {
       toast.success("Your profile has been updated successfully.")
       setSelectedForm(null)
+      utils.onboarding.getOnboardingData.invalidate()
     },
     onError: (error) => {
       console.error("Error updating form data:", error)
@@ -105,20 +106,21 @@ export default function ProfilePage() {
             exercises: fitnessData.exercises,
             exerciseFrequency: fitnessData.exerciseFrequency,
             sessionLength: fitnessData.sessionLength,
-            otherExercises: fitnessData.customExercise ? [fitnessData.customExercise] : undefined
+            otherExercises: fitnessData.exercises.includes("Other") ? [fitnessData.customExercise ?? ""] : null
           })
           break
         }
         case "healthCons": {
           const healthData = data as FormData["healthCons"]
+          console.log(healthData)
           postHealthConsiderations({
             injuries: healthData.injuries ?? false,
             recentSurgery: healthData.recentSurgery ?? false,
             chronicConditions: healthData.chronicConditions,
             pregnancy: healthData.pregnancy ?? "Not applicable",
-            injuriesDetails: healthData.injuriesDetails ?? undefined,
-            surgeryDetails: healthData.surgeryDetails ?? undefined,
-            otherHealthConditions: healthData.otherHealthConditions
+            injuriesDetails: healthData.injuries ? healthData.injuriesDetails ?? null : null,
+            surgeryDetails: healthData.recentSurgery ? healthData.surgeryDetails ?? null : null,
+            otherHealthConditions: healthData.chronicConditions.includes("Other") ? healthData.otherHealthConditions ?? null : null
           })
           break
         }
@@ -137,10 +139,8 @@ export default function ProfilePage() {
             pilatesExperience: pilatesData.pilatesExperience,
             studioFrequency: pilatesData.studioFrequency,
             sessionPreference: pilatesData.sessionPreference,
-            // instructors: pilatesData.instructors,
             apparatusPreference: pilatesData.apparatusPreference,
             pilatesDuration: pilatesData.pilatesExperience ? pilatesData.pilatesDuration ?? null : null,
-            // customInstructor: pilatesData.customInstructor ?? null,
             customApparatus: pilatesData.customApparatus ?? undefined
           })
           break

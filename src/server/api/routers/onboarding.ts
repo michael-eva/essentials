@@ -36,7 +36,7 @@ export const onboardingRouter = createTRPCRouter({
       z.object({
         fitnessLevel: z.string().nullable(),
         exercises: z.array(z.string()),
-        otherExercises: z.array(z.string()).optional(),
+        otherExercises: z.array(z.string()).optional().nullable(),
         exerciseFrequency: z.string().nullable(),
         sessionLength: z.string().nullable(),
       }),
@@ -65,11 +65,11 @@ export const onboardingRouter = createTRPCRouter({
     .input(
       z.object({
         injuries: z.boolean().nullable(),
-        injuriesDetails: z.string().optional(),
+        injuriesDetails: z.string().optional().nullable(),
         recentSurgery: z.boolean().nullable(),
-        surgeryDetails: z.string().optional(),
+        surgeryDetails: z.string().optional().nullable(),
         chronicConditions: z.array(z.string()),
-        otherHealthConditions: z.array(z.string()).optional(),
+        otherHealthConditions: z.array(z.string()).optional().nullable(),
         pregnancy: z.string(),
       }),
     )
@@ -173,9 +173,11 @@ export const onboardingRouter = createTRPCRouter({
       await insertOnboarding({
         userId,
         motivation,
-        otherMotivation,
+        otherMotivation: motivation.includes("Other") ? otherMotivation : null,
         progressTracking,
-        otherProgressTracking,
+        otherProgressTracking: progressTracking.includes("Other")
+          ? otherProgressTracking
+          : null,
         completedAt: isCompleted ? new Date() : null,
         step: isCompleted ? "completed" : "motivation",
       });

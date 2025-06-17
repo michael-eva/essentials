@@ -140,7 +140,7 @@ export function useProfileCompletion() {
           data.exercises.length > 0,
           data.exerciseFrequency,
           data.sessionLength,
-          data.customExercise
+          data.exercises.includes("Other") ? data.customExercise !== null : null
         ].filter(Boolean).length
         break
       }
@@ -164,7 +164,7 @@ export function useProfileCompletion() {
           data.pregnancy,
           data.injuriesDetails,
           data.surgeryDetails,
-          data.otherHealthConditions.length > 0
+          data.chronicConditions.includes("Other") ? data.otherHealthConditions.length > 0 : null
         ].filter(Boolean).length
         break
       }
@@ -174,8 +174,8 @@ export function useProfileCompletion() {
         filledFields = [
           data.motivation.length > 0,
           data.progressTracking.length > 0,
-          data.otherMotivation.length > 0,
-          data.otherProgressTracking.length > 0
+          data.motivation.includes("Other") ? data.otherMotivation.length > 0 : null,
+          data.progressTracking.includes("Other") ? data.otherProgressTracking.length > 0 : null
         ].filter(Boolean).length
         break
       }
