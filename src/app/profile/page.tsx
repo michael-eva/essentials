@@ -112,7 +112,6 @@ export default function ProfilePage() {
         }
         case "healthCons": {
           const healthData = data as FormData["healthCons"]
-          console.log(healthData)
           postHealthConsiderations({
             injuries: healthData.injuries ?? false,
             recentSurgery: healthData.recentSurgery ?? false,
@@ -169,7 +168,7 @@ export default function ProfilePage() {
       </div>
     )
   }
-  console.log(formSections)
+
   return (
     <>
       <DashboardHeader />

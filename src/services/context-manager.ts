@@ -7,7 +7,7 @@ import {
   getWorkoutTracking,
   getOnboardingData,
   getActivePlan,
-  getWorkoutById
+  getWorkoutById,
 } from "@/drizzle/src/db/queries";
 
 export type completedWorkout = {
@@ -41,8 +41,6 @@ export type UserContext = {
     pilatesDuration: string | null;
     studioFrequency: string | null;
     sessionPreference: string | null;
-    instructors: string[] | null;
-    customInstructor: string | null;
     apparatusPreference: string[] | null;
     customApparatus: string | null;
 
@@ -100,10 +98,13 @@ export async function buildUserContext(
   const consistency = calculateConsistency(recentWorkoutTracking, _timeRange);
 
   // Calculate goal progress
-  const goalProgress = calculateGoalProgress(recentWorkoutTracking, onboardingData);
+  const goalProgress = calculateGoalProgress(
+    recentWorkoutTracking,
+    onboardingData,
+  );
 
   const activePlan = await getActivePlan(userId);
-  
+
   let workoutList: Workout[] = [];
 
   if (activePlan) {
@@ -141,8 +142,6 @@ export async function buildUserContext(
       pilatesDuration: onboardingData?.pilatesDuration ?? null,
       studioFrequency: onboardingData?.studioFrequency ?? null,
       sessionPreference: onboardingData?.sessionPreference ?? null,
-      instructors: onboardingData?.instructors ?? null,
-      customInstructor: onboardingData?.customInstructor ?? null,
       apparatusPreference: onboardingData?.apparatusPreference ?? null,
       customApparatus: onboardingData?.customApparatus ?? null,
       motivation: onboardingData?.motivation ?? null,
