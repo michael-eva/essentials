@@ -1,11 +1,17 @@
+/* Import fonts similar to Essentials Studio */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700@display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600@display=swap');
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+  --font-sans: 'Space Grotesk', var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
+  --font-heading: 'Space Grotesk', var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -44,111 +50,249 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Essentials Studio Brand Colors */
+  --color-brand-warm-brown: var(--brand-warm-brown);
+  --color-brand-deep-blue: var(--brand-deep-blue);
+  --color-brand-amber: var(--brand-amber);
+  --color-brand-sand: var(--brand-sand);
+  --color-brand-warm-brown-light: var(--brand-warm-brown-light);
+  --color-brand-warm-brown-dark: var(--brand-warm-brown-dark);
+  --color-brand-neutral: var(--brand-neutral);
+  --color-brand-neutral-light: var(--brand-neutral-light);
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   
-  /* Vibrant color palette - Light theme */
-  --background: hsl(0.00,0.00%,96.08%);
-  --foreground: hsl(222 47% 25%);
+  /* Essentials Studio Brand Color Palette */
+  --brand-warm-brown: hsl(29 33% 33%); /* #705444 - Primary brand color */
+  --brand-deep-blue: hsl(225 49% 45%); /* #3c5daa - Professional accent */
+  --brand-amber: hsl(38 100% 52%); /* #FFAB0C - CTA color */
+  --brand-sand: hsl(36 25% 70%); /* #C9B59D - Light accent */
+  --brand-warm-brown-light: hsl(29 33% 43%); /* Lighter brown variant */
+  --brand-warm-brown-dark: hsl(29 33% 23%); /* Darker brown variant */
+  --brand-neutral: hsl(30 20% 95%); /* Very light warm neutral */
+  --brand-neutral-light: hsl(30 20% 98%); /* Ultra light warm neutral */
   
-  --card: hsl(210 40% 98%);
-  --card-foreground: hsl(222 47% 25%);
+  /* Light theme - Essentials Studio inspired */
+  --background: var(--brand-neutral-light);
+  --foreground: var(--brand-warm-brown-dark);
+  
+  --card: hsl(0 0% 100%);
+  --card-foreground: var(--brand-warm-brown);
   
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222 47% 25%);
+  --popover-foreground: var(--brand-warm-brown);
   
-  --primary: hsl(222 47% 35%);
-  --primary-foreground: hsl(210 40% 98%);
+  --primary: var(--brand-warm-brown);
+  --primary-foreground: hsl(0 0% 98%);
   
-  --secondary: hsl(199 89% 48%);
-  --secondary-foreground: hsl(0 0% 100%);
+  --secondary: var(--brand-sand);
+  --secondary-foreground: var(--brand-warm-brown-dark);
   
-  --muted: hsl(210 40% 96%);
-  --muted-foreground: hsl(215 28% 65%);
+  --muted: var(--brand-neutral);
+  --muted-foreground: hsl(29 15% 55%);
   
-  --accent: hsl(262 83% 58%);
-  --accent-foreground: hsl(0 0% 100%);
+  --accent: var(--brand-amber);
+  --accent-foreground: var(--brand-warm-brown-dark);
   
   --destructive: hsl(0 84% 60%);
   --destructive-foreground: hsl(0 0% 98%);
   
-  --border: hsl(214 32% 91%);
-  --input: hsl(214 32% 91%);
-  --ring: hsl(222 47% 35%);
+  --border: hsl(29 20% 88%);
+  --input: hsl(29 20% 92%);
+  --ring: var(--brand-warm-brown);
   
-  /* Chart colors */
-  --chart-1: hsl(340 82% 60%);
-  --chart-2: hsl(180 70% 45%);
-  --chart-3: hsl(45 87% 55%);
-  --chart-4: hsl(130 66% 44%);
-  --chart-5: hsl(265 83% 45%);
+  /* Chart colors - Essentials Studio palette */
+  --chart-1: var(--brand-amber);
+  --chart-2: var(--brand-deep-blue);
+  --chart-3: var(--brand-warm-brown);
+  --chart-4: var(--brand-sand);
+  --chart-5: hsl(340 65% 55%);
   
   /* Sidebar theme */
-  --sidebar: hsl(222 47% 35%);
-  --sidebar-foreground: hsl(0 0% 100%);
-  --sidebar-primary: hsl(0 0% 100%);
-  --sidebar-primary-foreground: hsl(222 47% 35%);
-  --sidebar-accent: hsl(262 83% 58%);
-  --sidebar-accent-foreground: hsl(0 0% 100%);
-  --sidebar-border: hsl(222 47% 45%);
-  --sidebar-ring: hsl(0 0% 100%);
+  --sidebar: var(--brand-warm-brown);
+  --sidebar-foreground: hsl(0 0% 98%);
+  --sidebar-primary: var(--brand-amber);
+  --sidebar-primary-foreground: var(--brand-warm-brown-dark);
+  --sidebar-accent: var(--brand-sand);
+  --sidebar-accent-foreground: var(--brand-warm-brown-dark);
+  --sidebar-border: var(--brand-warm-brown-light);
+  --sidebar-ring: var(--brand-amber);
 }
 
 .dark {
-  /* Vibrant color palette - Dark theme */
-  --background: hsl(222 47% 10%);
-  --foreground: hsl(210 40% 98%);
+  /* Dark theme - Essentials Studio inspired */
+  --background: hsl(29 25% 8%);
+  --foreground: hsl(30 20% 95%);
   
-  --card: hsl(222 47% 15%);
-  --card-foreground: hsl(210 40% 98%);
+  --card: hsl(29 25% 12%);
+  --card-foreground: hsl(30 20% 92%);
   
-  --popover: hsl(222 47% 15%);
-  --popover-foreground: hsl(210 40% 98%);
+  --popover: hsl(29 25% 12%);
+  --popover-foreground: hsl(30 20% 92%);
   
-  --primary: hsl(199 89% 48%);
-  --primary-foreground: hsl(222 47% 15%);
+  --primary: var(--brand-amber);
+  --primary-foreground: hsl(29 25% 8%);
   
-  --secondary: hsl(262 83% 58%);
-  --secondary-foreground: hsl(210 40% 98%);
+  --secondary: var(--brand-warm-brown);
+  --secondary-foreground: hsl(30 20% 92%);
   
-  --muted: hsl(222 47% 20%);
-  --muted-foreground: hsl(215 28% 65%);
+  --muted: hsl(29 25% 18%);
+  --muted-foreground: hsl(29 15% 60%);
   
-  --accent: hsl(29 80% 60%);
-  --accent-foreground: hsl(222 47% 10%);
+  --accent: var(--brand-deep-blue);
+  --accent-foreground: hsl(0 0% 98%);
   
   --destructive: hsl(0 84% 60%);
-  --destructive-foreground: hsl(210 40% 98%);
+  --destructive-foreground: hsl(30 20% 95%);
   
-  --border: hsl(222 47% 25%);
-  --input: hsl(222 47% 25%);
-  --ring: hsl(199 89% 48%);
+  --border: hsl(29 25% 22%);
+  --input: hsl(29 25% 18%);
+  --ring: var(--brand-amber);
   
-  /* Chart colors - adjusted for dark mode */
-  --chart-1: hsl(340 82% 65%);
-  --chart-2: hsl(180 70% 50%);
-  --chart-3: hsl(45 87% 60%);
-  --chart-4: hsl(130 66% 50%);
-  --chart-5: hsl(265 83% 50%);
+  /* Chart colors - dark mode adjusted */
+  --chart-1: var(--brand-amber);
+  --chart-2: hsl(225 55% 65%);
+  --chart-3: hsl(29 40% 55%);
+  --chart-4: hsl(36 30% 65%);
+  --chart-5: hsl(340 65% 60%);
   
   /* Sidebar theme - dark mode */
-  --sidebar: hsl(222 47% 15%);
-  --sidebar-foreground: hsl(210 40% 98%);
-  --sidebar-primary: hsl(199 89% 48%);
-  --sidebar-primary-foreground: hsl(222 47% 10%);
-  --sidebar-accent: hsl(29 80% 60%);
-  --sidebar-accent-foreground: hsl(222 47% 10%);
-  --sidebar-border: hsl(222 47% 25%);
-  --sidebar-ring: hsl(199 89% 48%);
+  --sidebar: hsl(29 25% 12%);
+  --sidebar-foreground: hsl(30 20% 95%);
+  --sidebar-primary: var(--brand-amber);
+  --sidebar-primary-foreground: hsl(29 25% 8%);
+  --sidebar-accent: var(--brand-deep-blue);
+  --sidebar-accent-foreground: hsl(0 0% 98%);
+  --sidebar-border: hsl(29 25% 22%);
+  --sidebar-ring: var(--brand-amber);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  /* Heading styles matching Essentials Studio typography hierarchy */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+  
+  h1 {
+    @apply text-4xl font-bold tracking-tight lg:text-5xl;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold tracking-tight lg:text-4xl;
+  }
+  
+  h3 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  
+  h4 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+  
+  h5 {
+    @apply text-lg font-medium;
+  }
+  
+  h6 {
+    @apply text-base font-medium;
+  }
+  
+  /* Custom utility classes for brand colors */
+  .text-brand-warm-brown { color: hsl(var(--brand-warm-brown)); }
+  .text-brand-deep-blue { color: hsl(var(--brand-deep-blue)); }
+  .text-brand-amber { color: hsl(var(--brand-amber)); }
+  .text-brand-sand { color: hsl(var(--brand-sand)); }
+  
+  .bg-brand-warm-brown { background-color: hsl(var(--brand-warm-brown)); }
+  .bg-brand-deep-blue { background-color: hsl(var(--brand-deep-blue)); }
+  .bg-brand-amber { background-color: hsl(var(--brand-amber)); }
+  .bg-brand-sand { background-color: hsl(var(--brand-sand)); }
+  
+  .border-brand-warm-brown { border-color: hsl(var(--brand-warm-brown)); }
+  .border-brand-deep-blue { border-color: hsl(var(--brand-deep-blue)); }
+  .border-brand-amber { border-color: hsl(var(--brand-amber)); }
+  .border-brand-sand { border-color: hsl(var(--brand-sand)); }
+  
+  /* Essentials Studio button variants */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-colors;
+  }
+  
+  .btn-accent {
+    @apply bg-accent text-accent-foreground hover:bg-accent/90 px-6 py-3 rounded-lg font-medium transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 px-6 py-3 rounded-lg font-medium transition-colors;
+  }
+  
+  /* Warm, sophisticated shadows */
+  .shadow-warm {
+    box-shadow: 0 4px 6px -1px hsl(var(--brand-warm-brown) / 0.1), 
+                0 2px 4px -1px hsl(var(--brand-warm-brown) / 0.06);
+  }
+  
+  .shadow-warm-lg {
+    box-shadow: 0 10px 15px -3px hsl(var(--brand-warm-brown) / 0.1), 
+                0 4px 6px -2px hsl(var(--brand-warm-brown) / 0.05);
+  }
+}
+
+/* Custom animations inspired by Essentials Studio */
+@keyframes gentle-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes warm-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px hsl(var(--brand-amber) / 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(var(--brand-amber) / 0.3);
+  }
+}
+
+.animate-gentle-fade-in {
+  animation: gentle-fade-in 0.6s ease-out;
+}
+
+.animate-warm-glow {
+  animation: warm-glow 2s ease-in-out infinite;
+}
+
+/* Scrollbar styling to match theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--brand-warm-brown) / 0.6);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--brand-warm-brown) / 0.8);
 }
