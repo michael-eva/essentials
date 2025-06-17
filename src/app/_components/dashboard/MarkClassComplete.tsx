@@ -46,14 +46,22 @@ export default function MarkClassComplete({ isDialogOpen, setIsDialogOpen, handl
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label>How was the workout?</Label>
-            <Slider
-              value={[form.watch("intensity")]}
-              onValueChange={(value) => form.setValue("intensity", value[0] ?? 5)}
-              min={1}
-              max={10}
-              step={1}
-            />
+            <Label>How was the workout? (1-10)</Label>
+            <div className="space-y-4">
+              <Slider
+                value={[form.watch("intensity")]}
+                onValueChange={(value) => form.setValue("intensity", value[0] ?? 5)}
+                max={10}
+                min={1}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>1 - Very Easy</span>
+                <span className="font-medium text-foreground">{form.watch("intensity")}</span>
+                <span>10 - Very Hard</span>
+              </div>
+            </div>
             {form.formState.errors.intensity && (
               <p className="text-sm text-destructive">{form.formState.errors.intensity.message}</p>
             )}
