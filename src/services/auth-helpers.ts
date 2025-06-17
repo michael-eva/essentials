@@ -5,12 +5,12 @@ export async function verifyOtp(
   email: string,
   token: string,
   supabaseClient: SupabaseClient,
+  type: "signup" | "email" = "email",
 ) {
-  const isPasswordReset = false;
   const { data, error } = await supabaseClient.auth.verifyOtp({
     email,
     token,
-    type: isPasswordReset ? "recovery" : "email",
+    type,
   });
 
   if (error) {
