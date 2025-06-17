@@ -32,9 +32,12 @@ import { buildUserContext } from "@/services/context-manager";
 import { createGzip } from "zlib";
 
 // Helper function to safely parse dates
-function safeDateParse(dateString: string | null, fieldName: string): Date | null {
+function safeDateParse(
+  dateString: string | null,
+  fieldName: string,
+): Date | null {
   if (!dateString) return null;
-  
+
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
@@ -42,7 +45,9 @@ function safeDateParse(dateString: string | null, fieldName: string): Date | nul
     }
     return date;
   } catch (error) {
-    throw new Error(`Failed to parse date for ${fieldName}: ${dateString}. ${error}`);
+    throw new Error(
+      `Failed to parse date for ${fieldName}: ${dateString}. ${error}`,
+    );
   }
 }
 
@@ -51,7 +56,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getPreviousPlans(ctx.userId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Error fetching previous plans:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -64,7 +70,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getActivePlan(ctx.userId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Error fetching active plan:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -77,7 +84,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getUpcomingClasses(ctx.userId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Error fetching upcoming classes:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -89,7 +97,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getSupplementaryWorkouts(ctx.userId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Error fetching supplementary workouts:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -101,17 +110,10 @@ export const workoutPlanRouter = createTRPCRouter({
   getWorkoutsToLog: protectedProcedure.query(async ({ ctx }) => {
     try {
       const workouts = await getWorkoutsToLog(ctx.userId);
-
-      if (!workouts || workouts.length === 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "No workouts found to log",
-        });
-      }
-
       return workouts;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Error fetching workouts to log:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -136,7 +138,8 @@ export const workoutPlanRouter = createTRPCRouter({
         );
         return history;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
         console.error("Error fetching activity history:", errorMessage);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -149,7 +152,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getActivityHistoryCount(ctx.userId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Error fetching activity history count:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -198,7 +202,8 @@ export const workoutPlanRouter = createTRPCRouter({
 
         return await insertWorkoutTracking(newActivity);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
         console.error("Error inserting manual activity:", errorMessage);
         throw error;
       }
@@ -420,7 +425,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       const planWithDates = {
         ...generatedPlan.plan,
-        savedAt: safeDateParse(generatedPlan.plan.savedAt, "savedAt") ?? new Date(),
+        savedAt:
+          safeDateParse(generatedPlan.plan.savedAt, "savedAt") ?? new Date(),
         archivedAt: safeDateParse(generatedPlan.plan.archivedAt, "archivedAt"),
         startDate: safeDateParse(generatedPlan.plan.startDate, "startDate"),
         pausedAt: safeDateParse(generatedPlan.plan.pausedAt, "pausedAt"),
@@ -433,7 +439,8 @@ export const workoutPlanRouter = createTRPCRouter({
         ...workout,
         id: uuidv4(),
         classId: workout.classId === null ? undefined : workout.classId,
-        bookedDate: safeDateParse(workout.bookedDate, "bookedDate") ?? undefined,
+        bookedDate:
+          safeDateParse(workout.bookedDate, "bookedDate") ?? undefined,
         activityType:
           workout.activityType === null ? undefined : workout.activityType,
       }));
@@ -460,9 +467,11 @@ export const workoutPlanRouter = createTRPCRouter({
           };
         },
       );
-      const weeklySchedules = await insertWeeklySchedules(weeklySchedulesWithIds);
+      const weeklySchedules = await insertWeeklySchedules(
+        weeklySchedulesWithIds,
+      );
 
-      console.log("Created plan with ID: ", plan.id)
+      console.log("Created plan with ID: ", plan.id);
 
       return {
         ...plan,
@@ -473,16 +482,22 @@ export const workoutPlanRouter = createTRPCRouter({
       };
     } catch (error) {
       console.error("Error in generatePlan:", error);
-      console.error("Generated plan data:", JSON.stringify(generatedPlan, null, 2));
-      
+      console.error(
+        "Generated plan data:",
+        JSON.stringify(generatedPlan, null, 2),
+      );
+
       // Check if it's a date parsing error
-      if (error instanceof Error && error.message.includes("Invalid time value")) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Invalid time value")
+      ) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "AI returned invalid date format. Please try again.",
         });
       }
-      
+
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to generate workout plan",
@@ -511,7 +526,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await checkOnboardingCompletion(ctx.userId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Error checking onboarding completion:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -524,7 +540,8 @@ export const workoutPlanRouter = createTRPCRouter({
     try {
       return await getOnboardingData(ctx.userId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Error fetching onboarding data:", errorMessage);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -548,8 +565,12 @@ export const workoutPlanRouter = createTRPCRouter({
           input.cursor,
         );
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("Error fetching personal trainer interactions:", errorMessage);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        console.error(
+          "Error fetching personal trainer interactions:",
+          errorMessage,
+        );
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch personal trainer interactions",
@@ -570,8 +591,12 @@ export const workoutPlanRouter = createTRPCRouter({
         }
         return interaction;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("Error fetching personal trainer interaction:", errorMessage);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        console.error(
+          "Error fetching personal trainer interaction:",
+          errorMessage,
+        );
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch personal trainer interaction",
