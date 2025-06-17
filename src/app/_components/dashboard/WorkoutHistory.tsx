@@ -145,10 +145,12 @@ export default function WorkoutHistory() {
 
                       {/* Meta info row */}
                       <div className="flex flex-wrap items-center gap-4 text-sm mt-3">
-                        <div className="flex items-center gap-1.5 text-gray-500">
-                          <Clock className="h-4 w-4" />
-                          {formatDuration(workout.durationHours, workout.durationMinutes)}
-                        </div>
+                        {workout.durationHours && workout.durationMinutes ? (
+                          <div className="flex items-center gap-1.5 text-gray-500">
+                            <Clock className="h-4 w-4" />
+                            {formatDuration(workout.durationHours, workout.durationMinutes)}
+                          </div>
+                        ) : null}
                         {workout.distance && (
                           <div className="flex items-center gap-1.5 text-gray-500">
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>

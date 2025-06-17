@@ -373,10 +373,12 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <div className="text-right">
-                  {activity.activityType === "workout" && (
+                  {activity.activityType === "workout" && activity.durationHours && activity.durationMinutes ? (
                     <p className="text-accent font-medium">
                       {activity.durationHours}h {activity.durationMinutes}m
                     </p>
+                  ) : (
+                    null
                   )}
                 </div>
               </div>
