@@ -2,9 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Sparkles, Trophy, Heart, Zap } from "lucide-react";
+import useGeneratePlan from "@/hooks/useGeneratePlan";
 
 export default function LandingPage() {
   const router = useRouter();
+  const { generatePlan, isLoading, LoadingScreen } = useGeneratePlan();
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-3xl">
@@ -48,14 +50,14 @@ export default function LandingPage() {
           <Button
             size="lg"
             className="group relative overflow-hidden bg-primary hover:bg-primary/90 transition-all duration-300"
+            disabled={isLoading}
             onClick={() => {
-              // TODO: Add workout plan generation logic
-              console.log("Generate workout plan");
+              void generatePlan();
             }}
           >
             <span className="relative z-10 flex items-center gap-2">
               <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-              Generate My Workout Plan
+              {isLoading ? "Generating..." : "Generate My Workout Plan"}
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/20 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
           </Button>
@@ -70,6 +72,7 @@ export default function LandingPage() {
           </Button>
         </div>
       </div>
+      <LoadingScreen />
     </div>
   );
 }

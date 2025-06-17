@@ -9,6 +9,7 @@ import FormLayout from "./FormLayout";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
+import { GOAL_TIMELINE, GOALS } from "@/app/_constants/goals";
 
 interface GoalsFormProps {
     isFirstStep?: boolean;
@@ -18,7 +19,7 @@ interface GoalsFormProps {
 
 export const formSchema = z.object({
     fitnessGoals: z.array(z.string()).min(1, "Please select at least one goal"),
-    goalTimeline: z.enum(["1-3 months", "3-6 months", "6-12 months", "More than a year"], {
+    goalTimeline: z.enum(GOAL_TIMELINE, {
         required_error: "Please select your goal timeline",
     }),
     specificGoals: z.string().optional(),
@@ -26,11 +27,11 @@ export const formSchema = z.object({
 
 export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: GoalsFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { register, handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
+    const { handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
-            fitnessGoals: isDeveloper() ? ["Weight loss"] : [],
+            fitnessGoals: isDeveloper() ? ["Lose weight"] : [],
             goalTimeline: isDeveloper() ? "3-6 months" : undefined,
             specificGoals: isDeveloper() ? "Developer testing" : "",
         }
@@ -85,7 +86,7 @@ export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: Goal
                             control={control}
                             render={({ field }) => (
                                 <MultiSelectPills
-                                    options={["Weight loss", "Muscle gain", "Improve endurance", "Increase flexibility", "Tone muscles"]}
+                                    options={GOALS}
                                     selectedValues={field.value}
                                     onChange={handleFitnessGoalsChange}
                                 />
@@ -113,10 +114,9 @@ export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: Goal
                                         <SelectValue placeholder="Select timeline" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="1-3 months">1-3 months</SelectItem>
-                                        <SelectItem value="3-6 months">3-6 months</SelectItem>
-                                        <SelectItem value="6-12 months">6-12 months</SelectItem>
-                                        <SelectItem value="More than a year">More than a year</SelectItem>
+                                        {GOAL_TIMELINE.map((timeline) => (
+                                            <SelectItem key={timeline} value={timeline}>{timeline}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}

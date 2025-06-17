@@ -1,6 +1,11 @@
 import { useMemo } from "react"
 import { api } from "@/trpc/react"
 import { User, Dumbbell, Target, Heart, Sparkles, Activity } from "lucide-react"
+import type { Gender } from "@/app/_constants/gender";
+import type { ExerciseFrequency, FitnessLevel, SessionLength } from "@/app/_constants/fitness";
+import type { GoalTimeline } from "@/app/_constants/goals";
+import type { HealthCondition, PregnancyOption } from "@/app/_constants/health";
+import type { MotivationFactor, ProgressTrackingMethod } from "@/app/_constants/motivation";
 
 // Form data interface with proper optional types
 export interface FormData {
@@ -9,42 +14,40 @@ export interface FormData {
     age: number | null;
     height: number | null;
     weight: number | null;
-    gender: "Male" | "Female" | "Prefer not to say" | null;
+    gender: Gender | null;
   };
   fitnessBg: {
-    fitnessLevel: "Beginner" | "Intermediate" | "Advanced" | null;
+    fitnessLevel: FitnessLevel | null;
     exercises: string[];
-    exerciseFrequency: "0" | "1-2" | "3-4" | "5+" | null;
-    sessionLength: "Less than 15 minutes" | "15-30 minutes" | "30-45 minutes" | "45-60 minutes" | "More than 60 minutes" | null;
+    exerciseFrequency: ExerciseFrequency | null;
+    sessionLength: SessionLength | null;
     customExercise: string | null;
   };
   goals: {
     fitnessGoals: string[];
-    goalTimeline: "1-3 months" | "3-6 months" | "6-12 months" | "More than a year" | null;
+    goalTimeline: GoalTimeline | null;
     specificGoals: string | null;
   };
   healthCons: {
     injuries: boolean | null;
     recentSurgery: boolean | null;
-    chronicConditions: string[];
-    pregnancy: "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)" | null;
+    chronicConditions: HealthCondition[];
+    pregnancy: PregnancyOption | null;
     injuriesDetails: string | null;
     surgeryDetails: string | null;
     otherHealthConditions: string[];
   };
   motivation: {
-    motivation: string[];
-    progressTracking: string[];
+    motivation: MotivationFactor[];
+    progressTracking: ProgressTrackingMethod[];
     otherMotivation: string[];
     otherProgressTracking: string[];
   };
   pilates: {
     pilatesExperience: boolean | null;
     pilatesDuration: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null;
-    studioFrequency: "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null;
+    studioFrequency: "1 time per week" | "1 - 2 times per month" | "2 - 3 times per week" | "3 - 4 times per week" | "4+ times per week" | null;
     sessionPreference: "Group classes" | "Private sessions" | "Both" | "No preference" | null;
-    instructors: string[];
-    customInstructor: string | null;
     apparatusPreference: string[];
     customApparatus: string | null;
   };
@@ -99,10 +102,8 @@ export function useProfileCompletion() {
       pilates: {
         pilatesExperience: onboardingData.pilatesExperience ?? null,
         pilatesDuration: onboardingData.pilatesDuration as "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null,
-        studioFrequency: onboardingData.studioFrequency as "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null,
+        studioFrequency: onboardingData.studioFrequency as "1 time per week" | "1 - 2 times per month" | "2 - 3 times per week" | "3 - 4 times per week" | "4+ times per week" | null,
         sessionPreference: onboardingData.sessionPreference as "Group classes" | "Private sessions" | "Both" | "No preference" | null,
-        instructors: onboardingData.instructors ?? [],
-        customInstructor: onboardingData.customInstructor,
         apparatusPreference: onboardingData.apparatusPreference ?? [],
         customApparatus: onboardingData.customApparatus
       },
@@ -144,7 +145,7 @@ export function useProfileCompletion() {
           data.exercises.length > 0,
           data.exerciseFrequency,
           data.sessionLength,
-          data.customExercise
+          data.exercises.includes("Other") ? data.customExercise !== null : null
         ].filter(Boolean).length
         break
       }
@@ -168,7 +169,7 @@ export function useProfileCompletion() {
           data.pregnancy,
           data.injuriesDetails,
           data.surgeryDetails,
-          data.otherHealthConditions.length > 0
+          data.chronicConditions.includes("Other") ? data.otherHealthConditions.length > 0 : null
         ].filter(Boolean).length
         break
       }
@@ -178,23 +179,21 @@ export function useProfileCompletion() {
         filledFields = [
           data.motivation.length > 0,
           data.progressTracking.length > 0,
-          data.otherMotivation.length > 0,
-          data.otherProgressTracking.length > 0
+          data.motivation.includes("Other") ? data.otherMotivation.length > 0 : null,
+          data.progressTracking.includes("Other") ? data.otherProgressTracking.length > 0 : null
         ].filter(Boolean).length
         break
       }
       case "pilates": {
         const data = section as FormData["pilates"]
-        totalFields = 5 + (data.pilatesExperience ? 1 : 0) + (data.customInstructor ? 1 : 0) + (data.customApparatus ? 1 : 0)
+        totalFields = 4 + (data.pilatesExperience ? 1 : 0) + (data.apparatusPreference.includes("Other") ? 1 : 0)
         filledFields = [
           data.pilatesExperience !== null,
-          data.pilatesDuration,
-          data.studioFrequency,
-          data.sessionPreference,
-          data.instructors.length > 0,
-          data.customInstructor,
+          data.pilatesExperience ? data.pilatesDuration !== null : null,
+          data.studioFrequency !== null,
+          data.sessionPreference !== null,
           data.apparatusPreference.length > 0,
-          data.customApparatus
+          data.apparatusPreference.includes("Other") ? data.customApparatus !== null : null
         ].filter(Boolean).length
         break
       }

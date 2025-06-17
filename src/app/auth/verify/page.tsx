@@ -29,6 +29,20 @@ function VerifyForm() {
         toast.error("Verification failed. Please try again.");
         return;
       }
+
+      // Set the session in the client
+      if (response.session) {
+        const { error } = await supabase.auth.setSession({
+          access_token: response.session.access_token,
+          refresh_token: response.session.refresh_token,
+        });
+
+        if (error) {
+          toast.error("Failed to set session. Please try again.");
+          return;
+        }
+      }
+
       toast.success(mode === "existing" ? "Welcome back! Let's crush your fitness goals!" : "Account verified! Let's crush your fitness goals!");
       router.push(redirectedFrom);
       router.refresh();

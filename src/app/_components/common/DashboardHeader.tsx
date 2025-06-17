@@ -8,8 +8,6 @@ import { useProfileCompletion } from "@/hooks/useProfileCompletion"
 import { CircularProgress } from "@/components/ui/circular-progress"
 
 const ProfileProgress = ({ progress }: { progress?: number }) => {
-  if (progress === 100) return null
-
   const getColor = (progress: number) => {
     if (progress < 30) return "text-red-500"
     if (progress < 70) return "text-yellow-500"
@@ -19,9 +17,9 @@ const ProfileProgress = ({ progress }: { progress?: number }) => {
   return (
     <div className="flex items-center gap-1.5 ml-1.5 sm:ml-2">
       <CircularProgress value={progress ?? 0} className="h-4 w-4 sm:h-5 sm:w-5" />
-      <span className={cn("text-[10px] sm:text-xs font-medium", getColor(progress ?? 0))}>
+      {progress && progress < 100 && <span className={cn("text-[10px] sm:text-xs font-medium", getColor(progress ?? 0))}>
         {progress ?? 0}%
-      </span>
+      </span>}
     </div>
   )
 }
@@ -78,8 +76,8 @@ export default function AppHeader() {
                 whileTap={{ scale: 0.98 }}
               >
                 {!item.showProgress && <item.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-                <span className="hidden sm:inline">{item.name}</span>
                 {item.showProgress && <ProfileProgress progress={totalCompletion ?? 0} />}
+                <span className="">{item.name}</span>
               </motion.button>
             )
           })}

@@ -51,7 +51,6 @@ export default function RecordManualActivity({
   initialActivityType?: string
   workoutId?: string
 }) {
-  console.log(initialActivityType)
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activityFormSchema),
     defaultValues: {

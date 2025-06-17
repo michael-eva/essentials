@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import FormLayout from "./FormLayout";
 import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
+import { GENDER } from "@/app/_constants/gender";
 
 export const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -42,7 +43,7 @@ export const formSchema = z.object({
             .min(0, "Weight must be positive")
             .max(500, "Weight seems invalid")
     ),
-    gender: z.enum(["Male", "Female", "Prefer not to say"], {
+    gender: z.enum(GENDER, {
         required_error: "Gender is required",
     }),
 });
@@ -181,9 +182,9 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
                                         <SelectValue placeholder="Select gender" />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-md">
-                                        <SelectItem value="Male">Male</SelectItem>
-                                        <SelectItem value="Female">Female</SelectItem>
-                                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                                        {GENDER.map((gender) => (
+                                            <SelectItem key={gender} value={gender}>{gender}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}

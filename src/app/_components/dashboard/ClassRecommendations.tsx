@@ -86,7 +86,7 @@ export default function ClassRecommendations() {
       void utils.workoutPlan.getActivePlan.invalidate();
     },
   });
-  const { generatePlan, OnboardingDialog, isLoading } = useGeneratePlan();
+  const { generatePlan, OnboardingDialog, isLoading, LoadingScreen } = useGeneratePlan();
   const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
   const handleBookClass = (workoutId: string, name: string) => {
@@ -333,11 +333,7 @@ export default function ClassRecommendations() {
   }
 
   const handleGeneratePlan = () => {
-    // setIsGeneratingPlan(true);
     generatePlan();
-    // setTimeout(() => {
-    //   setIsGeneratingPlan(false);
-    // }, 1000);
   };
   return (
     <motion.div
@@ -347,6 +343,7 @@ export default function ClassRecommendations() {
       className="space-y-6"
     >
       {OnboardingDialog}
+      <LoadingScreen />
       {isLoadingActivePlan ? (
         <ActivePlanSkeleton />
       ) : !activePlan ? (

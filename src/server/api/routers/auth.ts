@@ -58,7 +58,12 @@ export const authRouter = createTRPCRouter({
   verifyOtp: publicProcedure
     .input(z.object({ email: z.string(), token: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const authData = await verifyOtp(input.email, input.token, ctx.supabase);
+      const authData = await verifyOtp(
+        input.email,
+        input.token,
+        ctx.supabase,
+        "signup",
+      );
 
       // Check if user exists in our database
       const existingUser = await getUser(authData.user?.id ?? "");
