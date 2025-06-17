@@ -16,7 +16,6 @@ import {
 } from "./schema";
 import type {
   NewWorkout,
-  NewWorkoutTracking,
   NewWorkoutPlan,
   NewWeeklySchedule,
   NewOnboarding,
@@ -33,8 +32,51 @@ import { trackWorkoutProgress } from "@/services/progress-tracker";
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
 
-export async function insertWorkoutTracking(data: NewWorkoutTracking) {
-  const result = await db.insert(workoutTracking).values(data).returning();
+export type WorkoutTrackingInput = {
+  userId: string;
+  workoutId?: string | null;
+  activityType: string;
+  date: Date;
+  durationHours?: number | null;
+  durationMinutes?: number | null;
+  distance?: string | null;
+  distanceUnit?: string | null;
+  notes?: string | null;
+  intensity?: number | null;
+  name?: string | null;
+  wouldDoAgain?: boolean | null;
+  exercises?: Array<{
+    id: string;
+    name: string;
+    sets: Array<{
+      id: string;
+      reps: number;
+      weight: number;
+    }>;
+  }> | null;
+};
+
+export type NewWorkoutTracking = WorkoutTrackingInput;
+
+export async function insertWorkoutTracking(data: WorkoutTrackingInput) {
+  const result = await db
+    .insert(workoutTracking)
+    .values({
+      userId: data.userId,
+      workoutId: data.workoutId,
+      activityType: data.activityType,
+      date: data.date,
+      durationHours: data.durationHours,
+      durationMinutes: data.durationMinutes,
+      distance: data.distance,
+      distanceUnit: data.distanceUnit,
+      notes: data.notes,
+      intensity: data.intensity,
+      name: data.name,
+      wouldDoAgain: data.wouldDoAgain,
+      exercises: data.exercises,
+    })
+    .returning();
   const newWorkout = result[0]!;
 
   // Automatically update progress tracking
@@ -179,8 +221,14 @@ export async function insertAiSystemPrompt(data: NewAiSystemPrompt) {
   return result[0]!;
 }
 
-
-export async function updateAiSystemPrompt(id: string, data: NewAiSystemPrompt) {
-  const result = await db.update(AiSystemPrompt).set(data).where(eq(AiSystemPrompt.id, id)).returning();
+export async function updateAiSystemPrompt(
+  id: string,
+  data: NewAiSystemPrompt,
+) {
+  const result = await db
+    .update(AiSystemPrompt)
+    .set(data)
+    .where(eq(AiSystemPrompt.id, id))
+    .returning();
   return result[0]!;
 }
