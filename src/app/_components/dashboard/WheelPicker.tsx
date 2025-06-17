@@ -44,7 +44,7 @@ export function WheelPicker({
   const [touchStart, setTouchStart] = useState<{ y: number; time: number; columnIndex: number } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const touchHistory = useRef<{ y: number; time: number }[]>([])
-  const momentumRefs = useRef<{ [key: number]: number }>({})
+  const momentumRefs = useRef<Record<number, number>>({})
 
   // Momentum settings
   const TOUCH_THRESHOLD = 10 // Lower threshold for more responsive feel
@@ -117,14 +117,11 @@ export function WheelPicker({
       cancelAnimationFrame(momentumRefs.current[columnIndex])
     }
 
-    console.log(`Starting momentum for column ${columnIndex} with velocity:`, velocity)
-
     let currentVelocity = velocity
     let accumulatedMovement = 0
 
     const animate = () => {
       if (Math.abs(currentVelocity) < MIN_MOMENTUM) {
-        console.log(`Momentum stopped for column ${columnIndex}, final velocity:`, currentVelocity)
         delete momentumRefs.current[columnIndex]
         return
       }
@@ -139,12 +136,9 @@ export function WheelPicker({
 
         if (!didChange) {
           // Hit boundary, stop momentum
-          console.log(`Hit boundary for column ${columnIndex}, stopping momentum`)
           delete momentumRefs.current[columnIndex]
           return
         }
-
-        console.log(`Changed value for column ${columnIndex}, direction: ${direction}`)
 
         // Reset accumulated movement since we just made a change
         accumulatedMovement = 0
@@ -222,7 +216,6 @@ export function WheelPicker({
     const now = Date.now()
     const recentHistory = touchHistory.current.filter(point => now - point.time < 100)
 
-    console.log(`Touch end for column ${columnIndex}, history length:`, recentHistory.length)
 
     if (recentHistory.length >= 2) {
       const start = recentHistory[0]
@@ -230,21 +223,18 @@ export function WheelPicker({
       const timeDiff = start?.time && end?.time ? end.time - start.time : 0
       const yDiff = start?.y && end?.y ? start.y - end.y : 0 // Inverted because we want up to be positive
 
-      console.log(`Time diff: ${timeDiff}ms, Y diff: ${yDiff}px`)
 
       if (timeDiff > 0) {
         const velocity = (yDiff / timeDiff) * 50 // Increased multiplier for more sensitivity
 
-        console.log(`Calculated velocity: ${velocity}, threshold: ${MOMENTUM_THRESHOLD}`)
+
 
         if (Math.abs(velocity) > MOMENTUM_THRESHOLD) {
           startMomentum(columnIndex, velocity)
         } else {
-          console.log(`Velocity too low for momentum: ${velocity}`)
         }
       }
     } else {
-      console.log(`Not enough touch history for momentum calculation`)
     }
 
     setTouchStart(null)
