@@ -1,10 +1,16 @@
-'use client'
-import ClassRecommendations from "@/app/_components/dashboard/ClassRecommendations"
-import Dashboard from "@/app/_components/dashboard/Dashboard"
-import WorkoutHistory from "@/app/_components/dashboard/WorkoutHistory"
-import PersonalTrainer from "@/app/_components/dashboard/PersonalTrainer"
-import { use } from "react"
-import Classes from "@/app/_components/dashboard/Classes"
+import DashboardTabs from "./DashboardTabs";
+import { use } from "react";
+
+// Define the possible tab values
+export function generateStaticParams() {
+  return [
+    { tabs: 'overview' },
+    { tabs: 'your-plan' },
+    { tabs: 'history' },
+    { tabs: 'mypt' },
+    { tabs: 'classes' }
+  ]
+}
 
 type PageProps = {
   params: Promise<{
@@ -12,23 +18,7 @@ type PageProps = {
   }>;
 }
 
-export default function Home({ params }: PageProps) {
+export default function Page({ params }: PageProps) {
   const { tabs } = use(params);
-
-  switch (tabs) {
-    case 'overview':
-      return <Dashboard />;
-    case 'your-plan':
-      return <ClassRecommendations />;
-    case 'history':
-      return <WorkoutHistory />;
-    case 'mypt':
-      return <PersonalTrainer />;
-    case 'classes':
-      return <Classes />;
-    default:
-      return <Dashboard />;
-  }
-
-
+  return <DashboardTabs tabs={tabs} />;
 }

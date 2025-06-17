@@ -1,11 +1,10 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { api } from "@/trpc/react";
-import { supabase } from "@/lib/supabase/client";
+import { createBrowserClient } from '@supabase/ssr';
 
 function VerifyForm() {
   const [otp, setOtp] = useState("");
@@ -14,40 +13,34 @@ function VerifyForm() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
   const mode = searchParams.get("mode") ?? "existing";
-  const redirectedFrom = searchParams.get("redirectedFrom") ?? "/welcome";
+  const redirectedFrom = searchParams.get("redirectedFrom") ?? "/dashboard";
 
-  const { mutateAsync: verifyOtp } = api.auth.verifyOtp.useMutation();
-  const { mutateAsync: generateOtp } = api.auth.generateOtp.useMutation();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const response = await verifyOtp({ email, token: otp });
-      if (!response.user) {
-        toast.error("Verification failed. Please try again.");
-        return;
-      }
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'email'
+      });
 
-      // Set the session in the client
-      if (response.session) {
-        const { error } = await supabase.auth.setSession({
-          access_token: response.session.access_token,
-          refresh_token: response.session.refresh_token,
-        });
-
-        if (error) {
-          toast.error("Failed to set session. Please try again.");
-          return;
-        }
+      if (error) {
+        throw error;
       }
 
       toast.success(mode === "existing" ? "Welcome back! Let's crush your fitness goals!" : "Account verified! Let's crush your fitness goals!");
       router.push(redirectedFrom);
       router.refresh();
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      console.error('Verification error:', error);
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -56,13 +49,19 @@ function VerifyForm() {
   const handleResendOtp = async () => {
     setIsLoading(true);
     try {
-      await generateOtp({
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
         email,
-        password: "",
       });
+
+      if (error) {
+        throw error;
+      }
+
       toast.success("New code sent to your email!");
     } catch (error) {
-      toast.error("Failed to resend code. Please try again.");
+      console.error('Resend error:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to resend code. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -115,7 +114,7 @@ function VerifyForm() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isLoading || otp.length !== 6}
-            className="w-full bg-accent text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+            className="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
             {isLoading ? "Verifying..." : "Verify Code"}
           </motion.button>
@@ -145,13 +144,5 @@ function VerifyForm() {
 }
 
 export default function VerifyPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent"></div>
-      </div>
-    }>
-      <VerifyForm />
-    </Suspense>
-  );
+  return <VerifyForm />;
 }

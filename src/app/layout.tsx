@@ -7,7 +7,7 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { ThemeProvider } from "./_components/theme-provider";
 import { Toaster } from 'sonner'
 import AppLayout from "./_components/common/DashboardLayout";
-import { SessionProvider } from '@/contexts/SessionContext';
+import { AuthProvider } from './_components/auth/AuthProvider';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export const metadata: Metadata = {
@@ -38,11 +38,11 @@ export default function RootLayout({
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <TRPCReactProvider>
           <ThemeProvider defaultTheme="light" storageKey="app-theme">
-            <SessionProvider>
+            <AuthProvider>
               <ProtectedRoute>
                 {children}
               </ProtectedRoute>
-            </SessionProvider>
+            </AuthProvider>
             <Toaster />
           </ThemeProvider>
         </TRPCReactProvider>
