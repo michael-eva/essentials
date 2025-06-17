@@ -57,7 +57,7 @@ export default function Dashboard() {
         void utils.workoutPlan.getWorkoutsToLog.invalidate();
       },
     });
-  const { generatePlan, OnboardingDialog, isLoading } = useGeneratePlan();
+  const { generatePlan, OnboardingDialog, isLoading, LoadingScreen } = useGeneratePlan();
 
   const [selectedWorkout, setSelectedWorkout] = useState<
     (typeof pastWorkouts)[0] | null
@@ -137,6 +137,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {OnboardingDialog}
+      <LoadingScreen />
       <DashboardCardLayout
         title="Progress Tracking"
         description="Your progress over the past 7 days"
