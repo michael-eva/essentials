@@ -182,11 +182,26 @@ export const workoutPlanRouter = createTRPCRouter({
         distanceUnit: z.string().optional(),
         notes: z.string().optional(),
         intensity: z.number().optional(),
+        exercises: z
+          .array(
+            z.object({
+              id: z.string(),
+              name: z.string(),
+              sets: z.array(
+                z.object({
+                  id: z.string(),
+                  reps: z.number(),
+                  weight: z.number(),
+                }),
+              ),
+            }),
+          )
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const newActivity: NewWorkoutTracking = {
+        const newActivity = {
           userId: ctx.userId,
           workoutId: uuidv4(),
           activityType: "workout",
@@ -198,7 +213,8 @@ export const workoutPlanRouter = createTRPCRouter({
           notes: input.notes ?? undefined,
           intensity: input.intensity ?? undefined,
           name: input.workoutType,
-        };
+          exercises: input.exercises ?? undefined,
+        } as NewWorkoutTracking;
 
         return await insertWorkoutTracking(newActivity);
       } catch (error) {
@@ -223,16 +239,16 @@ export const workoutPlanRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const newActivity: NewWorkoutTracking = {
+        const newActivity = {
           userId: ctx.userId,
           workoutId: input.workoutId,
           activityType: "class",
           date: input.date,
-          notes: input.notes,
-          intensity: input.intensity,
+          notes: input.notes ?? undefined,
+          intensity: input.intensity ?? undefined,
           name: input.name,
-          wouldDoAgain: input.wouldDoAgain,
-        };
+          wouldDoAgain: input.wouldDoAgain ?? undefined,
+        } as NewWorkoutTracking;
         await updateCompletedClass(input.workoutId, "completed");
         return await insertWorkoutTracking(newActivity);
       } catch (error) {

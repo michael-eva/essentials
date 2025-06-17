@@ -25,6 +25,7 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "hike",
   "rowing",
   "elliptical",
+  "workout",
 ]);
 
 export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
@@ -79,6 +80,17 @@ export const workoutTracking = pgTable("workout_tracking", {
   intensity: integer("intensity"),
   name: text("name"),
   wouldDoAgain: boolean("would_do_again"),
+  exercises: jsonb("exercises").$type<
+    Array<{
+      id: string;
+      name: string;
+      sets: Array<{
+        id: string;
+        reps: number;
+        weight: number;
+      }>;
+    }>
+  >(),
 });
 
 export const workoutPlan = pgTable("workout_plan", {

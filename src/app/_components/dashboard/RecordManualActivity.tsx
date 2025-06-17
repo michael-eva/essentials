@@ -8,11 +8,24 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useState, useEffect } from "react"
-import { Clock, Ruler, Activity } from "lucide-react"
+import { Clock, Ruler, Activity, Bike, Waves, Footprints, Mountain, Ship, Dumbbell, Ellipsis } from "lucide-react"
 import { WheelPicker } from "./WheelPicker"
 import { CustomInput } from "@/app/_components/dashboard/InputLayout"
 import { DatePicker } from "@/components/ui/date-picker"
 import { activityTypeEnum } from "@/drizzle/src/db/schema"
+import { ExerciseList, type Exercise } from "./ExerciseList"
+
+const exerciseSetSchema = z.object({
+  id: z.string(),
+  reps: z.number().min(1, "Reps must be at least 1"),
+  weight: z.number().min(0, "Weight must be 0 or greater"),
+})
+
+const exerciseSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Exercise name is required"),
+  sets: z.array(exerciseSetSchema).min(1, "At least one set is required"),
+})
 
 const activityFormSchema = z.object({
   workoutType: z.string({
@@ -28,11 +41,23 @@ const activityFormSchema = z.object({
   intensity: z.number().min(1, "Please rate the intensity from 1-10").max(10, "Rating must be between 1-10"),
   notes: z.string().optional(),
   workoutId: z.string().optional(),
+  exercises: z.array(exerciseSchema).optional(),
 })
 
 export type ActivityFormValues = z.infer<typeof activityFormSchema>
 
 const ACTIVITY_TYPES = activityTypeEnum.enumValues;
+
+const ACTIVITY_ICONS = {
+  run: Activity,
+  cycle: Bike,
+  swim: Waves,
+  walk: Footprints,
+  hike: Mountain,
+  rowing: Ship,
+  elliptical: Ellipsis,
+  workout: Dumbbell,
+} as const;
 
 function safeParseInt(val: string | undefined) {
   return /^\d+$/.test(val ?? "") ? parseInt(val!, 10) : 0;
@@ -63,6 +88,7 @@ export default function RecordManualActivity({
       intensity: 5,
       notes: "",
       workoutId: workoutId,
+      exercises: [],
     },
   })
 
@@ -75,6 +101,7 @@ export default function RecordManualActivity({
   const onSubmit = (data: ActivityFormValues) => {
     handleSubmitActivity({ ...data, workoutId })
     form.reset()
+    setExercises([])
   }
 
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false)
@@ -86,6 +113,14 @@ export default function RecordManualActivity({
   const [tempDistanceInt, setTempDistanceInt] = useState(safeParseInt(intPart))
   const [tempDistanceDec, setTempDistanceDec] = useState(safeParseInt(decPart))
   const [tempDistanceUnit, setTempDistanceUnit] = useState(form.watch("distanceUnit") === "miles" ? "mi" : "km")
+
+  const isWorkout = form.watch("workoutType") === "workout"
+
+  const [exercises, setExercises] = useState<Exercise[]>(form.watch("exercises") ?? [])
+
+  useEffect(() => {
+    form.setValue("exercises", exercises)
+  }, [exercises, form])
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -101,43 +136,29 @@ export default function RecordManualActivity({
               onValueChange={(value) => form.setValue("workoutType", value)}
             >
               <SelectTrigger className="flex items-center w-full border rounded-md px-3 py-2 text-left bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors gap-2">
-                <Activity className="w-4 h-4 text-muted-foreground" />
+                {!form.watch("workoutType") && <Activity className="w-4 h-4 text-muted-foreground" />}
                 <span className="flex-1 text-left">
                   <SelectValue placeholder="Select activity type" />
                 </span>
               </SelectTrigger>
               <SelectContent>
-                {ACTIVITY_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </SelectItem>
-                ))}
+                {ACTIVITY_TYPES.map((type) => {
+                  const IconComponent = ACTIVITY_ICONS[type];
+                  return (
+                    <SelectItem key={type} value={type}>
+                      <div className="flex items-center gap-2">
+                        <IconComponent className="w-4 h-4" />
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             {form.formState.errors.workoutType && (
               <p className="text-sm text-destructive">{form.formState.errors.workoutType.message}</p>
             )}
           </div>
-          {/* <div className="space-y-2">
-            <Label>Location</Label>
-            <RadioGroup
-              value={form.watch("location")}
-              onValueChange={(value) => form.setValue("location", value as "indoor" | "outdoor")}
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="indoor" id="location-indoor" />
-                <Label htmlFor="location-indoor">Indoor (Machine)</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="outdoor" id="location-outdoor" />
-                <Label htmlFor="location-outdoor">Outdoor</Label>
-              </div>
-            </RadioGroup>
-            {form.formState.errors.location && (
-              <p className="text-sm text-destructive">{form.formState.errors.location.message}</p>
-            )}
-          </div> */}
           <div className="space-y-2">
             <Label>Date</Label>
             <DatePicker
@@ -192,58 +213,73 @@ export default function RecordManualActivity({
             }}
           />
 
-          <div className="space-y-2">
-            <Label>Distance</Label>
-            <CustomInput
-              icon={Ruler}
-              value={form.watch("distance") ? `${form.watch("distance")}${form.watch("distanceUnit") === "miles" ? " mi" : " km"}` : undefined}
-              placeholder="Set distance"
-              onClick={() => setIsDistancePickerOpen(true)}
-              error={form.formState.errors.distance?.message}
-            />
-          </div>
+          {!isWorkout ? (
+            <>
+              <div className="space-y-2">
+                <Label>Distance</Label>
+                <CustomInput
+                  icon={Ruler}
+                  value={form.watch("distance") ? `${form.watch("distance")}${form.watch("distanceUnit") === "miles" ? " mi" : " km"}` : undefined}
+                  placeholder="Set distance"
+                  onClick={() => setIsDistancePickerOpen(true)}
+                  error={form.formState.errors.distance?.message}
+                />
+              </div>
 
-          <WheelPicker
-            isOpen={isDistancePickerOpen}
-            onClose={() => {
-              setIsDistancePickerOpen(false)
-              const dVal = form.watch("distance") ?? "0.0"
-              const [intPart, decPart] = dVal.split(".")
-              setTempDistanceInt(safeParseInt(intPart))
-              setTempDistanceDec(safeParseInt(decPart))
-              setTempDistanceUnit(form.watch("distanceUnit") === "miles" ? "mi" : "km")
-            }}
-            title="Set Distance"
-            columns={[
-              {
-                label: "",
-                value: tempDistanceInt,
-                setValue: setTempDistanceInt,
-                min: 0,
-                max: 99,
-                format: (v) => v.toString(),
-              },
-              {
-                label: "",
-                value: tempDistanceDec,
-                setValue: setTempDistanceDec,
-                min: 0,
-                max: 9,
-                format: (v) => "." + v.toString(),
-              },
-              {
-                label: "",
-                value: tempDistanceUnit,
-                setValue: (v: string) => setTempDistanceUnit(v as "km" | "mi"),
-                options: ["km", "mi"],
-              },
-            ]}
-            onConfirm={() => {
-              form.setValue("distance", `${tempDistanceInt}.${tempDistanceDec}`)
-              form.setValue("distanceUnit", tempDistanceUnit === "mi" ? "miles" : "kilometers")
-              setIsDistancePickerOpen(false)
-            }}
-          />
+              <WheelPicker
+                isOpen={isDistancePickerOpen}
+                onClose={() => {
+                  setIsDistancePickerOpen(false)
+                  const dVal = form.watch("distance") ?? "0.0"
+                  const [intPart, decPart] = dVal.split(".")
+                  setTempDistanceInt(safeParseInt(intPart))
+                  setTempDistanceDec(safeParseInt(decPart))
+                  setTempDistanceUnit(form.watch("distanceUnit") === "miles" ? "mi" : "km")
+                }}
+                title="Set Distance"
+                columns={[
+                  {
+                    label: "",
+                    value: tempDistanceInt,
+                    setValue: setTempDistanceInt,
+                    min: 0,
+                    max: 99,
+                    format: (v) => v.toString(),
+                  },
+                  {
+                    label: "",
+                    value: tempDistanceDec,
+                    setValue: setTempDistanceDec,
+                    min: 0,
+                    max: 9,
+                    format: (v) => "." + v.toString(),
+                  },
+                  {
+                    label: "",
+                    value: tempDistanceUnit,
+                    setValue: (v: string) => setTempDistanceUnit(v as "km" | "mi"),
+                    options: ["km", "mi"],
+                  },
+                ]}
+                onConfirm={() => {
+                  form.setValue("distance", `${tempDistanceInt}.${tempDistanceDec}`)
+                  form.setValue("distanceUnit", tempDistanceUnit === "mi" ? "miles" : "kilometers")
+                  setIsDistancePickerOpen(false)
+                }}
+              />
+            </>
+          ) : (
+            <div className="space-y-2">
+              <Label>Resistance Training</Label>
+              <ExerciseList
+                exercises={exercises}
+                onChange={setExercises}
+              />
+              {form.formState.errors.exercises && (
+                <p className="text-sm text-destructive">{form.formState.errors.exercises.message}</p>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>How was the activity? (1-10)</Label>
