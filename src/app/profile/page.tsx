@@ -11,12 +11,13 @@ import { useProfileCompletion, type FormData, type FormType } from "@/hooks/useP
 
 export default function ProfilePage() {
   const [selectedForm, setSelectedForm] = useState<FormType | null>(null)
-  const { isLoading, formData, formSections, totalCompletion } = useProfileCompletion()
-
+  const { isLoading, formData, formSections } = useProfileCompletion()
+  const utils = api.useUtils()
   const { mutate: postBasicQuestions } = api.onboarding.postBasicQuestions.useMutation({
     onSuccess: () => {
       toast.success("Your profile has been updated successfully.")
       setSelectedForm(null)
+      utils.onboarding.getOnboardingData.invalidate()
     },
     onError: (error) => {
       console.error("Error updating form data:", error)
@@ -28,6 +29,7 @@ export default function ProfilePage() {
     onSuccess: () => {
       toast.success("Your profile has been updated successfully.")
       setSelectedForm(null)
+      utils.onboarding.getOnboardingData.invalidate()
     },
     onError: (error) => {
       console.error("Error updating form data:", error)
@@ -39,6 +41,7 @@ export default function ProfilePage() {
     onSuccess: () => {
       toast.success("Your profile has been updated successfully.")
       setSelectedForm(null)
+      utils.onboarding.getOnboardingData.invalidate()
     },
     onError: (error) => {
       console.error("Error updating form data:", error)
@@ -50,6 +53,7 @@ export default function ProfilePage() {
     onSuccess: () => {
       toast.success("Your profile has been updated successfully.")
       setSelectedForm(null)
+      utils.onboarding.getOnboardingData.invalidate()
     },
     onError: (error) => {
       console.error("Error updating form data:", error)
@@ -61,6 +65,7 @@ export default function ProfilePage() {
     onSuccess: () => {
       toast.success("Your profile has been updated successfully.")
       setSelectedForm(null)
+      utils.onboarding.getOnboardingData.invalidate()
     },
     onError: (error) => {
       console.error("Error updating form data:", error)
