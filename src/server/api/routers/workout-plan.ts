@@ -471,8 +471,6 @@ export const workoutPlanRouter = createTRPCRouter({
         weeklySchedulesWithIds,
       );
 
-      console.log("Created plan with ID: ", plan.id);
-
       return {
         ...plan,
         workouts: workouts.map((workout, index) => ({

@@ -22,7 +22,6 @@ function SignInForm() {
 
   const { mutateAsync: generateOtp } = api.auth.generateOtp.useMutation({
     onSuccess: (data) => {
-      console.log("Mutation success:", data);
       toast.success("Account created! Please check your email to verify your account.");
     },
     onError: (error) => {

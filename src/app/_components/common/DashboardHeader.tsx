@@ -46,8 +46,6 @@ export default function AppHeader() {
   if (isLandingPage) {
     return null
   }
-  console.log(totalCompletion)
-  console.log(navigationItems);
 
   return (
     <motion.header
@@ -63,7 +61,6 @@ export default function AppHeader() {
 
         <nav className="flex items-center gap-0.5 sm:gap-1">
           {navigationItems.map((item) => {
-            console.log(item);
             const isActive = pathname.startsWith(item.href)
             return (
               <motion.button

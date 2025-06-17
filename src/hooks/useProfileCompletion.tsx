@@ -196,7 +196,6 @@ export function useProfileCompletion() {
 
     return Math.round((filledFields / totalFields) * 100)
   }
-  console.log(calculateCompletion("pilates"))
 
   const formSections = useMemo(() => [
     {

@@ -21,7 +21,6 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
       }
     },
     onSuccess: () => {
-      console.log("Plan generated successfully");
       void utils.workoutPlan.getActivePlan.invalidate();
       if (redirectToPlan) {
         router.push("/dashboard/your-plan");
