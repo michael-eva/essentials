@@ -10,16 +10,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+          "bg-brand-warm-brown text-white shadow-warm hover:bg-brand-warm-brown/90",
         destructive:
-          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-destructive text-white shadow-warm hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border border-brand-warm-brown bg-background text-brand-warm-brown shadow-warm hover:bg-brand-warm-brown hover:text-white dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+          "bg-brand-deep-blue text-white shadow-warm hover:bg-brand-deep-blue/90",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+          "text-brand-warm-brown hover:bg-brand-warm-brown/10 hover:text-brand-warm-brown dark:hover:bg-brand-warm-brown/50",
+        link: "text-brand-warm-brown underline-offset-4 hover:underline",
+        accent: "bg-brand-amber text-white shadow-warm hover:bg-brand-amber/90",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

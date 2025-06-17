@@ -344,7 +344,7 @@ export default function Dashboard() {
             </div>
             <Button
               variant="outline"
-              className="text-accent w-full max-w-sm border-gray-200 transition-colors hover:bg-gray-50"
+              className="text-accent w-full max-w-sm border-gray-200 transition-colors hover:bg-gray-50 bg-brand-amber"
               onClick={() => setIsManualActivityDialogOpen(true)}
               disabled={isInsertingManualActivity}
             >
