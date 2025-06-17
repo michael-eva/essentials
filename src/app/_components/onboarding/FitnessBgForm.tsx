@@ -10,6 +10,7 @@ import FormLayout from "./FormLayout";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
+import { DEFAULT_EXERCISE_OPTIONS, EXERCISE_FREQUENCY, FITNESS_LEVEL, SESSION_LENGTH } from "@/app/_constants/fitness";
 
 interface FitnessBgFormProps {
     isFirstStep?: boolean;
@@ -18,15 +19,15 @@ interface FitnessBgFormProps {
 }
 
 export const formSchema = z.object({
-    fitnessLevel: z.enum(["Beginner", "Intermediate", "Advanced"], {
+    fitnessLevel: z.enum(FITNESS_LEVEL, {
         required_error: "Fitness level is required",
     }),
     exercises: z.array(z.string()).min(1, "Please select at least one exercise"),
     otherExercises: z.array(z.string()).optional(),
-    exerciseFrequency: z.enum(["0", "1-2", "3-4", "5+"], {
+    exerciseFrequency: z.enum(EXERCISE_FREQUENCY, {
         required_error: "Exercise frequency is required",
     }),
-    sessionLength: z.enum(["Less than 15 minutes", "15-30 minutes", "30-45 minutes", "45-60 minutes", "More than 60 minutes"], {
+    sessionLength: z.enum(SESSION_LENGTH, {
         required_error: "Session length is required",
     }),
     customExercise: z.string().optional(),
@@ -42,7 +43,6 @@ export const formSchema = z.object({
         }
     );
 
-const EXERCISE_OPTIONS = ["Running", "Cycling", "Swimming", "Weightlifting", "Yoga", "Dance", "Team sports", "Other"];
 
 export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: FitnessBgFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -130,9 +130,9 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
                                         <SelectValue placeholder="Select level" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Beginner">Beginner</SelectItem>
-                                        <SelectItem value="Intermediate">Intermediate</SelectItem>
-                                        <SelectItem value="Advanced">Advanced</SelectItem>
+                                        {FITNESS_LEVEL.map((level) => (
+                                            <SelectItem key={level} value={level}>{level}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -152,7 +152,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelectPills
-                                        options={EXERCISE_OPTIONS}
+                                        options={DEFAULT_EXERCISE_OPTIONS}
                                         selectedValues={field.value}
                                         onChange={handleExerciseChange}
                                     />
@@ -219,10 +219,9 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
                                         <SelectValue placeholder="Select frequency" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="0">0</SelectItem>
-                                        <SelectItem value="1-2">1-2</SelectItem>
-                                        <SelectItem value="3-4">3-4</SelectItem>
-                                        <SelectItem value="5+">5+</SelectItem>
+                                        {EXERCISE_FREQUENCY.map((frequency) => (
+                                            <SelectItem key={frequency} value={frequency}>{frequency}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -248,11 +247,9 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
                                         <SelectValue placeholder="Select duration" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Less than 15 minutes">Less than 15 minutes</SelectItem>
-                                        <SelectItem value="15-30 minutes">15-30 minutes</SelectItem>
-                                        <SelectItem value="30-45 minutes">30-45 minutes</SelectItem>
-                                        <SelectItem value="45-60 minutes">45-60 minutes</SelectItem>
-                                        <SelectItem value="More than 60 minutes">More than 60 minutes</SelectItem>
+                                        {SESSION_LENGTH.map((length) => (
+                                            <SelectItem key={length} value={length}>{length}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}

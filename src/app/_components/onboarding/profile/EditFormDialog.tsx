@@ -11,6 +11,12 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills"
 import { Textarea } from "@/components/ui/textarea"
+import { HEALTH_CONDITIONS, PREGNANCY_OPTIONS, type PregnancyOption } from "@/app/_constants/health"
+import { GENDER, type Gender } from "@/app/_constants/gender"
+import { DEFAULT_EXERCISE_OPTIONS, EXERCISE_FREQUENCY, FITNESS_LEVEL, SESSION_LENGTH, type ExerciseFrequency, type FitnessLevel, type SessionLength } from "@/app/_constants/fitness"
+import { GOAL_TIMELINE, GOALS, type GoalTimeline } from "@/app/_constants/goals"
+import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, type PilatesApparatus, type PilatesDuration, type PilatesSessionPreference, type PilatesSessions } from "@/app/_constants/pilates"
+import { MOTIVATION_FACTORS, PROGRESS_TRACKING_METHODS, type MotivationFactor, type ProgressTrackingMethod } from "@/app/_constants/motivation"
 
 type FormType = "basicQuestion" | "fitnessBg" | "goals" | "healthCons" | "pilates" | "motivation"
 
@@ -21,43 +27,41 @@ interface FormData {
     age: number | null;
     height: number | null;
     weight: number | null;
-    gender: "Male" | "Female" | "Prefer not to say" | null;
+    gender: Gender | null;
   };
   fitnessBg: {
-    fitnessLevel: "Beginner" | "Intermediate" | "Advanced" | null;
+    fitnessLevel: FitnessLevel | null;
     exercises: string[];
-    exerciseFrequency: "0" | "1-2" | "3-4" | "5+" | null;
-    sessionLength: "Less than 15 minutes" | "15-30 minutes" | "30-45 minutes" | "45-60 minutes" | "More than 60 minutes" | null;
+    exerciseFrequency: ExerciseFrequency | null;
+    sessionLength: SessionLength | null;
     customExercise: string | null;
   };
   goals: {
     fitnessGoals: string[];
-    goalTimeline: "1-3 months" | "3-6 months" | "6-12 months" | "More than a year" | null;
+    goalTimeline: GoalTimeline | null;
     specificGoals: string | null;
   };
   healthCons: {
     injuries: boolean | null;
     recentSurgery: boolean | null;
     chronicConditions: string[];
-    pregnancy: "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)" | null;
+    pregnancy: PregnancyOption | null;
     injuriesDetails: string | null;
     surgeryDetails: string | null;
     otherHealthConditions: string[];
   };
   motivation: {
-    motivation: string[];
-    progressTracking: string[];
+    motivation: MotivationFactor[];
+    progressTracking: ProgressTrackingMethod[];
     otherMotivation: string[];
     otherProgressTracking: string[];
   };
   pilates: {
     pilatesExperience: boolean | null;
-    pilatesDuration: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null;
-    studioFrequency: "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week" | null;
-    sessionPreference: "Group classes" | "Private sessions" | "Both" | "No preference" | null;
-    // instructors: string[];
-    // customInstructor: string | null;
-    apparatusPreference: string[];
+    pilatesDuration: PilatesDuration | null;
+    studioFrequency: PilatesSessions | null;
+    sessionPreference: PilatesSessionPreference | null;
+    apparatusPreference: PilatesApparatus[];
     customApparatus: string | null;
   };
 }
@@ -259,15 +263,15 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
             {renderField("Gender", (
               <Select
                 value={typedData.gender ?? ""}
-                onValueChange={(value: "Male" | "Female" | "Prefer not to say") => setData({ ...typedData, gender: value })}
+                onValueChange={(value: Gender) => setData({ ...typedData, gender: value })}
               >
                 <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 w-full min-h-[44px]">
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                  {GENDER.map((gender) => (
+                    <SelectItem key={gender} value={gender}>{gender}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             ), 4)}
@@ -282,22 +286,22 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
             {renderField("Fitness Level", (
               <Select
                 value={typedData.fitnessLevel ?? ""}
-                onValueChange={(value: "Beginner" | "Intermediate" | "Advanced") => setData({ ...typedData, fitnessLevel: value })}
+                onValueChange={(value: FitnessLevel) => setData({ ...typedData, fitnessLevel: value })}
               >
                 <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
                   <SelectValue placeholder="Select level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Beginner">Beginner</SelectItem>
-                  <SelectItem value="Intermediate">Intermediate</SelectItem>
-                  <SelectItem value="Advanced">Advanced</SelectItem>
+                  {FITNESS_LEVEL.map((level) => (
+                    <SelectItem key={level} value={level}>{level}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             ), 0)}
             {renderField("Exercises", (
               <div className="space-y-2">
                 <MultiSelectPills
-                  options={["Running", "Cycling", "Swimming", "Weightlifting", "Yoga", "Dance", "Team sports", "Other"]}
+                  options={DEFAULT_EXERCISE_OPTIONS}
                   selectedValues={typedData.exercises}
                   onChange={(value) => {
                     const currentExercises = typedData.exercises
@@ -321,33 +325,30 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
             {renderField("Exercise Frequency", (
               <Select
                 value={typedData.exerciseFrequency ?? ""}
-                onValueChange={(value: "0" | "1-2" | "3-4" | "5+") => setData({ ...typedData, exerciseFrequency: value })}
+                onValueChange={(value: ExerciseFrequency) => setData({ ...typedData, exerciseFrequency: value })}
               >
                 <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
                   <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">0</SelectItem>
-                  <SelectItem value="1-2">1-2</SelectItem>
-                  <SelectItem value="3-4">3-4</SelectItem>
-                  <SelectItem value="5+">5+</SelectItem>
+                  {EXERCISE_FREQUENCY.map((frequency) => (
+                    <SelectItem key={frequency} value={frequency}>{frequency}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             ), 2)}
             {renderField("Session Length", (
               <Select
                 value={typedData.sessionLength ?? ""}
-                onValueChange={(value: "Less than 15 minutes" | "15-30 minutes" | "30-45 minutes" | "45-60 minutes" | "More than 60 minutes") => setData({ ...typedData, sessionLength: value })}
+                onValueChange={(value: SessionLength) => setData({ ...typedData, sessionLength: value })}
               >
                 <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
                   <SelectValue placeholder="Select length" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Less than 15 minutes">Less than 15 minutes</SelectItem>
-                  <SelectItem value="15-30 minutes">15-30 minutes</SelectItem>
-                  <SelectItem value="30-45 minutes">30-45 minutes</SelectItem>
-                  <SelectItem value="45-60 minutes">45-60 minutes</SelectItem>
-                  <SelectItem value="More than 60 minutes">More than 60 minutes</SelectItem>
+                  {SESSION_LENGTH.map((length) => (
+                    <SelectItem key={length} value={length}>{length}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             ), 3)}
@@ -361,7 +362,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
           <>
             {renderField("Fitness Goals", (
               <MultiSelectPills
-                options={["Weight loss", "Muscle gain", "Improve endurance", "Increase flexibility", "Tone muscles"]}
+                options={GOALS}
                 selectedValues={typedData.fitnessGoals}
                 onChange={(value) => {
                   const currentGoals = typedData.fitnessGoals
@@ -375,16 +376,15 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
             {renderField("Goal Timeline", (
               <Select
                 value={typedData.goalTimeline ?? ""}
-                onValueChange={(value: "1-3 months" | "3-6 months" | "6-12 months" | "More than a year") => setData({ ...typedData, goalTimeline: value })}
+                onValueChange={(value: GoalTimeline) => setData({ ...typedData, goalTimeline: value })}
               >
                 <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
                   <SelectValue placeholder="Select timeline" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1-3 months">1-3 months</SelectItem>
-                  <SelectItem value="3-6 months">3-6 months</SelectItem>
-                  <SelectItem value="6-12 months">6-12 months</SelectItem>
-                  <SelectItem value="More than a year">More than a year</SelectItem>
+                  {GOAL_TIMELINE.map((timeline) => (
+                    <SelectItem key={timeline} value={timeline}>{timeline}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             ), 1)}
@@ -459,7 +459,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
               <div>
                 <Label>Chronic Conditions</Label>
                 <MultiSelectPills
-                  options={["None", "Diabetes", "Hypertension", "Asthma", "Arthritis", "Other"]}
+                  options={HEALTH_CONDITIONS}
                   selectedValues={typedData.chronicConditions}
                   onChange={(value) => {
                     const currentConditions = typedData.chronicConditions
@@ -483,16 +483,15 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 <Label htmlFor="pregnancy">Pregnancy Status</Label>
                 <Select
                   value={typedData.pregnancy ?? ""}
-                  onValueChange={(value: "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)") => setData({ ...typedData, pregnancy: value })}
+                  onValueChange={(value: PregnancyOption) => setData({ ...typedData, pregnancy: value })}
                 >
                   <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Not applicable">Not applicable</SelectItem>
-                    <SelectItem value="Pregnant">Pregnant</SelectItem>
-                    <SelectItem value="Postpartum (0-6 months)">Postpartum (0-6 months)</SelectItem>
-                    <SelectItem value="Postpartum (6-12 months)">Postpartum (6-12 months)</SelectItem>
+                    {PREGNANCY_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -526,17 +525,15 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                     <Label htmlFor="pilatesDuration">Duration</Label>
                     <Select
                       value={typedData.pilatesDuration ?? ""}
-                      onValueChange={(value: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years") => setData({ ...typedData, pilatesDuration: value })}
+                      onValueChange={(value: PilatesDuration) => setData({ ...typedData, pilatesDuration: value })}
                     >
                       <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
                         <SelectValue placeholder="Select duration" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Less than 3 months">Less than 3 months</SelectItem>
-                        <SelectItem value="3-6 months">3-6 months</SelectItem>
-                        <SelectItem value="6-12 months">6-12 months</SelectItem>
-                        <SelectItem value="1-3 years">1-3 years</SelectItem>
-                        <SelectItem value="More than 3 years">More than 3 years</SelectItem>
+                        {PILATES_DURATION.map((duration) => (
+                          <SelectItem key={duration} value={duration}>{duration}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -546,17 +543,15 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 <Label htmlFor="studioFrequency">Studio Frequency</Label>
                 <Select
                   value={typedData.studioFrequency ?? ""}
-                  onValueChange={(value: "Never" | "1-2 times per month" | "1 time per week" | "2-3 times per week" | "4+ times per week") => setData({ ...typedData, studioFrequency: value })}
+                  onValueChange={(value: PilatesSessions) => setData({ ...typedData, studioFrequency: value })}
                 >
                   <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
                     <SelectValue placeholder="Select frequency" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Never">Never</SelectItem>
-                    <SelectItem value="1-2 times per month">1-2 times per month</SelectItem>
-                    <SelectItem value="1 time per week">1 time per week</SelectItem>
-                    <SelectItem value="2-3 times per week">2-3 times per week</SelectItem>
-                    <SelectItem value="4+ times per week">4+ times per week</SelectItem>
+                    {PILATES_SESSIONS.map((session) => (
+                      <SelectItem key={session} value={session}>{session}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -564,23 +559,22 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 <Label htmlFor="sessionPreference">Session Preference</Label>
                 <Select
                   value={typedData.sessionPreference ?? ""}
-                  onValueChange={(value: "Group classes" | "Private sessions" | "Both" | "No preference") => setData({ ...typedData, sessionPreference: value })}
+                  onValueChange={(value: PilatesSessionPreference) => setData({ ...typedData, sessionPreference: value })}
                 >
                   <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
                     <SelectValue placeholder="Select preference" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Group classes">Group classes</SelectItem>
-                    <SelectItem value="Private sessions">Private sessions</SelectItem>
-                    <SelectItem value="Both">Both</SelectItem>
-                    <SelectItem value="No preference">No preference</SelectItem>
+                    {PILATES_SESSION_PREFERENCE.map((preference) => (
+                      <SelectItem key={preference} value={preference}>{preference}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label>Apparatus Preference</Label>
                 <MultiSelectPills
-                  options={["Reformer", "Cadillac", "Chair", "Barrel", "Tower", "Mat work only", "Not sure yet"]}
+                  options={PILATES_APPARATUS}
                   selectedValues={typedData.apparatusPreference}
                   onChange={(value) => {
                     const currentPreference = typedData.apparatusPreference
@@ -617,7 +611,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 </div>
                 <div className="mt-3 space-y-2">
                   {typedData.apparatusPreference
-                    .filter(apparatus => !["Reformer", "Cadillac", "Chair", "Barrel", "Tower", "Mat work only", "Not sure yet"].includes(apparatus))
+                    .filter(apparatus => !PILATES_APPARATUS.includes(apparatus))
                     .map((apparatus) => (
                       <div key={apparatus} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
                         <span className="text-sm text-gray-700">{apparatus}</span>
@@ -648,7 +642,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
               <div>
                 <Label>Motivation Factors</Label>
                 <MultiSelectPills
-                  options={["Health improvement", "Weight management", "Stress relief", "Social connection", "Other"]}
+                  options={MOTIVATION_FACTORS}
                   selectedValues={typedData.motivation}
                   onChange={(value) => {
                     const currentMotivation = typedData.motivation
@@ -671,7 +665,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
               <div>
                 <Label>Progress Tracking Methods</Label>
                 <MultiSelectPills
-                  options={["Photos", "Measurements", "Workout logs", "App tracking", "Other"]}
+                  options={PROGRESS_TRACKING_METHODS}
                   selectedValues={typedData.progressTracking}
                   onChange={(value) => {
                     const currentTracking = typedData.progressTracking

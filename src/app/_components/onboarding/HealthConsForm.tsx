@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import FormLayout from "./FormLayout";
 import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
+import { HEALTH_CONDITIONS, PREGNANCY_OPTIONS } from "@/app/_constants/health";
 
 interface HealthConsFormProps {
     isFirstStep?: boolean;
@@ -29,7 +30,7 @@ export const formSchema = z.object({
     surgeryDetails: z.string().optional(),
     chronicConditions: z.array(z.string()).min(1, "Please select at least one option"),
     otherHealthConditions: z.array(z.string()).optional(),
-    pregnancy: z.enum(["Not applicable", "Pregnant", "Postpartum (0-6 months)", "Postpartum (6-12 months)"], {
+    pregnancy: z.enum(PREGNANCY_OPTIONS, {
         required_error: "Please select your pregnancy status",
     }),
 })
@@ -338,7 +339,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                             control={control}
                             render={({ field }) => (
                                 <MultiSelectPills
-                                    options={["Back pain", "Neck pain", "Arthritis", "Osteoporosis", "Hypertension", "Diabetes", "Heart condition", "Respiratory condition", "None", "Other"]}
+                                    options={HEALTH_CONDITIONS}
                                     selectedValues={field.value}
                                     onChange={handleChronicConditionsChange}
                                 />
@@ -404,10 +405,9 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Not applicable">Not applicable</SelectItem>
-                                        <SelectItem value="Pregnant">Pregnant</SelectItem>
-                                        <SelectItem value="Postpartum (0-6 months)">Postpartum (0-6 months)</SelectItem>
-                                        <SelectItem value="Postpartum (6-12 months)">Postpartum (6-12 months)</SelectItem>
+                                        {PREGNANCY_OPTIONS.map((option) => (
+                                            <SelectItem key={option} value={option}>{option}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}

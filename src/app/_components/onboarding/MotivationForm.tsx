@@ -10,6 +10,7 @@ import FormLayout from "./FormLayout";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 import { isDeveloper } from "@/app/_utils/user-role";
+import { MOTIVATION_FACTORS, PROGRESS_TRACKING_METHODS } from "@/app/_constants/motivation";
 
 interface MotivationFormProps {
     isFirstStep?: boolean;
@@ -148,7 +149,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                             control={control}
                             render={({ field }) => (
                                 <MultiSelectPills
-                                    options={["Health benefits", "Stress relief", "Social aspects", "Weight management", "Athletic performance", "Mental wellbeing", "Appearance", "Doctor's recommendation", "Other"]}
+                                    options={MOTIVATION_FACTORS}
                                     selectedValues={field.value}
                                     onChange={handleMotivationChange}
                                 />
@@ -202,7 +203,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                             control={control}
                             render={({ field }) => (
                                 <MultiSelectPills
-                                    options={["Body measurements", "Progress photos", "Strength gains", "Flexibility improvements", "Endurance tracking", "Habit tracking", "Journaling", "Other"]}
+                                    options={PROGRESS_TRACKING_METHODS}
                                     selectedValues={field.value}
                                     onChange={handleProgressTrackingChange}
                                 />

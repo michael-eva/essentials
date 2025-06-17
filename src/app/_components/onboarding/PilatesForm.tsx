@@ -10,6 +10,7 @@ import FormLayout from "./FormLayout";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
+import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS } from "@/app/_constants/pilates";
 
 interface PilatesFormProps {
     isFirstStep?: boolean;
@@ -21,11 +22,11 @@ export const formSchema = z.object({
     pilatesExperience: z.boolean({
         required_error: "Please indicate if you have Pilates experience",
     }),
-    pilatesDuration: z.enum(["Less than 3 months", "3-6 months", "6-12 months", "1-3 years", "More than 3 years"]).optional(),
-    studioFrequency: z.enum(["Never", "1-2 times per month", "1 time per week", "2-3 times per week", "4+ times per week"], {
+    pilatesDuration: z.enum(PILATES_DURATION).optional(),
+    studioFrequency: z.enum(PILATES_SESSIONS, {
         required_error: "Please select how often you can attend in-studio sessions",
     }),
-    sessionPreference: z.enum(["Group classes", "Private sessions", "Both", "No preference"], {
+    sessionPreference: z.enum(PILATES_SESSION_PREFERENCE, {
         required_error: "Please select your session preference",
     }),
     apparatusPreference: z.array(z.string()).min(1, "Please select at least one apparatus preference"),
@@ -153,11 +154,9 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                                             <SelectValue placeholder="Select duration" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="Less than 3 months">Less than 3 months</SelectItem>
-                                            <SelectItem value="3-6 months">3-6 months</SelectItem>
-                                            <SelectItem value="6-12 months">6-12 months</SelectItem>
-                                            <SelectItem value="1-3 years">1-3 years</SelectItem>
-                                            <SelectItem value="More than 3 years">More than 3 years</SelectItem>
+                                            {PILATES_DURATION.map((duration) => (
+                                                <SelectItem key={duration} value={duration}>{duration}</SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -184,11 +183,9 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                                         <SelectValue placeholder="Select frequency" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Never">Never</SelectItem>
-                                        <SelectItem value="1-2 times per month">1-2 times per month</SelectItem>
-                                        <SelectItem value="1 time per week">1 time per week</SelectItem>
-                                        <SelectItem value="2-3 times per week">2-3 times per week</SelectItem>
-                                        <SelectItem value="4+ times per week">4+ times per week</SelectItem>
+                                        {PILATES_SESSIONS.map((session) => (
+                                            <SelectItem key={session} value={session}>{session}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -215,10 +212,9 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                                         <SelectValue placeholder="Select preference" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Group classes">Group classes</SelectItem>
-                                        <SelectItem value="Private sessions">Private sessions</SelectItem>
-                                        <SelectItem value="Both">Both</SelectItem>
-                                        <SelectItem value="No preference">No preference</SelectItem>
+                                        {PILATES_SESSION_PREFERENCE.map((preference) => (
+                                            <SelectItem key={preference} value={preference}>{preference}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -237,7 +233,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                             control={control}
                             render={({ field }) => (
                                 <MultiSelectPills
-                                    options={["Reformer", "Cadillac", "Chair", "Barrel", "Tower", "Mat work only", "Not sure yet"]}
+                                    options={PILATES_APPARATUS}
                                     selectedValues={field.value}
                                     onChange={handleApparatusChange}
                                 />
