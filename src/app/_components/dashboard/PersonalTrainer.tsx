@@ -1,5 +1,4 @@
 import { AIInteractionSection } from "./personal-trainer/AIInteractionSection";
-import { CustomizePTSection } from "./personal-trainer/CustomizePTSection";
 
 export default function PersonalTrainer() {
   return (

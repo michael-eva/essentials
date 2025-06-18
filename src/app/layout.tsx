@@ -40,7 +40,7 @@ export default function RootLayout({
           <ThemeProvider defaultTheme="light" storageKey="app-theme">
             <AuthProvider>
               <ProtectedRoute>
-                <main className="pb-20">
+                <main className=" pt-16">
                   {children}
                 </main>
                 <BottomNavbar />

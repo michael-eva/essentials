@@ -171,7 +171,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <DashboardHeader />
+      {/* <DashboardHeader /> */}
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="space-y-6">
           <h1 className="text-2xl font-bold">Profile</h1>
