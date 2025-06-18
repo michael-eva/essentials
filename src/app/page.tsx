@@ -1,10 +1,14 @@
+'use client'
 import { Navbar } from "./_components/navbar";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
+  const router = useRouter();
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
+      <Button onClick={() => router.push("/dashboard")}>Dashboard</Button>
       <main className="flex-1">
         {/* Hero Section - Essentials Studio Inspired */}
         <section className="relative bg-gradient-to-br from-brand-neutral-light via-background to-brand-neutral overflow-hidden">
