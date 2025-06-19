@@ -12,6 +12,7 @@
   "dependencies": {
     "@essentials/services": "file:../../packages/services",
     "@essentials/database": "file:../../packages/database",
-    "@essentials/types": "file:../../packages/types"
+    "@essentials/types": "file:../../packages/types",
+    "dotenv": "^16.5.0"
   }
 }

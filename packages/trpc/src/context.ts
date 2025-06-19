@@ -6,8 +6,8 @@ import superjson from "superjson";
 import dotenv from "dotenv";
 import { ZodError } from "zod";
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from root directory (3 levels up from packages/trpc/src/)
+dotenv.config({ path: "../../.env" });
 
 // Database setup with PostgreSQL
 let db: any = null;

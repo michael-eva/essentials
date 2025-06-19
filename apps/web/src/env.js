@@ -1,5 +1,9 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
+import { config } from "dotenv";
+
+// Load .env from root directory (2 levels up from apps/web/src/)
+config({ path: "../../.env" });
 
 export const env = createEnv({
   /**
