@@ -9,7 +9,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -17,13 +16,14 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": false,
     "noEmit": false,
+    "baseUrl": "../../",
     "paths": {
-      "@essentials/types": ["../../packages/types/src/index.ts"],
-      "@essentials/database": ["../../packages/database/src/index.ts"],
-      "@essentials/services": ["../../packages/services/src/index.ts"],
-      "@essentials/trpc": ["../../packages/trpc/src/index.ts"]
+      "@essentials/types": ["packages/types/src/index.ts"],
+      "@essentials/database": ["packages/database/src/index.ts"],
+      "@essentials/services": ["packages/services/src/index.ts"],
+      "@essentials/trpc": ["packages/trpc/src/index.ts"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../../packages/**/*"],
   "exclude": ["node_modules", "dist"]
 }

@@ -6,12 +6,8 @@ import {
   getPersonalTrainerInteraction,
 } from "../../drizzle/src/db/queries";
 import { insertPersonalTrainerInteraction as insertInteraction } from "../../drizzle/src/db/mutations";
-import {
-  buildUserContext,
-  updateContextWithWorkout,
-} from "../../services/context-manager";
+import { buildUserContext } from "../../services/context-manager";
 import { getLatestProgress } from "../../services/progress-tracker";
-import { generateAIResponse } from "../../services/personal-trainer";
 
 export const personalTrainerRouter = createTRPCRouter({
   // Get all interactions for a user

@@ -9,7 +9,7 @@ export type ProgressMetrics = {
 
 interface WorkoutData {
   id: string;
-  date: string;
+  date: string | Date;
   durationHours?: number;
   durationMinutes?: number;
   intensity?: number;

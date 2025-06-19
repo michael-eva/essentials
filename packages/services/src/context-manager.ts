@@ -460,3 +460,20 @@ export async function getContextForInteraction(
   const service = new ContextManagerService(deps);
   return service.getContextForInteraction(userId, interactionType);
 }
+
+/**
+ * Updates context with new workout data
+ */
+export async function updateContextWithWorkout(
+  userId: string,
+  newWorkout: any,
+  deps: ContextServiceDependencies
+): Promise<UserContext> {
+  // TODO: Implement context update
+  // 1. Fetch current context
+  // 2. Add new workout data
+  // 3. Recalculate metrics
+  // 4. Return updated context
+  const service = new ContextManagerService(deps);
+  return service.buildUserContext(userId);
+}

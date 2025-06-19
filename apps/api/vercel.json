@@ -1,36 +1,15 @@
 {
   "version": 2,
-  "name": "essentials-api",
   "builds": [
     {
       "src": "dist/server.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["dist/**"]
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/health",
-      "dest": "/dist/server.js"
-    },
-    {
-      "src": "/trpc/(.*)",
-      "dest": "/dist/server.js"
-    },
-    {
       "src": "/(.*)",
       "dest": "/dist/server.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "dist/server.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  }
+  ]
 }

@@ -12,7 +12,7 @@ export interface ChatMessage {
 
 interface ChatServiceDependencies {
   getMessages: (userId: string) => Promise<Array<{
-    role: string;
+    role: "user" | "assistant" | "developer";
     content: string | null;
     message: string | null;
   }>>;
@@ -24,8 +24,8 @@ interface ChatServiceDependencies {
     userId: string;
     message: string;
     content: string;
-    role: string;
-  }) => Promise<void>;
+    role: "user" | "assistant" | "developer";
+  }) => Promise<any>;
 }
 
 /**

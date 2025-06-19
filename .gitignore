@@ -5,6 +5,8 @@ node_modules/
 **/node_modules/
 /.pnp
 .pnp.js
+package-lock.json
+**/package-lock.json
 
 # testing
 /coverage
@@ -15,6 +17,7 @@ node_modules/
 /prisma/db.sqlite-journal
 db.sqlite
 **/db.sqlite
+**/drizzle/
 
 # next.js
 .next/
@@ -59,6 +62,16 @@ yarn-error.log*
 *.tsbuildinfo
 **/*.tsbuildinfo
 
+# TypeScript build artifacts in source directories (should only be in dist/)
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.d.ts.map
+**/src/**/*.js
+**/src/**/*.js.map
+**/src/**/*.d.ts
+**/src/**/*.d.ts.map
+
 # idea files
 .idea
 **/.idea
@@ -74,6 +87,8 @@ apps/mobile/ios/DerivedData/
 apps/mobile/android/.gradle/
 apps/mobile/android/build/
 apps/mobile/android/app/build/
+apps/mobile/ios/App/Pods/
+apps/mobile/ios/App/*.xcworkspace/xcuserdata/
 
 # capacitor
 apps/mobile/ios/App/App/public/
@@ -102,3 +117,21 @@ ehthumbs.db
 **/ehthumbs.db
 Desktop.ini
 **/Desktop.ini
+
+# Backup files we created
+*.backup
+**/*.backup
+nixpacks.toml.backup
+Dockerfile.backup
+
+# Development scripts
+test-build.sh
+
+# Drizzle migration folders (optional - you might want to commit these)
+**/drizzle/
+
+# Editor temporary files
+*~
+**/*~
+.#*
+**/.#*

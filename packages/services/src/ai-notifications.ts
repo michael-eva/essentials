@@ -13,8 +13,8 @@ interface NotificationServiceDependencies {
     userId: string;
     message: string;
     content: string;
-    role: string;
-  }) => Promise<void>;
+    role: "user" | "assistant" | "developer";
+  }) => Promise<any>;
 }
 
 /**
