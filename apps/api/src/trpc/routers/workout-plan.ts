@@ -1,4 +1,4 @@
-import { createTRPCRouter, protectedProcedure } from "../context";
+import { createTRPCRouter, protectedProcedure } from "@essentials/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
@@ -26,7 +26,7 @@ import {
   updateWorkoutStatus,
   bookClass,
 } from "../../drizzle/src/db/mutations";
-import type { NewWorkoutTracking } from "../../drizzle/src/db/queries";
+import type { NewWorkoutTracking } from "@essentials/database";
 import { generateAIResponse } from "../../services/personal-trainer";
 import { buildUserContext } from "../../services/context-manager";
 import { createGzip } from "zlib";

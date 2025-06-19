@@ -1,4 +1,4 @@
-import { activityTypeEnum } from "../../web/src/drizzle/src/db/schema";
+import { activityTypeEnum } from "./schema.js";
 
 export const pilatesClasses = [
   {

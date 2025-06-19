@@ -1,0 +1,25 @@
+{
+  "name": "@essentials/trpc",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@trpc/server": "^11.0.0",
+    "@supabase/supabase-js": "^2.49.8",
+    "drizzle-orm": "^0.41.0",
+    "postgres": "^3.4.5",
+    "superjson": "^2.2.1",
+    "zod": "^3.24.2",
+    "dotenv": "^16.5.0",
+    "@essentials/database": "file:../database"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

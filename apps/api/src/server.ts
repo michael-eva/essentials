@@ -1,9 +1,9 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { appRouter } from "./trpc/router";
-import { createContext } from "./trpc/context";
+import { createContext } from "@essentials/trpc";
 import dotenv from "dotenv";
+import { appRouter } from "./trpc/root";
 
 // Load .env from root directory
 dotenv.config();
@@ -30,7 +30,7 @@ app.use(
 app.use(express.json());
 
 // Health check endpoint
-app.get("/health", (req, res) => {
+app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
@@ -38,7 +38,7 @@ app.get("/health", (req, res) => {
 app.use(
   "/trpc",
   createExpressMiddleware({
-    router: appRouter,
+    router: appRouter as any,
     createContext,
   })
 );

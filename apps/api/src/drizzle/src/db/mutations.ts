@@ -27,7 +27,7 @@ import type {
   NewAiSystemPrompt,
 } from "./queries";
 import { eq } from "drizzle-orm";
-import { trackWorkoutProgress } from "apps/api/src/services/progress-tracker";
+import { trackWorkoutProgress } from "../../../services/progress-tracker";
 
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);

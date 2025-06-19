@@ -1,4 +1,4 @@
-import { createTRPCRouter } from "./context";
+import { createTRPCRouter } from "@essentials/trpc";
 import { workoutPlanRouter } from "./routers/workout-plan";
 import { onboardingRouter } from "./routers/onboarding";
 import { authRouter } from "./routers/auth";

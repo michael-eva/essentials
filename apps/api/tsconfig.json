@@ -1,11 +1,29 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
     "paths": {
-      "@essentials/types": ["../../packages/types/src/index.ts"]
+      "@essentials/types": ["../../packages/types/src/index.ts"],
+      "@essentials/database": ["../../packages/database/src/index.ts"],
+      "@essentials/services": ["../../packages/services/src/index.ts"],
+      "@essentials/trpc": ["../../packages/trpc/src/index.ts"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules"]
-} 
+  "exclude": ["node_modules", "dist"]
+}
