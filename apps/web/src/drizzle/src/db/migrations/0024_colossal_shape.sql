@@ -1,0 +1,1 @@
+ALTER TABLE "ai_system_prompt" ADD COLUMN "name" text NOT NULL;
