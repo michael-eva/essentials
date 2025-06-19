@@ -6,10 +6,11 @@ import "./src/env.js";
 
 /** @type {import('next').NextConfig} */
 const config = {
-  output: 'export',
+  // Use static export for Capacitor builds, server mode for Vercel
+  output: process.env.BUILD_TARGET === 'capacitor' ? 'export' : undefined,
   trailingSlash: true,
   images: {
-    unoptimized: true,
+    unoptimized: process.env.BUILD_TARGET === 'capacitor',
   },
   eslint: {
     ignoreDuringBuilds: true,
