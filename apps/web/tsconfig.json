@@ -8,7 +8,9 @@
       "@/*": [
         "./src/*"
       ],
-      "@essentials/types": ["../../packages/types/src/index.ts"]
+      "@essentials/types": ["../../packages/types/src/index.ts"],
+      "@essentials/database": ["../../packages/database/src/index.ts"],
+      "@essentials/services": ["../../packages/services/src/index.ts"]
     },
     "lib": [
       "dom",

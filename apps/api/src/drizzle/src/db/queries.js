@@ -1,0 +1,244 @@
+import { eq, and, gt, lt, inArray, desc, sql, gte, lte } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { workout, workoutTracking, workoutPlan, weeklySchedule, onboarding, user, personalTrainerInteractions, progressTracking, AiChatMessages, AiSystemPrompt, } from "./schema";
+// Initialize database connection
+const client = postgres(process.env.DATABASE_URL);
+const db = drizzle(client);
+export async function getUpcomingClasses(userId) {
+    const now = new Date();
+    const workouts = await db
+        .select()
+        .from(workout)
+        .where(and(eq(workout.type, "class"), eq(workout.isBooked, true), eq(workout.userId, userId), gt(workout.bookedDate, now)));
+    const workoutIds = workouts.map((w) => w.id);
+    const trackingData = await db
+        .select()
+        .from(workoutTracking)
+        .where(inArray(workoutTracking.workoutId, workoutIds));
+    return workouts.map((workout) => ({
+        ...workout,
+        tracking: trackingData.find((t) => t.workoutId === workout.id) ?? null,
+    }));
+}
+export async function getSupplementaryWorkouts(userId) {
+    const now = new Date();
+    const workouts = await db
+        .select()
+        .from(workout)
+        .where(and(eq(workout.type, "workout"), eq(workout.isBooked, true), eq(workout.userId, userId), gt(workout.bookedDate, now)));
+    const workoutIds = workouts.map((w) => w.id);
+    const trackingData = await db
+        .select()
+        .from(workoutTracking)
+        .where(inArray(workoutTracking.workoutId, workoutIds));
+    return workouts.map((workout) => ({
+        ...workout,
+        tracking: trackingData.find((t) => t.workoutId === workout.id) ?? null,
+    }));
+}
+export async function getPreviousPlans(userId) {
+    const plans = await db
+        .select()
+        .from(workoutPlan)
+        .where(and(eq(workoutPlan.isActive, false), eq(workoutPlan.userId, userId)))
+        .orderBy(desc(workoutPlan.savedAt));
+    const plansWithSchedules = await Promise.all(plans.map(async (plan) => {
+        const planWeeklySchedules = await db
+            .select()
+            .from(weeklySchedule)
+            .where(eq(weeklySchedule.planId, plan.id));
+        const workoutIds = planWeeklySchedules.map((ws) => ws.workoutId);
+        const planWorkouts = await db
+            .select()
+            .from(workout)
+            .where(inArray(workout.id, workoutIds));
+        const weeks = Array.from({ length: plan.weeks }, (_, i) => {
+            const weekNumber = i + 1;
+            const weekSchedules = planWeeklySchedules.filter((ws) => ws.weekNumber === weekNumber);
+            const weekWorkouts = weekSchedules
+                .map((ws) => planWorkouts.find((w) => w.id === ws.workoutId))
+                .filter((w) => w !== undefined);
+            return {
+                weekNumber,
+                items: weekWorkouts,
+            };
+        });
+        return {
+            ...plan,
+            weeklySchedules: weeks,
+        };
+    }));
+    return plansWithSchedules;
+}
+export async function getActivePlan(userId) {
+    const plan = await db
+        .select()
+        .from(workoutPlan)
+        .where(and(eq(workoutPlan.isActive, true), eq(workoutPlan.userId, userId)))
+        .limit(1);
+    if (!plan[0])
+        return null;
+    const planWeeklySchedules = await db
+        .select()
+        .from(weeklySchedule)
+        .where(eq(weeklySchedule.planId, plan[0].id));
+    const workoutIds = planWeeklySchedules.map((ws) => ws.workoutId);
+    const planWorkouts = await db
+        .select()
+        .from(workout)
+        .where(inArray(workout.id, workoutIds));
+    const weeks = Array.from({ length: plan[0].weeks }, (_, i) => {
+        const weekNumber = i + 1;
+        const weekSchedules = planWeeklySchedules.filter((ws) => ws.weekNumber === weekNumber);
+        const weekWorkouts = weekSchedules
+            .map((ws) => planWorkouts.find((w) => w.id === ws.workoutId))
+            .filter((w) => w !== undefined);
+        return {
+            weekNumber,
+            items: weekWorkouts,
+        };
+    });
+    return {
+        ...plan[0],
+        weeklySchedules: weeks,
+    };
+}
+export async function getWorkoutsToLog(userId) {
+    const now = new Date();
+    return db
+        .select()
+        .from(workout)
+        .where(and(eq(workout.isBooked, true), eq(workout.status, "not_recorded"), eq(workout.userId, userId), lt(workout.bookedDate, now)));
+}
+export async function getActivityHistory(userId, limit = 5, offset = 0) {
+    const trackingData = await db
+        .select()
+        .from(workoutTracking)
+        .where(eq(workoutTracking.userId, userId))
+        .orderBy(desc(workoutTracking.date))
+        .limit(limit)
+        .offset(offset);
+    return trackingData;
+}
+export async function getActivityHistoryCount(userId) {
+    const result = await db
+        .select({ count: sql `count(*)::int` })
+        .from(workoutTracking)
+        .where(eq(workoutTracking.userId, userId));
+    return result[0]?.count ?? 0;
+}
+export async function checkOnboardingCompletion(userId) {
+    const onboardingData = await db
+        .select()
+        .from(onboarding)
+        .where(eq(onboarding.userId, userId));
+    if (onboardingData.length === 0)
+        return false;
+    const data = onboardingData[0];
+    return (data.name !== null &&
+        data.age !== null &&
+        data.weight !== null &&
+        data.gender !== null &&
+        data.fitnessLevel !== null &&
+        data.exercises !== null &&
+        data.exerciseFrequency !== null &&
+        data.sessionLength !== null &&
+        data.injuries !== null &&
+        data.recentSurgery !== null &&
+        data.chronicConditions !== null &&
+        data.pregnancy !== null &&
+        data.fitnessGoals !== null &&
+        data.goalTimeline !== null &&
+        data.pilatesExperience !== null &&
+        data.studioFrequency !== null &&
+        data.sessionPreference !== null &&
+        data.apparatusPreference !== null &&
+        data.motivation !== null &&
+        data.progressTracking !== null);
+}
+export async function getOnboardingData(userId) {
+    const onboardingData = await db
+        .select()
+        .from(onboarding)
+        .where(eq(onboarding.userId, userId));
+    return onboardingData[0] ?? null;
+}
+export async function getUser(userId) {
+    const userData = await db.select().from(user).where(eq(user.id, userId));
+    return userData[0] ?? null;
+}
+export async function getPersonalTrainerInteractions(userId, limit = 10, cursor) {
+    const items = await db
+        .select()
+        .from(personalTrainerInteractions)
+        .where(eq(personalTrainerInteractions.userId, userId))
+        .orderBy(desc(personalTrainerInteractions.createdAt))
+        .limit(limit + 1)
+        .offset(cursor ? parseInt(cursor) : 0);
+    let nextCursor = undefined;
+    if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = (parseInt(cursor ?? "0") + limit).toString();
+    }
+    return {
+        items,
+        nextCursor,
+    };
+}
+export async function getPersonalTrainerInteraction(id) {
+    const interaction = await db
+        .select()
+        .from(personalTrainerInteractions)
+        .where(eq(personalTrainerInteractions.id, id))
+        .limit(1);
+    return interaction[0] ?? null;
+}
+export async function getWorkoutTracking(userId, timeRange) {
+    return db
+        .select()
+        .from(workoutTracking)
+        .where(and(eq(workoutTracking.userId, userId), gt(workoutTracking.date, timeRange.start), lt(workoutTracking.date, timeRange.end)))
+        .orderBy(desc(workoutTracking.date));
+}
+export async function getProgressTracking(userId, timeRange) {
+    return db
+        .select()
+        .from(progressTracking)
+        .where(and(eq(progressTracking.userId, userId), gte(progressTracking.date, timeRange.start), lte(progressTracking.date, timeRange.end)))
+        .orderBy(desc(progressTracking.date));
+}
+export async function getLatestProgressTracking(userId) {
+    const result = await db
+        .select()
+        .from(progressTracking)
+        .where(eq(progressTracking.userId, userId))
+        .orderBy(desc(progressTracking.date))
+        .limit(1);
+    return result[0] ?? null;
+}
+export async function getWorkoutById(workoutId) {
+    const result = await db
+        .select()
+        .from(workout)
+        .where(eq(workout.id, workoutId));
+    return result[0] ?? null;
+}
+export async function getMessages(userId) {
+    const result = await db
+        .select()
+        .from(AiChatMessages)
+        .where(eq(AiChatMessages.userId, userId))
+        .orderBy(desc(AiChatMessages.createdAt));
+    return result;
+}
+export async function getAiSystemPrompt(userId) {
+    const result = await db
+        .select()
+        .from(AiSystemPrompt)
+        .where(eq(AiSystemPrompt.userId, userId))
+        .orderBy(desc(AiSystemPrompt.createdAt))
+        .limit(1);
+    return result[0] ?? null;
+}
+//# sourceMappingURL=queries.js.map

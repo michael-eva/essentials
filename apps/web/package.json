@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "vercel-build": "npm run build"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@essentials/services": "file:../../packages/services",
+    "@essentials/database": "file:../../packages/database",
+    "@essentials/types": "file:../../packages/types"
+  }
 }
