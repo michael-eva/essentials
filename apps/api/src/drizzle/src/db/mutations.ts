@@ -80,7 +80,17 @@ export async function insertWorkoutTracking(data: WorkoutTrackingInput) {
   const newWorkout = result[0]!;
 
   // Automatically update progress tracking
-  await trackWorkoutProgress(data.userId, newWorkout);
+  const workoutForTracking = {
+    id: newWorkout.id,
+    date: newWorkout.date.toISOString(), // Convert Date to string
+    durationHours: newWorkout.durationHours ?? undefined,
+    durationMinutes: newWorkout.durationMinutes ?? undefined,
+    intensity: newWorkout.intensity ?? undefined,
+    activityType: newWorkout.activityType,
+    notes: newWorkout.notes ?? undefined,
+    wouldDoAgain: newWorkout.wouldDoAgain ?? undefined,
+  };
+  await trackWorkoutProgress(data.userId, workoutForTracking);
 
   return newWorkout;
 }

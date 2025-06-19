@@ -4,7 +4,7 @@ import {
   trackWorkoutProgress as trackWorkoutProgressShared,
   getProgressData as getProgressDataShared,
   getLatestProgress as getLatestProgressShared,
-  type ProgressMetrics
+  type ProgressMetrics,
 } from "@essentials/services";
 import {
   getProgressTracking,
@@ -17,8 +17,23 @@ import { insertProgressTracking } from "../drizzle/src/db/mutations";
 const progressTrackingDeps = {
   getProgressTracking,
   getLatestProgressTracking,
-  getWorkoutTracking,
-  insertProgressTracking,
+  getWorkoutTracking: async (
+    userId: string,
+    timeRange: { start: Date; end: Date }
+  ) => {
+    const workouts = await getWorkoutTracking(userId, timeRange);
+    return workouts.map((workout) => ({
+      ...workout,
+      durationHours: workout.durationHours ?? undefined,
+      durationMinutes: workout.durationMinutes ?? undefined,
+      intensity: workout.intensity ?? undefined,
+      notes: workout.notes ?? undefined,
+      wouldDoAgain: workout.wouldDoAgain ?? undefined,
+    }));
+  },
+  insertProgressTracking: async (data: any) => {
+    await insertProgressTracking(data);
+  },
 };
 
 // Create service instance
@@ -29,7 +44,7 @@ export async function trackWorkoutProgress(
   userId: string,
   workout: {
     id: string;
-    date: string;
+    date: string | Date;
     durationHours?: number;
     durationMinutes?: number;
     intensity?: number;
@@ -38,7 +53,18 @@ export async function trackWorkoutProgress(
     wouldDoAgain?: boolean;
   }
 ): Promise<void> {
-  return progressTrackerService.trackWorkoutProgress(userId, workout);
+  // Convert date to string if it's a Date object
+  const workoutWithStringDate = {
+    ...workout,
+    date:
+      typeof workout.date === "string"
+        ? workout.date
+        : workout.date.toISOString(),
+  };
+  return progressTrackerService.trackWorkoutProgress(
+    userId,
+    workoutWithStringDate
+  );
 }
 
 export async function getProgressData(
@@ -56,4 +82,8 @@ export async function getLatestProgress(userId: string): Promise<any> {
 export type { ProgressMetrics };
 
 // Backward compatibility
-export { trackWorkoutProgressShared, getProgressDataShared, getLatestProgressShared };
+export {
+  trackWorkoutProgressShared,
+  getProgressDataShared,
+  getLatestProgressShared,
+};
