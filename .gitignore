@@ -1,28 +1,38 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
+**/node_modules/
 /.pnp
 .pnp.js
 
 # testing
 /coverage
+**/coverage/
 
 # database
 /prisma/db.sqlite
 /prisma/db.sqlite-journal
 db.sqlite
+**/db.sqlite
 
 # next.js
-/.next/
-/out/
+.next/
+**/.next/
+out/
+**/out/
 next-env.d.ts
+**/next-env.d.ts
 
-# production
+# production builds
 /build
+**/build/
+dist/
+**/dist/
 
 # misc
 .DS_Store
+**/.DS_Store
 *.pem
 
 # debug
@@ -30,17 +40,65 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
 
 # local env files
 # do not commit any .env files to git, except for the .env.example file. https://create.t3.gg/en/usage/env-variables#using-environment-variables
 .env
 .env*.local
+**/.env
+**/.env*.local
 
 # vercel
 .vercel
+**/.vercel
 
 # typescript
 *.tsbuildinfo
+**/*.tsbuildinfo
 
 # idea files
 .idea
+**/.idea
+
+# vscode
+.vscode/
+**/.vscode/
+
+# mobile build artifacts
+apps/mobile/ios/App/App/public/
+apps/mobile/android/app/src/main/assets/public/
+apps/mobile/ios/DerivedData/
+apps/mobile/android/.gradle/
+apps/mobile/android/build/
+apps/mobile/android/app/build/
+
+# capacitor
+apps/mobile/ios/App/App/public/
+apps/mobile/android/app/src/main/assets/public/
+
+# cache files
+.cache/
+**/.cache/
+*.cache
+**/*.cache
+
+# temp files
+*.tmp
+**/*.tmp
+*.temp
+**/*.temp
+
+# log files
+*.log
+**/*.log
+
+# OS generated files
+Thumbs.db
+**/Thumbs.db
+ehthumbs.db
+**/ehthumbs.db
+Desktop.ini
+**/Desktop.ini
