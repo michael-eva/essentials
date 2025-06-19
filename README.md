@@ -1,22 +1,37 @@
-# Essentials Studio - AI-Powered Fitness App
+# Essentials Studio - AI-Powered Fitness Platform
 
-Essentials Studio is a sophisticated fitness application that combines AI-powered workout planning with a premium, warm aesthetic inspired by high-end fitness studios. The app provides personalised workout plans, class booking, progress tracking, and an intuitive user experience designed to motivate and empower users on their fitness journey.
+Essentials Studio is a sophisticated fitness platform that combines AI-powered workout planning with a premium, warm aesthetic inspired by high-end fitness studios. The platform provides personalized workout plans, class booking, progress tracking, and an intuitive user experience designed to motivate and empower users on their fitness journey.
 
-## 🏋️‍♀️ Features
+## 🏋️‍♀️ What This App Does
 
-- **AI-Powered Workout Planning**: Generate personalised 4-week workout plans based on user preferences, fitness level, and goals
-- **Class Booking & Management**: Book and track Pilates classes and other fitness activities
-- **Progress Tracking**: Monitor workout consistency, achievements, and progress toward fitness goals
-- **User Onboarding**: Comprehensive onboarding flow to gather user preferences and health information
-- **Mobile-First Design**: Responsive design optimised for mobile devices with Capacitor support
-- **Real-time Notifications**: AI-generated motivational messages and workout reminders
-- **Activity History**: Track completed workouts with detailed metrics and feedback
+**Essentials Studio** is a comprehensive fitness platform that:
+
+- **🎯 AI-Powered Personalization**: Generates personalized 4-week workout plans using OpenAI GPT-4, considering your fitness level, goals, health conditions, and preferences
+- **🧘‍♀️ Pilates-Focused**: Specializes in Pilates classes with supporting workouts to create a balanced fitness routine
+- **📱 Cross-Platform**: Works seamlessly on web browsers and mobile devices (iOS/Android) using the same codebase
+- **📊 Progress Tracking**: Monitors your workout consistency, achievements, and progress toward fitness goals
+- **🎨 Premium Experience**: Features a sophisticated design system with warm, premium aesthetics that differentiate from typical fitness apps
+- **🤖 Smart Recommendations**: AI analyzes your progress and provides personalized recommendations for continued improvement
+
+## 🏗️ Project Structure
+
+This is a **monorepo** containing three main applications:
+
+```
+essentials/
+├── apps/
+│   ├── web/          # Next.js web application
+│   ├── api/          # tRPC API server
+│   └── mobile/       # Capacitor mobile app (iOS/Android)
+├── packages/         # Shared packages (if any)
+└── config/          # Shared configuration
+```
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 15, React 18, TypeScript
 - **Styling**: Tailwind CSS 4, Radix UI components
-- **Backend**: tRPC, Next.js API routes
+- **Backend**: tRPC, Node.js
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Supabase Auth
 - **AI Integration**: OpenAI GPT-4 for workout plan generation
@@ -29,31 +44,25 @@ Essentials Studio is a sophisticated fitness application that combines AI-powere
 
 ### Prerequisites
 
-- Node.js 18+
-- npm
-- PostgreSQL database
-- Supabase account
-- OpenAI API key
-- Resend API key
+- **Node.js 18+** and npm
+- **PostgreSQL database** (local or cloud)
+- **Supabase account** (for authentication)
+- **OpenAI API key** (for AI workout generation)
+- **Resend API key** (for email notifications)
 
-### Installation
+### Quick Start
 
-1. **Clone the repository**
+1. **Clone and install dependencies**
 
    ```bash
    git clone <repository-url>
    cd essentials
+   npm run install:all
    ```
 
-2. **Install dependencies**
+2. **Set up environment variables**
 
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-
-   Create a `.env.local` file in the root directory:
+   Create a `.env` file in the root directory:
 
    ```env
    # Database
@@ -69,180 +78,234 @@ Essentials Studio is a sophisticated fitness application that combines AI-powere
 
    # Email (Resend)
    RESEND_API_KEY="your-resend-api-key"
-
-   # Webhook (for future integrations)
-   WEBHOOK_API_KEY="your-webhook-api-key"
-
-   # User Role (optional)
-   NEXT_PUBLIC_USER_ROLE="USER"
    ```
 
-4. **Set up the database**
+3. **Set up the database**
 
    ```bash
-   # Generate database migrations
+   # Generate and run database migrations
+   cd apps/web
    npm run db:generate
-
-   # Push schema to database
    npm run db:push
-
-   # (Optional) Open Drizzle Studio to view/edit data
-   npm run db:studio
    ```
 
-5. **Start the development server**
+4. **Start development servers**
+
+   ```bash
+   # Start both web and API servers
+   npm run dev
+   ```
+
+   This will start:
+
+   - **Web app**: http://localhost:3000
+   - **API server**: http://localhost:3001
+
+## 📱 Mobile Development
+
+### Running on iOS Simulator
+
+```bash
+# Build the web app and sync to mobile
+npm run build:mobile
+
+# Run on iOS simulator
+npm run run:ios
+```
+
+### Running on Android
+
+```bash
+# Run on Android emulator
+npm run run:android
+```
+
+### Development Mode (Live Reload)
+
+For development with live reload on both web and mobile:
+
+1. **Start the development servers**
 
    ```bash
    npm run dev
    ```
 
-   The app will be available at `http://localhost:3000`
+2. **Run mobile app** (it will load from the live dev server)
+   ```bash
+   cd apps/mobile
+   npx cap run ios
+   ```
 
-### Database Setup
+The mobile app is configured to load content from your live Next.js development server, so changes you make to the web code will automatically appear in both the browser and mobile simulator.
 
-The app uses PostgreSQL with Drizzle ORM. The main tables include:
+## 🎯 Available Scripts
 
-- `user`: User profiles and authentication
-- `onboarding`: User onboarding data (fitness goals, preferences, health info)
-- `workout_plan`: Generated workout plans
-- `workout`: Individual workouts and classes
-- `weekly_schedule`: Links workouts to specific weeks in plans
-- `workout_tracking`: Completed workout records
-
-### Mobile Development
-
-To run the app on mobile devices:
+### Development
 
 ```bash
-# Build the app
-npm run build
-
-# Add mobile platforms
-npx cap add ios
-npx cap add android
-
-# Sync web code to mobile
-npx cap sync
-
-# Open in native IDEs
-npx cap open ios
-npx cap open android
+npm run dev              # Start web + API development servers
+npm run dev:web          # Start only web development server
+npm run dev:api          # Start only API development server
 ```
 
-## 🏗️ Project Structure
+### Building
 
-```
-src/
-├── app/                    # Next.js app router pages
-│   ├── api/               # API routes
-│   ├── auth/              # Authentication pages
-│   ├── dashboard/         # Main dashboard
-│   ├── onboarding/        # User onboarding flow
-│   └── _components/       # App-specific components
-├── components/            # Reusable UI components
-│   └── ui/               # Radix UI components
-├── drizzle/              # Database schema and migrations
-├── hooks/                # Custom React hooks
-├── lib/                  # Utility functions
-├── server/               # tRPC server setup
-├── services/             # Business logic services
-│   ├── personal-trainer.ts    # AI workout generation
-│   ├── context-manager.ts     # User context building
-│   ├── ai-chat.ts            # AI chat functionality
-│   └── progress-tracker.ts    # Progress analysis
-├── styles/               # Global styles
-└── trpc/                 # tRPC client setup
+```bash
+npm run build:web        # Build web app for production
+npm run build:api        # Build API server
+npm run build:mobile     # Build web app and sync to mobile
+npm run build:ios        # Build for iOS
+npm run build:android    # Build for Android
 ```
 
-## 🤖 AI Integration
+### Mobile
 
-The app uses OpenAI's GPT-4 to generate personalized workout plans. The AI considers:
+```bash
+npm run open:ios         # Open iOS project in Xcode
+npm run open:android     # Open Android project in Android Studio
+npm run run:ios          # Run on iOS simulator
+npm run run:android      # Run on Android emulator
+```
 
-- User fitness level and goals
-- Health considerations and injuries
-- Recent workout history and consistency
-- Available Pilates classes and workout types
-- User preferences for session length and frequency
+### Database
 
-### AI Services
+```bash
+cd apps/web
+npm run db:generate      # Generate migrations
+npm run db:push          # Push schema changes
+npm run db:studio        # Open Drizzle Studio
+```
 
-- **Personal Trainer** (`src/services/personal-trainer.ts`): Generates workout plans
-- **Context Manager** (`src/services/context-manager.ts`): Builds user context for AI
-- **AI Chat** (`src/services/ai-chat.ts`): Handles user-AI conversations
-- **Progress Tracker** (`src/services/progress-tracker.ts`): Analyzes user progress
+## 🏗️ Architecture Overview
+
+### Web Application (`apps/web/`)
+
+- **Next.js 15** with App Router
+- **Static export** configured for Capacitor compatibility
+- **tRPC client** for type-safe API calls
+- **Supabase Auth** integration
+- **Responsive design** with Tailwind CSS
+
+### API Server (`apps/api/`)
+
+- **tRPC server** with type-safe endpoints
+- **PostgreSQL** database with Drizzle ORM
+- **OpenAI integration** for workout generation
+- **Authentication middleware**
+
+### Mobile App (`apps/mobile/`)
+
+- **Capacitor** for native iOS/Android deployment
+- **Same codebase** as web app
+- **Native plugins** for device features
+- **Live development** support
+
+## 🤖 AI Features
+
+The platform uses OpenAI GPT-4 to:
+
+- **Generate personalized workout plans** based on user preferences and fitness level
+- **Analyze workout history** to provide progress insights
+- **Create motivational messages** and workout reminders
+- **Recommend class modifications** based on user feedback
 
 ## 🎨 Design System
 
-The app features a sophisticated design system inspired by Essentials Studio:
+The app features a sophisticated design system with:
 
-- **Brand Colors**: Warm brown, deep blue, amber, and sand
-- **Typography**: Space Grotesk for headings, JetBrains Mono for code
-- **Components**: Custom Essentials components with warm shadows and animations
-- **Responsive**: Mobile-first design with smooth transitions
+- **Warm, premium color palette** (browns, blues, amber)
+- **Professional typography** (Space Grotesk, JetBrains Mono)
+- **Smooth animations** and transitions
+- **Mobile-first responsive design**
+- **Accessible components** built with Radix UI
 
-See `DESIGN_SYSTEM.md` for detailed design guidelines.
+## 🔧 Development Workflow
 
-## 📱 Available Scripts
+### 🚀 Daily Development (Recommended)
+
+**This is how you'll spend most of your development time:**
+
+1. **Start development servers**
+
+   ```bash
+   npm run dev
+   ```
+
+   This starts both web and API servers:
+
+   - **Web app**: http://localhost:3000
+   - **API server**: http://localhost:3001
+
+2. **In a new terminal, run mobile app**
+
+   ```bash
+   cd apps/mobile
+   npx cap run ios
+   ```
+
+3. **Make code changes in `apps/web/src/`**
+   - Edit components, pages, styles, etc.
+   - Save the file
+   - **Changes appear instantly in both:**
+     - ✅ Web browser (hot reload)
+     - ✅ Mobile simulator (live from dev server)
+
+### 🎯 Key Benefits
+
+- **Single codebase**: All changes in `apps/web/src/`
+- **No manual syncing**: Mobile loads from live dev server
+- **Instant feedback**: See changes on both platforms immediately
+- **Hot reload**: Works on both web and mobile
+
+### 📱 When You Need to Sync
+
+You only need to sync when:
+
+- Adding new Capacitor plugins (camera, notifications, etc.)
+- Changing mobile-specific configuration
+- Testing production builds
 
 ```bash
-# Development
-npm run dev              # Start development server
-npm run build            # Build for production
-npm run start            # Start production server
-npm run preview          # Preview production build
-
-# Database
-npm run db:generate      # Generate migrations
-npm run db:push          # Push schema changes
-npm run db:migrate       # Run migrations
-npm run db:studio        # Open Drizzle Studio
-
-# Code Quality
-npm run lint             # Run ESLint
-npm run lint:fix         # Fix linting issues
-npm run typecheck        # TypeScript type checking
-npm run format:check     # Check Prettier formatting
-npm run format:write     # Format code with Prettier
+cd apps/mobile
+npx cap sync
 ```
 
-## 🔧 Development Notes
+### 🏗️ Production Builds
 
-### AI Workout Plan Generation
+For testing production builds or when you need native device features:
 
-- Plans are generated as 4-week programs
-- Each plan includes multiple workouts per week
-- Workouts can be Pilates classes or other activities
-- The AI considers user context and available classes
+```bash
+# Build and sync to mobile
+npm run build:mobile
 
-### Data Flow
+# Run mobile (loads from static build)
+cd apps/mobile
+npx cap run ios
+```
 
-1. User completes onboarding → Profile data stored
-2. User requests workout plan → AI generates plan
-3. Plan saved to database → Workouts and schedules created
-4. User can book classes → Integration with booking system
-5. User logs completed workouts → Progress tracked
-6. AI analyzes progress → Provides recommendations
+### 💡 Pro Tips
 
-### Authentication
+- **Keep both terminals open** during development
+- **Use browser dev tools** for quick debugging
+- **Use mobile simulator** to test touch interactions
+- **Same codebase** = consistent behavior across platforms
 
-The app uses Supabase for authentication with protected routes. Users must complete onboarding before accessing the main dashboard.
+## 🚧 Current Status
 
-## 🚧 TODO
-
-- [ ] Implement route protection middleware
-- [ ] Add comprehensive error handling
-- [ ] Implement real-time notifications
-- [ ] Add workout plan sharing features
-- [ ] Enhance mobile app functionality
-- [ ] Add analytics and reporting
-- [ ] Implement social features
+- ✅ **Core functionality** implemented
+- ✅ **AI workout generation** working
+- ✅ **User onboarding** flow complete
+- ✅ **Progress tracking** system active
+- ✅ **Mobile app** running on iOS/Android
+- 🔄 **Real-time notifications** in development
+- 🔄 **Advanced analytics** planned
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests and linting
+4. Test on both web and mobile
 5. Submit a pull request
 
 ## 📄 License
@@ -251,4 +314,7 @@ This project is private and proprietary.
 
 ---
 
-For more information about the design system, see [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md).
+For detailed documentation on specific components, see:
+
+- [Web App README](./apps/web/README.md)
+- [Design System Guide](./apps/web/DESIGN_SYSTEM.md)

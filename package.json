@@ -3,21 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "config"
+  ],
   "scripts": {
-    "build": "next build",
-    "check": "next lint && tsc --noEmit",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "dev": "next dev --turbo",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
-    "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "preview": "next build && next start",
-    "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:api": "cd apps/api && npm run dev",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "build:web": "cd apps/web && npm run build",
+    "build:api": "cd apps/api && npm run build",
+    "build:mobile": "cd apps/web && npm run build && cd ../mobile && npx cap sync",
+    "build:ios": "cd apps/web && npm run build && cd ../mobile && npx cap sync && npx cap build ios",
+    "build:android": "cd apps/web && npm run build && cd ../mobile && npx cap sync && npx cap build android",
+    "open:ios": "cd apps/mobile && npx cap open ios",
+    "open:android": "cd apps/mobile && npx cap open android",
+    "run:ios": "cd apps/mobile && npx cap run ios",
+    "run:android": "cd apps/mobile && npx cap run android",
+    "install:all": "npm install && cd apps/web && npm install && cd ../mobile && npm install && cd ../api && npm install"
   },
   "dependencies": {
     "@capacitor/android": "^7.3.0",
@@ -93,7 +97,8 @@
     "tsx": "^4.19.4",
     "tw-animate-css": "^1.2.9",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.27.0"
+    "typescript-eslint": "^8.27.0",
+    "concurrently": "^8.2.2"
   },
   "ct3aMetadata": {
     "initVersion": "7.39.3"

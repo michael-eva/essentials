@@ -1,0 +1,1 @@
+ALTER TABLE "workout_tracking" DROP COLUMN "date_logged";

@@ -1,0 +1,20 @@
+{
+  "name": "mobile",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "sync": "npx cap sync",
+    "open:ios": "npx cap open ios",
+    "open:android": "npx cap open android",
+    "run:ios": "npx cap run ios",
+    "run:android": "npx cap run android",
+    "build:ios": "npx cap build ios",
+    "build:android": "npx cap build android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.3.0",
+    "@capacitor/cli": "^7.3.0",
+    "@capacitor/core": "^7.3.0",
+    "@capacitor/ios": "^7.3.0"
+  }
+} 
