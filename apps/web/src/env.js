@@ -27,6 +27,7 @@ export const env = createEnv({
     NEXT_PUBLIC_USER_ROLE: z.enum(["DEVELOPER", "USER"]).default("USER"),
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
+    NEXT_PUBLIC_API_URL: z.string().url().optional(),
   },
 
   /**
@@ -40,6 +41,7 @@ export const env = createEnv({
     NEXT_PUBLIC_USER_ROLE: process.env.NEXT_PUBLIC_USER_ROLE,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,

@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "Essentials",
   webDir: "../web/out",
   server: {
-    url: "http://localhost:3000", // <-- point to your local Next.js server
+    url: process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000", // Development or production URL
     cleartext: true,
   },
 };

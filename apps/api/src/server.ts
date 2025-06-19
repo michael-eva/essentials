@@ -15,11 +15,13 @@ const PORT = process.env.PORT || 3001;
 app.use(
   cors({
     origin: [
-      "http://localhost:3000", // Web app
+      "http://localhost:3000", // Web app (dev)
       "http://localhost:3001", // API itself
       "capacitor://localhost", // Capacitor
       "ionic://localhost", // Ionic
-    ],
+      process.env.WEB_APP_URL, // Production web app URL
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined, // Vercel preview deployments
+    ].filter((origin): origin is string => Boolean(origin)),
     credentials: true,
   })
 );

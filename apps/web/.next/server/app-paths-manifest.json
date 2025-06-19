@@ -1,4 +1,5 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
+  "/profile/page": "app/profile/page.js",
   "/dashboard/[tabs]/page": "app/dashboard/[tabs]/page.js"
 }

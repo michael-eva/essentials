@@ -21,7 +21,9 @@
     "open:android": "cd apps/mobile && npx cap open android",
     "run:ios": "cd apps/mobile && npx cap run ios",
     "run:android": "cd apps/mobile && npx cap run android",
-    "install:all": "npm install && cd apps/web && npm install && cd ../mobile && npm install && cd ../api && npm install"
+    "install:all": "npm install && cd apps/web && npm install && cd ../mobile && npm install && cd ../api && npm install",
+    "deploy:web": "cd apps/web && vercel --prod",
+    "deploy:api": "cd apps/api && vercel --prod"
   },
   "dependencies": {
     "@capacitor/android": "^7.3.0",
