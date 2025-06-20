@@ -1,6 +1,4 @@
 import { eq, and, gt, lt, inArray, desc, sql, gte, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import {
   workout,
   workoutTracking,
@@ -14,6 +12,7 @@ import {
   AiSystemPrompt,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
+import { db } from "./connection";
 
 // Type definitions
 export type Workout = InferSelectModel<typeof workout>;
@@ -41,12 +40,8 @@ export type NewPersonalTrainerInteraction = InferInsertModel<
 >;
 export type NewProgressTracking = InferInsertModel<typeof progressTracking>;
 
-// Initialize database connection
-const client = postgres(process.env.DATABASE_URL!);
-const db = drizzle(client);
-
 export async function getUpcomingClasses(
-  userId: string,
+  userId: string
 ): Promise<(Workout & { tracking: WorkoutTracking | null })[]> {
   const now = new Date();
 
@@ -58,8 +53,8 @@ export async function getUpcomingClasses(
         eq(workout.type, "class"),
         eq(workout.isBooked, true),
         eq(workout.userId, userId),
-        gt(workout.bookedDate, now),
-      ),
+        gt(workout.bookedDate, now)
+      )
     );
 
   const workoutIds = workouts.map((w) => w.id);
@@ -74,7 +69,7 @@ export async function getUpcomingClasses(
   }));
 }
 export async function getSupplementaryWorkouts(
-  userId: string,
+  userId: string
 ): Promise<(Workout & { tracking: WorkoutTracking | null })[]> {
   const now = new Date();
 
@@ -86,8 +81,8 @@ export async function getSupplementaryWorkouts(
         eq(workout.type, "workout"),
         eq(workout.isBooked, true),
         eq(workout.userId, userId),
-        gt(workout.bookedDate, now),
-      ),
+        gt(workout.bookedDate, now)
+      )
     );
 
   const workoutIds = workouts.map((w) => w.id);
@@ -129,7 +124,7 @@ export async function getPreviousPlans(userId: string): Promise<
       const weeks = Array.from({ length: plan.weeks }, (_, i) => {
         const weekNumber = i + 1;
         const weekSchedules = planWeeklySchedules.filter(
-          (ws) => ws.weekNumber === weekNumber,
+          (ws) => ws.weekNumber === weekNumber
         );
         const weekWorkouts = weekSchedules
           .map((ws) => planWorkouts.find((w) => w.id === ws.workoutId))
@@ -144,7 +139,7 @@ export async function getPreviousPlans(userId: string): Promise<
         ...plan,
         weeklySchedules: weeks,
       };
-    }),
+    })
   );
 
   return plansWithSchedules;
@@ -178,7 +173,7 @@ export async function getActivePlan(userId: string): Promise<
   const weeks = Array.from({ length: plan[0].weeks }, (_, i) => {
     const weekNumber = i + 1;
     const weekSchedules = planWeeklySchedules.filter(
-      (ws) => ws.weekNumber === weekNumber,
+      (ws) => ws.weekNumber === weekNumber
     );
     const weekWorkouts = weekSchedules
       .map((ws) => planWorkouts.find((w) => w.id === ws.workoutId))
@@ -205,15 +200,15 @@ export async function getWorkoutsToLog(userId: string): Promise<Workout[]> {
         eq(workout.isBooked, true),
         eq(workout.status, "not_recorded"),
         eq(workout.userId, userId),
-        lt(workout.bookedDate, now),
-      ),
+        lt(workout.bookedDate, now)
+      )
     );
 }
 
 export async function getActivityHistory(
   userId: string,
   limit = 5,
-  offset = 0,
+  offset = 0
 ): Promise<WorkoutTracking[]> {
   const trackingData = await db
     .select()
@@ -234,7 +229,7 @@ export async function getActivityHistoryCount(userId: string): Promise<number> {
 }
 
 export async function checkOnboardingCompletion(
-  userId: string,
+  userId: string
 ): Promise<boolean> {
   const onboardingData = await db
     .select()
@@ -270,7 +265,7 @@ export async function checkOnboardingCompletion(
 }
 
 export async function getOnboardingData(
-  userId: string,
+  userId: string
 ): Promise<Onboarding | null> {
   const onboardingData = await db
     .select()
@@ -289,7 +284,7 @@ export async function getUser(userId: string): Promise<User | null> {
 export async function getPersonalTrainerInteractions(
   userId: string,
   limit = 10,
-  cursor?: string,
+  cursor?: string
 ): Promise<{ items: PersonalTrainerInteraction[]; nextCursor?: string }> {
   const items = await db
     .select()
@@ -312,7 +307,7 @@ export async function getPersonalTrainerInteractions(
 }
 
 export async function getPersonalTrainerInteraction(
-  id: string,
+  id: string
 ): Promise<PersonalTrainerInteraction | null> {
   const interaction = await db
     .select()
@@ -325,7 +320,7 @@ export async function getPersonalTrainerInteraction(
 
 export async function getWorkoutTracking(
   userId: string,
-  timeRange: { start: Date; end: Date },
+  timeRange: { start: Date; end: Date }
 ): Promise<WorkoutTracking[]> {
   return db
     .select()
@@ -334,15 +329,15 @@ export async function getWorkoutTracking(
       and(
         eq(workoutTracking.userId, userId),
         gt(workoutTracking.date, timeRange.start),
-        lt(workoutTracking.date, timeRange.end),
-      ),
+        lt(workoutTracking.date, timeRange.end)
+      )
     )
     .orderBy(desc(workoutTracking.date));
 }
 
 export async function getProgressTracking(
   userId: string,
-  timeRange: { start: Date; end: Date },
+  timeRange: { start: Date; end: Date }
 ): Promise<ProgressTracking[]> {
   return db
     .select()
@@ -351,14 +346,14 @@ export async function getProgressTracking(
       and(
         eq(progressTracking.userId, userId),
         gte(progressTracking.date, timeRange.start),
-        lte(progressTracking.date, timeRange.end),
-      ),
+        lte(progressTracking.date, timeRange.end)
+      )
     )
     .orderBy(desc(progressTracking.date));
 }
 
 export async function getLatestProgressTracking(
-  userId: string,
+  userId: string
 ): Promise<ProgressTracking | null> {
   const result = await db
     .select()
@@ -370,7 +365,7 @@ export async function getLatestProgressTracking(
   return result[0] ?? null;
 }
 export async function getWorkoutById(
-  workoutId: string,
+  workoutId: string
 ): Promise<Workout | null> {
   const result = await db
     .select()
@@ -389,7 +384,7 @@ export async function getMessages(userId: string): Promise<AiChatMessages[]> {
 }
 
 export async function getAiSystemPrompt(
-  userId: string,
+  userId: string
 ): Promise<AiSystemPrompt | null> {
   const result = await db
     .select()

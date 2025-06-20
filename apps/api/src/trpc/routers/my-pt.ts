@@ -2,7 +2,7 @@ import { createTRPCRouter, protectedProcedure } from "../context";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { generateAIResponse } from "../../services/personal-trainer";
-import { buildUserContext } from "../../services/context-manager";
+
 import {
   getAiSystemPrompt,
   getMessages,
@@ -12,6 +12,7 @@ import {
   insertAiSystemPrompt,
   updateAiSystemPrompt,
 } from "../../drizzle/src/db/mutations";
+import { buildUserContext } from "../../services/context-manager";
 
 export const myPtRouter = createTRPCRouter({
   /**

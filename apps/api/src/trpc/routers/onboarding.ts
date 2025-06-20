@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../context";
-import { TRPCError } from "@trpc/server";
 import { insertOnboarding } from "../../drizzle/src/db/mutations";
 import {
   checkOnboardingCompletion,

@@ -1,4 +1,4 @@
-import { activityTypeEnum } from "./schema.js";
+import { activityTypeEnum } from "@essentials/database";
 
 export const pilatesClasses = [
   {

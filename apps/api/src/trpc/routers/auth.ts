@@ -1,11 +1,6 @@
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-} from "@essentials/trpc";
+import { createTRPCRouter, publicProcedure } from "@essentials/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyOtp } from "../../services/auth-helpers.js";
 import SendEmail from "../../services/resend.js";
 import { insertUser } from "../../drizzle/src/db/mutations.js";
