@@ -17,7 +17,7 @@ package-lock.json
 /prisma/db.sqlite-journal
 db.sqlite
 **/db.sqlite
-**/drizzle/
+**/migrations/
 
 # next.js
 .next/
@@ -127,11 +127,16 @@ Dockerfile.backup
 # Development scripts
 test-build.sh
 
-# Drizzle migration folders (optional - you might want to commit these)
-**/drizzle/
 
 # Editor temporary files
 *~
 **/*~
 .#*
 **/.#*
+
+
+# Drizzle
+/drizzle/
+
+# Drizzle migration folders (optional - you might want to commit these)
+**/migrations/
