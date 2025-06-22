@@ -6,9 +6,9 @@ import dotenv from "dotenv";
 import { appRouter } from "./trpc/root";
 
 // Load .env from API directory first
-dotenv.config({ path: './.env' });
+dotenv.config({ path: "./.env" });
 // Then load root .env as fallback
-dotenv.config({ path: '../../.env' });
+dotenv.config({ path: "../../.env" });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -45,8 +45,13 @@ app.use(
   })
 );
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 API server running on http://localhost:${PORT}`);
-  console.log(`📡 tRPC endpoint: http://localhost:${PORT}/trpc`);
-});
+// Start server for local development
+if (process.env.VERCEL_ENV === undefined) {
+  app.listen(PORT, () => {
+    console.log(`🚀 API server running on http://localhost:${PORT}`);
+    console.log(`📡 tRPC endpoint: http://localhost:${PORT}/trpc`);
+  });
+}
+
+// Export the app for Vercel
+export default app;
