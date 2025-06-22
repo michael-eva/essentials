@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "clean": "rm -rf dist",
-    "build": "tsc",
+    "build": "tsc -b",
     "start": "node dist/server.js",
     "vercel-build": "npm run build",
     "db:generate": "drizzle-kit generate",
