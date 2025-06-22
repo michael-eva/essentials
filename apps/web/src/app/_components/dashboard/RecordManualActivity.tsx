@@ -14,7 +14,7 @@ import { CustomInput } from "@/app/_components/dashboard/InputLayout"
 import { DatePicker } from "@/components/ui/date-picker"
 
 import { ExerciseList, type Exercise } from "./ExerciseList"
-import { activityTypeEnum } from "@essentials/types/src/db"
+import { activityTypeEnum } from "@essentials/database"
 
 const exerciseSetSchema = z.object({
   id: z.string(),

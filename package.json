@@ -7,21 +7,31 @@
     "dev:web": "cd apps/web && npm run dev",
     "dev:api": "cd apps/api && npm run dev",
     "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
-    "build:packages": "npm run build:types && npm run build:database && npm run build:trpc",
+    
+    "clean": "chmod +x clean-build.sh && ./clean-build.sh",
+    "build": "npm run build:packages && npm run build:apps",
+    "build:all": "npm run clean && npm run build",
+    
+    "build:packages": "npm run build:database && npm run build:trpc && npm run build:types",
     "build:database": "cd packages/database && npm run build",
-
     "build:trpc": "cd packages/trpc && npm run build",
     "build:types": "cd packages/types && npm run build",
-    "build:web": "npm run build:packages && cd apps/web && npm run build",
-    "build:api": "npm run build:packages && cd apps/api && npm run build",
-    "build:mobile": "cd apps/web && npm run build && cd ../mobile && npx cap sync",
-    "build:ios": "cd apps/web && npm run build && cd ../mobile && npx cap sync && npx cap build ios",
-    "build:android": "cd apps/web && npm run build && cd ../mobile && npx cap sync && npx cap build android",
+    
+    "build:apps": "concurrently \"npm run build:web\" \"npm run build:api\"",
+    "build:web": "cd apps/web && npm run build",
+    "build:api": "cd apps/api && npm run build",
+    
+    "build:mobile": "npm run build:web && cd apps/mobile && npx cap sync",
+    "build:ios": "npm run build:mobile && cd apps/mobile && npx cap build ios",
+    "build:android": "npm run build:mobile && cd apps/mobile && npx cap build android",
+    
     "open:ios": "cd apps/mobile && npx cap open ios",
     "open:android": "cd apps/mobile && npx cap open android",
     "run:ios": "cd apps/mobile && npx cap run ios",
     "run:android": "cd apps/mobile && npx cap run android",
+    
     "install:all": "npm install && cd packages/types && npm install && cd ../database && npm install && cd ../trpc && npm install && cd ../../apps/web && npm install && cd ../mobile && npm install && cd ../api && npm install",
+    
     "deploy:web": "cd apps/web && vercel --prod",
     "deploy:api": "cd apps/api && vercel --prod",
     "deploy:all": "npm run deploy:api && npm run deploy:web"

@@ -6,11 +6,10 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "build": "../../node_modules/.bin/tsc",
+    "dev": "../../node_modules/.bin/tsc --watch"
   },
   "dependencies": {
-    "@essentials/database": "file:../database"
   },
   "devDependencies": {
     "typescript": "^5.8.2"

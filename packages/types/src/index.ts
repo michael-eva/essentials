@@ -1,8 +1,6 @@
-// Re-export all DB types from db.ts
-export * from "./db";
-
-// API Router Type - import from the API app
-export type { AppRouter } from "../../../apps/api/src/trpc/root";
-
-// Common types that might be used across apps
+// Common utility types for tRPC
 export type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+
+// This package provides shared utility types only
+// For database types: import directly from @essentials/database
+// For API types: import directly from @essentials/trpc or the API
