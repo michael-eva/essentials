@@ -6,7 +6,8 @@ import superjson from "superjson";
 import dotenv from "dotenv";
 import { ZodError } from "zod";
 
-// Load environment variables from root directory (3 levels up from packages/trpc/src/)
+// Load environment variables
+// When running from API server, use local .env file
 dotenv.config({ path: "../../.env" });
 
 // Database setup with PostgreSQL

@@ -10,7 +10,7 @@
       ],
       "@essentials/types": ["../../packages/types/src/index.ts"],
       "@essentials/database": ["../../packages/database/src/index.ts"],
-      "@essentials/services": ["../../packages/services/src/index.ts"]
+      "@essentials/trpc": ["../../packages/trpc/src/index.ts"]
     },
     "lib": [
       "dom",

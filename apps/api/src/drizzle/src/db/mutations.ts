@@ -1,5 +1,3 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import {
   workout,
   workoutTracking,
@@ -27,10 +25,7 @@ import type {
   NewAiSystemPrompt,
 } from "./queries";
 import { eq } from "drizzle-orm";
-import { trackWorkoutProgress } from "../../../services/progress-tracker";
-
-const client = postgres(process.env.DATABASE_URL!);
-const db = drizzle(client);
+import { db } from "./connection";
 
 export type WorkoutTrackingInput = {
   userId: string;
@@ -79,19 +74,7 @@ export async function insertWorkoutTracking(data: WorkoutTrackingInput) {
     .returning();
   const newWorkout = result[0]!;
 
-  // Automatically update progress tracking
-  const workoutForTracking = {
-    id: newWorkout.id,
-    date: newWorkout.date.toISOString(), // Convert Date to string
-    durationHours: newWorkout.durationHours ?? undefined,
-    durationMinutes: newWorkout.durationMinutes ?? undefined,
-    intensity: newWorkout.intensity ?? undefined,
-    activityType: newWorkout.activityType,
-    notes: newWorkout.notes ?? undefined,
-    wouldDoAgain: newWorkout.wouldDoAgain ?? undefined,
-  };
-  await trackWorkoutProgress(data.userId, workoutForTracking);
-
+  // Return the workout data for the service layer to handle progress tracking
   return newWorkout;
 }
 

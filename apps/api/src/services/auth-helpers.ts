@@ -1,8 +1,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+
+// Create Supabase client lazily to ensure env vars are loaded
+function getSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 export async function verifyOtp(
   email: string,
   token: string,
@@ -23,6 +27,7 @@ export async function verifyOtp(
 }
 
 export async function login(email: string, password: string) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -36,6 +41,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function logout() {
+  const supabase = getSupabaseClient();
   const { error } = await supabase.auth.signOut();
 
   if (error) {
@@ -44,6 +50,7 @@ export async function logout() {
 }
 
 export async function updatePassword(password: string) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase.auth.updateUser({
     password,
   });

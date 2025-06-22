@@ -5,8 +5,10 @@ import { createContext } from "@essentials/trpc";
 import dotenv from "dotenv";
 import { appRouter } from "./trpc/root";
 
-// Load .env from root directory
-dotenv.config();
+// Load .env from API directory first
+dotenv.config({ path: './.env' });
+// Then load root .env as fallback
+dotenv.config({ path: '../../.env' });
 
 const app = express();
 const PORT = process.env.PORT || 3001;

@@ -10,9 +10,18 @@
     "vercel-build": "npm run build"
   },
   "dependencies": {
-    "@essentials/services": "file:../../packages/services",
     "@essentials/database": "file:../../packages/database",
     "@essentials/types": "file:../../packages/types",
-    "dotenv": "^16.5.0"
+    "@essentials/trpc": "file:../../packages/trpc",
+    "@trpc/client": "^11.0.0",
+    "@trpc/react-query": "^11.0.0",
+    "@trpc/server": "^11.0.0",
+    "@tanstack/react-query": "^5.69.0",
+    "superjson": "^2.2.1",
+    "dotenv": "^16.5.0",
+    "next": "^15.2.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zod": "^3.24.2"
   }
 }

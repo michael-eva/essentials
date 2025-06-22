@@ -7,9 +7,9 @@
     "dev:web": "cd apps/web && npm run dev",
     "dev:api": "cd apps/api && npm run dev",
     "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
-    "build:packages": "npm run build:types && npm run build:database && npm run build:services && npm run build:trpc",
+    "build:packages": "npm run build:types && npm run build:database && npm run build:trpc",
     "build:database": "cd packages/database && npm run build",
-    "build:services": "cd packages/services && npm run build",
+
     "build:trpc": "cd packages/trpc && npm run build",
     "build:types": "cd packages/types && npm run build",
     "build:web": "npm run build:packages && cd apps/web && npm run build",
@@ -21,7 +21,7 @@
     "open:android": "cd apps/mobile && npx cap open android",
     "run:ios": "cd apps/mobile && npx cap run ios",
     "run:android": "cd apps/mobile && npx cap run android",
-    "install:all": "npm install && cd packages/types && npm install && cd ../database && npm install && cd ../services && npm install && cd ../trpc && npm install && cd ../../apps/web && npm install && cd ../mobile && npm install && cd ../api && npm install",
+    "install:all": "npm install && cd packages/types && npm install && cd ../database && npm install && cd ../trpc && npm install && cd ../../apps/web && npm install && cd ../mobile && npm install && cd ../api && npm install",
     "deploy:web": "cd apps/web && vercel --prod",
     "deploy:api": "cd apps/api && vercel --prod",
     "deploy:all": "npm run deploy:api && npm run deploy:web"
