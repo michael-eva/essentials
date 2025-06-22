@@ -1,10 +1,5 @@
 {
-  "builds": [
-    {
-      "src": "apps/api/dist/server.js",
-      "use": "@vercel/node"
-    }
-  ],
+  "framework": null,
   "routes": [
     {
       "src": "/(.*)",
