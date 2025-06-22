@@ -25,10 +25,11 @@ export const formSchema = z.object({
     specificGoals: z.string().optional(),
 });
 
+type GoalsFormData = z.infer<typeof formSchema>;
+
 export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: GoalsFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
-        resolver: zodResolver(formSchema),
+    const { handleSubmit, formState: { errors }, control, watch, setValue } = useForm<GoalsFormData>({
         mode: "onChange",
         defaultValues: {
             fitnessGoals: isDeveloper() ? ["Lose weight"] : [],
@@ -40,7 +41,7 @@ export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: Goal
     const handleFitnessGoalsChange = (goal: string) => {
         const currentGoals = watch("fitnessGoals");
         const newGoals = currentGoals.includes(goal)
-            ? currentGoals.filter(g => g !== goal)
+            ? currentGoals.filter((g: string) => g !== goal)
             : [...currentGoals, goal];
         setValue("fitnessGoals", newGoals);
     };

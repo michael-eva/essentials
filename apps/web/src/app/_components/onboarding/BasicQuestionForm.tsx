@@ -47,6 +47,9 @@ export const formSchema = z.object({
         required_error: "Gender is required",
     }),
 });
+
+type BasicQuestionFormData = z.infer<typeof formSchema>;
+
 interface BasicQuestionFormProps {
     isFirstStep?: boolean;
     isLastStep?: boolean;
@@ -55,8 +58,7 @@ interface BasicQuestionFormProps {
 
 export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep }: BasicQuestionFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { register, handleSubmit, formState: { errors }, control } = useForm({
-        resolver: zodResolver(formSchema),
+    const { register, handleSubmit, formState: { errors }, control } = useForm<BasicQuestionFormData>({
         mode: "onChange",
         defaultValues: {
             name: isDeveloper() ? "Developer User" : "",

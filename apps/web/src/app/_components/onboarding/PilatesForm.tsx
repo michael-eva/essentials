@@ -41,10 +41,11 @@ export const formSchema = z.object({
     }
 );
 
+type PilatesFormData = z.infer<typeof formSchema>;
+
 export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: PilatesFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { register, handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
-        resolver: zodResolver(formSchema),
+    const { register, handleSubmit, formState: { errors }, control, watch, setValue } = useForm<PilatesFormData>({
         mode: "onChange",
         defaultValues: {
             pilatesExperience: isDeveloper() ? false : undefined,

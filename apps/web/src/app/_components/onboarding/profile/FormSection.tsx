@@ -27,11 +27,6 @@ export default function FormSection({
   isComplete,
   isHighlighted,
 }: FormSectionProps) {
-  // Get the first two filled fields to display as preview
-  const filledFields = Object.entries(data)
-    .filter(([_, value]) => value !== "")
-    .slice(0, 2)
-    .map(([_, value]) => value)
 
   return (
     <motion.div

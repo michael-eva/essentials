@@ -45,12 +45,13 @@ export const formSchema = z.object({
         }
     );
 
+type MotivationFormData = z.infer<typeof formSchema>;
+
 export default function MotivationForm({ isFirstStep, isLastStep, currentStep }: MotivationFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [customMotivationInput, setCustomMotivationInput] = useState("");
     const [customProgressTrackingInput, setCustomProgressTrackingInput] = useState("");
-    const { register, handleSubmit, formState: { errors, isValid }, control, watch, setValue } = useForm({
-        resolver: zodResolver(formSchema),
+    const { register, handleSubmit, formState: { errors, isValid }, control, watch, setValue } = useForm<MotivationFormData>({
         mode: "onChange",
         defaultValues: {
             motivation: isDeveloper() ? ["Health benefits", "Other"] : [],
@@ -64,7 +65,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
     const handleMotivationChange = (motivation: string) => {
         const currentMotivations = watch("motivation");
         const newMotivations = currentMotivations.includes(motivation)
-            ? currentMotivations.filter(m => m !== motivation)
+            ? currentMotivations.filter((m: string) => m !== motivation)
             : [...currentMotivations, motivation];
         setValue("motivation", newMotivations);
     };
@@ -72,7 +73,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
     const handleProgressTrackingChange = (method: string) => {
         const currentMethods = watch("progressTracking");
         const newMethods = currentMethods.includes(method)
-            ? currentMethods.filter(m => m !== method)
+            ? currentMethods.filter((m: string) => m !== method)
             : [...currentMethods, method];
         setValue("progressTracking", newMethods);
     };
@@ -95,12 +96,12 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
 
     const removeOtherMotivation = (motivation: string) => {
         const currentOtherMotivations = watch("otherMotivation") ?? [];
-        setValue("otherMotivation", currentOtherMotivations.filter(m => m !== motivation));
+        setValue("otherMotivation", currentOtherMotivations.filter((m: string) => m !== motivation));
     };
 
     const removeOtherProgressTracking = (method: string) => {
         const currentOtherMethods = watch("otherProgressTracking") ?? [];
-        setValue("otherProgressTracking", currentOtherMethods.filter(m => m !== method));
+        setValue("otherProgressTracking", currentOtherMethods.filter((m: string) => m !== method));
     };
 
     const onSubmit = async (): Promise<boolean> => {
@@ -176,7 +177,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                             <p className="mt-2 text-sm text-red-600">{errors.otherMotivation.message}</p>
                         )}
                         <div className="mt-3 space-y-2">
-                            {watch("otherMotivation")?.map((motivation) => (
+                            {watch("otherMotivation")?.map((motivation: string) => (
                                 <div key={motivation} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
                                     <span className="text-sm text-gray-700">{motivation}</span>
                                     <button
@@ -230,7 +231,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                             <p className="mt-2 text-sm text-red-600">{errors.otherProgressTracking.message}</p>
                         )}
                         <div className="mt-3 space-y-2">
-                            {watch("otherProgressTracking")?.map((method) => (
+                            {watch("otherProgressTracking")?.map((method: string) => (
                                 <div key={method} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
                                     <span className="text-sm text-gray-700">{method}</span>
                                     <button

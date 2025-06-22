@@ -9,9 +9,9 @@ import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import { Textarea } from "@/components/ui/textarea";
 import FormLayout from "./FormLayout";
-import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
 import { HEALTH_CONDITIONS, PREGNANCY_OPTIONS } from "@/app/_constants/health";
+import { api } from "@/trpc/react";
 
 interface HealthConsFormProps {
     isFirstStep?: boolean;
@@ -33,43 +33,14 @@ export const formSchema = z.object({
     pregnancy: z.enum(PREGNANCY_OPTIONS, {
         required_error: "Please select your pregnancy status",
     }),
-})
-    .refine(
-        (data) => {
-            // If injuries is true, injuriesDetails should not be empty
-            return !data.injuries || (data.injuries && data.injuriesDetails && data.injuriesDetails.trim() !== "");
-        },
-        {
-            message: "Please describe your injuries or limitations",
-            path: ["injuriesDetails"],
-        }
-    )
-    .refine(
-        (data) => {
-            // If recentSurgery is true, surgeryDetails should not be empty
-            return !data.recentSurgery || (data.recentSurgery && data.surgeryDetails && data.surgeryDetails.trim() !== "");
-        },
-        {
-            message: "Please provide details about your surgery and recovery timeline",
-            path: ["surgeryDetails"],
-        }
-    )
-    .refine(
-        (data) => {
-            // If "Other" is selected, at least one custom condition must be added
-            return !data.chronicConditions.includes("Other") || (data.otherHealthConditions && data.otherHealthConditions.length > 0);
-        },
-        {
-            message: "Please add at least one custom health condition",
-            path: ["otherHealthConditions"],
-        }
-    );
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }: HealthConsFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [customCondition, setCustomCondition] = useState("");
-    const { handleSubmit, formState: { errors }, control, watch, setValue, setError, clearErrors, trigger } = useForm({
-        resolver: zodResolver(formSchema),
+    const { handleSubmit, formState: { errors }, control, watch, setValue, setError, clearErrors, trigger } = useForm<FormData>({
         mode: "onChange",
         defaultValues: {
             injuries: isDeveloper() ? false : undefined,
@@ -120,7 +91,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
     const handleChronicConditionsChange = (condition: string) => {
         const currentConditions = watch("chronicConditions");
         const newConditions = currentConditions.includes(condition)
-            ? currentConditions.filter(c => c !== condition)
+            ? currentConditions.filter((c: string) => c !== condition)
             : [...currentConditions, condition];
         setValue("chronicConditions", newConditions);
     };
@@ -135,7 +106,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
 
     const removeOtherHealthCondition = (condition: string) => {
         const currentOtherConditions = watch("otherHealthConditions") ?? [];
-        setValue("otherHealthConditions", currentOtherConditions.filter(c => c !== condition));
+        setValue("otherHealthConditions", currentOtherConditions.filter((c: string) => c !== condition));
     };
 
     const onSubmit = async (): Promise<boolean> => {
@@ -368,7 +339,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                                     <p className="mt-2 text-sm text-red-600">{errors.otherHealthConditions.message}</p>
                                 )}
                                 <div className="mt-3 space-y-2">
-                                    {watch("otherHealthConditions")?.map((condition) => (
+                                    {watch("otherHealthConditions")?.map((condition: string) => (
                                         <div key={condition} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
                                             <span className="text-sm text-gray-700">{condition}</span>
                                             <button
