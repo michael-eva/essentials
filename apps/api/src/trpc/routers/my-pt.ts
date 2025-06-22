@@ -1,18 +1,17 @@
-import { createTRPCRouter, protectedProcedure } from "@essentials/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { generateAIResponse } from "../../services/personal-trainer";
-
+import { createTRPCRouter, protectedProcedure } from "@essentials/trpc";
 import {
+  checkOnboardingCompletion,
   getAiSystemPrompt,
   getMessages,
-  checkOnboardingCompletion,
 } from "../../drizzle/src/db/queries";
+import { buildUserContext } from "../../services/context-manager";
+import { generateAiChatResponse } from "../../services/ai-chat";
 import {
   insertAiSystemPrompt,
   updateAiSystemPrompt,
 } from "../../drizzle/src/db/mutations";
-import { buildUserContext } from "../../services/context-manager";
 
 export const myPtRouter = createTRPCRouter({
   /**
@@ -42,7 +41,11 @@ export const myPtRouter = createTRPCRouter({
         const userContext = await buildUserContext(userId);
 
         // Generate AI response
-        const aiResponse = await generateAIResponse(input.message, userContext);
+        const aiResponse = await generateAiChatResponse(
+          input.message,
+          userId,
+          userContext
+        );
 
         return {
           message: aiResponse,

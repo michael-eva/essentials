@@ -8,7 +8,7 @@ import { ZodError } from "zod";
 
 // Load environment variables
 // When running from API server, use local .env file
-dotenv.config();
+dotenv.config({ path: "../../.env" });
 
 // Database setup with PostgreSQL
 let db: any = null;
