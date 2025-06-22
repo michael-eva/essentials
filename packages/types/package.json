@@ -9,6 +9,9 @@
     "build": "tsc",
     "dev": "tsc --watch"
   },
+  "dependencies": {
+    "@essentials/database": "file:../database"
+  },
   "devDependencies": {
     "typescript": "^5.8.2"
   }

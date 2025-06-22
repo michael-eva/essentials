@@ -1,10 +1,10 @@
 import { createTRPCRouter, publicProcedure } from "@essentials/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { verifyOtp } from "../../services/auth-helpers.js";
-import SendEmail from "../../services/resend.js";
-import { insertUser } from "../../drizzle/src/db/mutations.js";
-import { getUser } from "../../drizzle/src/db/queries.js";
+import { verifyOtp } from "../../services/auth-helpers";
+import SendEmail from "../../services/resend";
+import { insertUser } from "../../drizzle/src/db/mutations";
+import { getUser } from "../../drizzle/src/db/queries";
 
 export const authRouter = createTRPCRouter({
   generateOtp: publicProcedure

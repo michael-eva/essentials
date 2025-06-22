@@ -6,7 +6,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, MessageSquare, Settings } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { TRPCClientErrorLike } from "@trpc/client";
-import type { AppRouter } from "@/server/api/root";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
@@ -14,7 +13,7 @@ import { CustomizePTSection } from "./CustomizePTSection";
 
 type Message = {
   id: string;
-  content: string;
+  content: string | object;
   role: "user" | "assistant" | "developer";
   timestamp: Date;
 };
@@ -29,7 +28,7 @@ export function AIInteractionSection() {
 
   // Get trainer info and status
   const { data: trainerInfo, isLoading: isLoadingInfo } = api.myPt.getTrainerInfo.useQuery();
-  
+
   // Get chat history
   const { data: chatHistory, isLoading: isLoadingHistory } = api.myPt.getChatHistory.useQuery(
     { limit: 50 },
@@ -67,7 +66,7 @@ export function AIInteractionSection() {
       setMessages((prev) => [...prev, assistantMessage]);
       setError(null);
     },
-    onError: (error: TRPCClientErrorLike<AppRouter>) => {
+    onError: (error: TRPCClientErrorLike<any>) => {
       console.error("Failed to send message:", error);
       setError(error.message);
     },
@@ -188,14 +187,13 @@ export function AIInteractionSection() {
                   className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`rounded-lg px-4 py-2 max-w-full break-words ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
+                    className={`rounded-lg px-4 py-2 max-w-full break-words ${message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                      }`}
                     style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
                   >
-                    <div className="text-sm">{message.content}</div>
+                    <div className="text-sm">{typeof message.content === "string" ? message.content : JSON.stringify(message.content)}</div>
                     <div className="text-xs opacity-70 mt-1">
                       {message.timestamp.toLocaleTimeString()}
                     </div>

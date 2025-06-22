@@ -1,1 +1,0 @@
-ALTER TABLE "personal_trainer_interactions" DROP CONSTRAINT "personal_trainer_interactions_parent_id_personal_trainer_interactions_id_fk";

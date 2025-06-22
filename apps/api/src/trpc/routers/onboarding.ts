@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../context";
+import { createTRPCRouter, protectedProcedure } from "@essentials/trpc";
 import { insertOnboarding } from "../../drizzle/src/db/mutations";
 import {
   checkOnboardingCompletion,

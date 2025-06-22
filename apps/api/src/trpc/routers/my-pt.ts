@@ -1,4 +1,4 @@
-import { createTRPCRouter, protectedProcedure } from "../context";
+import { createTRPCRouter, protectedProcedure } from "@essentials/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { generateAIResponse } from "../../services/personal-trainer";

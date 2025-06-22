@@ -19,7 +19,7 @@ import type { WorkoutFormValues } from "./MarkClassComplete";
 import RecordManualActivity from "./RecordManualActivity";
 import type { ActivityFormValues } from "./RecordManualActivity";
 import { toast } from "sonner";
-import type { workoutStatusEnum } from "@/drizzle/src/db/schema";
+
 import useGeneratePlan from "@/hooks/useGeneratePlan";
 import {
   UpcomingClassesSkeleton,
@@ -28,6 +28,7 @@ import {
 } from "./DashboardSkeleton";
 import { ProgressSection } from "./ProgressSection";
 import MarkClassMissed from "./MarkClassMissed";
+import { workoutStatusEnum } from "@essentials/types/src/db";
 type WorkoutStatus = (typeof workoutStatusEnum.enumValues)[number];
 
 export default function Dashboard() {

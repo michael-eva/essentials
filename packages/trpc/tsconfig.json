@@ -6,7 +6,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "paths": {
-      "@essentials/database": ["../database/src/index.ts"]
+      "@essentials/database": ["../database/src/index.ts"],
+      "@essentials/database/*": ["../database/src/*"]
     }
   },
   "include": ["src/**/*"],

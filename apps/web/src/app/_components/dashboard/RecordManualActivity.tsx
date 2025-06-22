@@ -12,8 +12,9 @@ import { Clock, Ruler, Activity, Bike, Waves, Footprints, Mountain, Ship, Dumbbe
 import { WheelPicker } from "./WheelPicker"
 import { CustomInput } from "@/app/_components/dashboard/InputLayout"
 import { DatePicker } from "@/components/ui/date-picker"
-import { activityTypeEnum } from "@/drizzle/src/db/schema"
+
 import { ExerciseList, type Exercise } from "./ExerciseList"
+import { activityTypeEnum } from "@essentials/types/src/db"
 
 const exerciseSetSchema = z.object({
   id: z.string(),
