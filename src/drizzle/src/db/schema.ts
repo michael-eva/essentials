@@ -295,7 +295,7 @@ export const PilatesVideos = pgTable("pilates_videos", {
   tags: text("tags").notNull(),
   exerciseSequence: text("exercise_sequence").notNull(),
   videoUrl: text("video_url").notNull(),
-  muxAssetId: text("mux_asset_id").notNull(),
+  muxAssetId: text("mux_asset_id"),
   createdAt: timestamp("created_at")
     .notNull()
     .default(sql`now()`),
