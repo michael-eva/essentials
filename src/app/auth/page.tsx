@@ -18,6 +18,7 @@ export default function AuthPage() {
     <div className="relative h-screen w-full overflow-hidden">
       {/* Video Background */}
       <video
+        src="https://rflvcogfitcffdappsuz.supabase.co/storage/v1/object/public/marketing-videos//essentials_home.webm"
         autoPlay
         loop
         muted
@@ -26,7 +27,6 @@ export default function AuthPage() {
       >
         <source src="/hero-video.mp4" type="video/mp4" />
       </video>
-
       <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/50 to-transparent">
         <div className="container mx-auto flex justify-between md:justify-center gap-4 md:gap-24">
           <Button
