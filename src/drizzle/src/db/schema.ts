@@ -274,3 +274,32 @@ export const AiChatMessages = pgTable("ai_chat", {
   role: roleEnum("role").notNull(),
   content: text("content").notNull(),
 });
+
+export const PilatesVideos = pgTable("pilates_videos", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  summary: text("summary").notNull(),
+  description: text("description").notNull(),
+  difficulty: text("difficulty").notNull(),
+  duration: integer("duration").notNull(),
+  equipment: text("equipment").notNull(),
+  pilatesStyle: text("pilates_style").notNull(),
+  classType: text("class_type").notNull(),
+  focusArea: text("focus_area").notNull(),
+  targetedMuscles: text("targeted_muscles").notNull(),
+  intensity: integer("intensity").notNull(),
+  modifications: boolean("modifications").notNull().default(true),
+  beginnerFriendly: boolean("beginner_friendly").notNull().default(true),
+  tags: text("tags").notNull(),
+  exerciseSequence: text("exercise_sequence").notNull(),
+  videoUrl: text("video_url").notNull(),
+  muxAssetId: text("mux_asset_id").notNull(),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .default(sql`now()`),
+});

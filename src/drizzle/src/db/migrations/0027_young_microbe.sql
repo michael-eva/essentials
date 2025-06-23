@@ -1,0 +1,21 @@
+CREATE TABLE "pilates_videos" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"title" text NOT NULL,
+	"summary" text NOT NULL,
+	"description" text NOT NULL,
+	"difficulty" text NOT NULL,
+	"duration" integer NOT NULL,
+	"equipment" text NOT NULL,
+	"pilates_style" text NOT NULL,
+	"class_type" text NOT NULL,
+	"focus_area" text NOT NULL,
+	"targeted_muscles" text NOT NULL,
+	"intensity" integer NOT NULL,
+	"modifications" boolean DEFAULT true NOT NULL,
+	"beginner_friendly" boolean DEFAULT true NOT NULL,
+	"tags" text NOT NULL,
+	"exercise_sequence" text NOT NULL,
+	"video_url" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
