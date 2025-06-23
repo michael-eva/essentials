@@ -27,7 +27,7 @@ import {
   bookClass,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
-import { generateAIResponse } from "@/services/personal-trainer";
+import { generateAIResponse } from "@/services/plan-generator";
 import { buildUserContext } from "@/services/context-manager";
 import { createGzip } from "zlib";
 
@@ -49,6 +49,31 @@ function safeDateParse(
       `Failed to parse date for ${fieldName}: ${dateString}. ${error}`,
     );
   }
+}
+
+// Helper function to recursively convert Date objects to ISO strings
+function convertDatesToISOStrings(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (obj instanceof Date) {
+    return obj.toISOString();
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(convertDatesToISOStrings);
+  }
+
+  if (typeof obj === "object") {
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = convertDatesToISOStrings(value);
+    }
+    return result;
+  }
+
+  return obj;
 }
 
 export const workoutPlanRouter = createTRPCRouter({
@@ -335,8 +360,6 @@ export const workoutPlanRouter = createTRPCRouter({
           (currentPlan.totalPausedDuration ?? 0) + pauseDuration;
 
         return await updateWorkoutPlan(input.planId, {
-          resumedAt: now,
-          pausedAt: null,
           totalPausedDuration: newTotalPausedDuration,
         });
       } catch (error) {
@@ -380,9 +403,6 @@ export const workoutPlanRouter = createTRPCRouter({
       try {
         const result = await updateWorkoutPlan(input.planId, {
           isActive: true,
-          startDate: null,
-          pausedAt: null,
-          resumedAt: null,
           totalPausedDuration: 0,
         });
 
@@ -426,78 +446,109 @@ export const workoutPlanRouter = createTRPCRouter({
       }
     }),
   generatePlan: protectedProcedure.mutation(async ({ ctx }) => {
+    console.log("🚀 Starting generatePlan mutation");
     const userId = ctx.userId;
     const isCompleted = await checkOnboardingCompletion(userId);
 
     if (!isCompleted) {
+      console.log("❌ Onboarding not completed for user:", userId);
       throw new Error("Onboarding is not completed");
     }
 
+    console.log("✅ Onboarding completed, building user context");
     const userContext = await buildUserContext(ctx.userId);
+    console.log("📋 User context built:", { userId, contextKeys: Object.keys(userContext) });
 
+    console.log("🤖 Calling generateAIResponse");
     const generatedPlan = await generateAIResponse(ctx.userId, userContext);
+    console.log("🎯 AI Response received:", {
+      planKeys: Object.keys(generatedPlan.plan),
+      workoutsCount: generatedPlan.workouts.length,
+      weeklySchedulesCount: generatedPlan.weeklySchedules.length
+    });
 
     // Insert the plan with better date parsing error handling
     try {
-      const planWithDates = {
-        ...generatedPlan.plan,
-        savedAt:
-          safeDateParse(generatedPlan.plan.savedAt, "savedAt") ?? new Date(),
-        archivedAt: safeDateParse(generatedPlan.plan.archivedAt, "archivedAt"),
-        startDate: safeDateParse(generatedPlan.plan.startDate, "startDate"),
-        pausedAt: safeDateParse(generatedPlan.plan.pausedAt, "pausedAt"),
-        resumedAt: safeDateParse(generatedPlan.plan.resumedAt, "resumedAt"),
-      };
-      const plan = await insertWorkoutPlan(planWithDates);
+      console.log("📝 Processing plan for database insertion");
 
-      // Insert all workouts first with better date parsing
+      // morph the plan into the type epxected by the Funtion
+
+      const typedPLan = {
+        ...generatedPlan.plan,
+        id: uuidv4(),
+        savedAt: new Date(),
+        archivedAt: null,
+        startDate: new Date(),
+        pausedAt: null,
+        resumedAt: null,
+      };
+
+      console.log("🔧 Typed plan created:", { 
+        id: typedPLan.id, 
+        planName: typedPLan.planName,
+        userId: typedPLan.userId 
+      });
+
+      const plan = await insertWorkoutPlan(typedPLan);
+      console.log("💾 Plan inserted into database:", { planId: plan.id });
+
+      console.log("🏋️ Processing workouts");
       const workoutsWithIds = generatedPlan.workouts.map((workout) => ({
         ...workout,
         id: uuidv4(),
+        status: workout.status ?? "not_recorded",
+        isBooked: workout.isBooked ?? false,
         classId: workout.classId === null ? undefined : workout.classId,
-        bookedDate:
-          safeDateParse(workout.bookedDate, "bookedDate") ?? undefined,
         activityType:
           workout.activityType === null ? undefined : workout.activityType,
       }));
-      const workouts = await insertWorkouts(workoutsWithIds);
 
-      // Create a mapping from original workout IDs to inserted workout IDs
-      const workoutIdMap = new Map();
-      generatedPlan.workouts.forEach((originalWorkout, index) => {
-        const insertedWorkout = workouts[index];
-        if (insertedWorkout) {
-          workoutIdMap.set(originalWorkout.userId, insertedWorkout.id);
-        }
+      console.log("📊 Workouts processed:", { 
+        count: workoutsWithIds.length,
+        sampleWorkout: workoutsWithIds[0] ? {
+          id: workoutsWithIds[0].id,
+          name: workoutsWithIds[0].name,
+          type: workoutsWithIds[0].type
+        } : null
       });
 
+      const workouts = await insertWorkouts(workoutsWithIds);
+      console.log("💾 Workouts inserted:", { count: workouts.length });
+
       // Insert weekly schedules with correct workout IDs
+      console.log("📅 Processing weekly schedules");
       const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(
         (schedule, index) => {
           const workout = workouts[index % workouts.length];
           return {
-            ...schedule,
             id: uuidv4(),
             planId: plan.id,
+            weekNumber: schedule.weekNumber,
             workoutId: workout?.id ?? schedule.workoutId, // Use actual workout ID or fallback
           };
         },
       );
+
+      console.log("📋 Weekly schedules processed:", { 
+        count: weeklySchedulesWithIds.length,
+        sampleSchedule: weeklySchedulesWithIds[0] ? {
+          id: weeklySchedulesWithIds[0].id,
+          weekNumber: weeklySchedulesWithIds[0].weekNumber,
+          planId: weeklySchedulesWithIds[0].planId
+        } : null
+      });
+
       const weeklySchedules = await insertWeeklySchedules(
         weeklySchedulesWithIds,
       );
+      console.log("💾 Weekly schedules inserted:", { count: weeklySchedules.length });
 
-      return {
-        ...plan,
-        workouts: workouts.map((workout, index) => ({
-          ...workout,
-          weekNumber: Math.floor(index / 3) + 1,
-        })),
-      };
+      console.log("✅ All database operations completed successfully");
+      return 200;
     } catch (error) {
-      console.error("Error in generatePlan:", error);
+      console.error("❌ Error in generatePlan:", error);
       console.error(
-        "Generated plan data:",
+        "🔍 Generated plan data:",
         JSON.stringify(generatedPlan, null, 2),
       );
 

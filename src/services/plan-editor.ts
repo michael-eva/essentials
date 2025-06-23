@@ -9,49 +9,8 @@ import { nonPilates } from "@/data";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { UserContext } from "./context-manager";
+import { NewWorkoutSchema, GeneratedWorkoutPlanResponseSchema } from "@/lib/zodschemas/schemas";
 
-// create a zod schema for the response
-
-const NewWorkoutPlanSchema = z.object({
-  userId: z.string().uuid(),
-  planName: z.string(),
-  weeks: z.number().int(),
-  savedAt: z.string().datetime(),
-  archived: z.boolean().default(false),
-  archivedAt: z.string().datetime().nullable(),
-  isActive: z.boolean().default(false),
-  startDate: z.string().datetime().nullable(),
-  pausedAt: z.string().datetime().nullable(),
-  resumedAt: z.string().datetime().nullable(),
-  totalPausedDuration: z.number().int().default(0),
-});
-
-const NewWorkoutSchema = z.object({
-  name: z.string(),
-  instructor: z.string(),
-  duration: z.number().int(),
-  description: z.string(),
-  level: z.string(),
-  bookedDate: z.string().datetime().nullable(),
-  type: z.enum(["class", "workout"]),
-  status: z.enum(["completed", "not_completed", "not_recorded"]).default("not_recorded"),
-  isBooked: z.boolean().default(false),
-  classId: z.number().int().nullable(),
-  userId: z.string().uuid(),
-  activityType: z.enum(["run", "cycle", "swim", "walk", "hike", "rowing", "elliptical"]).nullable(),
-});
-
-const NewWeeklyScheduleSchema = z.object({
-  planId: z.string().uuid(),
-  weekNumber: z.number().int(),
-  workoutId: z.string().uuid(),
-});
-
-const GeneratedWorkoutPlanResponseSchema = z.object({
-  plan: NewWorkoutPlanSchema,
-  workouts: z.array(NewWorkoutSchema),
-  weeklySchedules: z.array(NewWeeklyScheduleSchema),
-});
 
 type GeneratedWorkoutPlanResponse = z.infer<typeof GeneratedWorkoutPlanResponseSchema>
 
@@ -69,12 +28,6 @@ export async function generateAIResponse(
 
   // Create a comprehensive prompt for the AI
   const systemPrompt = `You are a professional personal trainer and fitness expert. Your task is to generate a personalized workout plan based on the user's input, fitness level, goals, and available classes.
-
-IMPORTANT DATE FORMAT REQUIREMENTS:
-- All date fields (savedAt, archivedAt, startDate, pausedAt, resumedAt, bookedDate) must be in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)
-- Use the current date/time for savedAt: "${new Date().toISOString()}"
-- Set archivedAt, startDate, pausedAt, resumedAt to null (they should be null for a new plan)
-- Set bookedDate to null for workouts (they will be booked later)
 
 Available Classes:
 Pilates Classes: ${JSON.stringify(availableClasses.pilates, null, 2)}
