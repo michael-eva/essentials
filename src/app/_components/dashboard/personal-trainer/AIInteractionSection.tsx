@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, MessageSquare, Settings } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { TRPCClientErrorLike } from "@trpc/client";
@@ -29,7 +28,7 @@ export function AIInteractionSection() {
 
   // Get trainer info and status
   const { data: trainerInfo, isLoading: isLoadingInfo } = api.myPt.getTrainerInfo.useQuery();
-  
+
   // Get chat history
   const { data: chatHistory, isLoading: isLoadingHistory } = api.myPt.getChatHistory.useQuery(
     { limit: 50 },
@@ -136,40 +135,40 @@ export function AIInteractionSection() {
   }
 
   return (
-    <div className="flex flex-col h-[700px]">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            AI Personal Trainer
-          </CardTitle>
-          <div className="flex items-center gap-4">
-            {trainerInfo && (
-              <span className="text-sm text-muted-foreground">
-                {trainerInfo.messageCount} messages
-              </span>
-            )}
-            <Dialog open={showCustomize} onOpenChange={setShowCustomize}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowCustomize(true)}
-                  className="h-8 w-8"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl p-0">
-                <DialogTitle className="px-6 pt-6 pb-2">Customize My PT</DialogTitle>
-                <CustomizePTSection />
-              </DialogContent>
-            </Dialog>
+    <div className="flex flex-col h-full">
+      <Card className="h-full grid grid-rows-[auto_1fr_auto]">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              AI Personal Trainer
+            </CardTitle>
+            <div className="flex items-center gap-4">
+              {trainerInfo && (
+                <span className="text-sm text-muted-foreground">
+                  {trainerInfo.messageCount} messages
+                </span>
+              )}
+              <Dialog open={showCustomize} onOpenChange={setShowCustomize}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowCustomize(true)}
+                    className="h-8 w-8"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl p-0">
+                  <DialogTitle className="px-6 pt-6 pb-2">Customize My PT</DialogTitle>
+                  <CustomizePTSection />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-0">
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        </CardHeader>
+        <div className="overflow-y-auto px-4 py-4">
           {isLoadingHistory && messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               Loading chat history...
@@ -185,15 +184,15 @@ export function AIInteractionSection() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                    }`}
                 >
                   <div
-                    className={`rounded-lg px-4 py-2 max-w-full break-words ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
-                    style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
+                    className={`rounded-lg px-4 py-2 max-w-full break-words ${message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                      }`}
+                    style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
                   >
                     <div className="text-sm">{message.content}</div>
                     <div className="text-xs opacity-70 mt-1">
@@ -215,7 +214,7 @@ export function AIInteractionSection() {
             </div>
           )}
         </div>
-        <div className="p-4 border-t bg-white sticky bottom-0">
+        <div className="p-4 border-t bg-white">
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
@@ -236,7 +235,7 @@ export function AIInteractionSection() {
             </Button>
           </div>
         </div>
-      </CardContent>
+      </Card>
     </div>
   );
 } 

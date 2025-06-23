@@ -5,17 +5,17 @@ interface EssentialsCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
 }
 
-export function EssentialsCard({ 
-  variant = "default", 
-  className, 
-  children, 
-  ...props 
+export function EssentialsCard({
+  variant = "default",
+  className,
+  children,
+  ...props
 }: EssentialsCardProps) {
   const variants = {
     default: "bg-card border border-border shadow-warm hover:shadow-warm-lg",
-    featured: "bg-gradient-to-br from-brand-amber/10 to-brand-deep-blue/10 border border-brand-sand",
-    warm: "bg-gradient-to-br from-brand-warm-brown/5 to-brand-sand/20 border border-brand-sand/50",
-    gradient: "bg-gradient-to-br from-brand-neutral-light via-background to-brand-neutral border border-brand-sand/30"
+    featured: "bg-gradient-to-br from-brand-bright-orange/10 to-brand-cobalt/10 border border-brand-nude",
+    warm: "bg-gradient-to-br from-brand-brown/5 to-brand-nude/20 border border-brand-nude/50",
+    gradient: "bg-gradient-to-br from-brand-light-yellow via-background to-brand-nude border border-brand-nude/30"
   };
 
   return (

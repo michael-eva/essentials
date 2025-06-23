@@ -1,26 +1,29 @@
 export { EssentialsButton } from "./EssentialsButton";
 export { EssentialsCard } from "./EssentialsCard";
 
-// Color utility functions
+// Color utility functions - Updated to match brand guidelines
 export const essentialsColors = {
-  warmBrown: "hsl(var(--brand-warm-brown))",
-  deepBlue: "hsl(var(--brand-deep-blue))",
-  amber: "hsl(var(--brand-amber))",
-  sand: "hsl(var(--brand-sand))",
-  warmBrownLight: "hsl(var(--brand-warm-brown-light))",
-  warmBrownDark: "hsl(var(--brand-warm-brown-dark))",
-  neutral: "hsl(var(--brand-neutral))",
-  neutralLight: "hsl(var(--brand-neutral-light))",
+  brown: "hsl(var(--brand-brown))",
+  lightYellow: "hsl(var(--brand-light-yellow))",
+  cobalt: "hsl(var(--brand-cobalt))",
+  brightOrange: "hsl(var(--brand-bright-orange))",
+  nude: "hsl(var(--brand-nude))",
+  sage: "hsl(var(--brand-sage))",
+  black: "hsl(var(--brand-black))",
+  white: "hsl(var(--brand-white))",
 };
 
-// Typography classes for consistent styling
+// Typography classes for consistent styling - Updated to match brand guidelines
 export const essentialsTypography = {
-  hero: "text-5xl font-bold tracking-tight text-brand-warm-brown lg:text-7xl",
-  title: "text-3xl font-semibold text-brand-warm-brown tracking-tight",
-  subtitle: "text-xl font-medium text-brand-warm-brown",
-  body: "text-brand-warm-brown/80 leading-relaxed",
-  caption: "text-sm text-brand-warm-brown/60",
-  code: "font-mono text-brand-deep-blue bg-brand-neutral px-2 py-1 rounded",
+  hero: "text-5xl font-semibold tracking-normal text-brand-brown lg:text-7xl",
+  title: "text-3xl font-semibold text-brand-brown tracking-normal",
+  subtitle: "text-xl font-semibold text-brand-brown tracking-normal",
+  body: "text-brand-brown/80 leading-relaxed font-light",
+  caption: "text-sm text-brand-brown/60 font-light",
+  code: "font-mono text-brand-cobalt bg-brand-light-yellow px-2 py-1 rounded",
+  tagline: "brand-tagline",
+  services: "brand-services",
+  cta: "brand-cta",
 };
 
 // Animation classes
