@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import MobileNavbar from "./_components/MobileNavbar"
+import DesktopNavbar from "./_components/DesktopNavbar"
+import SharedLayout from "./_components/SharedLayout"
 
 // Import existing components
 import Dashboard from "./_components/dashboard/Dashboard"
@@ -17,32 +19,32 @@ import EditFormDialog from "@/app/_components/onboarding/profile/EditFormDialog"
 import { useProfileCompletion, type FormData, type FormType } from "@/hooks/useProfileCompletion"
 import ClassRecommendations from "./_components/dashboard/ClassRecommendations"
 
-// Home component 
+// Home component
 const HomeComponent = () => (
-  <div className="p-4">
+  <SharedLayout title="Home">
     <Dashboard />
-  </div>
+  </SharedLayout>
 )
 
 // PT component
 const PTComponent = () => (
-  <div className="p-4">
+  <SharedLayout title="Personal Trainer">
     <PersonalTrainer />
-  </div>
+  </SharedLayout>
 )
 
-// Plan component 
+// Plan component
 const PlanComponent = () => (
-  <div className="p-4">
+  <SharedLayout title="Your Plan">
     <ClassRecommendations />
-  </div>
+  </SharedLayout>
 )
 
 // History component
 const HistoryComponent = () => (
-  <div className="p-4">
+  <SharedLayout title="Workout History">
     <WorkoutHistory />
-  </div>
+  </SharedLayout>
 )
 
 // Profile component - using existing profile logic
@@ -208,48 +210,49 @@ const ProfileComponent = () => {
   }
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">Profile</h1>
-      <div className="grid grid-cols-1 gap-4">
-        {formSections.map((section) => (
-          <Card
-            key={section.type}
-            className="p-4 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setSelectedForm(section.type)}
-          >
-            <div className="flex items-start space-x-4">
-              <div
-                className="p-2 rounded-lg"
-                style={{ backgroundColor: `${section.color}20` }}
-              >
-                <div style={{ color: section.color }}>{section.icon}</div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900">{section.title}</h3>
-                <p className="text-sm text-gray-500">{section.description}</p>
-                <div className="mt-2">
-                  <Progress value={section.completion} className="h-2" />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {section.completion}% Complete
-                  </p>
+    <SharedLayout title="Profile">
+      <>
+        <div className="grid grid-cols-1 gap-4">
+          {formSections.map((section) => (
+            <Card
+              key={section.type}
+              className="p-4 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setSelectedForm(section.type)}
+            >
+              <div className="flex items-start space-x-4">
+                <div
+                  className="p-2 rounded-lg"
+                  style={{ backgroundColor: `${section.color}20` }}
+                >
+                  <div style={{ color: section.color }}>{section.icon}</div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900">{section.title}</h3>
+                  <p className="text-sm text-gray-500">{section.description}</p>
+                  <div className="mt-2">
+                    <Progress value={section.completion} className="h-2" />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {section.completion}% Complete
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
 
-      {selectedForm && formData && (
-        <EditFormDialog
-          open={!!selectedForm}
-          onOpenChange={(open) => !open && setSelectedForm(null)}
-          formType={selectedForm}
-          formData={formData[selectedForm]}
-          onSubmit={(data) => handleFormSubmit(selectedForm, data)}
-          formSections={formSections}
-        />
-      )}
-    </div>
+        {selectedForm && formData && (
+          <EditFormDialog
+            open={!!selectedForm}
+            onOpenChange={(open) => !open && setSelectedForm(null)}
+            formType={selectedForm}
+            formData={formData[selectedForm]}
+            onSubmit={(data) => handleFormSubmit(selectedForm, data)}
+            formSections={formSections}
+          />
+        )}
+      </>
+    </SharedLayout>
   )
 }
 
@@ -269,15 +272,20 @@ export default function HomePage() {
   const ActiveComponent = componentMap[activeComponent]
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="min-h-screen">
-        <ActiveComponent />
-      </div>
-
-      <MobileNavbar
+    <div className="md:min-h-screen bg-gray-50">
+      <DesktopNavbar
         activeComponent={activeComponent}
         onComponentChange={setActiveComponent}
       />
+      <div className="min-h-screen pb-24 md:pt-20 md:pb-8">
+        <ActiveComponent />
+      </div>
+      <div className="md:hidden">
+        <MobileNavbar
+          activeComponent={activeComponent}
+          onComponentChange={setActiveComponent}
+        />
+      </div>
     </div>
   )
 } 
