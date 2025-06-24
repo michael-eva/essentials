@@ -347,16 +347,16 @@ export default function ClassRecommendations() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-lg border border-gray-100"
+          className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-lg border-brand-brown border"
         >
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">No Active Plan</h2>
-          <p className="text-gray-500 mb-6 text-center max-w-md">
+          <p className="text-gray-500 mb-6 text-center">
             You don&apos;t have an active workout plan yet. Create a new plan to get started on your fitness journey!
           </p>
           <Button
             variant="outline"
             onClick={handleGeneratePlan}
-            className="border-gray-200 text-accent hover:bg-gray-50 transition-colors"
+            className="border-none bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 transition-colors"
             disabled={isLoading}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -514,46 +514,53 @@ export default function ClassRecommendations() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: idx * 0.1 }}
                 >
-                  <Card className="border-none hover:shadow-md transition-all">
-                    <CardHeader className="flex flex-row items-center justify-between px-6 py-4">
-                      <div>
-                        <CardTitle className="text-lg font-semibold text-gray-900">{plan.planName}</CardTitle>
-                        <CardDescription className="text-gray-500">{plan.weeks} Week Plan</CardDescription>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-500">{new Date(plan.savedAt).toLocaleDateString()}</span>
-                        <div className="flex gap-2 ml-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleReinstatePlan(idx)}
-                            className="h-8 border-gray-200 text-[#007AFF] hover:bg-gray-50 transition-colors"
-                            aria-label="Reinstate plan"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-                            <span className="hidden sm:inline">Reinstate</span>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeletePreviousPlan(idx)}
-                            className="h-8 border-gray-200 text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
-                            aria-label="Delete plan"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                            <span className="hidden sm:inline">Delete</span>
-                          </Button>
+                  <div className="bg-white/80 border border-gray-100 rounded-xl shadow-sm">
+                    <div className="px-2 pt-6 pb-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                            Previous Plan
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900">{plan.planName}</span>
+                            <span className="text-sm text-gray-500">• {plan.weeks} Week Plan</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-gray-500">{new Date(plan.savedAt).toLocaleDateString()}</span>
+                          <div className="flex gap-2 ml-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleReinstatePlan(idx)}
+                              className="h-8 border-gray-200 text-[#007AFF] hover:bg-gray-50 transition-colors"
+                              aria-label="Reinstate plan"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                              <span className="hidden sm:inline">Reinstate</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeletePreviousPlan(idx)}
+                              className="h-8 border-gray-200 text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
+                              aria-label="Delete plan"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                              <span className="hidden sm:inline">Delete</span>
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
+                    </div>
+                    <div className="p-0">
                       <WeeklySchedule
                         weeks={getWeeklySchedulesForPlan(parseInt(plan.weeks.toString()), idx)}
                         accordionValuePrefix={`prev-${idx}-`}
                         isActivePlan={false}
                       />
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
           </div>
