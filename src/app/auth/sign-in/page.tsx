@@ -101,29 +101,20 @@ function SignInForm() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden bg-brand-white">
       {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black animate-gradient" />
+      <div />
 
-      {/* Animated pattern overlay */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-500/20 via-transparent to-transparent animate-pulse" />
-        <div className="absolute inset-0 bg-[linear-gradient(45deg,_transparent_25%,_rgba(255,255,255,0.05)_25%,_rgba(255,255,255,0.05)_50%,_transparent_50%,_transparent_75%,_rgba(255,255,255,0.05)_75%)] bg-[length:20px_20px]" />
-      </div>
 
-      {/* Glowing accent elements - adjusted for mobile */}
-      <div className="absolute top-1/4 left-1/4 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-red-500/20 rounded-full blur-3xl animate-blob" />
-      <div className="absolute bottom-1/4 right-1/4 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-blue-500/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
-
-      <motion.div className="relative z-10 bg-black/40 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl border border-white/10 shadow-2xl w-full max-w-[90vw] sm:max-w-md">
+      <motion.div className="relative z-10 bg-brand-nude backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl border border-white/10 shadow-2xl w-full max-w-[90vw] sm:max-w-md">
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-brand-brown mb-2">
             {mode === "existing"
               ? "Welcome Back"
               : "Join the Movement"
             }
           </h1>
-          <p className="text-gray-400 text-sm sm:text-base">
+          <p className="text-brand-black text-sm sm:text-base">
             {mode === "existing"
               ? "Ready to push your limits?"
               : "Start your fitness journey today"
@@ -133,7 +124,7 @@ function SignInForm() {
 
         {/* {mode === "existing" && ( */}
         <>
-          <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+          {/* <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -174,16 +165,16 @@ function SignInForm() {
               </svg>
               {socialLoading === "apple" ? "Connecting..." : "Continue with Apple"}
             </motion.button>
-          </div>
+          </div> */}
 
-          <div className="relative my-6 sm:my-8">
+          {/* <div className="relative my-6 sm:my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-700"></div>
             </div>
             <div className="relative flex justify-center text-xs sm:text-sm">
               <span className="px-2 bg-gray-900 text-gray-400">or continue with email</span>
             </div>
-          </div>
+          </div> */}
 
           <form onSubmit={handleEmailSubmit} className="space-y-4 sm:space-y-6">
             <div>
@@ -192,7 +183,7 @@ function SignInForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-brand-light-yellow rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
                 required
               />
             </div>
@@ -203,7 +194,7 @@ function SignInForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-brand-light-yellow  rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
                 required
               />
             </div>
@@ -213,7 +204,7 @@ function SignInForm() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full bg-accent text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+              className="w-full bg-brand-bright-orange text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               {isLoading
                 ? "Thinking..."
@@ -225,11 +216,11 @@ function SignInForm() {
         </>
         {/* )} */}
         <div className="mt-6 sm:mt-8 text-center">
-          <p className="text-gray-400 text-sm sm:text-base">
+          <p className="text-brand-black text-sm sm:text-base">
             {mode === "existing" ? "Don't have an account?" : "Already have an account?"}{" "}
             <Button
               onClick={toggleMode}
-              className="bg-background text-black font-semibold hover:bg-accent/90 text-sm sm:text-base"
+              className="bg-background text-brand-white font-semibold hover:bg-accent/90 text-sm sm:text-base"
             >
               {mode === "existing" ? "Sign Up" : "Sign In"}
             </Button>
@@ -237,8 +228,8 @@ function SignInForm() {
         </div>
 
         <div className="mt-8 sm:mt-12 text-center">
-          <p className="text-gray-500 text-xs sm:text-sm italic">
-            &quot;Insert motivational quote here&quot;
+          <p className="text-brand-light-yellow text-sm sm:text-sm italic font-bold">
+            Experience the Burn.
           </p>
         </div>
       </motion.div>

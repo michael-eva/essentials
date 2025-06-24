@@ -18,7 +18,7 @@ export default function AuthPage() {
     <div className="relative h-screen w-full overflow-hidden">
       {/* Video Background */}
       <video
-        src="https://rflvcogfitcffdappsuz.supabase.co/storage/v1/object/public/marketing-videos//essentials_home.webm"
+        src="https://rflvcogfitcffdappsuz.supabase.co/storage/v1/object/public/marketing-videos//new_essentials.webm"
         autoPlay
         loop
         muted
