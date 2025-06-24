@@ -1,0 +1,1 @@
+ALTER TABLE "onboarding" ALTER COLUMN "custom_apparatus" SET DATA TYPE text[];

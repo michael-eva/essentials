@@ -125,7 +125,7 @@ export const onboardingRouter = createTRPCRouter({
         studioFrequency: z.string().nullable(),
         sessionPreference: z.string().nullable(),
         apparatusPreference: z.array(z.string()),
-        customApparatus: z.string().optional(),
+        customApparatus: z.array(z.string()),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -220,7 +220,7 @@ export const onboardingRouter = createTRPCRouter({
         // instructors: [],
         // customInstructor: null,
         apparatusPreference: [],
-        customApparatus: null,
+        customApparatus: [],
         motivation: [],
         otherMotivation: [],
         progressTracking: [],

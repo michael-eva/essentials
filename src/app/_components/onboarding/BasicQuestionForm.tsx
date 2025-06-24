@@ -10,6 +10,7 @@ import FormLayout from "./FormLayout";
 import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
 import { GENDER } from "@/app/_constants/gender";
+import { SECTION_LABELS } from "@/app/_constants/ui-labels";
 
 export const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -94,7 +95,7 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
             isSubmitting={isSubmitting}
         >
             <form className="space-y-8 max-w-md mx-auto px-2">
-                <h2 className="text-2xl font-medium text-gray-900">Basic Information</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{SECTION_LABELS.BASIC_QUESTION.TITLE}</h2>
                 <p className="text-gray-500">Tell us a bit about yourself to personalize your experience.</p>
 
                 <div className="space-y-8">
