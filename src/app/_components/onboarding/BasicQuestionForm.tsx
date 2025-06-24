@@ -95,7 +95,7 @@ export default function BasicQuestionForm({ isFirstStep, isLastStep, currentStep
             isSubmitting={isSubmitting}
         >
             <form className="space-y-8 max-w-md mx-auto px-2">
-                <h2 className="text-2xl font-bold text-gray-900 " >{SECTION_LABELS.BASIC_QUESTION.TITLE}</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{SECTION_LABELS.BASIC_QUESTION.TITLE}</h2>
                 <p className="text-gray-500">Tell us a bit about yourself to personalize your experience.</p>
 
                 <div className="space-y-8">
