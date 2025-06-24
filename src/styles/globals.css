@@ -66,22 +66,22 @@
   --radius: 0.5rem;
   
   /* Essentials Studio Brand Color Palette - Updated to match guidelines */
-  --brand-brown: 29 33% 33%; /* #705444 - Primary brand color */
-  --brand-brown-rgb: 112, 84, 68;
-  --brand-light-yellow: 60 100% 95%; /* #fffce8 - Primary complementary */
-  --brand-light-yellow-rgb: 255, 252, 232;
-  --brand-cobalt: 225 49% 45%; /* #3c5daa - Attention/CTA */
-  --brand-cobalt-rgb: 60, 93, 170;
-  --brand-bright-orange: 38 100% 52%; /* #ffab0c - Accent/Flare */
-  --brand-bright-orange-rgb: 255, 171, 12;
-  --brand-nude: 36 25% 70%; /* #c9b59d - Soft accent */
-  --brand-nude-rgb: 201, 181, 157;
-  --brand-sage: 120 15% 60%; /* #8ca88f - Flexible accent */
-  --brand-sage-rgb: 140, 168, 143;
-  --brand-black: 0 0% 0%; /* #000000 */
-  --brand-black-rgb: 0, 0, 0;
-  --brand-white: 0 0% 100%; /* #ffffff */
-  --brand-white-rgb: 255, 255, 255;
+  --brand-brown: hsl(29 33% 33%); /* #705444 - Primary brand color */
+  --brand-brown-rgb: hsl(112, 84, 68);
+  --brand-light-yellow: hsl(60 100% 95%); /* #fffce8 - Primary complementary */
+  --brand-light-yellow-rgb: hsl(255, 252, 232);
+  --brand-cobalt: hsl(225 49% 45%); /* #3c5daa - Attention/CTA */
+  --brand-cobalt-rgb: hsl(60, 93, 170);
+  --brand-bright-orange: hsl(38 100% 52%); /* #ffab0c - Accent/Flare */
+  --brand-bright-orange-rgb: hsl(38, 100, 52);
+  --brand-nude: hsl(36 25% 70%); /* #c9b59d - Soft accent */
+  --brand-nude-rgb: hsl(36, 25, 70);
+  --brand-sage: hsl(120 15% 60%); /* #8ca88f - Flexible accent */
+  --brand-sage-rgb: hsl(140, 168, 143);
+  --brand-black: hsl(0 0% 0%); /* #000000 */
+  --brand-black-rgb: hsl(0, 0, 0);
+  --brand-white: hsl(0 0% 100%); /* #ffffff */
+  --brand-white-rgb: hsl(255, 255, 255);
   
   /* Light theme - Essentials Studio inspired */
   --background: hsl(var(--brand-light-yellow));
