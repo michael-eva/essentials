@@ -1,0 +1,1 @@
+ALTER TABLE "pilates_videos" ALTER COLUMN "mux_asset_id" DROP NOT NULL;
