@@ -20,19 +20,19 @@ interface FitnessBgFormProps {
 }
 
 export const formSchema = z.object({
-  fitnessLevel: z.enum(FITNESS_LEVEL, {
-    required_error: "Fitness level is required",
-  }),
+    fitnessLevel: z.enum(FITNESS_LEVEL, {
+      required_error: "Fitness level is required",
+    }),
   exercises: z.array(z.string()).min(1, "Please select at least one exercise"),
-  otherExercises: z.array(z.string()).optional(),
-  exerciseFrequency: z.enum(EXERCISE_FREQUENCY, {
-    required_error: "Exercise frequency is required",
-  }),
-  sessionLength: z.enum(SESSION_LENGTH, {
-    required_error: "Session length is required",
-  }),
-  customExercise: z.string().optional(),
-})
+    otherExercises: z.array(z.string()).optional(),
+    exerciseFrequency: z.enum(EXERCISE_FREQUENCY, {
+      required_error: "Exercise frequency is required",
+    }),
+    sessionLength: z.enum(SESSION_LENGTH, {
+      required_error: "Session length is required",
+    }),
+    customExercise: z.string().optional(),
+  })
   .refine(
     (data) => {
       // If "Other" is selected, at least one custom exercise must be added
@@ -173,7 +173,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
                     type="text"
                     placeholder="Add custom exercise"
                     className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.otherExercises ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
-                      }`}
+                    }`}
                   />
                   <Button
                     type="button"
