@@ -6,7 +6,6 @@ import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/react";
 import { ThemeProvider } from "./_components/theme-provider";
 import { Toaster } from 'sonner'
-import AppLayout from "./_components/common/DashboardLayout";
 import { SessionProvider } from '@/contexts/SessionContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 

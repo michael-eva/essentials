@@ -1,64 +1,27 @@
 "use client"
-
-import { useState } from "react"
-import {
-  Home,
-  User,
-  Calendar,
-  History,
-  Dumbbell,
-  type LucideIcon
-} from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { NavigationItem } from "../dashboard/layout"
+import { useRouter } from "next/navigation"
 
-// Define the navigation items
-const navigationItems = [
-  {
-    name: "Home",
-    icon: Home,
-    component: "home"
-  },
-  {
-    name: "My PT",
-    icon: User,
-    component: "pt"
-  },
-  {
-    name: "Your Plan",
-    icon: Calendar,
-    component: "plan"
-  },
-  {
-    name: "History",
-    icon: History,
-    component: "history"
-  },
-  {
-    name: "Profile",
-    icon: Dumbbell,
-    component: "profile"
-  }
-] as const
-
-type ComponentType = typeof navigationItems[number]["component"]
 
 interface MobileNavbarProps {
-  onComponentChange: (component: ComponentType) => void
-  activeComponent: ComponentType
+  currentTab: string
+  navigationItems: NavigationItem[]
 }
 
-export default function MobileNavbar({ onComponentChange, activeComponent }: MobileNavbarProps) {
+export default function MobileNavbar({ currentTab, navigationItems }: MobileNavbarProps) {
+  const router = useRouter()
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg"
     >
       <div className="flex items-center justify-around px-2 py-2">
         {navigationItems.map((item) => {
-          const isActive = activeComponent === item.component
+          const isActive = currentTab === item.href.split('/').pop()
           return (
             <button
-              key={item.component}
-              onClick={() => onComponentChange(item.component)}
+              key={item.href}
+              onClick={() => router.push(item.href)}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all duration-200",
                 isActive

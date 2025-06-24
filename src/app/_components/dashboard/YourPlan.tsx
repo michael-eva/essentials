@@ -13,6 +13,7 @@ import { motion } from "framer-motion"
 import { ActivePlanSkeleton, PreviousPlansSkeleton } from "./ClassRecommendationsSkeleton"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import DefaultBox from "../global/DefaultBox"
 
 
 
@@ -336,12 +337,7 @@ export default function ClassRecommendations() {
     generatePlan();
   };
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
+    <DefaultBox title="Your Personalised Plan" description="Combined classes and supplementary workouts" showViewAll={false}>
       {OnboardingDialog}
       <LoadingScreen />
       {isLoadingActivePlan ? (
@@ -373,13 +369,10 @@ export default function ClassRecommendations() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
-            <CardHeader className="px-6 pt-6 pb-4">
+          <div className="bg-white">
+            <div className="px-2 pt-6 pb-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <CardTitle className="text-2xl font-semibold text-gray-900">Your Personalized Plan</CardTitle>
-                  <CardDescription className="text-gray-500">Combined classes and supplementary workouts</CardDescription>
-                </div>
+
                 <div className="flex items-center gap-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${planStatus === 'active'
                     ? 'bg-[#34C759]/10 text-[#34C759]'
@@ -404,8 +397,8 @@ export default function ClassRecommendations() {
                   </div>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
+            </div>
+            <div className="p-0">
               <WeeklySchedule
                 weeks={getWeeklySchedules()}
                 isEditing={planStatus === 'not started'}
@@ -416,8 +409,8 @@ export default function ClassRecommendations() {
                 onToggleWeekEdit={toggleWeekEdit}
                 isActivePlan={true}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       )}
 
@@ -431,14 +424,14 @@ export default function ClassRecommendations() {
           <Button
             variant="outline"
             onClick={handleGeneratePlan}
-            className="border-gray-200 text-accent hover:bg-gray-50 transition-colors"
+            className="border-brand-brown text-accent hover:bg-gray-50 transition-colors"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create New Plan
           </Button>
           <Button
             onClick={handleStartPlan}
-            className="bg-accent text-white hover:bg-accent/90 transition-colors"
+            className="bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 transition-colors"
           >
             <Play className="w-4 h-4 mr-2" />
             Start Plan
@@ -457,7 +450,7 @@ export default function ClassRecommendations() {
             <Button
               variant="outline"
               onClick={handlePausePlan}
-              className="border-gray-200 text-[#FF9500] hover:bg-[#FF9500]/10 transition-colors"
+              className="text-brand-white border-none bg-brand-bright-orange transition-colors"
             >
               <Pause className="w-4 h-4 mr-2" />
               Pause
@@ -466,7 +459,7 @@ export default function ClassRecommendations() {
             <Button
               variant="outline"
               onClick={handleStartPlan}
-              className="border-gray-200 text-[#34C759] hover:bg-[#34C759]/10 transition-colors"
+              className="border-none text-brand-white bg-brand-bright-orange hover:bg-gray-50 transition-colors"
             >
               <Play className="w-4 h-4 mr-2" />
               Resume
@@ -476,7 +469,7 @@ export default function ClassRecommendations() {
             <Button
               variant="outline"
               onClick={handleRestartPlan}
-              className="border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+              className="border-brand-brown text-brand-black hover:bg-gray-50 transition-colors"
             >
               <RotateCcw className="w-4 h-4 mr-2" />
               Reset
@@ -521,7 +514,7 @@ export default function ClassRecommendations() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: idx * 0.1 }}
                 >
-                  <Card className="border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all">
+                  <Card className="border-none hover:shadow-md transition-all">
                     <CardHeader className="flex flex-row items-center justify-between px-6 py-4">
                       <div>
                         <CardTitle className="text-lg font-semibold text-gray-900">{plan.planName}</CardTitle>
@@ -651,7 +644,7 @@ export default function ClassRecommendations() {
           </div>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </DefaultBox>
   )
 }
 

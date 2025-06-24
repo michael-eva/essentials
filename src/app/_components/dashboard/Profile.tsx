@@ -6,7 +6,6 @@ import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
 import { api } from "@/trpc/react"
 import EditFormDialog from "@/app/_components/onboarding/profile/EditFormDialog"
-import DashboardHeader from "@/app/_components/common/DashboardHeader"
 import { useProfileCompletion, type FormData, type FormType } from "@/hooks/useProfileCompletion"
 
 export default function ProfilePage() {
@@ -171,8 +170,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <DashboardHeader />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto py-8 max-w-4xl">
         <div className="space-y-6">
           <h1 className="text-2xl font-bold">Profile</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
