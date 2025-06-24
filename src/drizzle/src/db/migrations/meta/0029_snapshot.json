@@ -1,6 +1,6 @@
 {
-  "id": "29a5f564-6f65-47dd-bd56-bb6cd5bd753e",
-  "prevId": "85f3e31a-2e9d-46a3-98d4-35dd744cc13b",
+  "id": "253aed2b-b062-4082-8da2-f284a5e9f6df",
+  "prevId": "5a58d295-779e-4708-bccf-8310811b02a8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -237,6 +237,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "mux_asset_id": {
+          "name": "mux_asset_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -455,7 +461,7 @@
         },
         "custom_apparatus": {
           "name": "custom_apparatus",
-          "type": "text[]",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },

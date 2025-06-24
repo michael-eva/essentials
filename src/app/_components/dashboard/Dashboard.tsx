@@ -191,7 +191,7 @@ export default function Dashboard() {
           upcomingClasses.map((classItem, index) => (
             <div
               key={index}
-              className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0"
+              className="flex items-center justify-between bg-brand-white border-b px-4 rounded-lg border-gray-100 py-3 last:border-0 last:pb-0"
             >
               <div>
                 <p className="font-medium text-gray-900">{classItem.name}</p>
@@ -212,9 +212,6 @@ export default function Dashboard() {
                     },
                   )}
                 </span>
-                <button className="rounded-md bg-gray-100 px-3 py-1 text-sm text-gray-700 transition-colors hover:bg-gray-200">
-                  Manage Booking
-                </button>
               </div>
             </div>
           ))
@@ -230,18 +227,6 @@ export default function Dashboard() {
           <WorkoutLoggingSkeleton />
         ) : (
           <>
-            {pastWorkouts.length > 0 && (
-              <Button
-                onClick={() => setIsManualActivityDialogOpen(true)}
-                className="bg-accent hover:bg-accent/90 flex w-full items-center gap-2 text-white transition-colors"
-                disabled={isInsertingManualActivity}
-              >
-                <Plus className="h-4 w-4" />
-                {isInsertingManualActivity
-                  ? "Recording..."
-                  : "Record Manual Activity"}
-              </Button>
-            )}
             {pastWorkouts.length === 0 ? (
               <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
                 <div className="flex flex-col items-center space-y-2">
@@ -266,7 +251,7 @@ export default function Dashboard() {
                 </Button>
               </div>
             ) : (
-              <div className="mt-4 space-y-4">
+              <div className=" space-y-4 pb-4">
                 {pastWorkouts.map((workout, index) => (
                   <div
                     key={index}
@@ -295,27 +280,39 @@ export default function Dashboard() {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-6 flex gap-3 self-end">
+                    <div className="mt-6 flex gap-3 self-center">
                       <Button
-                        className="bg-[#34C759] text-white transition-colors hover:bg-[#34C759]/90"
+                        className="bg-[#34C759]/90 text-white font-bold transition-colors hover:bg-[#34C759]"
                         onClick={() => handleMarkComplete(workout)}
                         disabled={isInsertingCompletedClass}
                       >
                         {isInsertingCompletedClass
-                          ? "Marking..."
-                          : "Mark Complete"}
+                          ? "Completing..."
+                          : "Complete"}
                       </Button>
                       <Button
-                        className="bg-[#FF3B30] text-white transition-colors hover:bg-[#FF3B30]/90"
+                        className="bg-[#FF3B30]/80 text-white font-bold transition-colors hover:bg-[#FF3B30]/90"
                         onClick={() => handleMarkMissed(workout)}
                         disabled={isUpdatingWorkoutStatus}
                       >
-                        {isUpdatingWorkoutStatus ? "Marking..." : "Mark Missed"}
+                        {isUpdatingWorkoutStatus ? "Marking..." : "Missed"}
                       </Button>
                     </div>
                   </div>
                 ))}
               </div>
+            )}
+            {pastWorkouts.length > 0 && (
+              <Button
+                onClick={() => setIsManualActivityDialogOpen(true)}
+                className=" flex w-full items-center gap-2 text-white transition-colors"
+                disabled={isInsertingManualActivity}
+              >
+                <Plus className="h-4 w-4" />
+                {isInsertingManualActivity
+                  ? "Recording..."
+                  : "Record Manual Activity"}
+              </Button>
             )}
           </>
         )}
@@ -344,7 +341,7 @@ export default function Dashboard() {
             </div>
             <Button
               variant="outline"
-              className="text-accent w-full max-w-sm border-gray-200 transition-colors hover:bg-gray-50 bg-brand-amber"
+              className="text-accent w-full max-w-sm border-gray-200 transition-colors hover:bg-gray-50 bg-brand-bright-orange"
               onClick={() => setIsManualActivityDialogOpen(true)}
               disabled={isInsertingManualActivity}
             >
