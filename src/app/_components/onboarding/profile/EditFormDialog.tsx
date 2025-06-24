@@ -15,7 +15,7 @@ import { HEALTH_CONDITIONS, PREGNANCY_OPTIONS, type PregnancyOption } from "@/ap
 import { GENDER, type Gender } from "@/app/_constants/gender"
 import { DEFAULT_EXERCISE_OPTIONS, EXERCISE_FREQUENCY, FITNESS_LEVEL, SESSION_LENGTH, type ExerciseFrequency, type FitnessLevel, type SessionLength } from "@/app/_constants/fitness"
 import { GOAL_TIMELINE, GOALS, type GoalTimeline } from "@/app/_constants/goals"
-import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, type PilatesApparatus, type PilatesDuration, type PilatesSessionPreference, type PilatesSessions } from "@/app/_constants/pilates"
+import { CUSTOM_PILATES_APPARATUS, PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, type CustomPilateApparatus, type PilatesApparatus, type PilatesDuration, type PilatesSessionPreference, type PilatesSessions } from "@/app/_constants/pilates"
 import { MOTIVATION_FACTORS, PROGRESS_TRACKING_METHODS, type MotivationFactor, type ProgressTrackingMethod } from "@/app/_constants/motivation"
 
 type FormType = "basicQuestion" | "fitnessBg" | "goals" | "healthCons" | "pilates" | "motivation"
@@ -62,7 +62,7 @@ interface FormData {
     studioFrequency: PilatesSessions | null;
     sessionPreference: PilatesSessionPreference | null;
     apparatusPreference: PilatesApparatus[];
-    customApparatus: string | null;
+    customApparatus: CustomPilateApparatus[];
   };
 }
 
@@ -127,7 +127,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
           // instructors: [],
           // customInstructor: null,
           apparatusPreference: [],
-          customApparatus: null
+          customApparatus: []
         } as FormData["pilates"]
       case "motivation":
         return {
@@ -191,7 +191,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
         instructors: [],
         customInstructor: null,
         apparatusPreference: [],
-        customApparatus: null
+        customApparatus: []
       },
       motivation: {
         motivation: [],
@@ -407,7 +407,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
           <>
             <div className="space-y-4">
               <div>
-                <Label>Injuries</Label>
+                <Label>Injuries (Past & Present)</Label>
                 <RadioGroup
                   value={typedData.injuries === null ? "" : typedData.injuries ? "true" : "false"}
                   onValueChange={(value) => setData({ ...typedData, injuries: value === "" ? null : value === "true" })}
@@ -432,7 +432,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 )}
               </div>
               <div>
-                <Label>Recent Surgery</Label>
+                <Label>Recent or Past Surgery</Label>
                 <RadioGroup
                   value={typedData.recentSurgery === null ? "" : typedData.recentSurgery ? "true" : "false"}
                   onValueChange={(value) => setData({ ...typedData, recentSurgery: value === "" ? null : value === "true" })}
@@ -457,7 +457,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 )}
               </div>
               <div>
-                <Label>Chronic Conditions</Label>
+                <Label>Health Considerations</Label>
                 <MultiSelectPills
                   options={HEALTH_CONDITIONS}
                   selectedValues={typedData.chronicConditions}
@@ -556,7 +556,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 </Select>
               </div>
               <div>
-                <Label htmlFor="sessionPreference">Session Preference</Label>
+                <Label htmlFor="sessionPreference">Preferred Class Type</Label>
                 <Select
                   value={typedData.sessionPreference ?? ""}
                   onValueChange={(value: PilatesSessionPreference) => setData({ ...typedData, sessionPreference: value })}
@@ -572,66 +572,44 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 </Select>
               </div>
               <div>
-                <Label>Apparatus Preference</Label>
+                <Label>Type of Pilates</Label>
                 <MultiSelectPills
                   options={PILATES_APPARATUS}
                   selectedValues={typedData.apparatusPreference}
                   onChange={(value) => {
-                    const currentPreference = typedData.apparatusPreference
+                    const currentPreference = typedData.apparatusPreference;
                     const newPreference = currentPreference.includes(value)
-                      ? currentPreference.filter(p => p !== value)
-                      : [...currentPreference, value]
-                    setData({ ...typedData, apparatusPreference: newPreference })
+                      ? currentPreference.filter((p) => p !== value)
+                      : [...currentPreference, value];
+                    setData({
+                      ...typedData,
+                      apparatusPreference: newPreference,
+                    });
                   }}
                 />
-                <div className="mt-4 flex gap-2">
-                  <Input
-                    placeholder="Add custom apparatus"
-                    value={typedData.customApparatus ?? ""}
-                    onChange={(e) => setData({ ...typedData, customApparatus: e.target.value || null })}
-                    className="flex-1 rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
-                    style={{ height: "44px", fontSize: "15px" }}
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      if (typedData.customApparatus) {
-                        const newPreference = [...typedData.apparatusPreference, typedData.customApparatus]
-                        setData({
-                          ...typedData,
-                          apparatusPreference: newPreference,
-                          customApparatus: null
-                        })
-                      }
-                    }}
-                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    Add
-                  </Button>
-                </div>
-                <div className="mt-3 space-y-2">
-                  {typedData.apparatusPreference
-                    .filter(apparatus => !PILATES_APPARATUS.includes(apparatus))
-                    .map((apparatus) => (
-                      <div key={apparatus} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                        <span className="text-sm text-gray-700">{apparatus}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newPreference = typedData.apparatusPreference.filter(p => p !== apparatus)
-                            setData({ ...typedData, apparatusPreference: newPreference })
-                          }}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                </div>
+               
+              </div>
+              <div>
+                <Label>Custom Apparatus</Label>
+                <MultiSelectPills
+                  options={CUSTOM_PILATES_APPARATUS}
+                  selectedValues={typedData.customApparatus}
+                  onChange={(value) => {
+                    const currentPreference = typedData.customApparatus;
+                    const newPreference = currentPreference.includes(value)
+                      ? currentPreference.filter((p) => p !== value)
+                      : [...currentPreference, value];
+                    setData({
+                      ...typedData,
+                      customApparatus: newPreference,
+                    });
+                  }}
+                />
+             
               </div>
             </div>
           </>
-        )
+        );
       }
 
       case "motivation": {

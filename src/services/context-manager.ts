@@ -42,7 +42,7 @@ export type UserContext = {
     studioFrequency: string | null;
     sessionPreference: string | null;
     apparatusPreference: string[] | null;
-    customApparatus: string | null;
+    customApparatus: string[] | null;
 
     // Motivation
     motivation: string[] | null;

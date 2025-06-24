@@ -1,5 +1,5 @@
 {
-  "id": "3b259f23-8805-4c40-a138-2a870207d646",
+  "id": "29a5f564-6f65-47dd-bd56-bb6cd5bd753e",
   "prevId": "85f3e31a-2e9d-46a3-98d4-35dd744cc13b",
   "version": "7",
   "dialect": "postgresql",
@@ -455,7 +455,7 @@
         },
         "custom_apparatus": {
           "name": "custom_apparatus",
-          "type": "text",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },

@@ -14,7 +14,9 @@ function FormProgress({ currentStep }: { currentStep: typeof STEPS[number] }) {
             </div>
             <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div
-                    className="bg-black h-1.5 rounded-full transition-all duration-300"
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                        progress === 100 ? "bg-brand-deep-blue" : "bg-brand-amber"
+                    }`}
                     style={{ width: `${progress}%` }}
                 />
             </div>

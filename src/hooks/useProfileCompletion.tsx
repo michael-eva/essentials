@@ -1,11 +1,14 @@
 import { useMemo } from "react"
 import { api } from "@/trpc/react"
 import { User, Dumbbell, Target, Heart, Sparkles, Activity } from "lucide-react"
+
 import type { Gender } from "@/app/_constants/gender";
-import type { ExerciseFrequency, FitnessLevel, SessionLength } from "@/app/_constants/fitness";
 import type { GoalTimeline } from "@/app/_constants/goals";
+import { SECTION_LABELS } from "@/app/_constants/ui-labels";
 import type { HealthCondition, PregnancyOption } from "@/app/_constants/health";
 import type { MotivationFactor, ProgressTrackingMethod } from "@/app/_constants/motivation";
+import type { ExerciseFrequency, FitnessLevel, SessionLength } from "@/app/_constants/fitness";
+import type { PilatesSessionPreference } from "@/app/_constants/pilates";
 
 // Form data interface with proper optional types
 export interface FormData {
@@ -47,9 +50,9 @@ export interface FormData {
     pilatesExperience: boolean | null;
     pilatesDuration: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null;
     studioFrequency: "1 time per week" | "1 - 2 times per month" | "2 - 3 times per week" | "3 - 4 times per week" | "4+ times per week" | null;
-    sessionPreference: "Group classes" | "Private sessions" | "Both" | "No preference" | null;
+    sessionPreference: PilatesSessionPreference | null;
     apparatusPreference: string[];
-    customApparatus: string | null;
+    customApparatus: string[];
   };
 }
 
@@ -105,7 +108,7 @@ export function useProfileCompletion() {
         studioFrequency: onboardingData.studioFrequency as "1 time per week" | "1 - 2 times per month" | "2 - 3 times per week" | "3 - 4 times per week" | "4+ times per week" | null,
         sessionPreference: onboardingData.sessionPreference as "Group classes" | "Private sessions" | "Both" | "No preference" | null,
         apparatusPreference: onboardingData.apparatusPreference ?? [],
-        customApparatus: onboardingData.customApparatus
+        customApparatus: onboardingData.customApparatus ?? []
       },
       motivation: {
         motivation: onboardingData.motivation ?? [],
@@ -205,51 +208,51 @@ export function useProfileCompletion() {
   const formSections = useMemo(() => [
     {
       type: "basicQuestion" as FormType,
-      title: "Basic Info",
-      description: "Tell us about yourself",
+      title: SECTION_LABELS.BASIC_QUESTION.TITLE,
+      description: SECTION_LABELS.BASIC_QUESTION.DESCRIPTION,
       icon: <User className="w-5 h-5" />,
       completion: calculateCompletion("basicQuestion"),
-      color: "#007AFF"
+      color: SECTION_LABELS.BASIC_QUESTION.COLOR
     },
     {
       type: "fitnessBg" as FormType,
-      title: "Fitness Background",
-      description: "Your exercise history",
+      title: SECTION_LABELS.FITNESS_BG.TITLE,
+      description: SECTION_LABELS.FITNESS_BG.DESCRIPTION,
       icon: <Dumbbell className="w-5 h-5" />,
       completion: calculateCompletion("fitnessBg"),
-      color: "#FF9500"
+      color: SECTION_LABELS.FITNESS_BG.COLOR
     },
     {
       type: "goals" as FormType,
-      title: "Goals",
-      description: "What you want to achieve",
+      title: SECTION_LABELS.GOALS.TITLE,
+      description: SECTION_LABELS.GOALS.DESCRIPTION,
       icon: <Target className="w-5 h-5" />,
       completion: calculateCompletion("goals"),
-      color: "#FF2D55"
+      color: SECTION_LABELS.GOALS.COLOR
     },
     {
       type: "healthCons" as FormType,
-      title: "Health Considerations",
-      description: "Important health information",
+      title: SECTION_LABELS.HEALTH_CONS.TITLE,
+      description: SECTION_LABELS.HEALTH_CONS.DESCRIPTION,
       icon: <Heart className="w-5 h-5" />,
       completion: calculateCompletion("healthCons"),
-      color: "#5856D6"
+      color: SECTION_LABELS.HEALTH_CONS.COLOR
     },
     {
       type: "motivation" as FormType,
-      title: "Motivation",
-      description: "What drives you",
+      title: SECTION_LABELS.MOTIVATION.TITLE,
+      description: SECTION_LABELS.MOTIVATION.DESCRIPTION,
       icon: <Sparkles className="w-5 h-5" />,
       completion: calculateCompletion("motivation"),
-      color: "#FFCC00"
+      color: SECTION_LABELS.MOTIVATION.COLOR
     },
     {
       type: "pilates" as FormType,
-      title: "Pilates",
-      description: "Your Pilates experience",
+      title: SECTION_LABELS.PILATES.TITLE,
+      description: SECTION_LABELS.PILATES.DESCRIPTION,
       icon: <Activity className="w-5 h-5" />,
       completion: calculateCompletion("pilates"),
-      color: "#34C759"
+      color: SECTION_LABELS.PILATES.COLOR
     }
   ], [calculateCompletion, formData]) as FormSection[]
 
