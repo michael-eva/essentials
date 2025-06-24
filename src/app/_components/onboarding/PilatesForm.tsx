@@ -10,7 +10,7 @@ import FormLayout from "./FormLayout";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
-import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS } from "@/app/_constants/pilates";
+import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, CUSTOM_PILATES_APPARATUS } from "@/app/_constants/pilates";
 
 interface PilatesFormProps {
     isFirstStep?: boolean;
@@ -30,7 +30,7 @@ export const formSchema = z.object({
         required_error: "Please select your session preference",
     }),
     apparatusPreference: z.array(z.string()).min(1, "Please select at least one apparatus preference"),
-    customApparatus: z.string().optional(),
+    customApparatus: z.array(z.string()).min(1, "Please select at least one apparatus preference"),
 }).refine(
     (data) => {
         return data.pilatesExperience ? data.pilatesDuration !== undefined : true;
@@ -51,8 +51,8 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
             pilatesDuration: isDeveloper() ? "3-6 months" : undefined,
             studioFrequency: isDeveloper() ? "1 time per week" : undefined,
             sessionPreference: isDeveloper() ? "Group classes" : undefined,
-            apparatusPreference: isDeveloper() ? ["Reformer", "Cadillac"] : [],
-            customApparatus: "",
+            apparatusPreference:[],
+            customApparatus: [],
         }
     });
     const { mutate: postPilatesExperience } = api.onboarding.postPilatesExperience.useMutation()
@@ -66,13 +66,12 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
         setValue("apparatusPreference", newApparatus);
     };
 
-    const handleCustomApparatus = () => {
-        const customApparatus = watch("customApparatus") ?? "";
-        if (customApparatus.trim()) {
-            const currentApparatus = watch("apparatusPreference");
-            setValue("apparatusPreference", [...currentApparatus, customApparatus]);
-            setValue("customApparatus", "");
-        }
+    const handleCustomApparatusChange = (apparatus: string) => {
+        const currentApparatus = watch("customApparatus") ?? [];
+        const newApparatus = currentApparatus.includes(apparatus)
+            ? currentApparatus.filter((a) => a !== apparatus)
+            : [...currentApparatus, apparatus];
+        setValue("customApparatus", newApparatus);
     };
 
     const onSubmit = async (): Promise<boolean> => {
@@ -239,36 +238,24 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                                 />
                             )}
                         />
-                        <div className="mt-4 flex gap-2">
-                            <Input
-                                {...register("customApparatus")}
-                                type="text"
-                                placeholder="Add custom apparatus"
-                                className="flex-1"
+                        <div className="mt-4">
+                            <label className="block text-base font-medium text-gray-700 mb-4">
+                                Do you use any of the following at home?
+                            </label>
+                            {errors.customApparatus && (
+                            <p className="mb-2 text-sm text-red-600">{errors.customApparatus?.message}</p>
+                        )}
+                            <Controller
+                                name="customApparatus"
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelectPills
+                                        options={CUSTOM_PILATES_APPARATUS}
+                                        selectedValues={field.value}
+                                        onChange={handleCustomApparatusChange}
+                                    />
+                                )}
                             />
-                            <button
-                                type="button"
-                                onClick={handleCustomApparatus}
-                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                Add
-                            </button>
-                        </div>
-                        <div className="mt-3 space-y-2">
-                            {watch("apparatusPreference")
-                                .filter(apparatus => !["Reformer", "Cadillac", "Chair", "Barrel", "Tower", "Mat work only", "Not sure yet"].includes(apparatus))
-                                .map((apparatus) => (
-                                    <div key={apparatus} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                                        <span className="text-sm text-gray-700">{apparatus}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleApparatusChange(apparatus)}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
                         </div>
                     </div>
                 </div>

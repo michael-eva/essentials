@@ -15,6 +15,7 @@ export const PILATES_SESSIONS = [
 ] as const;
 
 export const PILATES_APPARATUS = [
+  "None",
   "Mat",
   "Barre",
   "Reformer",
@@ -22,10 +23,10 @@ export const PILATES_APPARATUS = [
   "Classical",
   "Clinical",
   "Other",
-  "None",
 ];
 
 export const CUSTOM_PILATES_APPARATUS = [
+  "None",
   "Pilates Mat",
   "Resistance Bands",
   "Pilates Mini Ball",
@@ -33,7 +34,6 @@ export const CUSTOM_PILATES_APPARATUS = [
   "Pilates Ring",
   "Light Weights",
   "Reformer",
-  "None",
   "Other",
 ];
 
