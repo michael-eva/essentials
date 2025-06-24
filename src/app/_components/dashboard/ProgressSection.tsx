@@ -47,47 +47,47 @@ export function ProgressSection() {
   };
   return (
     <div className="grid gap-4 grid-cols-2">
-      <Card className="bg-brand-white border-none shadow-xl">
+      <Card className="bg-brand-nude/50 shadow-xl border-brand-brown">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Consistency</CardTitle>
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold"> {Math.round(metrics.consistency * 100)}%</div>
-          <Progress value={metrics.consistency * 100} className="mt-2 bg-brand-cobalt" />
+          <Progress value={metrics.consistency * 100} className="mt-2" />
         </CardContent>
       </Card>
 
-      <Card className="bg-brand-white border-none shadow-xl">
+      <Card className="bg-brand-nude/50 shadow-xl border-brand-brown">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Intensity</CardTitle>
           <Activity className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold"> {Math.round(metrics.intensity)}/10</div>
-          <Progress value={metrics.intensity * 10} className="mt-2 bg-brand-cobalt" />
+          <Progress value={metrics.intensity * 10} className="mt-2" />
         </CardContent>
       </Card>
 
-      <Card className="bg-brand-white border-none shadow-xl">
+      <Card className="bg-brand-nude/50 shadow-xl border-brand-brown">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Duration</CardTitle>
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold"> {Math.round(metrics.duration)} min</div>
-          <Progress value={(metrics.duration / 60) * 100} className="mt-2 bg-brand-cobalt" />
+          <Progress value={(metrics.duration / 60) * 100} className="mt-2" />
         </CardContent>
       </Card>
 
-      <Card className="bg-brand-white border-none shadow-xl">
+      <Card className="bg-brand-nude/50 shadow-xl border-brand-brown">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
           <Trophy className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold"> {Math.round(metrics.completionRate * 100)}%</div>
-          <Progress value={metrics.completionRate * 100} className="mt-2 bg-brand-cobalt" />
+          <Progress value={metrics.completionRate * 100} className="mt-2" />
         </CardContent>
       </Card>
 

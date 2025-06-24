@@ -1,14 +1,16 @@
 'use client'
-import ClassRecommendations from "@/app/_components/dashboard/ClassRecommendations"
+import ClassRecommendations from "@/app/_components/dashboard/YourPlan"
 import Dashboard from "@/app/_components/dashboard/Dashboard"
 import WorkoutHistory from "@/app/_components/dashboard/WorkoutHistory"
 import PersonalTrainer from "@/app/_components/dashboard/PersonalTrainer"
 import { use } from "react"
 import Classes from "@/app/_components/dashboard/Classes"
+import type { Tab } from "../layout"
+import Profile from "@/app/_components/dashboard/Profile"
 
 type PageProps = {
   params: Promise<{
-    tabs: string;
+    tabs: Tab;
   }>;
 }
 
@@ -26,6 +28,8 @@ export default function Home({ params }: PageProps) {
       return <PersonalTrainer />;
     case 'classes':
       return <Classes />;
+    case 'profile':
+      return <Profile />;
     default:
       return <Dashboard />;
   }

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
-import DashboardCardLayout from "./DashboardCardLayout";
+import DefaultBox from "../global/DefaultBox";
 
 import { useState } from "react";
 import MarkClassComplete from "./MarkClassComplete";
@@ -138,19 +138,19 @@ export default function Dashboard() {
     <div className="space-y-6">
       {OnboardingDialog}
       <LoadingScreen />
-      <DashboardCardLayout
+      <DefaultBox
         title="Progress Tracking"
         description="Your progress over the past 7 days"
         showViewAll={false}
       >
         <ProgressSection />
-      </DashboardCardLayout>
-      <DashboardCardLayout
-        title="Upcoming Classes"
+      </DefaultBox>
+      <DefaultBox
+        title="Upcoming Workouts"
         description={
           upcomingClasses && upcomingClasses?.length > 0
-            ? "Your scheduled sessions:"
-            : "No upcoming classes scheduled"
+            ? "Your scheduled workouts:"
+            : "No upcoming workouts scheduled"
         }
         viewAllHref="classes"
       >
@@ -161,10 +161,10 @@ export default function Dashboard() {
             <div className="flex flex-col items-center space-y-2">
               <CalendarDays className="h-12 w-12 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900">
-                No Upcoming Classes
+                No Upcoming Workouts
               </h3>
               <p className="mb-6 max-w-md text-center text-gray-500">
-                You don&apos;t have any classes scheduled. Create a workout plan
+                You don&apos;t have any workouts scheduled. Create a workout plan
                 to get started with your fitness journey!
               </p>
             </div>
@@ -216,9 +216,9 @@ export default function Dashboard() {
             </div>
           ))
         )}
-      </DashboardCardLayout>
+      </DefaultBox>
 
-      <DashboardCardLayout
+      <DefaultBox
         title="Workout Logging"
         description={`${pastWorkouts.length > 0 ? "Record your past workouts" : "No past workouts logged yet"}`}
         showViewAll={false}
@@ -228,7 +228,7 @@ export default function Dashboard() {
         ) : (
           <>
             {pastWorkouts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-brand-brown bg-brand-nude/50 px-4 py-8 text-center">
                 <div className="flex flex-col items-center space-y-2">
                   <Activity className="h-12 w-12 text-gray-400" />
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -241,13 +241,11 @@ export default function Dashboard() {
                 </div>
                 <Button
                   variant="outline"
-                  className="text-accent w-full max-w-sm border-gray-200 transition-colors hover:bg-gray-50"
+                  className="text-brand-white w-full max-w-sm transition-colors bg-brand-bright-orange"
                   onClick={() => setIsManualActivityDialogOpen(true)}
                   disabled={isInsertingManualActivity}
                 >
-                  {isInsertingManualActivity
-                    ? "Recording..."
-                    : "Record Activity"}
+                  {isInsertingManualActivity ? "Recording..." : "Record Activity"}
                 </Button>
               </div>
             ) : (
@@ -255,7 +253,7 @@ export default function Dashboard() {
                 {pastWorkouts.map((workout, index) => (
                   <div
                     key={index}
-                    className="flex flex-col rounded-lg border border-gray-100 bg-gray-50 p-4 shadow-sm transition-all hover:shadow-md"
+                    className="flex flex-col rounded-lg border border-brand-brown bg-brand-nude/50 p-4 shadow-sm transition-all hover:shadow-md"
                   >
                     <div className="flex items-center gap-4">
                       <span className="flex items-center justify-center rounded-full bg-white p-2 shadow-sm">
@@ -305,7 +303,7 @@ export default function Dashboard() {
             {pastWorkouts.length > 0 && (
               <Button
                 onClick={() => setIsManualActivityDialogOpen(true)}
-                className=" flex w-full items-center gap-2 text-white transition-colors"
+                className=" flex w-full items-center gap-2 text-brand-white bg-brand-bright-orange"
                 disabled={isInsertingManualActivity}
               >
                 <Plus className="h-4 w-4" />
@@ -316,9 +314,9 @@ export default function Dashboard() {
             )}
           </>
         )}
-      </DashboardCardLayout>
+      </DefaultBox>
 
-      <DashboardCardLayout
+      <DefaultBox
         title="Activity History"
         description="Your recent workouts and progress"
         viewAllText="View All Activities"
@@ -328,7 +326,7 @@ export default function Dashboard() {
         {isLoadingActivityHistory ? (
           <ActivityHistorySkeleton />
         ) : activityHistory.length === 0 ? (
-          <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
+          <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed border-brand-brown bg-gray-50 px-4 py-8 text-center">
             <div className="flex flex-col items-center space-y-2">
               <Flame className="h-12 w-12 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900">
@@ -341,7 +339,7 @@ export default function Dashboard() {
             </div>
             <Button
               variant="outline"
-              className="text-accent w-full max-w-sm border-gray-200 transition-colors hover:bg-gray-50 bg-brand-bright-orange"
+              className="text-brand-white w-full max-w-sm transition-colors bg-brand-bright-orange"
               onClick={() => setIsManualActivityDialogOpen(true)}
               disabled={isInsertingManualActivity}
             >
@@ -354,7 +352,7 @@ export default function Dashboard() {
             .map((activity, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0"
+                className="flex items-center justify-between border-b border-brand-brown pb-3 last:border-0 last:pb-0"
               >
                 <div>
                   <p className="font-medium text-gray-900">{activity.name}</p>
@@ -381,7 +379,7 @@ export default function Dashboard() {
               </div>
             ))
         )}
-      </DashboardCardLayout>
+      </DefaultBox>
 
       <MarkClassComplete
         isDialogOpen={isDialogOpen}

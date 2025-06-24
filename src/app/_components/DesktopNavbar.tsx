@@ -1,69 +1,34 @@
 "use client"
-
-import {
-  Home,
-  User,
-  Calendar,
-  History,
-  Dumbbell,
-  type LucideIcon
-} from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { NavigationItem } from "@/app/dashboard/layout"
+import { useRouter } from "next/navigation"
 
-// Define the navigation items
-const navigationItems = [
-  {
-    name: "Home",
-    icon: Home,
-    component: "home"
-  },
-  {
-    name: "My PT",
-    icon: User,
-    component: "pt"
-  },
-  {
-    name: "Your Plan",
-    icon: Calendar,
-    component: "plan"
-  },
-  {
-    name: "History",
-    icon: History,
-    component: "history"
-  },
-  {
-    name: "Profile",
-    icon: Dumbbell,
-    component: "profile"
-  }
-] as const
 
-type ComponentType = typeof navigationItems[number]["component"]
 
 interface DesktopNavbarProps {
-  onComponentChange: (component: ComponentType) => void
-  activeComponent: ComponentType
+  currentTab: string
+  navigationItems: NavigationItem[]
 }
 
-export default function DesktopNavbar({ onComponentChange, activeComponent }: DesktopNavbarProps) {
+export default function DesktopNavbar({ navigationItems, currentTab }: DesktopNavbarProps) {
+  const router = useRouter()
   return (
     <div className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo/Brand */}
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-gray-900">Essentials</h1>
+            <img src="/logo/essentials_logo.png" alt="Essentials Studio Logo" className="w-[300px] items-center justify-center" />
           </div>
 
           {/* Navigation Items */}
           <nav className="flex items-center space-x-8">
             {navigationItems.map((item) => {
-              const isActive = activeComponent === item.component
+              const isActive = currentTab === item.href.split('/').pop()
               return (
                 <button
-                  key={item.component}
-                  onClick={() => onComponentChange(item.component)}
+                  key={item.href}
+                  onClick={() => router.push(item.href)}
                   className={cn(
                     "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
                     isActive
