@@ -53,8 +53,6 @@ export default function DashboardLayout({
 
   // Special handling for My PT page - mobile only
   const isMyPTPage = currentTab === 'mypt'
-
-  console.log(currentTab)
   return (
     <div className="pb-6 flex flex-col px-4">
       {/* Mobile-only fixed header for My PT */}
