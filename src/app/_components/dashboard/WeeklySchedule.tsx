@@ -8,6 +8,7 @@ import { useState } from "react"
 import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
 import type { activityTypeEnum } from "@/drizzle/src/db/schema"
 import { api } from "@/trpc/react"
+import { WeekCircularProgress } from "@/components/ui/WeekCircularProgress"
 
 interface WeeklyScheduleProps {
   weeks: Array<{
@@ -103,18 +104,41 @@ export default function WeeklySchedule({
     }
     setIsDialogOpen(false)
   }
+  console.log(weeks);
 
   return (
     <Accordion type="multiple" className="w-full">
       {weeks.map((week) => (
         <AccordionItem key={week.weekNumber} value={`${accordionValuePrefix}week-${week.weekNumber}`}>
           <AccordionTrigger className="font-bold text-base px-4 py-3 bg-muted/30">
-            Week {week.weekNumber} <span className="ml-2 font-normal text-sm text-muted-foreground">{`${week.classesPerWeek > 0 ? `${week.classesPerWeek} Class${week.classesPerWeek === 1 ? '' : 'es'}` : ''}${week.classesPerWeek > 0 && week.workoutsPerWeek > 0 ? ', ' : ''} ${week.workoutsPerWeek > 0 ? `${week.workoutsPerWeek} Workout${week.workoutsPerWeek === 1 ? '' : 's'}` : ''}`}</span>
-            {week.items.filter(Boolean).length > 0 && (
-              <span className="ml-2 font-normal text-sm text-muted-foreground">
-                ({Math.round((week.items.filter(Boolean).filter(item => item?.status === 'completed').length / week.items.filter(Boolean).length) * 100)}% completed)
+            <div className="grid w-full items-center grid-cols-[auto_1fr_auto] gap-2 md:gap-4">
+              <span className="whitespace-nowrap">Week {week.weekNumber}</span>
+              <span className="font-normal text-xs md:text-sm text-muted-foreground min-w-0 truncate">
+                {week.classesPerWeek > 0 && week.workoutsPerWeek > 0 && (
+                  <>{week.classesPerWeek} Class{week.classesPerWeek === 1 ? '' : 'es'}, {week.workoutsPerWeek} Workout{week.workoutsPerWeek === 1 ? '' : 's'}</>
+                )}
+                {week.classesPerWeek > 0 && week.workoutsPerWeek === 0 && (
+                  <>{week.classesPerWeek} Class{week.classesPerWeek === 1 ? '' : 'es'}</>
+                )}
+                {week.workoutsPerWeek > 0 && week.classesPerWeek === 0 && (
+                  <>{week.workoutsPerWeek} Workout{week.workoutsPerWeek === 1 ? '' : 's'}</>
+                )}
+                {week.workoutsPerWeek === 0 && week.classesPerWeek === 0 && (
+                  <>—</>
+                )}
               </span>
-            )}
+              <div className="flex justify-center">
+                <WeekCircularProgress
+                  value={
+                    week.items.filter(Boolean).length > 0
+                      ? (week.items.filter(Boolean).filter(item => item?.status === 'completed').length / week.items.filter(Boolean).length) * 100
+                      : 0
+                  }
+                  size={28}
+                  className="md:w-8 md:h-8"
+                />
+              </div>
+            </div>
           </AccordionTrigger>
           <AccordionContent className="px-2 md:px-4 pb-4">
             {isEditing && onToggleWeekEdit && (

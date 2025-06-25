@@ -604,17 +604,18 @@ export default function ClassRecommendations() {
                 className="border-gray-200 focus:border-[#007AFF] focus:ring-[#007AFF]"
               />
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-center gap-3">
               <Button
                 variant="outline"
                 onClick={() => setEditPlanNameDialogOpen(false)}
-                className="border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                className="w-1/2"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handlePlanNameSave}
-                className="bg-[#007AFF] text-white hover:bg-[#007AFF]/90 transition-colors"
+                variant="default"
+                className="w-1/2"
               >
                 Save Changes
               </Button>
