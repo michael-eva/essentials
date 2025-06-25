@@ -47,7 +47,7 @@ export function ProgressSection() {
   };
   return (
     <div className="grid gap-4 grid-cols-2">
-      <Card className="bg-brand-nude/50 shadow-xl border-brand-brown">
+      <Card className="bg-brand-light-nude shadow-xl border-brand-brown">
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
           <div className="flex-1">
             <CardTitle className="text-sm font-medium">
@@ -64,7 +64,7 @@ export function ProgressSection() {
         </CardContent>
       </Card>
 
-      <Card className="bg-brand-nude/50 shadow-xl border-brand-brown">
+      <Card className="bg-brand-light-nude shadow-xl border-brand-brown">
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
           <div className="flex-1">
             <CardTitle className="text-sm font-medium">
@@ -81,7 +81,7 @@ export function ProgressSection() {
         </CardContent>
       </Card>
 
-      <Card className="bg-brand-nude/50 shadow-xl border-brand-brown">
+      <Card className="bg-brand-light-nude shadow-xl border-brand-brown">
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
           <div className="flex-1">
             <CardTitle className="text-sm font-medium">
@@ -98,7 +98,7 @@ export function ProgressSection() {
         </CardContent>
       </Card>
 
-      <Card className="bg-brand-nude/50 shadow-xl border-brand-brown">
+      <Card className="bg-brand-light-nude shadow-xl border-brand-brown">
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
           <div className="flex-1">
             <CardTitle className="text-sm font-medium">

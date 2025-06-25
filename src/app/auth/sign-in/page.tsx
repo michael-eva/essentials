@@ -117,7 +117,7 @@ function SignInForm() {
       {/* Animated gradient background */}
       <div />
 
-      <motion.div className="relative z-10 bg-white/10 backdrop-blur-lg p-4 sm:p-6 md:p-8 rounded-2xl border border-white/30 shadow-2xl w-full max-w-[90vw] sm:max-w-md">
+      <motion.div className="relative z-10 bg-white/20 backdrop-blur-lg p-4 sm:p-6 md:p-8 rounded-2xl border border-white/30 shadow-2xl w-full max-w-[90vw] sm:max-w-md">
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-brand-brown mb-2">
             {mode === "existing"

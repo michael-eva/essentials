@@ -12,8 +12,8 @@ export function WeekCircularProgress({
   className,
   ...props
 }: WeekCircularProgressProps) {
-  const radius = 14;
-  const stroke = 3;
+  const radius = 16;
+  const stroke = 2;
   const normalizedRadius = radius - stroke / 2;
   const circumference = 2 * Math.PI * normalizedRadius;
   const progress = Math.max(0, Math.min(100, value));
@@ -41,7 +41,7 @@ export function WeekCircularProgress({
           cy={radius}
         />
         <circle
-          className="text-brand-bright-orange"
+          className="text-brand-sage"
           strokeWidth={stroke}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}

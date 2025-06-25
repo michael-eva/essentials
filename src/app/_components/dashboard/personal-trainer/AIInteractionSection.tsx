@@ -49,7 +49,7 @@ export function AIInteractionSection() {
         timestamp: new Date(msg.createdAt),
       })).reverse(); // Reverse to show oldest first
       setMessages(formattedMessages);
-      
+
       // Scroll to bottom after loading chat history
       setTimeout(() => {
         if (mobileScrollRef.current) {
@@ -74,7 +74,7 @@ export function AIInteractionSection() {
           desktopScrollRef.current.scrollTop = desktopScrollRef.current.scrollHeight;
         }
       }, 500);
-      
+
       return () => clearTimeout(timer);
     }
   }, [isLoadingHistory, isLoadingInfo, messages.length]);
@@ -275,7 +275,7 @@ export function AIInteractionSection() {
 
         {/* Messages Area - Mobile */}
         <div className="flex-1 overflow-hidden px-4 py-2">
-          <div ref={mobileScrollRef} className="h-full overflow-y-auto px-4 py-4 border border-brand-brown/20 rounded-lg bg-brand-nude/30">
+          <div ref={mobileScrollRef} className="h-full overflow-y-auto px-4 py-4 border border-brand-brown/20 rounded-lg bg-brand-light-nude">
             {isLoadingHistory && messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />

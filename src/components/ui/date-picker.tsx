@@ -49,7 +49,7 @@ export function DatePicker({
             <ChevronDown className="w-4 h-4 ml-2 text-gray-300" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 bg-brand-light-nude" align="start">
           <Calendar
             mode="single"
             selected={date}

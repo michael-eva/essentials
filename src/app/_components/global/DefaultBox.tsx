@@ -26,7 +26,7 @@ export default function DashboardCardLayout({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="rounded-xl shadow-2xl border-brand-brown">
+      <Card className="rounded-xl shadow-xl border-brand-brown">
         <CardHeader className="px-6">
           <div className="flex justify-between items-center ">
             <CardTitle className="text-3xl sm:text-4xl font-extrabold text-brand-brown">{title}</CardTitle>

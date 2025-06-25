@@ -228,7 +228,7 @@ export default function Dashboard() {
         ) : (
           <>
             {pastWorkouts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-brand-brown bg-brand-nude/50 px-4 py-8 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-brand-brown bg-brand-light-nude px-4 py-8 text-center">
                 <div className="flex flex-col items-center space-y-2">
                   <Activity className="h-12 w-12 text-gray-400" />
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -253,7 +253,7 @@ export default function Dashboard() {
                 {pastWorkouts.map((workout, index) => (
                   <div
                     key={index}
-                    className="flex flex-col rounded-lg border border-brand-brown bg-brand-nude/50 p-4 shadow-sm transition-all hover:shadow-md"
+                    className="flex flex-col rounded-lg border border-brand-brown bg-brand-light-nude p-4 shadow-sm transition-all hover:shadow-md"
                   >
                     <div className="flex items-center gap-4">
                       <span className="flex items-center justify-center rounded-full bg-white p-2 shadow-sm">

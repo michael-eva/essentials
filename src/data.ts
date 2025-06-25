@@ -69,6 +69,7 @@ export const nonPilates = activityTypeEnum.enumValues;
 const fullBodyVideo = {
   title: "FULL BODY",
   summary: "Dynamic intermediate full-body flow with minimal rest periods",
+  instructor: "Sarah Johnson",
   description:
     "A dynamic 24-minute full body workout with minimal rests that gets the heart rate up. Starting with breathwork and abs, flowing into side waist and outer glutes, standing curtsey lunges, and back work. This intermediate level class features a continuous flow style that's more challenging for beginners but includes modifications throughout. The workout progresses through abs on back, side kneeling core series, lunge series, and plank series, repeated on both sides for a comprehensive full body burn.",
   difficulty: "Intermediate",
