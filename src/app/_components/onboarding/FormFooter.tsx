@@ -36,6 +36,7 @@ export default function FormFooter({
             } else if (isValid && isLastStep) {
                 // Handle completion of the entire onboarding process
                 // router.push('/dashboard');
+                router.push("/dashboard/landing");
             }
         } catch (error) {
             console.error('Form submission error:', error);

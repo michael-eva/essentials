@@ -110,7 +110,6 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
             await handleSubmit(
                 async (data) => {
                     postMotivation(data);
-                    router.push("/dashboard/landing");
                 },
                 (errors) => {
                     console.error("Form validation errors:", errors);
