@@ -9,6 +9,7 @@ import RecordManualActivity, { type ActivityFormValues } from "./RecordManualAct
 import type { activityTypeEnum } from "@/drizzle/src/db/schema"
 import { api } from "@/trpc/react"
 import { WeekCircularProgress } from "@/components/ui/WeekCircularProgress"
+import { useRouter } from "next/navigation"
 
 interface WeeklyScheduleProps {
   weeks: Array<{
@@ -73,6 +74,7 @@ export default function WeeklySchedule({
   onToggleWeekEdit,
   accordionValuePrefix = ""
 }: WeeklyScheduleProps) {
+  const router = useRouter()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedActivityType, setSelectedActivityType] = useState<typeof activityTypeEnum.enumValues[number]>()
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string>()
@@ -104,7 +106,13 @@ export default function WeeklySchedule({
     }
     setIsDialogOpen(false)
   }
-  console.log(weeks);
+  function handleWorkoutClick(workout: Workout) {
+    if (workout.type === 'class') {
+      // onBookClass?.(workout.id, workout.name)
+    } else {
+      router.push(`/dashboard/workout/${workout.id}`)
+    }
+  }
 
   return (
     <Accordion type="multiple" className="w-full">
@@ -113,7 +121,7 @@ export default function WeeklySchedule({
           <AccordionTrigger className="font-bold text-base px-4 py-3 bg-muted/30">
             <div className="grid w-full items-center grid-cols-[auto_1fr_auto] gap-2 md:gap-4">
               <span className="whitespace-nowrap">Week {week.weekNumber}</span>
-              <span className="font-normal text-xs md:text-sm text-muted-foreground min-w-0 truncate">
+              <span className="font-normal text-xs md:text-sm min-w-0 truncate">
                 {week.classesPerWeek > 0 && week.workoutsPerWeek > 0 && (
                   <>{week.classesPerWeek} Class{week.classesPerWeek === 1 ? '' : 'es'}, {week.workoutsPerWeek} Workout{week.workoutsPerWeek === 1 ? '' : 's'}</>
                 )}
@@ -163,9 +171,10 @@ export default function WeeklySchedule({
                   <div
                     key={index}
                     className={`py-3 px-3 flex flex-col gap-2 border-l-4 rounded border-b ${workout.type === 'class'
-                      ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/10'
-                      : 'border-[color:var(--chart-4)] bg-[color:var(--chart-4)]/10'
+                      ? 'border-brand-nude bg-brand-nude/10'
+                      : 'border-brand-sage bg-brand-sage/10'
                       }`}
+                    onClick={() => handleWorkoutClick(workout)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">

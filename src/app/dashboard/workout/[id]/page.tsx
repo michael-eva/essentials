@@ -1,4 +1,5 @@
 'use client'
+import { api } from '@/trpc/react';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
@@ -12,6 +13,8 @@ type PageProps = {
 export default function WorkoutPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter()
+  const { data: workout } = api.workout.getWorkout.useQuery({ id });
+  console.log(workout);
 
   return (
     <div>
