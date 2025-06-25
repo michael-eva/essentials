@@ -83,7 +83,7 @@ export default function ClassRecommendations() {
   });
   const bookClass = api.workoutPlan.bookClass.useMutation({
     onSuccess: () => {
-      void utils.workoutPlan.getUpcomingClasses.invalidate();
+      void utils.workoutPlan.getUpcomingActivities.invalidate();
       void utils.workoutPlan.getActivePlan.invalidate();
     },
   });

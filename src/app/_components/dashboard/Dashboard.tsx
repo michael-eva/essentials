@@ -28,12 +28,15 @@ import {
 } from "./DashboardSkeleton";
 import { ProgressSection } from "./ProgressSection";
 import MarkClassMissed from "./MarkClassMissed";
+import { useRouter } from "next/navigation";
+import type { Workout, WorkoutTracking } from "@/drizzle/src/db/queries";
 type WorkoutStatus = (typeof workoutStatusEnum.enumValues)[number];
 
 export default function Dashboard() {
+  const router = useRouter();
   const utils = api.useUtils();
   const { data: upcomingClasses, isLoading: isLoadingUpcomingClasses } =
-    api.workoutPlan.getUpcomingClasses.useQuery();
+    api.workoutPlan.getUpcomingActivities.useQuery();
   const { data: pastWorkouts = [], isLoading: isLoadingPastWorkouts } =
     api.workoutPlan.getWorkoutsToLog.useQuery();
   const { data: activityHistory = [], isLoading: isLoadingActivityHistory } =
@@ -133,7 +136,13 @@ export default function Dashboard() {
   const handleGeneratePlan = () => {
     generatePlan();
   };
-
+  const handleActivityClick = (activity: Workout) => {
+    if (activity.type === "class") {
+      router.push(`/dashboard/class/${activity.id}`);
+    } else {
+      router.push(`/dashboard/workout/${activity.id}`);
+    }
+  }
   return (
     <div className="space-y-6">
       {OnboardingDialog}
@@ -152,7 +161,8 @@ export default function Dashboard() {
             ? "Your scheduled workouts:"
             : "No upcoming workouts scheduled"
         }
-        viewAllHref="classes"
+        viewAllText="View All Upcoming Workouts"
+        viewAllHref="your-plan"
       >
         {isLoadingUpcomingClasses ? (
           <UpcomingClassesSkeleton />
@@ -192,25 +202,18 @@ export default function Dashboard() {
             <div
               key={index}
               className="flex items-center justify-between bg-brand-white border-b px-4 rounded-lg border-gray-100 py-3 last:border-0 last:pb-0"
+              onClick={() => handleActivityClick(classItem)}
             >
               <div>
                 <p className="font-medium text-gray-900">{classItem.name}</p>
-                <p className="text-sm text-gray-500">
-                  {classItem.instructor} • {classItem.duration} min
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <Clock className="h-4 w-4" /> {classItem.duration} min
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2 text-right">
                 <p className="text-sm text-gray-500">{classItem.level}</p>
                 <span className="text-accent text-sm font-medium">
-                  Booked for{" "}
-                  {new Date(classItem.bookedDate ?? "").toLocaleDateString(
-                    "en-US",
-                    {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    },
-                  )}
+                  Week {classItem.weekNumber}
                 </span>
               </div>
             </div>
