@@ -170,7 +170,8 @@ export default function Dashboard() {
             </div>
             <div className="flex w-full max-w-sm flex-col gap-3">
               <Button
-                className="bg-accent hover:bg-accent/90 w-full text-white transition-colors"
+                variant="default"
+                className="w-full"
                 onClick={handleGeneratePlan}
                 disabled={isLoading}
               >
@@ -179,7 +180,6 @@ export default function Dashboard() {
               </Button>
               <Button
                 variant="outline"
-                className="text-accent w-full border-gray-200 transition-colors hover:bg-gray-50"
                 onClick={() => setIsManualActivityDialogOpen(true)}
                 disabled={isInsertingManualActivity}
               >
@@ -303,7 +303,8 @@ export default function Dashboard() {
             {pastWorkouts.length > 0 && (
               <Button
                 onClick={() => setIsManualActivityDialogOpen(true)}
-                className=" flex w-full items-center gap-2 text-brand-white bg-brand-bright-orange"
+                variant="default"
+                className="w-full"
                 disabled={isInsertingManualActivity}
               >
                 <Plus className="h-4 w-4" />
@@ -338,8 +339,8 @@ export default function Dashboard() {
               </p>
             </div>
             <Button
-              variant="outline"
-              className="text-brand-white w-full max-w-sm transition-colors bg-brand-bright-orange"
+              variant="default"
+              className="w-full"
               onClick={() => setIsManualActivityDialogOpen(true)}
               disabled={isInsertingManualActivity}
             >
