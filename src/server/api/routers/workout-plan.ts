@@ -3,7 +3,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import {
-  getUpcomingClasses,
+  getUpcomingActivities,
   getPreviousPlans,
   getActivePlan,
   getWorkoutsToLog,
@@ -80,9 +80,9 @@ export const workoutPlanRouter = createTRPCRouter({
     }
   }),
 
-  getUpcomingClasses: protectedProcedure.query(async ({ ctx }) => {
+  getUpcomingActivities: protectedProcedure.query(async ({ ctx }) => {
     try {
-      return await getUpcomingClasses(ctx.userId);
+      return await getUpcomingActivities(ctx.userId);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";

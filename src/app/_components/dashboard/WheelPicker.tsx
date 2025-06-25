@@ -245,7 +245,7 @@ export function WheelPicker({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[340px] bg-background">
+      <DialogContent className="sm:max-w-[340px] bg-brand-white">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -380,11 +380,11 @@ export function WheelPicker({
             })}
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+        <DialogFooter className="flex gap-2 flex-row">
+          <Button variant="outline" onClick={onClose} className="w-1/2">
             Cancel
           </Button>
-          <Button onClick={onConfirm}>
+          <Button onClick={onConfirm} className="w-1/2">
             Confirm
           </Button>
         </DialogFooter>

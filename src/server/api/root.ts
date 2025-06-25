@@ -1,5 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { workoutPlanRouter } from "./routers/workout-plan";
+import { workoutRouter } from "./routers/workout";
 import { onboardingRouter } from "./routers/onboarding";
 import { authRouter } from "./routers/auth";
 import { personalTrainerRouter } from "./routers/personal-trainer";
@@ -12,6 +13,7 @@ import { myPtRouter } from "./routers/my-pt";
  */
 export const appRouter = createTRPCRouter({
   workoutPlan: workoutPlanRouter,
+  workout: workoutRouter,
   onboarding: onboardingRouter,
   auth: authRouter,
   personalTrainer: personalTrainerRouter,

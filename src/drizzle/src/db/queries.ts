@@ -1,4 +1,15 @@
-import { eq, and, gt, lt, inArray, desc, sql, gte, lte } from "drizzle-orm";
+import {
+  eq,
+  and,
+  gt,
+  lt,
+  inArray,
+  desc,
+  sql,
+  gte,
+  lte,
+  asc,
+} from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
@@ -45,22 +56,35 @@ export type NewProgressTracking = InferInsertModel<typeof progressTracking>;
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
 
-export async function getUpcomingClasses(
+export async function getUpcomingActivities(
   userId: string,
-): Promise<(Workout & { tracking: WorkoutTracking | null })[]> {
+): Promise<
+  (Workout & { tracking: WorkoutTracking | null; weekNumber?: number })[]
+> {
   const now = new Date();
 
   const workouts = await db
-    .select()
+    .select({
+      id: workout.id,
+      name: workout.name,
+      instructor: workout.instructor,
+      description: workout.description,
+      level: workout.level,
+      bookedDate: workout.bookedDate,
+      type: workout.type,
+      status: workout.status,
+      isBooked: workout.isBooked,
+      classId: workout.classId,
+      userId: workout.userId,
+      activityType: workout.activityType,
+      duration: workout.duration,
+      weekNumber: weeklySchedule.weekNumber,
+    })
     .from(workout)
-    .where(
-      and(
-        eq(workout.type, "class"),
-        eq(workout.isBooked, true),
-        eq(workout.userId, userId),
-        gt(workout.bookedDate, now),
-      ),
-    );
+    .leftJoin(weeklySchedule, eq(workout.id, weeklySchedule.workoutId))
+    .where(and(eq(workout.userId, userId), eq(workout.status, "not_recorded")))
+    .orderBy(asc(weeklySchedule.weekNumber))
+    .limit(3);
 
   const workoutIds = workouts.map((w) => w.id);
   const trackingData = await db
@@ -71,6 +95,7 @@ export async function getUpcomingClasses(
   return workouts.map((workout) => ({
     ...workout,
     tracking: trackingData.find((t) => t.workoutId === workout.id) ?? null,
+    weekNumber: workout.weekNumber ?? undefined,
   }));
 }
 export async function getSupplementaryWorkouts(

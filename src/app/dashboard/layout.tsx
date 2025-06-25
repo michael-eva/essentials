@@ -50,19 +50,35 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname()
   const currentTab = pathname.split('/').pop() ?? 'overview'
-  console.log(currentTab)
+
+  // Special handling for My PT page - mobile only
+  const isMyPTPage = currentTab === 'mypt'
   return (
     <div className="pb-6 flex flex-col px-4">
-      <div className="flex justify-center">
+      {/* Mobile-only fixed header for My PT */}
+      {isMyPTPage && (
+        <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white">
+          <div className="flex justify-center">
+            <img src="/logo/essentials_logo.png" alt="Essentials Studio Logo" className="w-[300px]" />
+          </div>
+        </div>
+      )}
+
+      {/* Regular header for all pages (including desktop) */}
+      <div className={`flex justify-center ${isMyPTPage ? 'hidden md:flex' : ''}`}>
         <img src="/logo/essentials_logo.png" alt="Essentials Studio Logo" className="w-[300px] items-center justify-center md:hidden" />
       </div>
+
       <DesktopNavbar
         currentTab={currentTab}
         navigationItems={navigationItems}
       />
-      <div className="min-h-screen pb-24 md:pt-20 md:pb-8">
+
+      {/* Content area with conditional mobile spacing for My PT */}
+      <div className={`min-h-screen pb-24 md:pt-20 md:pb-8 ${isMyPTPage ? 'pt-20 md:pt-0' : ''}`}>
         {children}
       </div>
+
       <div className="md:hidden">
         <MobileNavbar
           currentTab={currentTab}
@@ -71,4 +87,4 @@ export default function DashboardLayout({
       </div>
     </div>
   )
-} 
+}

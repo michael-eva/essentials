@@ -68,21 +68,26 @@ export default function RecordManualActivity({
   setIsDialogOpen,
   handleSubmitActivity,
   initialActivityType,
-  workoutId
+  workoutId,
+  initialDurationHours,
+  initialDurationMinutes,
 }: {
   isDialogOpen: boolean
   setIsDialogOpen: (isOpen: boolean) => void
   handleSubmitActivity: (data: ActivityFormValues) => void
   initialActivityType?: string
   workoutId?: string
+  initialDurationHours?: number
+  initialDurationMinutes?: number
 }) {
+  console.log(initialDurationHours, initialDurationMinutes)
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activityFormSchema),
     defaultValues: {
       workoutType: initialActivityType ?? "",
       date: new Date(),
-      durationHours: 0,
-      durationMinutes: 0,
+      durationHours: initialDurationHours ?? 0,
+      durationMinutes: initialDurationMinutes ?? 0,
       distance: "",
       distanceUnit: "kilometers",
       intensity: 5,
@@ -97,6 +102,17 @@ export default function RecordManualActivity({
       form.setValue("workoutType", initialActivityType)
     }
   }, [initialActivityType, form])
+
+  useEffect(() => {
+    if (initialDurationHours !== undefined) {
+      form.setValue("durationHours", initialDurationHours)
+      setTempHours(initialDurationHours)
+    }
+    if (initialDurationMinutes !== undefined) {
+      form.setValue("durationMinutes", initialDurationMinutes)
+      setTempMinutes(initialDurationMinutes)
+    }
+  }, [initialDurationHours, initialDurationMinutes, form])
 
   const onSubmit = (data: ActivityFormValues) => {
     handleSubmitActivity({ ...data, workoutId })
@@ -141,7 +157,7 @@ export default function RecordManualActivity({
                   <SelectValue placeholder="Select activity type" />
                 </span>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-brand-light-nude">
                 {ACTIVITY_TYPES.map((type) => {
                   const IconComponent = ACTIVITY_ICONS[type];
                   return (
@@ -325,7 +341,7 @@ export default function RecordManualActivity({
             >
               Cancel
             </Button>
-            <Button type="submit" className="bg-accent w-1/2">
+            <Button type="submit" className="w-1/2">
               Save Activity
             </Button>
           </DialogFooter>
