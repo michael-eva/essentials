@@ -10,7 +10,7 @@ import {
   buildUserContext,
   updateContextWithWorkout,
 } from "@/services/context-manager";
-import { getLatestProgress } from "@/services/progress-tracker";
+import { getProgressData } from "@/services/progress-tracker";
 
 export const personalTrainerRouter = createTRPCRouter({
   // Get all interactions for a user
@@ -138,7 +138,39 @@ export const personalTrainerRouter = createTRPCRouter({
   // Get latest progress tracking data
   getLatestProgress: protectedProcedure.query(async ({ ctx }) => {
     try {
-      return await getLatestProgress(ctx.userId);
+      const progressResponse = await getProgressData(ctx.userId, {
+        start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+        end: new Date(),
+      });
+      const progress = {
+        duration: progressResponse.reduce(
+          (acc, workout) =>
+            acc + (workout.metrics as { duration: number }).duration,
+          0,
+        ),
+        workout_count: progressResponse.length,
+        intensity: progressResponse.reduce(
+          (acc, workout) =>
+            acc +
+            (workout.metrics as { intensity: number }).intensity /
+              progressResponse.length,
+          0,
+        ),
+        achievements: {
+          num_achievements: progressResponse.filter(
+            (workout) =>
+              workout.achievements &&
+              Array.isArray(workout.achievements) &&
+              workout.achievements.length > 0 &&
+              workout.achievements.some(
+                (achievement) => achievement && achievement.trim() !== "",
+              ),
+          ).length,
+          achievements: progressResponse.map((workout) => workout.achievements),
+        },
+      };
+      return progress;
+      // return await getLatestProgress(ctx.userId);
     } catch (error) {
       console.error("Error fetching latest progress:", error);
       throw new TRPCError({

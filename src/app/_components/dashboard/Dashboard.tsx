@@ -149,7 +149,7 @@ export default function Dashboard() {
       <LoadingScreen />
       <DefaultBox
         title="Progress Tracking"
-        description="Your progress over the past 7 days"
+        description="Your progress over the past 30 days"
         showViewAll={false}
       >
         <ProgressSection />
