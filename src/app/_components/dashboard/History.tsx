@@ -82,7 +82,17 @@ export default function WorkoutHistory() {
   }
 
   // Accordion for exercises
-  const ExerciseAccordion = ({ exercises }: { exercises?: any[] }) => {
+  const ExerciseAccordion = ({ exercises }: {
+    exercises?: Array<{
+      id: string;
+      name: string;
+      sets?: Array<{
+        id: string;
+        reps: number;
+        weight?: number;
+      }>;
+    }>
+  }) => {
     console.log(exercises)
     const [expanded, setExpanded] = useState(false);
     if (!exercises || exercises.length === 0) return null;
@@ -103,7 +113,7 @@ export default function WorkoutHistory() {
                 <span className="font-semibold">{ex.name}</span>
                 {ex.sets && ex.sets.length > 0 && (
                   <ul className="ml-3 list-disc">
-                    {ex.sets.map((set: any, idx: number) => (
+                    {ex.sets.map((set, idx) => (
                       <li key={set.id}>
                         Set {idx + 1}: {set.reps} reps{set.weight !== undefined ? ` @ ${set.weight}kg` : ""}
                       </li>
@@ -172,7 +182,7 @@ export default function WorkoutHistory() {
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                   >
                     <Card className="overflow-hidden border border-brand-brown bg-brand-light-nude rounded-xl shadow-sm hover:shadow-md transition-all">
-                      <div className="p-4">
+                      <div className="px-4">
                         <div className="flex flex-col gap-2">
                           {/* Top row */}
                           <div className="flex items-center justify-between">
@@ -196,11 +206,11 @@ export default function WorkoutHistory() {
                                 {tracking.distance} {tracking.distanceUnit}
                               </>
                             )}
-                            {tracking.durationHours && tracking.durationMinutes && (
+                            {(!!tracking.durationHours || !!tracking.durationMinutes) && (
                               <>
                                 <span>·</span>
                                 <Clock className="h-4 w-4" />
-                                {formatDuration(tracking.durationHours, tracking.durationMinutes)}
+                                {formatDuration(tracking.durationHours ?? 0, tracking.durationMinutes ?? 0)}
                               </>
                             )}
                           </div>
@@ -218,24 +228,17 @@ export default function WorkoutHistory() {
                           {/* Achievements */}
                           {progress && (
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 font-semibold text-xs">
+                              {progress.achievements && progress.achievements.length > 0 && <span className="inline-flex items-center px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 font-semibold text-xs">
                                 <svg className="w-4 h-4 mr-1 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.122-6.545L.488 6.91l6.561-.955L10 0l2.951 5.955 6.561.955-4.756 4.635 1.122 6.545z" /></svg>
-                                {progress.achievements || '—'}
+                                {progress.achievements}
                               </span>
+                              }
                               {progress.notes && (
                                 <span className="text-gray-500 text-xs">({progress.notes})</span>
                               )}
                             </div>
                           )}
                         </div>
-
-                        {/* Workout details if available */}
-                        {workout && (
-                          <div className="mt-2 text-xs text-gray-500">
-                            {workout.description && <div><span className="font-medium">Description:</span> {workout.description}</div>}
-                            {workout.level && <div><span className="font-medium">Level:</span> {workout.level}</div>}
-                          </div>
-                        )}
 
                         {/* Notes section */}
                         {tracking.notes && (

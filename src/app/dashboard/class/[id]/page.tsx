@@ -31,9 +31,9 @@ const dummyClassData = {
 };
 
 export default function page() {
-  const parsedTags = JSON.parse(dummyClassData.tags);
+  const parsedTags = JSON.parse(dummyClassData.tags) as string[];
   const equipmentList = dummyClassData.equipment.split(',').map(e => e.trim());
-  const parsedExerciseSequence = JSON.parse(dummyClassData.exerciseSequence);
+  const parsedExerciseSequence = JSON.parse(dummyClassData.exerciseSequence) as string[];
   const targetedMuscles = dummyClassData.targetedMuscles.split(',').map(m => m.trim());
 
   return (

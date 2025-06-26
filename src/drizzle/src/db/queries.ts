@@ -297,7 +297,7 @@ export async function getWorkoutsToLog(userId: string): Promise<{
     };
   }
 
-  const plan = activePlan[0]!;
+  const plan = activePlan[0];
 
   // If plan hasn't started yet, return empty array
   if (!plan.startDate) {
