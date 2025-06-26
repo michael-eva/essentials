@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
 import { toast } from "sonner"
+import { HistorySkeleton } from "./DashboardSkeleton"
 
 // Map activity types to icons
 const activityTypeIcons: Record<string, React.ReactNode> = {
@@ -151,7 +152,9 @@ export default function WorkoutHistory() {
       className="space-y-6"
     >
       <div>
-        {allActivities.length === 0 && !isLoading ? (
+        {isLoading ? (
+          <HistorySkeleton />
+        ) : allActivities.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
