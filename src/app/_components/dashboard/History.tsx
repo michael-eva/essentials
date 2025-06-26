@@ -12,6 +12,7 @@ import { motion } from "framer-motion"
 import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
 import { toast } from "sonner"
 import { HistorySkeleton } from "./DashboardSkeleton"
+import DefaultBox from "../global/DefaultBox"
 
 // Map activity types to icons
 const activityTypeIcons: Record<string, React.ReactNode> = {
@@ -144,14 +145,14 @@ export default function WorkoutHistory() {
     setIsDialogOpen(false)
     toast.success("Activity recorded successfully")
   }
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
-      <div>
+    <div className="space-y-6">
+      <DefaultBox
+        title="Activity History"
+        description="Your recent workouts and progress"
+        showViewAll={false}
+      >
         {isLoading ? (
           <HistorySkeleton />
         ) : allActivities.length === 0 ? (
@@ -322,12 +323,12 @@ export default function WorkoutHistory() {
             </TabsContent>
           </Tabs>
         )}
-      </div>
+      </DefaultBox>
       <RecordManualActivity
         isDialogOpen={isDialogOpen}
         setIsDialogOpen={setIsDialogOpen}
         handleSubmitActivity={handleSubmitManualActivity}
       />
-    </motion.div>
+    </div>
   )
 }
