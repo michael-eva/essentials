@@ -9,6 +9,7 @@ import {
   gte,
   lte,
   asc,
+  isNull,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -59,9 +60,44 @@ const db = drizzle(client);
 export async function getUpcomingActivities(
   userId: string,
 ): Promise<
-  (Workout & { tracking: WorkoutTracking | null; weekNumber?: number })[]
+  | (Workout & { tracking: WorkoutTracking | null; weekNumber?: number })[]
+  | { status: "no_plan" | "plan_paused" | "plan_inactive"; planName?: string }
 > {
-  const now = new Date();
+  // First check if there's an active workout plan for the user
+  const activePlan = await db
+    .select()
+    .from(workoutPlan)
+    .where(
+      and(
+        eq(workoutPlan.userId, userId),
+        eq(workoutPlan.isActive, true),
+        isNull(workoutPlan.pausedAt),
+      ),
+    )
+    .limit(1);
+
+  // If no active plan exists, check if there are any plans for the user
+  if (!activePlan[0]) {
+    const userPlans = await db
+      .select()
+      .from(workoutPlan)
+      .where(eq(workoutPlan.userId, userId))
+      .orderBy(desc(workoutPlan.savedAt))
+      .limit(1);
+
+    if (userPlans.length === 0) {
+      return { status: "no_plan" };
+    }
+
+    const latestPlan = userPlans[0]!;
+
+    if (!latestPlan.isActive) {
+      return { status: "plan_inactive", planName: latestPlan.planName };
+    }
+
+    // Plan is active but paused
+    return { status: "plan_paused", planName: latestPlan.planName };
+  }
 
   const workouts = await db
     .select({

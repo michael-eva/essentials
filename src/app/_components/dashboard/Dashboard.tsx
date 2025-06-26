@@ -70,6 +70,10 @@ export default function Dashboard() {
   const [isManualActivityDialogOpen, setIsManualActivityDialogOpen] =
     useState(false);
 
+  // Helper function to check if we have workouts or a status
+  const hasWorkouts = Array.isArray(upcomingClasses) && upcomingClasses.length > 0;
+  const planStatus = !Array.isArray(upcomingClasses) ? upcomingClasses : null;
+
   const handleMarkComplete = (workout: (typeof pastWorkouts)[0]) => {
     setSelectedWorkout(workout);
     setIsDialogOpen(true);
@@ -157,37 +161,63 @@ export default function Dashboard() {
       <DefaultBox
         title="Upcoming Workouts"
         description={
-          upcomingClasses && upcomingClasses?.length > 0
+          hasWorkouts
             ? "Your scheduled workouts:"
-            : "No upcoming workouts scheduled"
+            : planStatus?.status === "no_plan"
+              ? "No workout plan created yet"
+              : planStatus?.status === "plan_paused"
+                ? `Your plan "${planStatus.planName}" is currently paused`
+                : planStatus?.status === "plan_inactive"
+                  ? `Your plan "${planStatus.planName}" is inactive`
+                  : "No upcoming workouts scheduled"
         }
         viewAllText="View All Upcoming Workouts"
         viewAllHref="your-plan"
       >
         {isLoadingUpcomingClasses ? (
           <UpcomingClassesSkeleton />
-        ) : !upcomingClasses || upcomingClasses?.length === 0 ? (
+        ) : !hasWorkouts ? (
           <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
             <div className="flex flex-col items-center space-y-2">
               <CalendarDays className="h-12 w-12 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900">
-                No Upcoming Workouts
+                {planStatus?.status === "no_plan"
+                  ? "No Workout Plan"
+                  : planStatus?.status === "plan_paused"
+                    ? "Plan Paused"
+                    : planStatus?.status === "plan_inactive"
+                      ? "Plan Inactive"
+                      : "No Upcoming Workouts"}
               </h3>
               <p className="mb-6 max-w-md text-center text-gray-500">
-                You don&apos;t have any workouts scheduled. Create a workout plan
-                to get started with your fitness journey!
+                {planStatus?.status === "no_plan"
+                  ? "You don't have any workout plans yet. Create a workout plan to get started with your fitness journey!"
+                  : planStatus?.status === "plan_paused"
+                    ? `Your plan "${planStatus.planName}" is currently paused. Resume it to see your upcoming workouts.`
+                    : planStatus?.status === "plan_inactive"
+                      ? `Your plan "${planStatus.planName}" is inactive. Activate it to see your upcoming workouts.`
+                      : "You don't have any workouts scheduled. Create a workout plan to get started with your fitness journey!"}
               </p>
             </div>
             <div className="flex w-full max-w-sm flex-col gap-3">
-              <Button
+              {planStatus?.status === "plan_paused" ? <Button
                 variant="default"
                 className="w-full"
-                onClick={handleGeneratePlan}
-                disabled={isLoading}
+                onClick={() => router.push("/dashboard/your-plan")}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                {isLoading ? "Creating Plan..." : "Create Workout Plan"}
+                View Plan
               </Button>
+                :
+                <Button
+                  variant="default"
+                  className="w-full"
+                  onClick={handleGeneratePlan}
+                  disabled={isLoading}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  {isLoading ? "Creating Plan..." : "Create Workout Plan"}
+                </Button>}
               <Button
                 variant="outline"
                 onClick={() => setIsManualActivityDialogOpen(true)}
@@ -198,7 +228,7 @@ export default function Dashboard() {
             </div>
           </div>
         ) : (
-          upcomingClasses.map((classItem, index) => (
+          (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number })[]).map((classItem, index) => (
             <div
               key={index}
               className="flex items-center justify-between bg-brand-white border-b px-4 rounded-lg border-gray-100 py-3 last:border-0 last:pb-0"
