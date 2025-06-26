@@ -1,8 +1,49 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { api } from "@/trpc/react";
 import { Trophy, TrendingUp, Clock, Activity } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+interface ProgressMetricBoxProps {
+  icon: LucideIcon;
+  title: string;
+  value: number;
+  maxValue?: number;
+  unit?: string;
+  showProgress?: boolean;
+  customContent?: React.ReactNode;
+}
+
+function ProgressMetricBox({
+  icon: Icon,
+  title,
+  value,
+  maxValue = 100,
+  unit = "",
+  showProgress = true,
+  customContent
+}: ProgressMetricBoxProps) {
+  return (
+    <div className="rounded-2xl border border-brand-brown bg-brand-light-nude shadow-xl flex flex-col items-center px-4 py-5 min-h-[140px]">
+      <div className="flex flex-col items-center mb-2">
+        <Icon className="h-8 w-8 text-brand-brown/30 mb-2" />
+        <span className="text-sm font-medium text-brand-brown">{title}</span>
+      </div>
+      <div className="flex flex-col items-center justify-center w-full flex-1">
+        {customContent || (
+          <>
+            <div className="text-2xl font-bold mb-1">
+              {Math.round(value)}{unit}
+            </div>
+            {showProgress && (
+              <Progress value={(value / maxValue) * 100} className="mt-1 w-full" />
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function ProgressSection() {
   const { data: progressData, isLoading } = api.personalTrainer.getLatestProgress.useQuery();
@@ -11,16 +52,16 @@ export function ProgressSection() {
     return (
       <div className="grid gap-4 grid-cols-2">
         {Array.from({ length: 4 }).map((_, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <Skeleton className="h-4 w-[100px]" />
+          <div key={index} className="rounded-2xl border border-brand-brown bg-brand-light-nude shadow-xl flex flex-col items-center px-4 py-5 min-h-[140px]">
+            <div className="flex flex-col items-center mb-2 w-full">
+              <Skeleton className="h-4 w-[100px] mb-2" />
               <Skeleton className="h-4 w-4" />
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div className="flex flex-col items-center w-full flex-1">
               <Skeleton className="h-8 w-[80px] mb-2" />
               <Skeleton className="h-2 w-full" />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -37,115 +78,66 @@ export function ProgressSection() {
       </div>
     );
   }
-
-  const metrics = progressData.metrics as {
+  const metrics = progressData as {
     duration: number;
     intensity: number;
-    consistency: number;
-    completionRate: number;
-    workoutCount: number;
+    workout_count: number;
+    achievements: {
+      num_achievements: number;
+      achievements: (string | null)[];
+    };
   };
+
   return (
     <div className="grid gap-4 grid-cols-2">
-      <Card className="bg-brand-light-nude shadow-xl border-brand-brown">
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-          <div className="flex-1">
-            <CardTitle className="text-sm font-medium">
-              Consistency
-            </CardTitle>
-          </div>
-          <div className="w-5 h-5 flex items-start justify-center">
-            <TrendingUp className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold"> {Math.round(metrics.consistency * 100)}%</div>
-          <Progress value={metrics.consistency * 100} className="mt-2" />
-        </CardContent>
-      </Card>
+      <ProgressMetricBox
+        icon={TrendingUp}
+        title="Workout Count"
+        value={metrics.workout_count}
+        maxValue={100}
+        showProgress={false}
+      />
 
-      <Card className="bg-brand-light-nude shadow-xl border-brand-brown">
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-          <div className="flex-1">
-            <CardTitle className="text-sm font-medium">
-              Intensity
-            </CardTitle>
-          </div>
-          <div className="w-5 h-5 flex items-start justify-center">
-            <Activity className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold"> {Math.round(metrics.intensity)}/10</div>
-          <Progress value={metrics.intensity * 10} className="mt-2" />
-        </CardContent>
-      </Card>
+      <ProgressMetricBox
+        icon={Activity}
+        title="Intensity"
+        value={metrics.intensity}
+        maxValue={10}
+        unit="/10"
+        showProgress={false}
+      />
 
-      <Card className="bg-brand-light-nude shadow-xl border-brand-brown">
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-          <div className="flex-1">
-            <CardTitle className="text-sm font-medium">
-              Duration
-            </CardTitle>
-          </div>
-          <div className="w-5 h-5 flex items-start justify-center">
-            <Clock className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold"> {Math.round(metrics.duration)} min</div>
-          <Progress value={(metrics.duration / 60) * 100} className="mt-2" />
-        </CardContent>
-      </Card>
+      <ProgressMetricBox
+        icon={Clock}
+        title="Duration"
+        value={metrics.duration}
+        maxValue={60}
+        unit=" min"
+        showProgress={false}
+      />
 
-      <Card className="bg-brand-light-nude shadow-xl border-brand-brown">
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-          <div className="flex-1">
-            <CardTitle className="text-sm font-medium">
-              Completion Rate
-            </CardTitle>
-          </div>
-          <div className="w-5 h-5 flex items-start justify-center">
-            <Trophy className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold"> {Math.round(metrics.completionRate * 100)}%</div>
-          <Progress value={metrics.completionRate * 100} className="mt-2" />
-        </CardContent>
-      </Card>
-
-      {/* <Card className="col-span-2">
-        <CardHeader>
-          <CardTitle>Achievements</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            {achievements.map((achievement, index) => (
-              <li key={index} className="flex items-center space-x-2">
-                <Trophy className="h-4 w-4 text-yellow-500" />
-                <span>{achievement}</span>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
-
-      <Card className="col-span-2">
-        <CardHeader>
-          <CardTitle>Challenges</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            {challenges.map((challenge, index) => (
-              <li key={index} className="flex items-center space-x-2">
-                <Activity className="h-4 w-4 text-blue-500" />
-                <span>{challenge}</span>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card> */}
+      <ProgressMetricBox
+        icon={Trophy}
+        title="Achievements"
+        value={metrics.achievements.num_achievements}
+        maxValue={10}
+        showProgress={false}
+        customContent={
+          metrics.achievements.num_achievements > 0 ? (
+            <>
+              <div className="text-2xl font-bold mb-1">{metrics.achievements.num_achievements}</div>
+              <Progress value={metrics.achievements.num_achievements} className="mt-1 w-full" />
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center w-full py-2">
+              <span className="text-xs text-muted-foreground font-medium text-center">
+                No achievements yet<br />
+                <span className="text-brand-brown font-semibold">Keep showing up!</span>
+              </span>
+            </div>
+          )
+        }
+      />
     </div>
   );
 } 

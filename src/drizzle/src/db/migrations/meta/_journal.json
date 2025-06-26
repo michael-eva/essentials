@@ -211,6 +211,13 @@
       "when": 1750651386813,
       "tag": "0029_flowery_dragon_man",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1750921957590,
+      "tag": "0030_good_terror",
+      "breakpoints": true
     }
   ]
 }

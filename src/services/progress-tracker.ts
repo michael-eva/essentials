@@ -31,15 +31,10 @@ export async function trackWorkoutProgress(
   });
 
   // Calculate metrics
-  const metrics = await calculateWorkoutMetrics(
-    userId,
-    workout,
-    recentWorkouts,
-  );
+  const metrics = await calculateWorkoutMetrics(workout, recentWorkouts);
 
   // Analyze progress
   const { achievements, challenges } = await analyzeWorkoutProgress(
-    workout,
     metrics,
     recentWorkouts,
   );
@@ -47,8 +42,9 @@ export async function trackWorkoutProgress(
   // Insert progress tracking entry
   await insertProgressTracking({
     userId,
+    workoutTrackingId: workout.id,
     date: new Date(),
-    type: workout.activityType === "pilates" ? "pilates" : "cardio",
+    type: workout.activityType,
     metrics,
     achievements,
     challenges,
@@ -60,7 +56,6 @@ export async function trackWorkoutProgress(
  * Calculates metrics for a specific workout
  */
 async function calculateWorkoutMetrics(
-  userId: string,
   workout: WorkoutTracking,
   recentWorkouts: WorkoutTracking[],
 ): Promise<ProgressMetrics> {
@@ -90,7 +85,6 @@ async function calculateWorkoutMetrics(
  * Analyzes workout progress and identifies achievements and challenges
  */
 async function analyzeWorkoutProgress(
-  workout: WorkoutTracking,
   metrics: ProgressMetrics,
   recentWorkouts: WorkoutTracking[],
 ): Promise<{ achievements: string[]; challenges: string[] }> {
@@ -104,10 +98,6 @@ async function analyzeWorkoutProgress(
   if (metrics.intensity > 7) {
     achievements.push("High-intensity workout completed");
   }
-  if (metrics.consistency > 0.8) {
-    achievements.push("Maintained consistent workout schedule");
-  }
-
   // Check for streaks
   const streak = calculateStreak(recentWorkouts);
   if (streak >= 3) {
@@ -120,9 +110,6 @@ async function analyzeWorkoutProgress(
   }
   if (metrics.intensity < 3) {
     challenges.push("Workout intensity was lower than usual");
-  }
-  if (metrics.consistency < 0.5) {
-    challenges.push("Inconsistent workout schedule");
   }
 
   // Check for gaps in workout schedule

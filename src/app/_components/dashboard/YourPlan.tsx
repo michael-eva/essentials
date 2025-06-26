@@ -52,11 +52,13 @@ export default function ClassRecommendations() {
   const pausePlan = api.workoutPlan.pauseWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
+      void utils.workoutPlan.getUpcomingActivities.invalidate();
     },
   });
   const resumePlan = api.workoutPlan.resumeWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
+      void utils.workoutPlan.getUpcomingActivities.invalidate();
     },
   });
   const restartPlan = api.workoutPlan.restartWorkoutPlan.useMutation({
@@ -79,12 +81,6 @@ export default function ClassRecommendations() {
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
       void utils.workoutPlan.getPreviousPlans.invalidate();
-    },
-  });
-  const bookClass = api.workoutPlan.bookClass.useMutation({
-    onSuccess: () => {
-      void utils.workoutPlan.getUpcomingActivities.invalidate();
-      void utils.workoutPlan.getActivePlan.invalidate();
     },
   });
   const { generatePlan, OnboardingDialog, isLoading, LoadingScreen } = useGeneratePlan();

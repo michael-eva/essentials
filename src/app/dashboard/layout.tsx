@@ -23,14 +23,14 @@ const navigationItems = [
     href: "/dashboard/overview",
   },
   {
-    name: "My PT",
-    icon: User,
-    href: "/dashboard/mypt",
-  },
-  {
     name: "Your Plan",
     icon: Calendar,
     href: "/dashboard/your-plan",
+  },
+  {
+    name: "My PT",
+    icon: User,
+    href: "/dashboard/mypt",
   },
   {
     name: "History",
