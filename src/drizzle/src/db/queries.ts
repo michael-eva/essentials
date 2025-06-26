@@ -256,19 +256,131 @@ export async function getActivePlan(userId: string): Promise<
   };
 }
 
-export async function getWorkoutsToLog(userId: string): Promise<Workout[]> {
-  const now = new Date();
-  return db
+export async function getWorkoutsToLog(userId: string): Promise<{
+  workouts: (Workout & { weekNumber?: number })[];
+  currentWeek?: number;
+}> {
+  // First get the active plan for the user
+  const activePlan = await db
     .select()
-    .from(workout)
+    .from(workoutPlan)
     .where(
       and(
-        eq(workout.isBooked, true),
+        eq(workoutPlan.userId, userId),
+        eq(workoutPlan.isActive, true),
+        isNull(workoutPlan.pausedAt),
+      ),
+    )
+    .limit(1);
+
+  // If no active plan exists, return workouts without week filtering
+  if (!activePlan[0]) {
+    const workouts = await db
+      .select()
+      .from(workout)
+      .where(
+        and(eq(workout.status, "not_recorded"), eq(workout.userId, userId)),
+      )
+      .limit(3);
+
+    return {
+      workouts: workouts.map((w) => ({ ...w, weekNumber: undefined })),
+      currentWeek: undefined,
+    };
+  }
+
+  const plan = activePlan[0]!;
+
+  // If plan hasn't started yet, return empty array
+  if (!plan.startDate) {
+    return {
+      workouts: [],
+      currentWeek: undefined,
+    };
+  }
+
+  const now = new Date();
+  const startDate = new Date(plan.startDate);
+
+  // If plan hasn't started yet, return empty array
+  if (now < startDate) {
+    return {
+      workouts: [],
+      currentWeek: undefined,
+    };
+  }
+
+  // Calculate total paused time in milliseconds
+  let totalPausedMs = plan.totalPausedDuration * 1000; // Convert seconds to milliseconds
+
+  // If currently paused, add time since pause
+  if (plan.pausedAt && !plan.resumedAt) {
+    const pausedAt = new Date(plan.pausedAt);
+    totalPausedMs += now.getTime() - pausedAt.getTime();
+  }
+
+  // Calculate effective elapsed time (actual time minus paused time)
+  const effectiveElapsedMs =
+    now.getTime() - startDate.getTime() - totalPausedMs;
+
+  // Convert to weeks (7 days * 24 hours * 60 minutes * 60 seconds * 1000 milliseconds)
+  const weekInMs = 7 * 24 * 60 * 60 * 1000;
+  const currentWeek = Math.floor(effectiveElapsedMs / weekInMs) + 1;
+
+  // If effective elapsed time is negative, return workouts from week 1 only
+  if (effectiveElapsedMs < 0) {
+    const week1Workouts = await db
+      .select({
+        workout: workout,
+        weekNumber: weeklySchedule.weekNumber,
+      })
+      .from(workout)
+      .innerJoin(weeklySchedule, eq(workout.id, weeklySchedule.workoutId))
+      .where(
+        and(
+          eq(workout.status, "not_recorded"),
+          eq(workout.userId, userId),
+          eq(weeklySchedule.planId, plan.id),
+          eq(weeklySchedule.weekNumber, 1),
+        ),
+      )
+      .limit(3);
+
+    return {
+      workouts: week1Workouts.map((w) => ({
+        ...w.workout,
+        weekNumber: w.weekNumber,
+      })),
+      currentWeek: 1,
+    };
+  }
+
+  // Ensure current week is within valid range (1 to total weeks)
+  const maxWeek = Math.min(currentWeek, plan.weeks);
+
+  // Get workouts from current week and prior weeks
+  const workouts = await db
+    .select({
+      workout: workout,
+      weekNumber: weeklySchedule.weekNumber,
+    })
+    .from(workout)
+    .innerJoin(weeklySchedule, eq(workout.id, weeklySchedule.workoutId))
+    .where(
+      and(
         eq(workout.status, "not_recorded"),
         eq(workout.userId, userId),
-        lt(workout.bookedDate, now),
+        eq(weeklySchedule.planId, plan.id),
+        lte(weeklySchedule.weekNumber, maxWeek),
       ),
-    );
+    )
+    .orderBy(asc(weeklySchedule.weekNumber))
+    .limit(3);
+
+  return {
+    workouts: workouts.map((w) => ({ ...w.workout, weekNumber: w.weekNumber })),
+    currentWeek: maxWeek,
+  };
 }
 
 export async function getActivityHistory(

@@ -37,7 +37,7 @@ export default function Dashboard() {
   const utils = api.useUtils();
   const { data: upcomingClasses, isLoading: isLoadingUpcomingClasses } =
     api.workoutPlan.getUpcomingActivities.useQuery();
-  const { data: pastWorkouts = [], isLoading: isLoadingPastWorkouts } =
+  const { data: pastWorkoutsData = { workouts: [], currentWeek: undefined }, isLoading: isLoadingPastWorkouts } =
     api.workoutPlan.getWorkoutsToLog.useQuery();
   const { data: activityHistory = [], isLoading: isLoadingActivityHistory } =
     api.workoutPlan.getActivityHistory.useQuery({});
@@ -63,7 +63,7 @@ export default function Dashboard() {
   const { generatePlan, OnboardingDialog, isLoading, LoadingScreen } = useGeneratePlan();
 
   const [selectedWorkout, setSelectedWorkout] = useState<
-    (typeof pastWorkouts)[0] | null
+    (typeof pastWorkoutsData.workouts)[0] | null
   >(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMarkMissedDialogOpen, setIsMarkMissedDialogOpen] = useState(false);
@@ -74,12 +74,12 @@ export default function Dashboard() {
   const hasWorkouts = Array.isArray(upcomingClasses) && upcomingClasses.length > 0;
   const planStatus = !Array.isArray(upcomingClasses) ? upcomingClasses : null;
 
-  const handleMarkComplete = (workout: (typeof pastWorkouts)[0]) => {
+  const handleMarkComplete = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
     setSelectedWorkout(workout);
     setIsDialogOpen(true);
   };
 
-  const handleMarkMissed = (workout: (typeof pastWorkouts)[0]) => {
+  const handleMarkMissed = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
     setSelectedWorkout(workout);
     setIsMarkMissedDialogOpen(true);
   };
@@ -147,6 +147,22 @@ export default function Dashboard() {
       router.push(`/dashboard/workout/${activity.id}`);
     }
   }
+
+  // Helper function to get week display text
+  const getWeekDisplayText = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
+    if (!workout.weekNumber || !pastWorkoutsData.currentWeek) {
+      return "Workout to log";
+    }
+
+    if (workout.weekNumber === pastWorkoutsData.currentWeek) {
+      return "Workout for this week";
+    } else if (workout.weekNumber < pastWorkoutsData.currentWeek) {
+      return `Catch up from Week ${workout.weekNumber}`;
+    } else {
+      return `Week ${workout.weekNumber} workout`;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {OnboardingDialog}
@@ -232,7 +248,6 @@ export default function Dashboard() {
             <div
               key={index}
               className="flex items-center justify-between bg-brand-white border-b px-4 rounded-lg border-gray-100 py-3 last:border-0 last:pb-0"
-              onClick={() => handleActivityClick(classItem)}
             >
               <div>
                 <p className="font-medium text-gray-900">{classItem.name}</p>
@@ -253,14 +268,14 @@ export default function Dashboard() {
 
       <DefaultBox
         title="Workout Logging"
-        description={`${pastWorkouts.length > 0 ? "Record your past workouts" : "No past workouts logged yet"}`}
+        description={`${pastWorkoutsData.workouts.length > 0 ? "Record your workouts" : "No past workouts logged yet"}`}
         showViewAll={false}
       >
         {isLoadingPastWorkouts ? (
           <WorkoutLoggingSkeleton />
         ) : (
           <>
-            {pastWorkouts.length === 0 ? (
+            {pastWorkoutsData.workouts.length === 0 ? (
               <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-brand-brown bg-brand-light-nude px-4 py-8 text-center">
                 <div className="flex flex-col items-center space-y-2">
                   <Activity className="h-12 w-12 text-gray-400" />
@@ -273,8 +288,6 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <Button
-                  variant="outline"
-                  className="text-brand-white w-full max-w-sm transition-colors bg-brand-bright-orange"
                   onClick={() => setIsManualActivityDialogOpen(true)}
                   disabled={isInsertingManualActivity}
                 >
@@ -282,58 +295,66 @@ export default function Dashboard() {
                 </Button>
               </div>
             ) : (
-              <div className=" space-y-4 pb-4">
-                {pastWorkouts.map((workout, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col rounded-lg border border-brand-brown bg-brand-light-nude p-4 shadow-sm transition-all hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="flex items-center justify-center rounded-full bg-white p-2 shadow-sm">
-                        {getStatusIcon(workout.status)}
-                      </span>
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {workout.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {workout.instructor} &bull; {workout.duration} min
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Booked for{" "}
-                          {new Date(
-                            workout.bookedDate ?? "",
-                          ).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </p>
+              <div className="space-y-4 pb-4">
+                {pastWorkoutsData.workouts.map((workout, index) => {
+                  // Determine card color and badge
+                  let badgeColor = "bg-green-100 text-green-800";
+                  let badgeText = "This Week";
+                  if (workout.weekNumber && pastWorkoutsData.currentWeek && workout.weekNumber < pastWorkoutsData.currentWeek) {
+                    badgeColor = "bg-orange-100 text-orange-800";
+                    badgeText = `Catch Up`;
+                  }
+                  return (
+                    <div
+                      key={index}
+                      className={`flex flex-col rounded-xl  bg-white shadow p-4 transition-all`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center justify-center rounded-full bg-gray-100 p-3 shadow-sm">
+                          {getStatusIcon(workout.status)}
+                        </span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-lg text-gray-900">{workout.name}</p>
+                            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${badgeColor}`}>
+                              {badgeText}
+                            </span>
+                          </div>
+                          <div className="flex gap-2 text-sm text-gray-500 mt-1">
+                            <span>
+                              <Clock className="inline h-4 w-4" /> {workout.duration} min
+                            </span>
+                            {workout.weekNumber && (
+                              <>
+                                <span>·</span>
+                                <span>Week {workout.weekNumber}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-row gap-2 mt-4">
+                        <Button
+                          className="bg-[#34C759]/90 text-white font-bold hover:bg-[#34C759] w-1/2"
+                          onClick={() => handleMarkComplete(workout)}
+                          disabled={isInsertingCompletedClass}
+                        >
+                          {isInsertingCompletedClass ? "Completing..." : "Complete"}
+                        </Button>
+                        <Button
+                          className="bg-[#FF3B30]/80 text-white font-bold hover:bg-[#FF3B30]/90 w-1/2"
+                          onClick={() => handleMarkMissed(workout)}
+                          disabled={isUpdatingWorkoutStatus}
+                        >
+                          {isUpdatingWorkoutStatus ? "Marking..." : "Missed"}
+                        </Button>
                       </div>
                     </div>
-                    <div className="mt-6 flex gap-3 self-center">
-                      <Button
-                        className="bg-[#34C759]/90 text-white font-bold transition-colors hover:bg-[#34C759]"
-                        onClick={() => handleMarkComplete(workout)}
-                        disabled={isInsertingCompletedClass}
-                      >
-                        {isInsertingCompletedClass
-                          ? "Completing..."
-                          : "Complete"}
-                      </Button>
-                      <Button
-                        className="bg-[#FF3B30]/80 text-white font-bold transition-colors hover:bg-[#FF3B30]/90"
-                        onClick={() => handleMarkMissed(workout)}
-                        disabled={isUpdatingWorkoutStatus}
-                      >
-                        {isUpdatingWorkoutStatus ? "Marking..." : "Missed"}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
-            {pastWorkouts.length > 0 && (
+            {pastWorkoutsData.workouts.length > 0 && (
               <Button
                 onClick={() => setIsManualActivityDialogOpen(true)}
                 variant="default"
