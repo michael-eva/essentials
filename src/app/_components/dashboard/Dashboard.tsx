@@ -193,7 +193,7 @@ export default function Dashboard() {
         {isLoadingUpcomingClasses ? (
           <UpcomingClassesSkeleton />
         ) : !hasWorkouts ? (
-          <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
+          <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-brand-brown bg-brand-light-nude px-4 py-8 text-center">
             <div className="flex flex-col items-center space-y-2">
               <CalendarDays className="h-12 w-12 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900">
@@ -403,16 +403,16 @@ export default function Dashboard() {
           </div>
         ) : (
           activityHistory
-            .filter((activity) => activity.name)
+            .filter((activity) => activity.tracking.name)
             .map((activity, index) => (
               <div
-                key={index}
+                key={activity.tracking.id}
                 className="flex items-center justify-between border-b border-brand-brown pb-3 last:border-0 last:pb-0"
               >
                 <div>
-                  <p className="font-medium text-gray-900">{activity.name}</p>
+                  <p className="font-medium text-gray-900">{activity.tracking.name}</p>
                   <p className="text-sm text-gray-500">
-                    {new Date(activity?.date ?? "").toLocaleDateString(
+                    {new Date(activity.tracking?.date ?? "").toLocaleDateString(
                       "en-US",
                       {
                         month: "short",
@@ -423,9 +423,9 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <div className="text-right">
-                  {activity.activityType === "workout" && activity.durationHours && activity.durationMinutes ? (
+                  {activity.tracking.activityType === "workout" && activity.tracking.durationHours && activity.tracking.durationMinutes ? (
                     <p className="text-accent font-medium">
-                      {activity.durationHours}h {activity.durationMinutes}m
+                      {activity.tracking.durationHours}h {activity.tracking.durationMinutes}m
                     </p>
                   ) : (
                     null

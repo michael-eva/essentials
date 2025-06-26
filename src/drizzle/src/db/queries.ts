@@ -128,6 +128,10 @@ export async function getUpcomingActivities(
     .from(workoutTracking)
     .where(inArray(workoutTracking.workoutId, workoutIds));
 
+  const workoutIdsFiltered = trackingData
+    .map((t) => t.workoutId)
+    .filter((id): id is string => Boolean(id));
+
   return workouts.map((workout) => ({
     ...workout,
     tracking: trackingData.find((t) => t.workoutId === workout.id) ?? null,
@@ -156,6 +160,10 @@ export async function getSupplementaryWorkouts(
     .select()
     .from(workoutTracking)
     .where(inArray(workoutTracking.workoutId, workoutIds));
+
+  const workoutIdsFiltered = trackingData
+    .map((t) => t.workoutId)
+    .filter((id): id is string => Boolean(id));
 
   return workouts.map((workout) => ({
     ...workout,
@@ -387,7 +395,7 @@ export async function getActivityHistory(
   userId: string,
   limit = 5,
   offset = 0,
-): Promise<WorkoutTracking[]> {
+): Promise<Array<{ tracking: WorkoutTracking; workout: Workout | null }>> {
   const trackingData = await db
     .select()
     .from(workoutTracking)
@@ -395,7 +403,23 @@ export async function getActivityHistory(
     .orderBy(desc(workoutTracking.date))
     .limit(limit)
     .offset(offset);
-  return trackingData;
+
+  // Fetch related workouts in bulk
+  const workoutIds = trackingData
+    .map((t) => t.workoutId)
+    .filter((id): id is string => Boolean(id));
+  let workouts: Workout[] = [];
+  if (workoutIds.length > 0) {
+    workouts = await db
+      .select()
+      .from(workout)
+      .where(inArray(workout.id, workoutIds));
+  }
+
+  return trackingData.map((tracking) => ({
+    tracking,
+    workout: workouts.find((w) => w.id === tracking.workoutId) ?? null,
+  }));
 }
 
 export async function getActivityHistoryCount(userId: string): Promise<number> {
@@ -571,4 +595,52 @@ export async function getAiSystemPrompt(
     .orderBy(desc(AiSystemPrompt.createdAt))
     .limit(1);
   return result[0] ?? null;
+}
+
+export async function getActivityHistoryWithProgress(
+  userId: string,
+  limit = 5,
+  offset = 0,
+): Promise<
+  Array<{
+    tracking: WorkoutTracking;
+    workout: Workout | null;
+    progress: ProgressTracking | null;
+  }>
+> {
+  const trackingData = await db
+    .select()
+    .from(workoutTracking)
+    .where(eq(workoutTracking.userId, userId))
+    .orderBy(desc(workoutTracking.date))
+    .limit(limit)
+    .offset(offset);
+
+  // Fetch related workouts in bulk
+  const workoutIds = trackingData
+    .map((t) => t.workoutId)
+    .filter((id): id is string => Boolean(id));
+  let workouts: Workout[] = [];
+  if (workoutIds.length > 0) {
+    workouts = await db
+      .select()
+      .from(workout)
+      .where(inArray(workout.id, workoutIds));
+  }
+
+  // For each tracking, get the progressTracking entry for the workoutTrackingId
+  const progressEntries: ProgressTracking[] = await db
+    .select()
+    .from(progressTracking)
+    .where(eq(progressTracking.userId, userId));
+
+  return trackingData.map((tracking) => {
+    const progress =
+      progressEntries.find((p) => p.workoutTrackingId === tracking.id) ?? null;
+    return {
+      tracking,
+      workout: workouts.find((w) => w.id === tracking.workoutId) ?? null,
+      progress,
+    };
+  });
 }

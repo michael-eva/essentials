@@ -3,7 +3,6 @@ import { api } from "@/trpc/react";
 import { Trophy, TrendingUp, Clock, Activity } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Span } from "next/dist/trace";
 
 interface ProgressMetricBoxProps {
   icon: LucideIcon;
@@ -96,6 +95,7 @@ export function ProgressSection() {
         title="Workout Count"
         value={metrics.workout_count}
         maxValue={100}
+        showProgress={false}
       />
 
       <ProgressMetricBox
@@ -104,6 +104,7 @@ export function ProgressSection() {
         value={metrics.intensity}
         maxValue={10}
         unit="/10"
+        showProgress={false}
       />
 
       <ProgressMetricBox
@@ -112,6 +113,7 @@ export function ProgressSection() {
         value={metrics.duration}
         maxValue={60}
         unit=" min"
+        showProgress={false}
       />
 
       <ProgressMetricBox
@@ -119,6 +121,7 @@ export function ProgressSection() {
         title="Achievements"
         value={metrics.achievements.num_achievements}
         maxValue={10}
+        showProgress={false}
         customContent={
           metrics.achievements.num_achievements > 0 ? (
             <>

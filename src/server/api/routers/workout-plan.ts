@@ -14,6 +14,7 @@ import {
   getOnboardingData,
   getPersonalTrainerInteractions,
   getPersonalTrainerInteraction,
+  getActivityHistoryWithProgress,
 } from "@/drizzle/src/db/queries";
 import {
   deleteWorkoutPlan,
@@ -161,6 +162,36 @@ export const workoutPlanRouter = createTRPCRouter({
       });
     }
   }),
+
+  getActivityHistoryWithProgress: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const history = await getActivityHistoryWithProgress(
+          ctx.userId,
+          input.limit ?? 5,
+          input.offset ?? 0,
+        );
+        return history;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        console.error(
+          "Error fetching activity history with progress:",
+          errorMessage,
+        );
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch activity history with progress",
+        });
+      }
+    }),
+
   updateWorkoutStatus: protectedProcedure
     .input(
       z.object({

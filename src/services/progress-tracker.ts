@@ -42,8 +42,9 @@ export async function trackWorkoutProgress(
   // Insert progress tracking entry
   await insertProgressTracking({
     userId,
+    workoutTrackingId: workout.id,
     date: new Date(),
-    type: workout.activityType === "pilates" ? "pilates" : "cardio",
+    type: workout.activityType,
     metrics,
     achievements,
     challenges,

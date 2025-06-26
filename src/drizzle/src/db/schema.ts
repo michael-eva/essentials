@@ -226,6 +226,13 @@ export const progressTracking = pgTable("progress_tracking", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+  workoutTrackingId: uuid("workout_tracking_id").references(
+    () => workoutTracking.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    },
+  ),
   date: timestamp("date")
     .notNull()
     .default(sql`now()`),
