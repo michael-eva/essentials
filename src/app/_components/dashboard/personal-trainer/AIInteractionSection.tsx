@@ -79,7 +79,7 @@ export function AIInteractionSection() {
     }
   }, [isLoadingHistory, isLoadingInfo, messages.length]);
 
-  // Scroll when loading state changes (when AI is responding)
+  // Scroll when loading state changes (when trainer is responding)
   useEffect(() => {
     if (isLoading) {
       const timer = setTimeout(() => {
@@ -153,14 +153,14 @@ export function AIInteractionSection() {
         <div className="md:hidden fixed inset-0 top-20 flex flex-col bg-white">
           <div className="flex-shrink-0 px-4 pt-4 pb-2">
             <DefaultBox
-              title="AI Personal Trainer"
-              description="Your AI fitness companion"
+              title="Personal Trainer"
+              description="Your fitness companion"
               showViewAll={false}
             >
               <div className="flex items-center justify-center py-12">
                 <div className="text-center text-muted-foreground">
                   <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Loading your AI trainer...</p>
+                  <p>Loading your personal trainer...</p>
                 </div>
               </div>
             </DefaultBox>
@@ -170,14 +170,14 @@ export function AIInteractionSection() {
         {/* Desktop: Loading state */}
         <div className="hidden md:block space-y-6">
           <DefaultBox
-            title="AI Personal Trainer"
-            description="Your AI fitness companion"
+            title="Personal Trainer"
+            description="Your fitness companion"
             showViewAll={false}
           >
             <div className="flex items-center justify-center py-12">
               <div className="text-center text-muted-foreground">
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Loading your AI trainer...</p>
+                <p>Loading your personal trainer...</p>
               </div>
             </div>
           </DefaultBox>
@@ -187,59 +187,59 @@ export function AIInteractionSection() {
   }
 
   // Show onboarding required message if not completed
-  if (!trainerInfo?.isOnboardingComplete) {
-    return (
-      <>
-        {/* Mobile: Onboarding message */}
-        <div className="md:hidden fixed inset-0 top-20 flex flex-col bg-white">
-          <div className="flex-shrink-0 px-4 pt-4 pb-2">
-            <DefaultBox
-              title="My PT"
-              description="Your AI fitness companion"
-              showViewAll={false}
-            >
-              <div className="flex items-center justify-center py-12">
-                <Alert className="max-w-md">
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Please complete your onboarding first to start chatting with your AI personal trainer.
-                  </AlertDescription>
-                </Alert>
-              </div>
-            </DefaultBox>
-          </div>
-        </div>
+  // if (!trainerInfo?.isOnboardingComplete) {
+  //   return (
+  //     <>
+  //       {/* Mobile: Onboarding message */}
+  //       <div className="md:hidden fixed inset-0 top-20 flex flex-col bg-white">
+  //         <div className="flex-shrink-0 px-4 pt-4 pb-2">
+  //           <DefaultBox
+  //             title="My PT"
+  //             description="Your fitness companion"
+  //             showViewAll={false}
+  //           >
+  //             <div className="flex items-center justify-center py-12">
+  //               <Alert className="max-w-md">
+  //                 <Info className="h-4 w-4" />
+  //                 <AlertDescription>
+  //                   Please complete your onboarding first to start chatting with your personal trainer.
+  //                 </AlertDescription>
+  //               </Alert>
+  //             </div>
+  //           </DefaultBox>
+  //         </div>
+  //       </div>
 
-        {/* Desktop: Onboarding message */}
-        <div className="hidden md:block space-y-6">
-          <DefaultBox
-            title="My PT"
-            description="Your AI fitness companion"
-            showViewAll={false}
-          >
-            <div className="flex items-center justify-center py-12">
-              <Alert className="max-w-md">
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  Please complete your onboarding first to start chatting with your AI personal trainer.
-                </AlertDescription>
-              </Alert>
-            </div>
-          </DefaultBox>
-        </div>
-      </>
-    );
-  }
+  //       {/* Desktop: Onboarding message */}
+  //       <div className="hidden md:block space-y-6">
+  //         <DefaultBox
+  //           title="My PT"
+  //           description="Your fitness companion"
+  //           showViewAll={false}
+  //         >
+  //           <div className="flex items-center justify-center py-12">
+  //             <Alert className="max-w-md">
+  //               <Info className="h-4 w-4" />
+  //               <AlertDescription>
+  //                 Please complete your onboarding first to start chatting with your personal trainer.
+  //               </AlertDescription>
+  //             </Alert>
+  //           </div>
+  //         </DefaultBox>
+  //       </div>
+  //     </>
+  //   );
+  // }
 
   return (
     <>
       {/* Mobile: Fixed chat interface */}
       <div className="md:hidden fixed inset-0 top-20 flex flex-col bg-white">
-        {/* AI Trainer Header Section - Mobile */}
+        {/* Personal Trainer Header Section - Mobile */}
         <div className="flex-shrink-0 px-4 pt-4 pb-2">
           <DefaultBox
-            title="AI Personal Trainer"
-            description="Your AI fitness companion"
+            title="Personal Trainer"
+            description="Your fitness companion"
             showViewAll={false}
           >
             <div className="flex items-center justify-between">
@@ -340,7 +340,7 @@ export function AIInteractionSection() {
           )}
           <div className="flex gap-2">
             <Input
-              placeholder="Ask your AI trainer anything..."
+              placeholder="Ask your trainer anything..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
@@ -361,8 +361,8 @@ export function AIInteractionSection() {
       {/* Desktop: Regular layout */}
       <div className="hidden md:block space-y-6">
         <DefaultBox
-          title="AI Personal Trainer"
-          description="Your AI fitness companion"
+          title="Personal Trainer"
+          description="Your fitness companion"
           showViewAll={false}
         >
           <div className="flex items-center justify-between mb-4">
@@ -459,7 +459,7 @@ export function AIInteractionSection() {
             )}
             <div className="flex gap-2">
               <Input
-                placeholder="Ask your AI trainer anything..."
+                placeholder="Ask your trainer anything..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
