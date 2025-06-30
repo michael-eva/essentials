@@ -85,7 +85,7 @@ export const workoutTracking = pgTable("workout_tracking", {
   notes: text("notes"),
   intensity: integer("intensity"),
   name: text("name"),
-  wouldDoAgain: boolean("would_do_again"),
+  likelyToDoAgain: integer("likely_to_do_again"),
   exercises: jsonb("exercises").$type<
     Array<{
       id: string;

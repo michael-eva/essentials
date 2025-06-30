@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useState, useEffect } from "react"
-import { Clock, Ruler, Activity, Bike, Waves, Footprints, Mountain, Ship, Dumbbell, Ellipsis } from "lucide-react"
+import { Clock, Ruler, Activity, Bike, Waves, Footprints, Mountain, Ship, Dumbbell, Ellipsis, Repeat, Flame } from "lucide-react"
 import { WheelPicker } from "./WheelPicker"
 import { CustomInput } from "@/app/_components/dashboard/InputLayout"
 import { DatePicker } from "@/components/ui/date-picker"
@@ -42,6 +42,7 @@ const activityFormSchema = z.object({
   notes: z.string().optional(),
   workoutId: z.string().optional(),
   exercises: z.array(exerciseSchema).optional(),
+  likelyToDoAgain: z.number().min(1, "Please rate the likelihood of doing this activity again from 1-10").max(10, "Rating must be between 1-10"),
 })
 
 export type ActivityFormValues = z.infer<typeof activityFormSchema>
@@ -94,6 +95,7 @@ export default function RecordManualActivity({
       notes: "",
       workoutId: workoutId,
       exercises: [],
+      likelyToDoAgain: 5,
     },
   })
 
@@ -115,9 +117,10 @@ export default function RecordManualActivity({
   }, [initialDurationHours, initialDurationMinutes, form])
 
   const onSubmit = (data: ActivityFormValues) => {
-    handleSubmitActivity({ ...data, workoutId })
-    form.reset()
-    setExercises([])
+    console.log(data)
+    // handleSubmitActivity({ ...data, workoutId })
+    // form.reset()
+    // setExercises([])
   }
 
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false)
@@ -297,8 +300,11 @@ export default function RecordManualActivity({
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>How was the activity? (1-10)</Label>
+          <div className="space-y-2 bg-orange-50 rounded-md p-4">
+            <Label className="flex items-center gap-2">
+              <Flame className="w-4 h-4 text-orange-500" />
+              How was the activity? (1-10)
+            </Label>
             <div className="space-y-4">
               <Slider
                 value={[form.watch("intensity")]}
@@ -306,7 +312,7 @@ export default function RecordManualActivity({
                 max={10}
                 min={1}
                 step={1}
-                className="w-full"
+                className="w-full slider-orange"
               />
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>1 - Very Easy</span>
@@ -316,6 +322,30 @@ export default function RecordManualActivity({
             </div>
             {form.formState.errors.intensity && (
               <p className="text-sm text-destructive">{form.formState.errors.intensity.message}</p>
+            )}
+          </div>
+          <div className="space-y-2 bg-blue-50 rounded-md p-4">
+            <Label className="flex items-center gap-2">
+              <Repeat className="w-4 h-4 text-blue-500" />
+              How likely are you to do this activity again? (1-10)
+            </Label>
+            <div className="space-y-4">
+              <Slider
+                value={[form.watch("likelyToDoAgain")]}
+                onValueChange={(value) => form.setValue("likelyToDoAgain", value[0] ?? 5)}
+                max={10}
+                min={1}
+                step={1}
+                className="w-full slider-blue"
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>1 - Very Unlikely</span>
+                <span className="font-medium text-foreground">{form.watch("likelyToDoAgain")}</span>
+                <span>10 - Very Likely</span>
+              </div>
+            </div>
+            {form.formState.errors.likelyToDoAgain && (
+              <p className="text-sm text-destructive">{form.formState.errors.likelyToDoAgain.message}</p>
             )}
           </div>
 

@@ -1,6 +1,6 @@
 import type {
   PersonalTrainerInteraction,
-  WorkoutTracking
+  WorkoutTracking,
 } from "@/drizzle/src/db/queries";
 
 import { z } from "zod";
@@ -12,7 +12,9 @@ import type { UserContext } from "./context-manager";
 import { NewWorkoutSchema, GeneratedWorkoutPlanResponseSchema } from "@/lib/zodschemas/schemas";
 
 
-type GeneratedWorkoutPlanResponse = z.infer<typeof GeneratedWorkoutPlanResponseSchema>
+type GeneratedWorkoutPlanResponse = z.infer<
+  typeof GeneratedWorkoutPlanResponseSchema
+>;
 
 export async function generateAIResponse(
   userInput: string,
@@ -36,24 +38,24 @@ Non-Pilates Classes: ${JSON.stringify(availableClasses.nonPilates, null, 2)}
 Note the "type" field of all Pilates classes is "class" and the "type" field of all non-Pilates classes is "workout".
 
 Releveant context about the user, that you should use to generate the workout plan:
-- Name: ${context.profile.name ?? 'Not specified'}
-- Age: ${context.profile.age ?? 'Not specified'}
-- Height: ${context.profile.height ?? 'Not specified'} cm
-- Weight: ${context.profile.weight ?? 'Not specified'} kg
-- Gender: ${context.profile.gender ?? 'Not specified'}
-- Exercises: ${context.profile.exercises?.join(', ') ?? 'Not specified'}
-- Custom Exercises: ${context.profile.otherExercises?.join(', ') ?? 'Not specified'}
-- Fitness Level: ${context.profile.fitnessLevel ?? 'Not specified'}
-- Goals: ${context.profile.fitnessGoals?.join(', ') ?? 'Not specified'}
-- Workout Frequency (preference for how many workouts to assign to each week): ${context.profile.exerciseFrequency ?? 'Not specified'}
-- Session Length (per session): ${context.profile.sessionLength ?? 'Not specified'}
-- Pilates Experience: ${context.profile.pilatesExperience ? 'Yes' : 'No'}
-- Studio Frequency (max number of workouts of type "class"  - which is derived from the available PIlates classes - to assign to each week): ${context.profile.studioFrequency ?? 'Not specified'}
-- Session Preference: ${context.profile.sessionPreference ?? 'Not specified'}
-- Apparatus Preference: ${context.profile.apparatusPreference?.join(', ') ?? 'Not specified'}
-- Health Considerations: ${context.profile.health.injuries ? `Has injuries: ${context.profile.health.injuriesDetails}` : 'No injuries reported'}
-- Chronic Conditions: ${context.profile.health.chronicConditions?.join(', ') ?? 'None'}
-- Pregnancy: ${context.profile.health.pregnancy ?? 'Not specified'}
+- Name: ${context.profile.name ?? "Not specified"}
+- Age: ${context.profile.age ?? "Not specified"}
+- Height: ${context.profile.height ?? "Not specified"} cm
+- Weight: ${context.profile.weight ?? "Not specified"} kg
+- Gender: ${context.profile.gender ?? "Not specified"}
+- Exercises: ${context.profile.exercises?.join(", ") ?? "Not specified"}
+- Custom Exercises: ${context.profile.otherExercises?.join(", ") ?? "Not specified"}
+- Fitness Level: ${context.profile.fitnessLevel ?? "Not specified"}
+- Goals: ${context.profile.fitnessGoals?.join(", ") ?? "Not specified"}
+- Workout Frequency (preference for how many workouts to assign to each week): ${context.profile.exerciseFrequency ?? "Not specified"}
+- Session Length (per session): ${context.profile.sessionLength ?? "Not specified"}
+- Pilates Experience: ${context.profile.pilatesExperience ? "Yes" : "No"}
+- Studio Frequency (max number of workouts of type "class"  - which is derived from the available PIlates classes - to assign to each week): ${context.profile.studioFrequency ?? "Not specified"}
+- Session Preference: ${context.profile.sessionPreference ?? "Not specified"}
+- Apparatus Preference: ${context.profile.apparatusPreference?.join(", ") ?? "Not specified"}
+- Health Considerations: ${context.profile.health.injuries ? `Has injuries: ${context.profile.health.injuriesDetails}` : "No injuries reported"}
+- Chronic Conditions: ${context.profile.health.chronicConditions?.join(", ") ?? "None"}
+- Pregnancy: ${context.profile.health.pregnancy ?? "Not specified"}
 - Recent Activity: ${context.recentActivity.recentWorkouts.length} workouts in the last 30 days
 - Recent Workouts: ${
     context.recentActivity.recentWorkouts.length > 0
@@ -61,20 +63,22 @@ Releveant context about the user, that you should use to generate the workout pl
           .slice(-10)
           .map(
             (workout) =>
-              `Name: ${workout.workout?.name ?? 'Unnamed'}, Activity Type: ${workout.workout?.activityType ?? 'Unknown'}, Would Do Again: ${
-                workout.workoutTracking.wouldDoAgain ? "Yes" : "No"
-              }, Duration: ${workout.workoutTracking.durationHours} hours ${workout.workoutTracking.durationMinutes} mins, Intensity: ${workout.workoutTracking.intensity}`
+              `Name: ${workout.workout?.name ?? "Unnamed"}, Activity Type: ${workout.workout?.activityType ?? "Unknown"}, Would Do Again: ${
+                workout.workoutTracking.likelyToDoAgain
+                  ? workout.workoutTracking.likelyToDoAgain
+                  : "Not specified"
+              }, Duration: ${workout.workoutTracking.durationHours} hours ${workout.workoutTracking.durationMinutes} mins, Intensity: ${workout.workoutTracking.intensity}`,
           )
           .join("; ")
       : "None yet"
   }
 - Consistency: ${context.recentActivity.consistency.weeklyAverage} workouts per week, ${context.recentActivity.consistency.monthlyAverage} workouts per month, ${context.recentActivity.consistency.streak} days in a row
-- Challenges: ${context.progress.challenges?.join(', ') ?? 'Not specified'}
-- Improvements: ${context.progress.improvements?.join(', ') ?? 'Not specified'}
-- Motivations: ${context.profile.motivation?.join(', ') ?? 'Not specified'}
-- Progress Tracking: ${context.profile.progressTracking?.join(', ') ?? 'Not specified'}
-- Other Progress Tracking: ${context.profile.otherProgressTracking?.join(', ') ?? 'Not specified'}
-- Other Motivations: ${context.profile.otherMotivation?.join(', ') ?? 'Not specified'}
+- Challenges: ${context.progress.challenges?.join(", ") ?? "Not specified"}
+- Improvements: ${context.progress.improvements?.join(", ") ?? "Not specified"}
+- Motivations: ${context.profile.motivation?.join(", ") ?? "Not specified"}
+- Progress Tracking: ${context.profile.progressTracking?.join(", ") ?? "Not specified"}
+- Other Progress Tracking: ${context.profile.otherProgressTracking?.join(", ") ?? "Not specified"}
+- Other Motivations: ${context.profile.otherMotivation?.join(", ") ?? "Not specified"}
 
 Generate a comprehensive workout plan for the user that takes into account their fitness level, goals, health considerations, and preferences.
 
@@ -83,10 +87,9 @@ Make sure the plan is realistic, progressive, and aligned with the user's contex
 You should generate a plan that is 4 weeks long (meaning 4 weekly_schedules are to be created from week number 1 through 4).
 `;
 
-
-  console.log(`#########################`)
-  console.log(systemPrompt)
-  console.log(`#########################`)
+  console.log(`#########################`);
+  console.log(systemPrompt);
+  console.log(`#########################`);
 
   const response = await openai.responses.parse({
     model: "gpt-4o-2024-08-06",
@@ -116,11 +119,13 @@ You should generate a plan that is 4 weeks long (meaning 4 weekly_schedules are 
       isActive: parsedResponse.plan.isActive ?? false,
       totalPausedDuration: parsedResponse.plan.totalPausedDuration ?? 0,
     },
-    workouts: parsedResponse.workouts.map((workout: z.infer<typeof NewWorkoutSchema>) => ({
-      ...workout,
-      isBooked: workout.isBooked ?? false,
-      status: "not_recorded" as const,
-    })),
+    workouts: parsedResponse.workouts.map(
+      (workout: z.infer<typeof NewWorkoutSchema>) => ({
+        ...workout,
+        isBooked: workout.isBooked ?? false,
+        status: "not_recorded" as const,
+      }),
+    ),
     weeklySchedules: parsedResponse.weeklySchedules,
   };
 

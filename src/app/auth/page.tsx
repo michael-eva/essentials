@@ -15,7 +15,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    <div className="relative h-screen w-full overflow-hidden w-full">
       {/* Video Background */}
       <video
         src="https://rflvcogfitcffdappsuz.supabase.co/storage/v1/object/public/marketing-videos//new_essentials.webm"
@@ -27,17 +27,19 @@ export default function AuthPage() {
       >
         <source src="/hero-video.mp4" type="video/mp4" />
       </video>
-      <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/50 to-transparent">
-        <div className="container mx-auto flex justify-between md:justify-center gap-4 md:gap-24">
+      <div className="absolute bottom-0 left-0 right-0 pb-8 px-2 bg-gradient-to-t from-black/50 to-transparent w-full">
+        <div className="container flex justify-between md:justify-center gap-4 md:gap-24">
           <Button
-            className="bg-white text-black hover:bg-white/90"
+            size="lg"
+            className="bg-white text-black hover:bg-white/90 rounded-full h-12 flex-1"
             onClick={handleGetStarted}
           >
             Get Started
           </Button>
           <Button
+            size="lg"
             variant="outline"
-            className="bg-accent text-white hover:bg-accent/90 border-white/20"
+            className="bg-accent text-white hover:bg-accent/90 border-white border-2 rounded-full h-12 flex-1"
             onClick={handleSignIn}
           >
             Sign In
