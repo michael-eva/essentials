@@ -117,7 +117,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
           <div>
             <label
               htmlFor="fitness-level"
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="mb-2 block text-base font-medium text-gray-700"
             >
               How would you rate your current fitness level?
             </label>
@@ -146,7 +146,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-base font-medium text-gray-700">
               What forms of exercise do you currently engage in?
             </label>
             {errors.exercises && (
@@ -209,7 +209,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
           <div>
             <label
               htmlFor="exercise-frequency"
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="mb-2 block text-base font-medium text-gray-700"
             >
               How many days per week do you currently exercise?
             </label>
@@ -240,7 +240,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
           <div>
             <label
               htmlFor="session-length"
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="mb-2 block text-base font-medium text-gray-700"
             >
               How long are your typical workout sessions?
             </label>

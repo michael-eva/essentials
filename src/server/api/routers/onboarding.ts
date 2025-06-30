@@ -81,6 +81,8 @@ export const onboardingRouter = createTRPCRouter({
         chronicConditions: z.array(z.string()),
         otherHealthConditions: z.array(z.string()).optional().nullable(),
         pregnancy: z.string(),
+        pregnancyConsultedDoctor: z.boolean().optional().nullable(),
+        pregnancyConsultedDoctorDetails: z.string().optional().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -92,6 +94,8 @@ export const onboardingRouter = createTRPCRouter({
         chronicConditions,
         otherHealthConditions,
         pregnancy,
+        pregnancyConsultedDoctor,
+        pregnancyConsultedDoctorDetails,
       } = input;
       const userId = ctx.userId;
 
@@ -104,6 +108,8 @@ export const onboardingRouter = createTRPCRouter({
         chronicConditions,
         otherHealthConditions,
         pregnancy,
+        pregnancyConsultedDoctor,
+        pregnancyConsultedDoctorDetails,
         step: "health_considerations",
       });
     }),

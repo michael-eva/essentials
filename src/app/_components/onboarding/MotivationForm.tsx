@@ -160,7 +160,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                                 onChange={(e) => setCustomMotivationInput(e.target.value)}
                                 type="text"
                                 placeholder="Add custom motivation"
-                                className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.otherMotivation ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
+                                className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.otherMotivation ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
                                     }`}
                             />
                             <button
@@ -181,7 +181,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                                     <button
                                         type="button"
                                         onClick={() => removeOtherMotivation(motivation)}
-                                        className="text-red-600 hover:text-red-800"
+                                        className="text-red-600 hover:text-red-800 text-sm"
                                     >
                                         Remove
                                     </button>
@@ -214,7 +214,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                                 onChange={(e) => setCustomProgressTrackingInput(e.target.value)}
                                 type="text"
                                 placeholder="Add custom tracking method"
-                                className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.otherProgressTracking ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
+                                className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.otherProgressTracking ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
                                     }`}
                             />
                             <button
@@ -235,7 +235,7 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
                                     <button
                                         type="button"
                                         onClick={() => removeOtherProgressTracking(method)}
-                                        className="text-red-600 hover:text-red-800"
+                                        className="text-red-600 hover:text-red-800 text-sm"
                                     >
                                         Remove
                                     </button>

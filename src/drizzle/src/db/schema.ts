@@ -193,6 +193,8 @@ export const onboarding = pgTable("onboarding", {
   chronicConditions: text("chronic_conditions").array(),
   otherHealthConditions: text("other_health_conditions").array(),
   pregnancy: text("pregnancy"),
+  pregnancyConsultedDoctor: boolean("pregnancy_consulted_doctor"),
+  pregnancyConsultedDoctorDetails: text("pregnancy_consulted_doctor_details"),
 
   fitnessGoals: text("fitness_goals").array(),
   goalTimeline: text("goal_timeline"),

@@ -163,7 +163,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                         </div>
                     )}
                     <div>
-                        <label htmlFor="studio-frequency" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="studio-frequency" className="mb-2 block text-sm font-medium text-gray-700">
                             How often can you attend in-studio Pilates sessions?
                         </label>
                         {errors.studioFrequency && (
@@ -192,7 +192,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                     </div>
 
                     <div>
-                        <label htmlFor="session-preference" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="session-preference" className="mb-2 block text-sm font-medium text-gray-700">
                             Do you prefer group classes or private sessions?
                         </label>
                         {errors.sessionPreference && (
@@ -221,7 +221,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                     </div>
 
                     <div>
-                        <label className="block text-base font-medium text-gray-700 mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-4">
                             Are there specific Pilates apparatus you enjoy using or want to learn?
                         </label>
                         {errors.apparatusPreference && (
@@ -238,8 +238,8 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                                 />
                             )}
                         />
-                        <div className="mt-4">
-                            <label className="block text-base font-medium text-gray-700 mb-4">
+                        <div className="mt-8">
+                            <label className="block text-sm font-medium text-gray-700 mb-4">
                                 Do you use any of the following at home?
                             </label>
                             {errors.customApparatus && (

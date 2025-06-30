@@ -16,6 +16,8 @@ export const PREGNANCY_OPTIONS = [
   "First Trimester",
   "Second Trimester",
   "Third Trimester",
+  "Prenatal",
+  "Postnatal",
 ] as const;
 export type PregnancyOption = (typeof PREGNANCY_OPTIONS)[number];
 export type HealthCondition = (typeof HEALTH_CONDITIONS)[number];

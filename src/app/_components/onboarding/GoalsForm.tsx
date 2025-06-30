@@ -124,7 +124,7 @@ export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: Goal
                     </div>
 
                     <div>
-                        <label htmlFor="specific-goals" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="specific-goals" className="block text-base font-medium text-gray-700">
                             Do you have any specific goals or milestones?
                         </label>
                         {errors.specificGoals && (
@@ -138,7 +138,7 @@ export default function GoalsForm({ isFirstStep, isLastStep, currentStep }: Goal
                                     {...field}
                                     id="specific-goals"
                                     rows={3}
-                                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.specificGoals
+                                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.specificGoals
                                         ? "border-red-500 focus:border-red-500"
                                         : "border-gray-300 focus:border-indigo-500"
                                         }`}

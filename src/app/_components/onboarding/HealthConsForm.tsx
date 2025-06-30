@@ -34,6 +34,8 @@ export const formSchema = z.object({
     pregnancy: z.enum(PREGNANCY_OPTIONS, {
       required_error: "Please select your pregnancy status",
     }),
+    pregnancyConsultedDoctor: z.boolean().optional(),
+    pregnancyConsultedDoctorDetails: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -64,6 +66,19 @@ export const formSchema = z.object({
       message: "Please add at least one custom health condition",
       path: ["otherHealthConditions"],
         }
+  )
+  .refine(
+    (data) => {
+      // If pregnancyConsultedDoctor is true, details are required
+      if (data.pregnancyConsultedDoctor === true) {
+        return data.pregnancyConsultedDoctorDetails && data.pregnancyConsultedDoctorDetails.trim() !== "";
+      }
+      return true;
+    },
+    {
+      message: "Please provide more information about your doctor's consultation",
+      path: ["pregnancyConsultedDoctorDetails"],
+    }
   );
 
 export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }: HealthConsFormProps) {
@@ -85,19 +100,21 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
     const { mutate: postHealthConsiderations } = api.onboarding.postHealthConsiderations.useMutation()
   const hasInjuries = watch("injuries");
   const hasRecentSurgery = watch("recentSurgery");
+  const hasPregnancy = watch("pregnancy") && watch("pregnancy") !== "Not applicable";
+  const hasConsultedDoctor = watch("pregnancyConsultedDoctor") === true;
 
   // Add this to trigger validation when injuries changes
   const handleInjuriesChange = (value: boolean) => {
     setValue("injuries", value, { shouldValidate: true });
 
-    // If switching to Yes, validate injuriesDetails field immediately
+    // If switching to true, validate injuriesDetails field immediately
     if (value && watch("injuriesDetails")?.trim() === "") {
       setError("injuriesDetails", {
         type: "custom",
         message: "Please describe your injuries or limitations"
       });
     } else if (!value) {
-      // If switching to No, clear any errors on injuriesDetails
+      // If switching to false, clear any errors on injuriesDetails
       clearErrors("injuriesDetails");
     }
   };
@@ -106,14 +123,14 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
   const handleRecentSurgeryChange = (value: boolean) => {
     setValue("recentSurgery", value, { shouldValidate: true });
 
-    // If switching to Yes, validate surgeryDetails field immediately
+    // If switching to true, validate surgeryDetails field immediately
     if (value && watch("surgeryDetails")?.trim() === "") {
       setError("surgeryDetails", {
         type: "custom",
                 message: "Please provide details about your surgery and recovery timeline"
       });
     } else if (!value) {
-      // If switching to No, clear any errors on surgeryDetails
+      // If switching to false, clear any errors on surgeryDetails
       clearErrors("surgeryDetails");
     }
   };
@@ -199,7 +216,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
         </h2>
         <div className="space-y-8">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-base font-medium text-gray-700">
               Do you have any injuries or physical limitations?
             </label>
             {errors.injuries && (
@@ -243,7 +260,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                     {...field}
                     id="injuries-details"
                     rows={3}
-                                        className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.injuriesDetails
+                                        className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.injuriesDetails
                         ? "border-red-500 focus:border-red-500"
                         : "border-gray-300 focus:border-indigo-500"
                     }`}
@@ -265,7 +282,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-base font-medium text-gray-700">
               Are you recovering from any recent surgeries?
             </label>
             {errors.recentSurgery && (
@@ -309,7 +326,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                     {...field}
                     id="surgery-details"
                     rows={3}
-                                        className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.surgeryDetails
+                                        className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.surgeryDetails
                         ? "border-red-500 focus:border-red-500"
                         : "border-gray-300 focus:border-indigo-500"
                     }`}
@@ -389,7 +406,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
           </div>
 
           <div>
-                        <label htmlFor="pregnancy" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="pregnancy" className=" mb-2 block text-base font-medium text-gray-700">
               Are you pregnant or postpartum?
             </label>
             {errors.pregnancy && (
@@ -400,7 +417,14 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
               control={control}
               render={({ field }) => (
                 <Select
-                  onValueChange={field.onChange}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    // Reset doctor fields if "Not applicable" is selected
+                    if (value === "Not applicable") {
+                      setValue("pregnancyConsultedDoctor", false);
+                      setValue("pregnancyConsultedDoctorDetails", "");
+                    }
+                  }}
                   value={field.value}
                   defaultValue={field.value}
                 >
@@ -416,6 +440,62 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
               )}
             />
           </div>
+          {hasPregnancy && (
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Have you consulted a doctor about your pregnancy or postpartum status?
+              </label>
+              {errors.pregnancyConsultedDoctor && (
+                <p className="mt-1 text-sm text-red-600">{errors.pregnancyConsultedDoctor.message}</p>
+              )}
+              <Controller
+                name="pregnancyConsultedDoctor"
+                control={control}
+                render={({ field }) => (
+                  <RadioGroup
+                    onValueChange={val => field.onChange(val === "true")}
+                    value={field.value === undefined ? undefined : String(field.value)}
+                    className="flex space-x-4 mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="consulted-yes" />
+                      <label htmlFor="consulted-yes" className="text-sm">Yes</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="consulted-no" />
+                      <label htmlFor="consulted-no" className="text-sm">No</label>
+                    </div>
+                  </RadioGroup>
+                )}
+              />
+            </div>
+          )}
+          {hasPregnancy && hasConsultedDoctor && (
+            <div className="mt-4">
+              <label htmlFor="pregnancy-consulted-details" className="block text-sm font-medium text-gray-700">
+                Please provide more information about your doctor's consultation:
+              </label>
+              {errors.pregnancyConsultedDoctorDetails && (
+                <p className="mt-1 text-sm text-red-600">{errors.pregnancyConsultedDoctorDetails.message}</p>
+              )}
+              <Controller
+                name="pregnancyConsultedDoctorDetails"
+                control={control}
+                render={({ field }) => (
+                  <Textarea
+                    {...field}
+                    id="pregnancy-consulted-details"
+                    rows={3}
+                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.pregnancyConsultedDoctorDetails
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:border-indigo-500"
+                    }`}
+                    placeholder="Please provide details about your doctor's consultation..."
+                  />
+                )}
+              />
+            </div>
+          )}
         </div>
       </form>
     </FormLayout>
