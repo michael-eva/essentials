@@ -265,7 +265,7 @@ export const workoutPlanRouter = createTRPCRouter({
         notes: z.string().optional(),
         intensity: z.number().optional(),
         name: z.string(),
-        wouldDoAgain: z.boolean().optional(),
+        likelyToDoAgain: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -278,7 +278,7 @@ export const workoutPlanRouter = createTRPCRouter({
           notes: input.notes ?? undefined,
           intensity: input.intensity ?? undefined,
           name: input.name,
-          wouldDoAgain: input.wouldDoAgain ?? undefined,
+          likelyToDoAgain: input.likelyToDoAgain ?? undefined,
         } as NewWorkoutTracking;
         await updateCompletedClass(input.workoutId, "completed");
         return await insertWorkoutTracking(newActivity);

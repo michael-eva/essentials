@@ -10,12 +10,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Card } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
+import { Repeat } from "lucide-react"
 
 const workoutFormSchema = z.object({
   intensity: z.number().min(1, "Please select an intensity"),
-  wouldDoAgain: z.enum(["yes", "no"], {
-    required_error: "Please select whether you would do this workout again",
-  }),
+  likelyToDoAgain: z.number().min(1, "Please select a likelihood to do this workout again"),
   notes: z.string().optional(),
 })
 
@@ -28,7 +27,7 @@ export default function MarkClassComplete({ isDialogOpen, setIsDialogOpen, handl
     resolver: zodResolver(workoutFormSchema),
     defaultValues: {
       intensity: 5,
-      wouldDoAgain: undefined,
+      likelyToDoAgain: undefined,
       notes: "",
     },
   })
@@ -67,24 +66,28 @@ export default function MarkClassComplete({ isDialogOpen, setIsDialogOpen, handl
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label>Would you do this workout again?</Label>
-            <RadioGroup
-              value={form.watch("wouldDoAgain")}
-              onValueChange={(value) => form.setValue("wouldDoAgain", value as "yes" | "no")}
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="would-do-yes" />
-                <Label htmlFor="would-do-yes">Yes</Label>
+          <div className="space-y-2 bg-blue-50 rounded-md p-4">
+            <Label className="flex items-center gap-2">
+              <Repeat className="w-4 h-4 text-blue-500" />
+              How likely are you to do this activity again? (1-10)
+            </Label>
+            <div className="space-y-4">
+              <Slider
+                value={[form.watch("likelyToDoAgain")]}
+                onValueChange={(value) => form.setValue("likelyToDoAgain", value[0] ?? 5)}
+                max={10}
+                min={1}
+                step={1}
+                className="w-full slider-blue"
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>1 - Very Unlikely</span>
+                <span className="font-medium text-foreground">{form.watch("likelyToDoAgain")}</span>
+                <span>10 - Very Likely</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="would-do-no" />
-                <Label htmlFor="would-do-no">No</Label>
-              </div>
-            </RadioGroup>
-            {form.formState.errors.wouldDoAgain && (
-              <p className="text-sm text-destructive">{form.formState.errors.wouldDoAgain.message}</p>
+            </div>
+            {form.formState.errors.likelyToDoAgain && (
+              <p className="text-sm text-destructive">{form.formState.errors.likelyToDoAgain.message}</p>
             )}
           </div>
 

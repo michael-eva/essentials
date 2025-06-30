@@ -102,7 +102,7 @@ export default function Dashboard() {
       date: bookedDate,
       notes: data.notes,
       intensity: data.intensity,
-      wouldDoAgain: data.wouldDoAgain === "yes" ? true : false,
+      likelyToDoAgain: data.likelyToDoAgain,
       name,
     });
 
