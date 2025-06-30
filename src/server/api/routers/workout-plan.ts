@@ -461,7 +461,10 @@ export const workoutPlanRouter = createTRPCRouter({
     const isCompleted = await checkOnboardingCompletion(userId);
 
     if (!isCompleted) {
-      throw new Error("Onboarding is not completed");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Onboarding is not completed",
+      });
     }
 
     const userContext = await buildUserContext(ctx.userId);
