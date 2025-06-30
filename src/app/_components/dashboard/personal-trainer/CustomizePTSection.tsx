@@ -27,21 +27,19 @@ const DEFAULT_NAME = "AI Trainer";
 export function CustomizePTSection() {
   const [name, setName] = useState(DEFAULT_NAME);
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
-  const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Get current system prompt
-  const { 
-    data: systemPrompt, 
+  const {
+    data: systemPrompt,
     isLoading: isLoadingPrompt,
-    refetch: refetchPrompt 
+    refetch: refetchPrompt
   } = api.myPt.getSystemPrompt.useQuery();
 
   // Save system prompt mutation
   const { mutate: savePrompt, isPending: isSaving } = api.myPt.saveSystemPrompt.useMutation({
     onSuccess: (data) => {
       toast.success("Your AI trainer has been customized!");
-      setIsEditing(false);
       setHasChanges(false);
       refetchPrompt();
     },
@@ -88,9 +86,8 @@ export function CustomizePTSection() {
   };
 
   const handleReset = () => {
-    setName(systemPrompt?.name ?? DEFAULT_NAME);
-    setPrompt(systemPrompt?.prompt ?? DEFAULT_PROMPT);
-    setHasChanges(false);
+    setName(DEFAULT_NAME);
+    setPrompt(DEFAULT_PROMPT);
   };
 
   const handleUseDefault = () => {
@@ -100,7 +97,7 @@ export function CustomizePTSection() {
 
   return (
     <Card className="h-[600px] flex flex-col">
-      <CardContent className="flex-1 flex flex-col gap-4">
+      <CardContent className="flex-1 flex flex-col gap-4 overflow-y-auto">
         {isLoadingPrompt ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-muted-foreground">
@@ -112,7 +109,7 @@ export function CustomizePTSection() {
             <Alert>
               <Sparkles className="h-4 w-4" />
               <AlertDescription>
-                Customize how your AI personal trainer behaves and responds to you. 
+                Customize how your AI personal trainer behaves and responds to you.
                 Give them a name and personality that motivates you!
               </AlertDescription>
             </Alert>
@@ -125,8 +122,7 @@ export function CustomizePTSection() {
                   placeholder="e.g. Coach Sarah, Fitness Buddy, etc."
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  disabled={!isEditing}
-                  className={isEditing ? "border-primary" : ""}
+                  className={hasChanges ? "border-primary" : ""}
                 />
               </div>
 
@@ -137,59 +133,34 @@ export function CustomizePTSection() {
                   placeholder="Describe how you want your AI trainer to behave..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  disabled={!isEditing}
-                  className={`flex-1 min-h-[200px] resize-none ${isEditing ? "border-primary" : ""}`}
+                  className={`flex-1 min-h-[200px] resize-none ${hasChanges ? "border-primary" : ""}`}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Tip: Be specific about the tone, style, and approach you prefer. 
+                  Tip: Be specific about the tone, style, and approach you prefer.
                   The AI will use this to tailor all responses to your preferences.
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {!isEditing ? (
-                <Button onClick={() => setIsEditing(true)} className="flex-1">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Edit Customization
+              <>
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving || !hasChanges}
+                  className="flex-1"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
-              ) : (
-                <>
-                  <Button
-                    onClick={handleSave}
-                    disabled={isSaving || !hasChanges}
-                    className="flex-1"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? "Saving..." : "Save Changes"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleReset}
-                    disabled={isSaving || !hasChanges}
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Reset
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleUseDefault}
-                    disabled={isSaving}
-                  >
-                    Use Default
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setIsEditing(false);
-                      handleReset();
-                    }}
-                    disabled={isSaving}
-                  >
-                    Cancel
-                  </Button>
-                </>
-              )}
+                <Button
+                  variant="outline"
+                  onClick={handleReset}
+                  disabled={isSaving}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset to Default
+                </Button>
+              </>
             </div>
 
             {!systemPrompt && !isLoadingPrompt && (

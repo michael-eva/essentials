@@ -1,10 +1,48 @@
 'use client'
-import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
 import { usePathname } from "next/navigation"
-import AppLayout from "../_components/common/DashboardLayout"
-
+import MobileNavbar from "../_components/MobileNavbar"
+import DesktopNavbar from "../_components/DesktopNavbar"
+import {
+  Home,
+  User,
+  Calendar,
+  History,
+  Dumbbell,
+  type LucideIcon,
+} from "lucide-react"
+export type Tab = "overview" | "your-plan" | "history" | "mypt" | "classes" | "profile"
+export type NavigationItem = {
+  name: string
+  icon: LucideIcon
+  href: string
+}
+const navigationItems = [
+  {
+    name: "Home",
+    icon: Home,
+    href: "/dashboard/overview",
+  },
+  {
+    name: "Your Plan",
+    icon: Calendar,
+    href: "/dashboard/your-plan",
+  },
+  {
+    name: "My PT",
+    icon: User,
+    href: "/dashboard/mypt",
+  },
+  {
+    name: "History",
+    icon: History,
+    href: "/dashboard/history",
+  },
+  {
+    name: "Profile",
+    icon: Dumbbell,
+    href: "/dashboard/profile",
+  }
+]
 export default function DashboardLayout({
   children,
 }: {
@@ -12,63 +50,41 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname()
   const currentTab = pathname.split('/').pop() ?? 'overview'
-  const isLandingPage = pathname.includes("landing")
-  const isViewAllClasses = pathname.includes("classes")
-  return (
-    <AppLayout>
-      <div className="container max-w-md mx-auto pb-6 md:max-w-2xl">
-        {!isLandingPage && !isViewAllClasses && <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="shadow-lg overflow-hidden bg-white mb-6"
-        >
-          <div className="px-6 pt-6 pb-4">
-            <div className="shadow-sm bg-background inline-flex h-10 items-center justify-center rounded-md p-1 text-muted-foreground w-full">
-              <Link
-                href={`/dashboard/overview`}
-                className={cn(
-                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-                  currentTab === 'overview' ? "bg-accent text-popover shadow-sm" : "hover:bg-background hover:text-foreground"
-                )}
-              >
-                Home
-              </Link>
-              <Link
-                href={`/dashboard/your-plan`}
-                className={cn(
-                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-                  currentTab === 'your-plan' ? "bg-accent text-popover shadow-sm" : "hover:bg-background hover:text-foreground"
-                )}
-              >
-                Your Plan
-              </Link>
-              <Link
-                href={`/dashboard/mypt`}
-                className={cn(
-                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-                  currentTab === 'mypt' ? "bg-accent text-popover shadow-sm" : "hover:bg-background hover:text-foreground"
-                )}
-              >
-                MyPT
-              </Link>
-              <Link
-                href={`/dashboard/history`}
-                className={cn(
-                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-                  currentTab === 'history' ? "bg-accent text-popover shadow-sm" : "hover:bg-background hover:text-foreground"
-                )}
-              >
-                History
-              </Link>
-            </div>
-          </div>
-        </motion.div>}
 
-        <div className="w-full px-4">
-          {children}
+  // Special handling for My PT page - mobile only
+  const isMyPTPage = currentTab === 'mypt'
+  return (
+    <div className="pb-6 flex flex-col px-4">
+      {/* Mobile-only fixed header for My PT */}
+      {isMyPTPage && (
+        <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white">
+          <div className="flex justify-center">
+            <img src="/logo/essentials_logo.png" alt="Essentials Studio Logo" className="w-[300px]" />
+          </div>
         </div>
+      )}
+
+      {/* Regular header for all pages (including desktop) */}
+      <div className={`flex justify-center ${isMyPTPage ? 'hidden md:flex' : ''}`}>
+        <img src="/logo/essentials_logo.png" alt="Essentials Studio Logo" className="w-[300px] items-center justify-center md:hidden" />
       </div>
-    </AppLayout>
+
+      <DesktopNavbar
+        currentTab={currentTab}
+        navigationItems={navigationItems}
+      />
+
+      {/* Content area with conditional mobile spacing for My PT */}
+      <div className={`min-h-screen pb-24 md:pt-20 md:pb-8 ${isMyPTPage ? 'pt-20 md:pt-0' : ''}`}>
+        {children}
+      </div>
+
+      <div className="md:hidden">
+        <MobileNavbar
+          currentTab={currentTab}
+          navigationItems={navigationItems}
+        />
+      </div>
+    </div>
   )
-} 
+}

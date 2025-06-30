@@ -187,7 +187,7 @@ export const onboarding = pgTable("onboarding", {
   studioFrequency: text("studio_frequency"),
   sessionPreference: text("session_preference"),
   apparatusPreference: text("apparatus_preference").array(),
-  customApparatus: text("custom_apparatus"),
+  customApparatus: text("custom_apparatus").array(),
 
   motivation: text("motivation").array(),
   otherMotivation: text("other_motivation").array(),
@@ -228,6 +228,13 @@ export const progressTracking = pgTable("progress_tracking", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+  workoutTrackingId: uuid("workout_tracking_id").references(
+    () => workoutTracking.id,
+    {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    },
+  ),
   date: timestamp("date")
     .notNull()
     .default(sql`now()`),
@@ -275,6 +282,35 @@ export const AiChatMessages = pgTable("ai_chat", {
     .default(sql`now()`),
   role: roleEnum("role").notNull(),
   content: text("content").notNull(),
+});
+
+export const PilatesVideos = pgTable("pilates_videos", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  summary: text("summary").notNull(),
+  description: text("description").notNull(),
+  difficulty: text("difficulty").notNull(),
+  duration: integer("duration").notNull(),
+  equipment: text("equipment").notNull(),
+  pilatesStyle: text("pilates_style").notNull(),
+  classType: text("class_type").notNull(),
+  focusArea: text("focus_area").notNull(),
+  targetedMuscles: text("targeted_muscles").notNull(),
+  intensity: integer("intensity").notNull(),
+  modifications: boolean("modifications").notNull().default(true),
+  beginnerFriendly: boolean("beginner_friendly").notNull().default(true),
+  tags: text("tags").notNull(),
+  exerciseSequence: text("exercise_sequence").notNull(),
+  videoUrl: text("video_url").notNull(),
+  muxAssetId: text("mux_asset_id"),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .default(sql`now()`),
 });
 
 // Custom Zod schemas for complex types

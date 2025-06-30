@@ -51,123 +51,134 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   
-  /* Essentials Studio Brand Colors */
-  --color-brand-warm-brown: var(--brand-warm-brown);
-  --color-brand-deep-blue: var(--brand-deep-blue);
-  --color-brand-amber: var(--brand-amber);
-  --color-brand-sand: var(--brand-sand);
-  --color-brand-warm-brown-light: var(--brand-warm-brown-light);
-  --color-brand-warm-brown-dark: var(--brand-warm-brown-dark);
-  --color-brand-neutral: var(--brand-neutral);
-  --color-brand-neutral-light: var(--brand-neutral-light);
+  /* Essentials Studio Brand Colors - Updated to match guidelines */
+  --color-brand-brown: var(--brand-brown);
+  --color-brand-light-yellow: var(--brand-light-yellow);
+  --color-brand-cobalt: var(--brand-cobalt);
+  --color-brand-bright-orange: var(--brand-bright-orange);
+  --color-brand-nude: var(--brand-nude);
+  --color-brand-light-nude: var(--brand-light-nude);
+  --color-brand-sage: var(--brand-sage);
+  --color-brand-black: var(--brand-black);
+  --color-brand-white: var(--brand-white);
 }
 
 :root {
   --radius: 0.5rem;
   
-  /* Essentials Studio Brand Color Palette */
-  --brand-warm-brown: hsl(29 33% 33%); /* #705444 - Primary brand color */
-  --brand-deep-blue: hsl(225 49% 45%); /* #3c5daa - Professional accent */
-  --brand-amber: hsl(38 100% 52%); /* #FFAB0C - CTA color */
-  --brand-sand: hsl(36 25% 70%); /* #C9B59D - Light accent */
-  --brand-warm-brown-light: hsl(29 33% 43%); /* Lighter brown variant */
-  --brand-warm-brown-dark: hsl(29 33% 23%); /* Darker brown variant */
-  --brand-neutral: hsl(30 20% 95%); /* Very light warm neutral */
-  --brand-neutral-light: hsl(30 20% 98%); /* Ultra light warm neutral */
+  /* Essentials Studio Brand Color Palette - Updated to match guidelines */
+  --brand-brown: hsl(29 33% 33%); /* #705444 - Primary brand color */
+  --brand-brown-rgb: hsl(112, 84, 68);
+  --brand-light-yellow: hsl(60 100% 95%); /* #fffce8 - Primary complementary */
+  --brand-light-yellow-rgb: hsl(255, 252, 232);
+  --brand-cobalt: hsl(225 49% 45%); /* #3c5daa - Attention/CTA */
+  --brand-cobalt-rgb: hsl(60, 93, 170);
+  --brand-bright-orange: hsl(38 100% 52%); /* #ffab0c - Accent/Flare */
+  --brand-bright-orange-rgb: hsl(38, 100, 52);
+  --brand-nude: hsl(36 25% 70%);
+  --brand-light-nude: hsl(36 25% 90%);
+  --brand-light-nude-rgb: hsl(36, 25, 30);/* #c9b59d - Soft accent */
+  --brand-nude-rgb: hsl(36, 25, 70);
+  --brand-sage: hsl(120 15% 60%); /* #8ca88f - Flexible accent */
+  --brand-sage-rgb: hsl(140, 168, 143);
+  --brand-black: hsl(0 0% 0%); /* #000000 */
+  --brand-black-rgb: hsl(0, 0, 0);
+  --brand-white: hsl(0 0% 100%); /* #ffffff */
+  --brand-white-rgb: hsl(255, 255, 255);
   
   /* Light theme - Essentials Studio inspired */
-  --background: var(--brand-neutral-light);
-  --foreground: var(--brand-warm-brown-dark);
+  --background: hsl(var(--brand-light-yellow));
+  --foreground: hsl(var(--brand-brown));
   
-  --card: hsl(0 0% 100%);
-  --card-foreground: var(--brand-warm-brown);
+  --card: hsl(var(--brand-white));
+  --card-foreground: hsl(var(--brand-brown));
   
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: var(--brand-warm-brown);
+  --popover: hsl(var(--brand-white));
+  --popover-foreground: hsl(var(--brand-brown));
   
-  --primary: var(--brand-warm-brown);
-  --primary-foreground: hsl(0 0% 98%);
+  --primary: hsl(var(--brand-brown));
+  --primary-foreground: hsl(var(--brand-light-yellow));
   
-  --secondary: var(--brand-sand);
-  --secondary-foreground: var(--brand-warm-brown-dark);
+  --secondary: hsl(var(--brand-nude));
+  --secondary-foreground: hsl(var(--brand-brown));
   
-  --muted: var(--brand-neutral);
-  --muted-foreground: hsl(29 15% 55%);
+  --muted: hsl(var(--brand-light-yellow));
+  --muted-foreground: hsl(var(--brand-brown) / 0.7);
   
-  --accent: var(--brand-amber);
-  --accent-foreground: var(--brand-warm-brown-dark);
+  --accent: hsl(var(--brand-cobalt));
+  --accent-foreground: hsl(var(--brand-white));
   
   --destructive: hsl(0 84% 60%);
-  --destructive-foreground: hsl(0 0% 98%);
+  --destructive-foreground: hsl(var(--brand-white));
   
-  --border: hsl(29 20% 88%);
-  --input: hsl(29 20% 92%);
-  --ring: var(--brand-warm-brown);
+  --border: hsl(var(--brand-nude));
+  --input: hsl(var(--brand-light-yellow));
+  --ring: hsl(var(--brand-brown));
   
   /* Chart colors - Essentials Studio palette */
-  --chart-1: var(--brand-amber);
-  --chart-2: var(--brand-deep-blue);
-  --chart-3: var(--brand-warm-brown);
-  --chart-4: var(--brand-sand);
-  --chart-5: hsl(340 65% 55%);
+  --chart-1: hsl(var(--brand-bright-orange));
+  --chart-2: hsl(var(--brand-cobalt));
+  --chart-3: hsl(var(--brand-brown));
+  --chart-4: hsl(var(--brand-nude));
+  --chart-5: hsl(var(--brand-sage));
   
   /* Sidebar theme */
-  --sidebar: var(--brand-warm-brown);
-  --sidebar-foreground: hsl(0 0% 98%);
-  --sidebar-primary: var(--brand-amber);
-  --sidebar-primary-foreground: var(--brand-warm-brown-dark);
-  --sidebar-accent: var(--brand-sand);
-  --sidebar-accent-foreground: var(--brand-warm-brown-dark);
-  --sidebar-border: var(--brand-warm-brown-light);
-  --sidebar-ring: var(--brand-amber);
+  --sidebar: hsl(var(--brand-brown));
+  --sidebar-foreground: hsl(var(--brand-light-yellow));
+  --sidebar-primary: hsl(var(--brand-bright-orange));
+  --sidebar-primary-foreground: hsl(var(--brand-brown));
+  --sidebar-accent: hsl(var(--brand-nude));
+  --sidebar-accent-foreground: hsl(var(--brand-brown));
+  --sidebar-border: hsl(var(--brand-nude));
+  --sidebar-ring: hsl(var(--brand-bright-orange));
 }
 
 .dark {
   /* Dark theme - Essentials Studio inspired */
-  --background: hsl(29 25% 8%);
-  --foreground: hsl(30 20% 95%);
+  --background: hsl(var(--brand-brown));
+  --foreground: hsl(var(--brand-light-yellow));
   
-  --card: hsl(29 25% 12%);
-  --card-foreground: hsl(30 20% 92%);
+  --card: hsl(var(--brand-brown) / 0.8);
+  --card-foreground: hsl(var(--brand-light-yellow));
   
-  --popover: hsl(29 25% 12%);
-  --popover-foreground: hsl(30 20% 92%);
+  --popover: hsl(var(--brand-brown) / 0.8);
+  --popover-foreground: hsl(var(--brand-light-yellow));
   
-  --primary: var(--brand-amber);
-  --primary-foreground: hsl(29 25% 8%);
+  --primary: hsl(var(--brand-bright-orange));
+  --primary-foreground: hsl(var(--brand-brown));
   
-  --secondary: var(--brand-warm-brown);
-  --secondary-foreground: hsl(30 20% 92%);
+  --secondary: hsl(var(--brand-nude));
+  --secondary-foreground: hsl(var(--brand-brown));
   
-  --muted: hsl(29 25% 18%);
-  --muted-foreground: hsl(29 15% 60%);
+  --muted: hsl(var(--brand-brown) / 0.6);
+  --muted-foreground: hsl(var(--brand-light-yellow) / 0.7);
   
-  --accent: var(--brand-deep-blue);
-  --accent-foreground: hsl(0 0% 98%);
+  --accent: hsl(var(--brand-cobalt));
+  --accent-foreground: hsl(var(--brand-white));
   
   --destructive: hsl(0 84% 60%);
-  --destructive-foreground: hsl(30 20% 95%);
+  --destructive-foreground: hsl(var(--brand-light-yellow));
   
-  --border: hsl(29 25% 22%);
-  --input: hsl(29 25% 18%);
-  --ring: var(--brand-amber);
+  --border: hsl(var(--brand-nude) / 0.3);
+  --input: hsl(var(--brand-brown) / 0.8);
+  --ring: hsl(var(--brand-bright-orange));
   
   /* Chart colors - dark mode adjusted */
-  --chart-1: var(--brand-amber);
-  --chart-2: hsl(225 55% 65%);
-  --chart-3: hsl(29 40% 55%);
-  --chart-4: hsl(36 30% 65%);
-  --chart-5: hsl(340 65% 60%);
+  --chart-1: hsl(var(--brand-bright-orange));
+  --chart-2: hsl(var(--brand-cobalt));
+  --chart-3: hsl(var(--brand-nude));
+  --chart-4: hsl(var(--brand-sage));
+  --chart-5: hsl(var(--brand-light-yellow));
   
   /* Sidebar theme - dark mode */
-  --sidebar: hsl(29 25% 12%);
-  --sidebar-foreground: hsl(30 20% 95%);
-  --sidebar-primary: var(--brand-amber);
-  --sidebar-primary-foreground: hsl(29 25% 8%);
-  --sidebar-accent: var(--brand-deep-blue);
-  --sidebar-accent-foreground: hsl(0 0% 98%);
-  --sidebar-border: hsl(29 25% 22%);
-  --sidebar-ring: var(--brand-amber);
+  --sidebar: hsl(var(--brand-brown) / 0.9);
+  --sidebar-foreground: hsl(var(--brand-light-yellow));
+  --sidebar-primary: hsl(var(--brand-bright-orange));
+  --sidebar-primary-foreground: hsl(var(--brand-brown));
+  --sidebar-accent: hsl(var(--brand-cobalt));
+  --sidebar-accent-foreground: hsl(var(--brand-white));
+  --sidebar-border: hsl(var(--brand-nude) / 0.3);
+  --sidebar-ring: hsl(var(--brand-bright-orange));
 }
 
 @layer base {
@@ -185,45 +196,98 @@
     @apply font-heading;
   }
   
+  /* Main Headings - Maison Neue Extended style */
   h1 {
-    @apply text-4xl font-bold tracking-tight lg:text-5xl;
+    @apply text-4xl font-semibold tracking-normal lg:text-5xl;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600; /* Demi */
+    text-transform: none; /* Sentence case */
+    letter-spacing: 0;
   }
   
   h2 {
-    @apply text-3xl font-semibold tracking-tight lg:text-4xl;
+    @apply text-3xl font-semibold tracking-normal lg:text-4xl;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600; /* Demi */
+    text-transform: none; /* Sentence case */
+    letter-spacing: 0;
   }
   
+  /* Sub Headings - PP Monument Extended style */
   h3 {
-    @apply text-2xl font-semibold tracking-tight;
+    @apply text-2xl font-black tracking-normal uppercase;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 900; /* Black */
+    text-transform: uppercase;
+    letter-spacing: 0;
   }
   
   h4 {
-    @apply text-xl font-semibold tracking-tight;
+    @apply text-xl font-black tracking-normal uppercase;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 900; /* Black */
+    text-transform: uppercase;
+    letter-spacing: 0;
   }
   
   h5 {
-    @apply text-lg font-medium;
+    @apply text-lg font-semibold tracking-normal;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600; /* Demi */
+    text-transform: none; /* Sentence case */
+    letter-spacing: 0;
   }
   
   h6 {
-    @apply text-base font-medium;
+    @apply text-base font-semibold tracking-normal;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600; /* Demi */
+    text-transform: none; /* Sentence case */
+    letter-spacing: 0;
+  }
+  
+  /* Body Text - Maison Neue Extended style */
+  p, span, div {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 300; /* Light */
+    text-transform: none; /* Sentence case */
+  }
+  
+  /* Pull Quotes & Accents - Anonymous Pro style */
+  .pull-quote {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 400; /* Regular */
+    text-transform: none; /* Sentence case */
+    letter-spacing: 0;
   }
   
   /* Custom utility classes for brand colors */
-  .text-brand-warm-brown { color: hsl(var(--brand-warm-brown)); }
-  .text-brand-deep-blue { color: hsl(var(--brand-deep-blue)); }
-  .text-brand-amber { color: hsl(var(--brand-amber)); }
-  .text-brand-sand { color: hsl(var(--brand-sand)); }
+  .text-brand-brown { color: hsl(var(--brand-brown)); }
+  .text-brand-light-yellow { color: hsl(var(--brand-light-yellow)); }
+  .text-brand-cobalt { color: hsl(var(--brand-cobalt)); }
+  .text-brand-bright-orange { color: hsl(var(--brand-bright-orange)); }
+  .text-brand-nude { color: hsl(var(--brand-nude)); }
+  .text-brand-sage { color: hsl(var(--brand-sage)); }
+  .text-brand-black { color: hsl(var(--brand-black)); }
+  .text-brand-white { color: hsl(var(--brand-white)); }
   
-  .bg-brand-warm-brown { background-color: hsl(var(--brand-warm-brown)); }
-  .bg-brand-deep-blue { background-color: hsl(var(--brand-deep-blue)); }
-  .bg-brand-amber { background-color: hsl(var(--brand-amber)); }
-  .bg-brand-sand { background-color: hsl(var(--brand-sand)); }
+  .bg-brand-brown { background-color: hsl(var(--brand-brown)); }
+  .bg-brand-light-yellow { background-color: hsl(var(--brand-light-yellow)); }
+  .bg-brand-cobalt { background-color: hsl(var(--brand-cobalt)); }
+  .bg-brand-bright-orange { background-color: hsl(var(--brand-bright-orange)); }
+  .bg-brand-nude { background-color: hsl(var(--brand-nude)); }
+  .bg-brand-sage { background-color: hsl(var(--brand-sage)); }
+  .bg-brand-black { background-color: hsl(var(--brand-black)); }
+  .bg-brand-white { background-color: hsl(var(--brand-white)); }
   
-  .border-brand-warm-brown { border-color: hsl(var(--brand-warm-brown)); }
-  .border-brand-deep-blue { border-color: hsl(var(--brand-deep-blue)); }
-  .border-brand-amber { border-color: hsl(var(--brand-amber)); }
-  .border-brand-sand { border-color: hsl(var(--brand-sand)); }
+  .border-brand-brown { border-color: hsl(var(--brand-brown)); }
+  .border-brand-light-yellow { border-color: hsl(var(--brand-light-yellow)); }
+  .border-brand-cobalt { border-color: hsl(var(--brand-cobalt)); }
+  .border-brand-bright-orange { border-color: hsl(var(--brand-bright-orange)); }
+  .border-brand-nude { border-color: hsl(var(--brand-nude)); }
+  .border-brand-sage { border-color: hsl(var(--brand-sage)); }
+  .border-brand-black { border-color: hsl(var(--brand-black)); }
+  .border-brand-white { border-color: hsl(var(--brand-white)); }
   
   /* Essentials Studio button variants */
   .btn-primary {
@@ -240,17 +304,54 @@
   
   /* Warm, sophisticated shadows */
   .shadow-warm {
-    box-shadow: 0 4px 6px -1px hsl(var(--brand-warm-brown) / 0.1), 
-                0 2px 4px -1px hsl(var(--brand-warm-brown) / 0.06);
+    box-shadow: 0 4px 6px -1px hsl(var(--brand-brown) / 0.1), 
+                0 2px 4px -1px hsl(var(--brand-brown) / 0.06);
   }
   
   .shadow-warm-lg {
-    box-shadow: 0 10px 15px -3px hsl(var(--brand-warm-brown) / 0.1), 
-                0 4px 6px -2px hsl(var(--brand-warm-brown) / 0.05);
+    box-shadow: 0 10px 15px -3px hsl(var(--brand-brown) / 0.1), 
+                0 4px 6px -2px hsl(var(--brand-brown) / 0.05);
   }
 }
 
-/* Custom animations inspired by Essentials Studio */
+@layer components {
+  /* Call-to-Action Buttons */
+  .cta-primary {
+    @apply font-heading font-semibold uppercase tracking-[0.15em];
+  }
+  
+  .cta-secondary {
+    @apply font-heading font-semibold uppercase tracking-[0.17em];
+  }
+}
+
+@layer utilities {
+  /* Key messaging classes */
+  .brand-tagline {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: hsl(var(--brand-brown));
+  }
+  
+  .brand-services {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: hsl(var(--brand-cobalt));
+  }
+  
+  .brand-cta {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: hsl(var(--brand-bright-orange));
+  }
+}
+
 @keyframes gentle-fade-in {
   from {
     opacity: 0;
@@ -264,10 +365,10 @@
 
 @keyframes warm-glow {
   0%, 100% {
-    box-shadow: 0 0 5px hsl(var(--brand-amber) / 0.5);
+    box-shadow: 0 0 5px hsl(var(--brand-bright-orange) / 0.5);
   }
   50% {
-    box-shadow: 0 0 20px hsl(var(--brand-amber) / 0.3);
+    box-shadow: 0 0 20px hsl(var(--brand-bright-orange) / 0.3);
   }
 }
 
@@ -279,20 +380,20 @@
   animation: warm-glow 2s ease-in-out infinite;
 }
 
-/* Scrollbar styling to match theme */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
+  background: hsl(var(--brand-light-yellow));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--brand-warm-brown) / 0.6);
+  background: hsl(var(--brand-brown));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--brand-warm-brown) / 0.8);
+  background: hsl(var(--brand-brown) / 0.8);
 }

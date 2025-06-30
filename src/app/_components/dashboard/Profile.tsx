@@ -6,8 +6,10 @@ import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
 import { api } from "@/trpc/react"
 import EditFormDialog from "@/app/_components/onboarding/profile/EditFormDialog"
-import DashboardHeader from "@/app/_components/common/DashboardHeader"
 import { useProfileCompletion, type FormData, type FormType } from "@/hooks/useProfileCompletion"
+import { ProfileSkeleton } from "./DashboardSkeleton"
+import DefaultBox from "../global/DefaultBox"
+import { motion } from "framer-motion"
 
 export default function ProfilePage() {
   const [selectedForm, setSelectedForm] = useState<FormType | null>(null)
@@ -163,23 +165,29 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="space-y-6">
+        <ProfileSkeleton />
       </div>
     )
   }
 
   return (
-    <>
-      <DashboardHeader />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="space-y-6">
-          <h1 className="text-2xl font-bold">Profile</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {formSections.map((section) => (
+    <div className="space-y-6">
+      <DefaultBox
+        title="Profile"
+        description="Manage your personal information and preferences"
+        showViewAll={false}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {formSections.map((section, index) => (
+            <motion.div
+              key={section.type}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
               <Card
-                key={section.type}
-                className="p-4 rounded-xl cursor-pointer hover:shadow-md transition-shadow"
+                className="p-4 rounded-xl cursor-pointer hover:shadow-md transition-all border border-gray-200 bg-white hover:border-brand-brown"
                 onClick={() => setSelectedForm(section.type)}
               >
                 <div className="flex items-start space-x-4">
@@ -201,21 +209,21 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </Card>
-            ))}
-          </div>
+            </motion.div>
+          ))}
         </div>
+      </DefaultBox>
 
-        {selectedForm && formData && (
-          <EditFormDialog
-            open={!!selectedForm}
-            onOpenChange={(open) => !open && setSelectedForm(null)}
-            formType={selectedForm}
-            formData={formData[selectedForm]}
-            onSubmit={(data) => handleFormSubmit(selectedForm, data)}
-            formSections={formSections}
-          />
-        )}
-      </div>
-    </>
+      {selectedForm && formData && (
+        <EditFormDialog
+          open={!!selectedForm}
+          onOpenChange={(open) => !open && setSelectedForm(null)}
+          formType={selectedForm}
+          formData={formData[selectedForm]}
+          onSubmit={(data) => handleFormSubmit(selectedForm, data)}
+          formSections={formSections}
+        />
+      )}
+    </div>
   )
 } 

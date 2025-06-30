@@ -5,9 +5,8 @@ import { Trash2, Edit, Plus } from "lucide-react"
 import Link from "next/link"
 import type { Workout } from "@/drizzle/src/db/queries"
 import { useState } from "react"
-import RecordManualActivity, { type ActivityFormValues } from "./RecordManualActivity"
-import type { activityTypeEnum } from "@/drizzle/src/db/schema"
-import { api } from "@/trpc/react"
+import { WeekCircularProgress } from "@/components/ui/WeekCircularProgress"
+import { useRouter } from "next/navigation"
 
 interface WeeklyScheduleProps {
   weeks: Array<{
@@ -24,43 +23,14 @@ interface WeeklyScheduleProps {
   onToggleWeekEdit?: (weekNumber: number) => void;
   accordionValuePrefix?: string;
   isActivePlan: boolean;
+  planData?: {
+    startDate: Date | null;
+    pausedAt: Date | null;
+    resumedAt: Date | null;
+    totalPausedDuration: number;
+  };
 }
-function StatusButton({ workout, onBookingSubmit, isActivePlan, onWorkoutComplete }: { workout: Workout, onBookingSubmit: (workoutId: string, isBooked: boolean, name: string) => void, isActivePlan: boolean, onWorkoutComplete: (workoutId: string) => void }) {
-  if (!isActivePlan) return null
-  return (
-    workout.type === 'class' ? (
-      workout.status === 'completed' ? (
-        <span className="inline-flex items-center text-xs px-3 py-1 h-7 bg-green-100 text-green-800 rounded">
-          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" /></svg>
-          Done
-        </span>
-      ) : (
-        <Button
-          size="sm"
-          onClick={() => onBookingSubmit(workout.id, workout.isBooked, workout.name)}
-          className="text-xs px-3 py-1 h-7 bg-orange-100 text-orange-800"
-        >
-          {workout.isBooked ? "Booked" : "Book"}
-        </Button>
-      )
-    ) : workout.type === 'workout' ? (
-      workout.status === 'completed' ? (
-        <span className="inline-flex items-center text-xs px-3 py-1 h-7 bg-green-100 text-green-800 rounded">
-          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" /></svg>
-          Done
-        </span>
-      ) : (
-        <Button
-          size="sm"
-          onClick={() => onWorkoutComplete(workout.id)}
-          className="text-xs px-3 py-1 h-7 bg-orange-100 text-orange-800"
-        >
-          Completed?
-        </Button>
-      )
-    ) : null
-  )
-}
+
 export default function WeeklySchedule({
   isActivePlan,
   weeks,
@@ -70,58 +40,99 @@ export default function WeeklySchedule({
   onBookClass,
   editingWeeks = new Set(),
   onToggleWeekEdit,
-  accordionValuePrefix = ""
+  accordionValuePrefix = "",
+  planData
 }: WeeklyScheduleProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [selectedActivityType, setSelectedActivityType] = useState<typeof activityTypeEnum.enumValues[number]>()
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string>()
-  const utils = api.useUtils();
-  const { mutate: insertManualActivity } = api.workoutPlan.insertManualActivity.useMutation({
-    onSuccess: () => {
-      void utils.workoutPlan.getActivityHistory.invalidate();
-    }
-  })
-  const { mutate: updateWorkoutStatus } = api.workoutPlan.updateWorkoutStatus.useMutation({
-    onSuccess: () => {
-      void utils.workoutPlan.getActivePlan.invalidate();
-    }
-  })
-  function onBookingSubmit(workoutId: string, isBooked: boolean, name: string) {
-    if (isBooked) return
-    onBookClass?.(workoutId, name)
-  }
+  const router = useRouter()
 
-  function onWorkoutComplete(activityType?: typeof activityTypeEnum.enumValues[number], workoutId?: string) {
-    setSelectedActivityType(activityType)
-    setSelectedWorkoutId(workoutId)
-    setIsDialogOpen(true)
-  }
-  function handleSubmitActivity(data: ActivityFormValues) {
-    insertManualActivity(data)
-    if (selectedWorkoutId) {
-      updateWorkoutStatus({ workoutId: selectedWorkoutId, status: "completed" })
+  // Calculate current week based on plan start date and paused time
+  const getCurrentWeek = () => {
+    if (!planData?.startDate || !isActivePlan) return null;
+
+    const now = new Date();
+    const startDate = new Date(planData.startDate);
+
+    // If plan hasn't started yet, return null
+    if (now < startDate) return null;
+
+    // Calculate total paused time in milliseconds
+    let totalPausedMs = planData.totalPausedDuration * 1000; // Convert seconds to milliseconds
+
+    // If currently paused, add time since pause
+    if (planData.pausedAt && !planData.resumedAt) {
+      const pausedAt = new Date(planData.pausedAt);
+      totalPausedMs += now.getTime() - pausedAt.getTime();
     }
-    setIsDialogOpen(false)
+
+    // Calculate effective elapsed time (actual time minus paused time)
+    // This gives us the "active" time the plan has been running
+    const effectiveElapsedMs = now.getTime() - startDate.getTime() - totalPausedMs;
+
+    // If effective elapsed time is negative (shouldn't happen but safety check), return week 1
+    if (effectiveElapsedMs < 0) return 1;
+
+    // Convert to weeks (7 days * 24 hours * 60 minutes * 60 seconds * 1000 milliseconds)
+    const weekInMs = 7 * 24 * 60 * 60 * 1000;
+    const currentWeek = Math.floor(effectiveElapsedMs / weekInMs) + 1;
+
+    // Ensure current week is within valid range (1 to total weeks)
+    return currentWeek > 0 && currentWeek <= weeks.length ? currentWeek : null;
+  };
+
+  const currentWeek = getCurrentWeek();
+
+  function handleWorkoutClick(workout: Workout) {
+    if (workout.type === 'class') {
+      router.push(`/dashboard/class/${workout.id}`)
+    } else {
+      router.push(`/dashboard/workout/${workout.id}`)
+    }
   }
 
   return (
     <Accordion type="multiple" className="w-full">
       {weeks.map((week) => (
         <AccordionItem key={week.weekNumber} value={`${accordionValuePrefix}week-${week.weekNumber}`}>
-          <AccordionTrigger className="font-bold text-base px-4 py-3 bg-muted/30">
-            Week {week.weekNumber} <span className="ml-2 font-normal text-sm text-muted-foreground">{`${week.classesPerWeek > 0 ? `${week.classesPerWeek} Class${week.classesPerWeek === 1 ? '' : 'es'}` : ''}${week.classesPerWeek > 0 && week.workoutsPerWeek > 0 ? ', ' : ''} ${week.workoutsPerWeek > 0 ? `${week.workoutsPerWeek} Workout${week.workoutsPerWeek === 1 ? '' : 's'}` : ''}`}</span>
-            {week.items.filter(Boolean).length > 0 && (
-              <span className="ml-2 font-normal text-sm text-muted-foreground">
-                ({Math.round((week.items.filter(Boolean).filter(item => item?.status === 'completed').length / week.items.filter(Boolean).length) * 100)}% completed)
+          <AccordionTrigger className={`font-bold text-base px-4 py-3 transition-all duration-200 ${currentWeek === week.weekNumber
+            ? 'bg-brand-bright-orange/10 border-l-4 border-brand-bright-orange shadow-sm hover:bg-brand-bright-orange/15'
+            : 'bg-muted/30 hover:bg-muted/50'
+            }`}>
+            <div className="grid w-full items-center grid-cols-[auto_1fr_auto] gap-2 md:gap-4">
+              <span className="whitespace-nowrap">Week {week.weekNumber}</span>
+
+              <span className="font-normal text-xs md:text-sm min-w-0 truncate">
+                {week.classesPerWeek > 0 && week.workoutsPerWeek > 0 && (
+                  <>{week.classesPerWeek} Class{week.classesPerWeek === 1 ? '' : 'es'}, {week.workoutsPerWeek} Workout{week.workoutsPerWeek === 1 ? '' : 's'}</>
+                )}
+                {week.classesPerWeek > 0 && week.workoutsPerWeek === 0 && (
+                  <>{week.classesPerWeek} Class{week.classesPerWeek === 1 ? '' : 'es'}</>
+                )}
+                {week.workoutsPerWeek > 0 && week.classesPerWeek === 0 && (
+                  <>{week.workoutsPerWeek} Workout{week.workoutsPerWeek === 1 ? '' : 's'}</>
+                )}
+                {week.workoutsPerWeek === 0 && week.classesPerWeek === 0 && (
+                  <>—</>
+                )}
               </span>
-            )}
+              <div className="flex justify-center">
+                <WeekCircularProgress
+                  value={
+                    week.items.filter(Boolean).length > 0
+                      ? (week.items.filter(Boolean).filter(item => item?.status === 'completed').length / week.items.filter(Boolean).length) * 100
+                      : 0
+                  }
+                  size={28}
+                  className="md:w-8 md:h-8"
+                />
+              </div>
+            </div>
           </AccordionTrigger>
-          <AccordionContent className="px-2 md:px-4 pb-4">
+          <AccordionContent className=" pb-4">
             {isEditing && onToggleWeekEdit && (
-              <div className="flex justify-between items-center mb-4">
-                <Link
-                  href="#"
-                  className="text-sm text-muted-foreground flex items-center gap-2"
+              <div className="flex justify-end items-end my-4">
+                <Button
+                  size="xs"
+                  variant="secondary"
                   onClick={(e) => {
                     e.preventDefault()
                     onToggleWeekEdit(week.weekNumber)
@@ -129,7 +140,7 @@ export default function WeeklySchedule({
                 >
                   <Edit className="w-4 h-4" />
                   {editingWeeks.has(week.weekNumber) ? "Done Editing" : `Edit week ${week.weekNumber}`}
-                </Link>
+                </Button>
               </div>
             )}
             <div className="space-y-3">
@@ -138,11 +149,23 @@ export default function WeeklySchedule({
                 return (
                   <div
                     key={index}
-                    className={`py-3 px-3 flex flex-col gap-2 border-l-4 rounded border-b ${workout.type === 'class'
-                      ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/10'
-                      : 'border-[color:var(--chart-4)] bg-[color:var(--chart-4)]/10'
+                    className={`py-3 px-3 flex flex-col gap-2 border-l-4 rounded border-b relative ${workout.type === 'class'
+                      ? 'border-brand-nude bg-brand-nude/10'
+                      : 'border-brand-sage bg-brand-sage/10'
                       }`}
+                    onClick={() => handleWorkoutClick(workout)}
                   >
+                    {isEditing && editingWeeks.has(week.weekNumber) && onDeleteClass && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteClass(week.weekNumber, index);
+                        }}
+                        className="absolute -top-2 right-0 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-sm font-bold transition-colors z-10"
+                      >
+                        ×
+                      </button>
+                    )}
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -171,21 +194,15 @@ export default function WeeklySchedule({
                           {workout.description}
                         </div>
                       </div>
-                      <StatusButton workout={workout} onBookingSubmit={onBookingSubmit} isActivePlan={isActivePlan} onWorkoutComplete={() => onWorkoutComplete(workout.activityType!)} />
+                      {workout.status === 'completed' && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Completed
+                        </span>
+                      )}
                     </div>
-                    {isEditing && editingWeeks.has(week.weekNumber) && workout.type === 'class' && onDeleteClass && (
-                      <div className="grid grid-cols-1 gap-2 pt-2 border-t">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onDeleteClass(week.weekNumber, index)}
-                          className="w-full text-red-500 hover:text-red-700 hover:bg-red-50 hover:border-red-200"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -193,13 +210,13 @@ export default function WeeklySchedule({
             {isEditing && editingWeeks.has(week.weekNumber) && onAddClass && (
               <div className="mt-4 flex justify-center">
                 <Button
-                  variant="outline"
+                  // variant="outline"
                   size="sm"
                   className="w-full"
                   onClick={() => onAddClass(week.weekNumber)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Add New Class
+                  Add Workout
                 </Button>
               </div>
             )}
@@ -207,13 +224,6 @@ export default function WeeklySchedule({
         </AccordionItem>
       ))
       }
-      <RecordManualActivity
-        isDialogOpen={isDialogOpen}
-        setIsDialogOpen={setIsDialogOpen}
-        handleSubmitActivity={handleSubmitActivity}
-        initialActivityType={selectedActivityType}
-        workoutId={selectedWorkoutId}
-      />
     </Accordion >
   );
 }

@@ -18,7 +18,7 @@ export default function DashboardCardLayout({
   children,
   showViewAll = true,
   viewAllText = "View All Classes",
-  viewAllHref = "#",// Default iOS blue
+  viewAllHref = "#",
 }: DashboardCardLayoutProps) {
   return (
     <motion.div
@@ -26,14 +26,14 @@ export default function DashboardCardLayout({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="bg-white text-[var(--card-foreground)] border border-[var(--border)] rounded-xl shadow-lg overflow-hidden">
-        <CardHeader className="px-6 pt-6 pb-4">
-          <div className="flex justify-between items-center mb-4">
-            <CardTitle className="text-2xl font-semibold text-gray-900">{title}</CardTitle>
+      <Card className="rounded-xl shadow-xl border-brand-brown">
+        <CardHeader className="px-6">
+          <div className="flex justify-between items-center ">
+            <CardTitle className="text-3xl sm:text-4xl font-extrabold text-brand-brown">{title}</CardTitle>
           </div>
-          <CardDescription className="text-[var(--muted-foreground)]">{description}</CardDescription>
+          <CardDescription className="text-brand-black">{description}</CardDescription>
         </CardHeader>
-        <CardContent className="px-6 pb-6">
+        <CardContent>
           <div className="space-y-4">
             {children}
             {showViewAll && (

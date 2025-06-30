@@ -118,7 +118,6 @@ export function ExerciseList({ exercises, onChange }: ExerciseListProps) {
               <Label>Sets</Label>
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
                 onClick={() => addSet(exercise.id)}
               >
@@ -165,7 +164,6 @@ export function ExerciseList({ exercises, onChange }: ExerciseListProps) {
       ))}
       <Button
         type="button"
-        variant="outline"
         onClick={addExercise}
         className="w-full"
       >

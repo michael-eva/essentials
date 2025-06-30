@@ -13,6 +13,7 @@ import { motion } from "framer-motion"
 import { ActivePlanSkeleton, PreviousPlansSkeleton } from "./ClassRecommendationsSkeleton"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import DefaultBox from "../global/DefaultBox"
 
 
 
@@ -51,11 +52,13 @@ export default function ClassRecommendations() {
   const pausePlan = api.workoutPlan.pauseWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
+      void utils.workoutPlan.getUpcomingActivities.invalidate();
     },
   });
   const resumePlan = api.workoutPlan.resumeWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
+      void utils.workoutPlan.getUpcomingActivities.invalidate();
     },
   });
   const restartPlan = api.workoutPlan.restartWorkoutPlan.useMutation({
@@ -78,12 +81,6 @@ export default function ClassRecommendations() {
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
       void utils.workoutPlan.getPreviousPlans.invalidate();
-    },
-  });
-  const bookClass = api.workoutPlan.bookClass.useMutation({
-    onSuccess: () => {
-      void utils.workoutPlan.getUpcomingClasses.invalidate();
-      void utils.workoutPlan.getActivePlan.invalidate();
     },
   });
   const { generatePlan, OnboardingDialog, isLoading, LoadingScreen } = useGeneratePlan();
@@ -336,12 +333,7 @@ export default function ClassRecommendations() {
     generatePlan();
   };
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
+    <DefaultBox title="Your Personalised Plan" description="Combined classes and supplementary workouts" showViewAll={false}>
       {OnboardingDialog}
       <LoadingScreen />
       {isLoadingActivePlan ? (
@@ -351,16 +343,16 @@ export default function ClassRecommendations() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-lg border border-gray-100"
+          className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-lg border-brand-brown border"
         >
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">No Active Plan</h2>
-          <p className="text-gray-500 mb-6 text-center max-w-md">
+          <p className="text-gray-500 mb-6 text-center">
             You don&apos;t have an active workout plan yet. Create a new plan to get started on your fitness journey!
           </p>
           <Button
             variant="outline"
             onClick={handleGeneratePlan}
-            className="border-gray-200 text-accent hover:bg-gray-50 transition-colors"
+            className="border-none bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 transition-colors"
             disabled={isLoading}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -373,13 +365,10 @@ export default function ClassRecommendations() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
-            <CardHeader className="px-6 pt-6 pb-4">
+          <div className="bg-white">
+            <div className="px-2 pt-6 pb-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <CardTitle className="text-2xl font-semibold text-gray-900">Your Personalized Plan</CardTitle>
-                  <CardDescription className="text-gray-500">Combined classes and supplementary workouts</CardDescription>
-                </div>
+
                 <div className="flex items-center gap-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${planStatus === 'active'
                     ? 'bg-[#34C759]/10 text-[#34C759]'
@@ -387,10 +376,10 @@ export default function ClassRecommendations() {
                       ? 'bg-[#FF9500]/10 text-[#FF9500]'
                       : 'bg-gray-100 text-gray-600'
                     }`}>
-                    {planStatus === 'active' ? 'Active Plan' : planStatus === 'paused' ? 'Paused Plan' : 'Not Started'}
+                    {planStatus === 'active' ? 'Active' : planStatus === 'paused' ? 'Paused' : 'Inactive'}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">{activePlan?.planName || 'Not Started'}</span>
+                    <span className="font-medium text-gray-900">{activePlan?.planName || 'Inactive'}</span>
                     {activePlan?.planName && (
                       <Button
                         size="sm"
@@ -404,20 +393,27 @@ export default function ClassRecommendations() {
                   </div>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
+            </div>
+            <div className="p-0">
               <WeeklySchedule
                 weeks={getWeeklySchedules()}
-                isEditing={planStatus === 'not started'}
+                // isEditing={planStatus === 'not started'}
+                isEditing={true}
                 onDeleteClass={handleDeleteClass}
                 onAddClass={handleAddNewClass}
                 onBookClass={handleBookClass}
                 editingWeeks={editingWeeks}
                 onToggleWeekEdit={toggleWeekEdit}
                 isActivePlan={true}
+                planData={activePlan ? {
+                  startDate: activePlan.startDate,
+                  pausedAt: activePlan.pausedAt,
+                  resumedAt: activePlan.resumedAt,
+                  totalPausedDuration: activePlan.totalPausedDuration
+                } : undefined}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       )}
 
@@ -431,14 +427,14 @@ export default function ClassRecommendations() {
           <Button
             variant="outline"
             onClick={handleGeneratePlan}
-            className="border-gray-200 text-accent hover:bg-gray-50 transition-colors"
+            className="border-brand-brown text-accent hover:bg-gray-50 transition-colors"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create New Plan
           </Button>
           <Button
             onClick={handleStartPlan}
-            className="bg-accent text-white hover:bg-accent/90 transition-colors"
+            className="bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 transition-colors"
           >
             <Play className="w-4 h-4 mr-2" />
             Start Plan
@@ -457,7 +453,7 @@ export default function ClassRecommendations() {
             <Button
               variant="outline"
               onClick={handlePausePlan}
-              className="border-gray-200 text-[#FF9500] hover:bg-[#FF9500]/10 transition-colors"
+              className="text-brand-white border-none bg-brand-bright-orange transition-colors"
             >
               <Pause className="w-4 h-4 mr-2" />
               Pause
@@ -466,7 +462,7 @@ export default function ClassRecommendations() {
             <Button
               variant="outline"
               onClick={handleStartPlan}
-              className="border-gray-200 text-[#34C759] hover:bg-[#34C759]/10 transition-colors"
+              className="border-none text-brand-white bg-brand-bright-orange hover:bg-gray-50 transition-colors"
             >
               <Play className="w-4 h-4 mr-2" />
               Resume
@@ -476,7 +472,7 @@ export default function ClassRecommendations() {
             <Button
               variant="outline"
               onClick={handleRestartPlan}
-              className="border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+              className="border-brand-brown text-brand-black hover:bg-gray-50 transition-colors"
             >
               <RotateCcw className="w-4 h-4 mr-2" />
               Reset
@@ -521,46 +517,53 @@ export default function ClassRecommendations() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: idx * 0.1 }}
                 >
-                  <Card className="border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all">
-                    <CardHeader className="flex flex-row items-center justify-between px-6 py-4">
-                      <div>
-                        <CardTitle className="text-lg font-semibold text-gray-900">{plan.planName}</CardTitle>
-                        <CardDescription className="text-gray-500">{plan.weeks} Week Plan</CardDescription>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-500">{new Date(plan.savedAt).toLocaleDateString()}</span>
-                        <div className="flex gap-2 ml-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleReinstatePlan(idx)}
-                            className="h-8 border-gray-200 text-[#007AFF] hover:bg-gray-50 transition-colors"
-                            aria-label="Reinstate plan"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-                            <span className="hidden sm:inline">Reinstate</span>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeletePreviousPlan(idx)}
-                            className="h-8 border-gray-200 text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
-                            aria-label="Delete plan"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                            <span className="hidden sm:inline">Delete</span>
-                          </Button>
+                  <div className="bg-white/80 border border-gray-100 rounded-xl shadow-sm">
+                    <div className="px-2 pt-6 pb-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                            Archived
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900">{plan.planName}</span>
+                            <span className="text-sm text-gray-500">• {plan.weeks} Week Plan</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-gray-500">{new Date(plan.savedAt).toLocaleDateString()}</span>
+                          <div className="flex gap-2 ml-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleReinstatePlan(idx)}
+                              className="h-8 border-gray-200 text-[#007AFF] hover:bg-gray-50 transition-colors"
+                              aria-label="Reinstate plan"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                              <span className="hidden sm:inline">Reinstate</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeletePreviousPlan(idx)}
+                              className="h-8 border-gray-200 text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
+                              aria-label="Delete plan"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                              <span className="hidden sm:inline">Delete</span>
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
+                    </div>
+                    <div className="p-0">
                       <WeeklySchedule
                         weeks={getWeeklySchedulesForPlan(parseInt(plan.weeks.toString()), idx)}
                         accordionValuePrefix={`prev-${idx}-`}
                         isActivePlan={false}
                       />
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
           </div>
@@ -604,17 +607,18 @@ export default function ClassRecommendations() {
                 className="border-gray-200 focus:border-[#007AFF] focus:ring-[#007AFF]"
               />
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-center gap-3">
               <Button
                 variant="outline"
                 onClick={() => setEditPlanNameDialogOpen(false)}
-                className="border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                className="w-1/2"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handlePlanNameSave}
-                className="bg-[#007AFF] text-white hover:bg-[#007AFF]/90 transition-colors"
+                variant="default"
+                className="w-1/2"
               >
                 Save Changes
               </Button>
@@ -651,7 +655,7 @@ export default function ClassRecommendations() {
           </div>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </DefaultBox>
   )
 }
 

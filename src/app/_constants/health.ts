@@ -1,4 +1,5 @@
 export const HEALTH_CONDITIONS = [
+  "None",
   "Back pain",
   "Neck pain",
   "Arthritis",
@@ -8,14 +9,13 @@ export const HEALTH_CONDITIONS = [
   "Heart condition",
   "Respiratory condition",
   "Asthma",
-  "None",
   "Other",
 ];
 export const PREGNANCY_OPTIONS = [
   "Not applicable",
-  "Pregnant",
-  "Postpartum (0-6 months)",
-  "Postpartum (6-12 months)",
+  "First Trimester",
+  "Second Trimester",
+  "Third Trimester",
 ] as const;
 export type PregnancyOption = (typeof PREGNANCY_OPTIONS)[number];
 export type HealthCondition = (typeof HEALTH_CONDITIONS)[number];

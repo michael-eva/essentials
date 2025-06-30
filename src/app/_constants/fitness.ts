@@ -3,9 +3,12 @@ export const DEFAULT_EXERCISE_OPTIONS = [
   "Cycling",
   "Swimming",
   "Weightlifting",
-  "Yoga",
   "Dance",
   "Team sports",
+  "Pilates",
+  "Walking",
+  "Bodyweight",
+  "Resistance",
   "Other",
 ];
 

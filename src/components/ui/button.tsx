@@ -10,21 +10,22 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-brand-warm-brown text-white shadow-warm hover:bg-brand-warm-brown/90",
+          "bg-brand-bright-orange text-brand-white shadow-warm hover:bg-brand-bright-orange/90",
         destructive:
           "bg-destructive text-white shadow-warm hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
-          "border border-brand-warm-brown bg-background text-brand-warm-brown shadow-warm hover:bg-brand-warm-brown hover:text-white dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border border-brand-brown text-brand-brown shadow-warm hover:bg-brand-brown hover:text-brand-light-yellow dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
-          "bg-brand-deep-blue text-white shadow-warm hover:bg-brand-deep-blue/90",
+          "bg-brand-cobalt text-brand-white shadow-warm hover:bg-brand-cobalt/90",
         ghost:
-          "text-brand-warm-brown hover:bg-brand-warm-brown/10 hover:text-brand-warm-brown dark:hover:bg-brand-warm-brown/50",
-        link: "text-brand-warm-brown underline-offset-4 hover:underline",
-        accent: "bg-brand-amber text-white shadow-warm hover:bg-brand-amber/90",
+          "text-brand-brown hover:bg-brand-brown/10 hover:text-brand-brown dark:hover:bg-brand-brown/50",
+        link: "text-brand-brown underline-offset-4 hover:underline",
+        accent: "bg-brand-bright-orange text-brand-brown shadow-warm hover:bg-brand-bright-orange/90",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+        xs: "h-6 rounded-md gap-1.5 px-2 has-[>svg]:px-1.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9",
       },

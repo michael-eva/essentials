@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -13,16 +13,17 @@ module.exports = {
         'heading': ['var(--font-heading)', 'system-ui', 'sans-serif'],
       },
       colors: {
-        // Essentials Studio Brand Colors
+        // Essentials Studio Brand Colors - Updated to match guidelines
         brand: {
-          'warm-brown': 'hsl(var(--brand-warm-brown))',
-          'deep-blue': 'hsl(var(--brand-deep-blue))',
-          'amber': 'hsl(var(--brand-amber))',
-          'sand': 'hsl(var(--brand-sand))',
-          'warm-brown-light': 'hsl(var(--brand-warm-brown-light))',
-          'warm-brown-dark': 'hsl(var(--brand-warm-brown-dark))',
-          'neutral': 'hsl(var(--brand-neutral))',
-          'neutral-light': 'hsl(var(--brand-neutral-light))',
+          'brown': 'hsl(var(--brand-brown))',
+          'light-yellow': 'hsl(var(--brand-light-yellow))',
+          'cobalt': 'hsl(var(--brand-cobalt))',
+          'bright-orange': 'hsl(var(--brand-bright-orange))',
+          'nude': 'hsl(var(--brand-nude))',
+          'light-nude': 'hsl(var(--brand-light-nude))',
+          'sage': 'hsl(var(--brand-sage))',
+          'black': 'hsl(var(--brand-black))',
+          'white': 'hsl(var(--brand-white))',
         },
       },
       animation: {
@@ -68,16 +69,16 @@ module.exports = {
         },
         'warm-glow': {
           '0%, 100%': {
-            'box-shadow': '0 0 5px hsl(var(--brand-amber) / 0.5)',
+            'box-shadow': '0 0 5px hsl(var(--brand-bright-orange) / 0.5)',
           },
           '50%': {
-            'box-shadow': '0 0 20px hsl(var(--brand-amber) / 0.3)',
+            'box-shadow': '0 0 20px hsl(var(--brand-bright-orange) / 0.3)',
           },
         },
       },
       boxShadow: {
-        'warm': '0 4px 6px -1px hsl(var(--brand-warm-brown) / 0.1), 0 2px 4px -1px hsl(var(--brand-warm-brown) / 0.06)',
-        'warm-lg': '0 10px 15px -3px hsl(var(--brand-warm-brown) / 0.1), 0 4px 6px -2px hsl(var(--brand-warm-brown) / 0.05)',
+        'warm': '0 4px 6px -1px hsl(var(--brand-brown) / 0.1), 0 2px 4px -1px hsl(var(--brand-brown) / 0.06)',
+        'warm-lg': '0 10px 15px -3px hsl(var(--brand-brown) / 0.1), 0 4px 6px -2px hsl(var(--brand-brown) / 0.05)',
       },
     },
   },
