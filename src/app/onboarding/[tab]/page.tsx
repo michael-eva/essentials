@@ -7,6 +7,7 @@ import { use } from "react";
 import MotivationForm from "@/app/_components/onboarding/MotivationForm";
 import PilatesForm from "@/app/_components/onboarding/PilatesForm";
 import { STEPS } from "../constants";
+import WorkoutTimingForm from "@/app/_components/onboarding/WorkoutTimingForm";
 type PageProps = {
     params: Promise<{
         tab: string;
@@ -39,6 +40,8 @@ export default function OnboardingPage({ params }: PageProps) {
                 return <PilatesForm isFirstStep={isFirstStep} isLastStep={isLastStep} currentStep={tab} />;
             case "motivation":
                 return <MotivationForm isFirstStep={isFirstStep} isLastStep={isLastStep} currentStep={tab} />;
+            case "workout-timing":
+                return <WorkoutTimingForm isFirstStep={isFirstStep} isLastStep={isLastStep} currentStep={tab} />;
             default:
                 return <div>
                     <p>Invalid tab</p>

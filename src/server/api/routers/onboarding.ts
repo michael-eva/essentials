@@ -39,6 +39,9 @@ export const onboardingRouter = createTRPCRouter({
         otherExercises: z.array(z.string()).optional().nullable(),
         exerciseFrequency: z.string().nullable(),
         sessionLength: z.string().nullable(),
+        preferred_workout_times:z.array(z.string()).optional().nullable(),
+        avoided_workout_times:z.array(z.string()).optional().nullable(),
+        weekend_workout_times:z.array(z.string()).optional().nullable()
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -48,6 +51,10 @@ export const onboardingRouter = createTRPCRouter({
         otherExercises,
         exerciseFrequency,
         sessionLength,
+        preferred_workout_times,
+        avoided_workout_times,
+        weekend_workout_times
+
       } = input;
       const userId = ctx.userId;
 
@@ -59,6 +66,9 @@ export const onboardingRouter = createTRPCRouter({
         exerciseFrequency,
         sessionLength,
         step: "fitness_background",
+        preferred_workout_times,
+        avoided_workout_times,
+        weekend_workout_times
       });
     }),
   postHealthConsiderations: protectedProcedure

@@ -1,5 +1,5 @@
 {
-  "id": "cd4cac44-cbb5-4a32-8406-fead10b728be",
+  "id": "f16a83f2-3a33-42c5-9088-2faa5562ce27",
   "prevId": "253aed2b-b062-4082-8da2-f284a5e9f6df",
   "version": "7",
   "dialect": "postgresql",
@@ -488,6 +488,24 @@
           "type": "text[]",
           "primaryKey": false,
           "notNull": false
+        },
+        "preferred_workout_times": {
+          "name": "preferred_workout_times",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avoided_workout_times": {
+          "name": "avoided_workout_times",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weekend_workout_times": {
+          "name": "weekend_workout_times",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -614,12 +632,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "workout_tracking_id": {
-          "name": "workout_tracking_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "date": {
           "name": "date",
           "type": "timestamp",
@@ -683,19 +695,6 @@
           "tableTo": "user",
           "columnsFrom": [
             "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "progress_tracking_workout_tracking_id_workout_tracking_id_fk": {
-          "name": "progress_tracking_workout_tracking_id_workout_tracking_id_fk",
-          "tableFrom": "progress_tracking",
-          "tableTo": "workout_tracking",
-          "columnsFrom": [
-            "workout_tracking_id"
           ],
           "columnsTo": [
             "id"
@@ -1185,6 +1184,18 @@
         "assistant"
       ]
     },
+    "public.weekend_workout_times": {
+      "name": "weekend_workout_times",
+      "schema": "public",
+      "values": [
+        "no",
+        "sometimes",
+        "saturday",
+        "sunday",
+        "both",
+        "other"
+      ]
+    },
     "public.workout_status": {
       "name": "workout_status",
       "schema": "public",
@@ -1192,6 +1203,18 @@
         "completed",
         "not_completed",
         "not_recorded"
+      ]
+    },
+    "public.workout_times": {
+      "name": "workout_times",
+      "schema": "public",
+      "values": [
+        "early morning",
+        "mid morning",
+        "lunchtime",
+        "afternoon",
+        "evening",
+        "other"
       ]
     },
     "public.workout_type": {

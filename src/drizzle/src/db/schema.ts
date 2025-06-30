@@ -28,6 +28,24 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "workout",
 ]);
 
+export const workoutTimesEnum = pgEnum("workout_times", [
+  "early morning",
+  "mid morning",
+  "lunchtime",
+  "afternoon",
+  "evening",
+  "other",
+]);
+
+export const weekendTimesEnum = pgEnum("weekend_workout_times", [
+  "no",
+  "sometimes",
+  "saturday",
+  "sunday",
+  "both",
+  "other",
+]);
+
 export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
 
 export const user = pgTable("user", {
@@ -191,6 +209,10 @@ export const onboarding = pgTable("onboarding", {
   otherMotivation: text("other_motivation").array(),
   progressTracking: text("progress_tracking").array(),
   otherProgressTracking: text("other_progress_tracking").array(),
+
+  preferred_workout_times: text("preferred_workout_times").array(),
+  avoided_workout_times: text("avoided_workout_times").array(),
+  weekend_workout_times: text("weekend_workout_times").array(),
 });
 
 export const personalTrainerInteractions = pgTable(
