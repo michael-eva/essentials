@@ -70,7 +70,7 @@ Releveant context about the user, that you should use to generate the workout pl
           .map(
             (workout) =>
               `Name: ${workout.workout?.name ?? "Unnamed"}, Activity Type: ${workout.workout?.activityType ?? "Unknown"}, Would Do Again: ${
-                workout.workoutTracking.wouldDoAgain ? "Yes" : "No"
+                workout.workoutTracking.likelyToDoAgain ? workout.workoutTracking.likelyToDoAgain : "Not specified"
               }, Duration: ${workout.workoutTracking.durationHours} hours ${workout.workoutTracking.durationMinutes} mins, Intensity: ${workout.workoutTracking.intensity}`,
           )
           .join("; ")

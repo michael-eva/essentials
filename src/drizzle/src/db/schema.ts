@@ -338,7 +338,7 @@ export const workoutTrackingInputSchema = z.object({
   notes: z.string().nullable().optional(),
   intensity: z.number().int().nullable().optional(),
   name: z.string().nullable().optional(),
-  wouldDoAgain: z.boolean().nullable().optional(),
+  likelyToDoAgain: z.number().int().nullable().optional(),
   exercises: z
     .array(
       z.object({
