@@ -138,7 +138,7 @@ export default function Dashboard() {
   };
 
   const handleGeneratePlan = () => {
-    generatePlan();
+    generatePlan({});
   };
   const handleActivityClick = (activity: Workout) => {
     if (activity.type === "class") {

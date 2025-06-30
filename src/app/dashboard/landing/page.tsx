@@ -52,7 +52,7 @@ export default function LandingPage() {
             className="group relative overflow-hidden bg-primary hover:bg-primary/90 transition-all duration-300"
             disabled={isLoading}
             onClick={() => {
-              void generatePlan();
+              void generatePlan({});
             }}
           >
             <span className="relative z-10 flex items-center gap-2">
