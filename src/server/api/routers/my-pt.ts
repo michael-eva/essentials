@@ -93,6 +93,7 @@ export const myPtRouter = createTRPCRouter({
             content: msg.content ?? msg.message,
             role: msg.role,
             createdAt: msg.createdAt,
+            toolCalls: msg.toolCalls || undefined,
           })),
           hasMore: messages.length > offset + limit,
           total: messages.length,

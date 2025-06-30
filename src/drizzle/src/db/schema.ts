@@ -51,7 +51,11 @@ export const workout = pgTable("workout", {
   type: workoutTypeEnum("type").notNull(),
   status: workoutStatusEnum("status").default("not_recorded"),
   isBooked: boolean("is_booked").notNull().default(false),
-  classId: integer("class_id"),
+  classId: uuid("class_id")
+  .references(() => PilatesVideos.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   userId: uuid("user_id")
     .notNull()
     .references(() => user.id, {
@@ -282,6 +286,14 @@ export const AiChatMessages = pgTable("ai_chat", {
     .default(sql`now()`),
   role: roleEnum("role").notNull(),
   content: text("content").notNull(),
+  toolCalls: jsonb("tool_calls").$type<Array<{
+    id: string;
+    type: string;
+    function: {
+      name: string;
+      arguments: Record<string, any>;
+    };
+  }>>(),
 });
 
 export const PilatesVideos = pgTable("pilates_videos", {

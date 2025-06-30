@@ -26,7 +26,7 @@ export const NewWorkoutSchema = z.object({
     .enum(["completed", "not_completed", "not_recorded"])
     .default("not_recorded"),
   isBooked: z.boolean().default(false),
-  classId: z.number().int().nullable(),
+  classId: z.string().uuid().nullable(),
   userId: z.string().uuid(),
   activityType: z
     .enum(["run", "cycle", "swim", "walk", "hike", "rowing", "elliptical"])
@@ -65,4 +65,7 @@ export const EditGeneratedWorkoutPlanResponseSchema = z.object({
   })),
   deletedWorkouts: z.array(z.string()),
   deletedWeeklySchedules: z.array(z.string()),
+});
+
+export const RecordActivityResponseSchema = z.object({
 });

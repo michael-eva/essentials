@@ -28,7 +28,7 @@ import {
   bookClass,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
-import { generateAIResponse } from "@/services/plan-generator";
+import { generateWorkoutPlanAI } from "@/services/plan-generator";
 import { buildUserContext } from "@/services/context-manager";
 import { createGzip } from "zlib";
 
@@ -476,130 +476,101 @@ export const workoutPlanRouter = createTRPCRouter({
         });
       }
     }),
-  generatePlan: protectedProcedure.mutation(async ({ ctx }) => {
-    console.log("🚀 Starting generatePlan mutation");
-    const userId = ctx.userId;
-    const isCompleted = await checkOnboardingCompletion(userId);
+  generatePlan: protectedProcedure
+    .input(z.object({ prompt: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      console.log("🚀 Starting generatePlan mutation");
+      const userId = ctx.userId;
+      const isCompleted = await checkOnboardingCompletion(userId);
 
-    if (!isCompleted) {
-      console.log("❌ Onboarding not completed for user:", userId);
-      throw new Error("Onboarding is not completed");
-    }
-
-    console.log("✅ Onboarding completed, building user context");
-    const userContext = await buildUserContext(ctx.userId);
-    console.log("📋 User context built:", { userId, contextKeys: Object.keys(userContext) });
-
-    console.log("🤖 Calling generateAIResponse");
-    const generatedPlan = await generateAIResponse(ctx.userId, userContext);
-    console.log("🎯 AI Response received:", {
-      planKeys: Object.keys(generatedPlan.plan),
-      workoutsCount: generatedPlan.workouts.length,
-      weeklySchedulesCount: generatedPlan.weeklySchedules.length
-    });
-
-    // Insert the plan with better date parsing error handling
-    try {
-      console.log("📝 Processing plan for database insertion");
-
-      // morph the plan into the type epxected by the Funtion
-
-      const typedPLan = {
-        ...generatedPlan.plan,
-        id: uuidv4(),
-        savedAt: new Date(),
-        archivedAt: null,
-        startDate: new Date(),
-        pausedAt: null,
-        resumedAt: null,
-      };
-
-      console.log("🔧 Typed plan created:", { 
-        id: typedPLan.id, 
-        planName: typedPLan.planName,
-        userId: typedPLan.userId 
-      });
-
-      const plan = await insertWorkoutPlan(typedPLan);
-      console.log("💾 Plan inserted into database:", { planId: plan.id });
-
-      console.log("🏋️ Processing workouts");
-      const workoutsWithIds = generatedPlan.workouts.map((workout) => ({
-        ...workout,
-        id: uuidv4(),
-        status: workout.status ?? "not_recorded",
-        isBooked: workout.isBooked ?? false,
-        classId: workout.classId === null ? undefined : workout.classId,
-        activityType:
-          workout.activityType === null ? undefined : workout.activityType,
-      }));
-
-      console.log("📊 Workouts processed:", { 
-        count: workoutsWithIds.length,
-        sampleWorkout: workoutsWithIds[0] ? {
-          id: workoutsWithIds[0].id,
-          name: workoutsWithIds[0].name,
-          type: workoutsWithIds[0].type
-        } : null
-      });
-
-      const workouts = await insertWorkouts(workoutsWithIds);
-      console.log("💾 Workouts inserted:", { count: workouts.length });
-
-      // Insert weekly schedules with correct workout IDs
-      console.log("📅 Processing weekly schedules");
-      const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(
-        (schedule, index) => {
-          const workout = workouts[index % workouts.length];
-          return {
-            id: uuidv4(),
-            planId: plan.id,
-            weekNumber: schedule.weekNumber,
-            workoutId: workout?.id ?? schedule.workoutId, // Use actual workout ID or fallback
-          };
-        },
-      );
-
-      console.log("📋 Weekly schedules processed:", { 
-        count: weeklySchedulesWithIds.length,
-        sampleSchedule: weeklySchedulesWithIds[0] ? {
-          id: weeklySchedulesWithIds[0].id,
-          weekNumber: weeklySchedulesWithIds[0].weekNumber,
-          planId: weeklySchedulesWithIds[0].planId
-        } : null
-      });
-
-      const weeklySchedules = await insertWeeklySchedules(
-        weeklySchedulesWithIds,
-      );
-      console.log("💾 Weekly schedules inserted:", { count: weeklySchedules.length });
-
-      console.log("✅ All database operations completed successfully");
-      return 200;
-    } catch (error) {
-      console.error("❌ Error in generatePlan:", error);
-      console.error(
-        "🔍 Generated plan data:",
-        JSON.stringify(generatedPlan, null, 2),
-      );
-
-      // Check if it's a date parsing error
-      if (
-        error instanceof Error &&
-        error.message.includes("Invalid time value")
-      ) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "AI returned invalid date format. Please try again.",
-        });
+      if (!isCompleted) {
+        console.log("❌ Onboarding not completed for user:", userId);
+        throw new Error("Onboarding is not completed");
       }
 
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to generate workout plan",
-      });
-    }
-  }),
+      const userContext = await buildUserContext(ctx.userId);
+      const generatedPlan = await generateWorkoutPlanAI(
+        userContext,
+        input.prompt,
+      );
+
+      // Insert the plan with better date parsing error handling
+      try {
+        // morph the plan into the type epxected by the Funtion
+
+        const typedPLan = {
+          ...generatedPlan.plan,
+          id: uuidv4(),
+          savedAt: new Date(),
+          archivedAt: null,
+          startDate: new Date(),
+          pausedAt: null,
+          resumedAt: null,
+          userId: ctx.userId,
+        };
+
+        const plan = await insertWorkoutPlan(typedPLan);
+        console.log("💾 Plan inserted into database:", { planId: plan.id });
+
+        console.log("🏋️ Processing workouts");
+        const workoutsWithIds = generatedPlan.workouts.map((workout) => ({
+          ...workout,
+          id: uuidv4(),
+          status: workout.status ?? "not_recorded",
+          isBooked: workout.isBooked ?? false,
+          classId: workout.classId === null ? undefined : workout.classId,
+          activityType:
+            workout.activityType === null ? undefined : workout.activityType,
+          userId: ctx.userId,
+        }));
+
+        const workouts = await insertWorkouts(workoutsWithIds);
+        // Insert weekly schedules with correct workout IDs
+
+        const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(
+          (schedule, index) => {
+            const workout = workouts[index % workouts.length];
+            return {
+              id: uuidv4(),
+              planId: plan.id,
+              weekNumber: schedule.weekNumber,
+              workoutId: workout?.id ?? schedule.workoutId, // Use actual workout ID or fallback
+              userId: ctx.userId,
+            };
+          },
+        );
+
+        const weeklySchedules = await insertWeeklySchedules(
+          weeklySchedulesWithIds,
+        );
+
+        console.log("✅ All database operations completed successfully");
+        return 200;
+      } catch (error) {
+        console.error("❌ Error in generatePlan:", error);
+        console.error(
+          "🔍 Generated plan data:",
+          JSON.stringify(generatedPlan, null, 2),
+        );
+
+        // Check if it's a date parsing error
+        if (
+          error instanceof Error &&
+          error.message.includes("Invalid time value")
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "AI returned invalid date format. Please try again.",
+          });
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to generate workout plan",
+        });
+      }
+    }),
+
   bookClass: protectedProcedure
     .input(z.object({ workoutId: z.string() }))
     .mutation(async ({ ctx, input }) => {

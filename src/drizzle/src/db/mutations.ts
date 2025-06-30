@@ -175,7 +175,7 @@ export async function insertWorkouts(
     status: (typeof workoutStatusEnum.enumValues)[number];
     isBooked: boolean;
     userId: string;
-    classId?: number;
+    classId?: string;
   }>,
 ) {
   const result = await db.insert(workout).values(workouts).returning();
@@ -232,3 +232,9 @@ export async function updateAiSystemPrompt(
     .returning();
   return result[0]!;
 }
+
+export async function deleteWorkout(workoutId: string) {
+  const result = await db.delete(workout).where(eq(workout.id, workoutId));
+  return result;
+}
+
