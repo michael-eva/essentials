@@ -9,18 +9,21 @@ export default function MarkClassMissed({ isDialogOpen, setIsDialogOpen, onSubmi
           <DialogTitle>Mark Class Missed</DialogTitle>
         </DialogHeader>
         <p>Are you sure you want to mark this class as missed?</p>
-        <DialogFooter>
+        <DialogFooter className="flex flex-row gap-2 w-full">
           <Button
             type="button"
             variant="outline"
-            className="border-[var(--border)] text-[var(--primary)]"
+            className="flex-1"
             onClick={() => {
               setIsDialogOpen(false)
             }}
           >
             Cancel
           </Button>
-          <Button type="submit" className="bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[color:var(--primary)]/90"
+          <Button
+            type="submit"
+            variant="default"
+            className="flex-1"
             onClick={() => onSubmit(workoutId)}
           >
             Yes

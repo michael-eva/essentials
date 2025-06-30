@@ -1,7 +1,7 @@
 'use client'
 import ClassRecommendations from "@/app/_components/dashboard/YourPlan"
 import Dashboard from "@/app/_components/dashboard/Dashboard"
-import WorkoutHistory from "@/app/_components/dashboard/WorkoutHistory"
+import WorkoutHistory from "@/app/_components/dashboard/History"
 import PersonalTrainer from "@/app/_components/dashboard/PersonalTrainer"
 import { use } from "react"
 import Classes from "@/app/_components/dashboard/Classes"

@@ -20,6 +20,7 @@ export default {
           'cobalt': 'hsl(var(--brand-cobalt))',
           'bright-orange': 'hsl(var(--brand-bright-orange))',
           'nude': 'hsl(var(--brand-nude))',
+          'light-nude': 'hsl(var(--brand-light-nude))',
           'sage': 'hsl(var(--brand-sage))',
           'black': 'hsl(var(--brand-black))',
           'white': 'hsl(var(--brand-white))',

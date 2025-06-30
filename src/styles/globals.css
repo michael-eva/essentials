@@ -57,6 +57,7 @@
   --color-brand-cobalt: var(--brand-cobalt);
   --color-brand-bright-orange: var(--brand-bright-orange);
   --color-brand-nude: var(--brand-nude);
+  --color-brand-light-nude: var(--brand-light-nude);
   --color-brand-sage: var(--brand-sage);
   --color-brand-black: var(--brand-black);
   --color-brand-white: var(--brand-white);
@@ -74,7 +75,9 @@
   --brand-cobalt-rgb: hsl(60, 93, 170);
   --brand-bright-orange: hsl(38 100% 52%); /* #ffab0c - Accent/Flare */
   --brand-bright-orange-rgb: hsl(38, 100, 52);
-  --brand-nude: hsl(36 25% 70%); /* #c9b59d - Soft accent */
+  --brand-nude: hsl(36 25% 70%);
+  --brand-light-nude: hsl(36 25% 90%);
+  --brand-light-nude-rgb: hsl(36, 25, 30);/* #c9b59d - Soft accent */
   --brand-nude-rgb: hsl(36, 25, 70);
   --brand-sage: hsl(120 15% 60%); /* #8ca88f - Flexible accent */
   --brand-sage-rgb: hsl(140, 168, 143);

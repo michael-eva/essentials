@@ -52,11 +52,13 @@ export default function ClassRecommendations() {
   const pausePlan = api.workoutPlan.pauseWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
+      void utils.workoutPlan.getUpcomingActivities.invalidate();
     },
   });
   const resumePlan = api.workoutPlan.resumeWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
+      void utils.workoutPlan.getUpcomingActivities.invalidate();
     },
   });
   const restartPlan = api.workoutPlan.restartWorkoutPlan.useMutation({
@@ -79,12 +81,6 @@ export default function ClassRecommendations() {
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
       void utils.workoutPlan.getPreviousPlans.invalidate();
-    },
-  });
-  const bookClass = api.workoutPlan.bookClass.useMutation({
-    onSuccess: () => {
-      void utils.workoutPlan.getUpcomingClasses.invalidate();
-      void utils.workoutPlan.getActivePlan.invalidate();
     },
   });
   const { generatePlan, OnboardingDialog, isLoading, LoadingScreen } = useGeneratePlan();
@@ -380,10 +376,10 @@ export default function ClassRecommendations() {
                       ? 'bg-[#FF9500]/10 text-[#FF9500]'
                       : 'bg-gray-100 text-gray-600'
                     }`}>
-                    {planStatus === 'active' ? 'Active Plan' : planStatus === 'paused' ? 'Paused Plan' : 'Not Started'}
+                    {planStatus === 'active' ? 'Active' : planStatus === 'paused' ? 'Paused' : 'Inactive'}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">{activePlan?.planName || 'Not Started'}</span>
+                    <span className="font-medium text-gray-900">{activePlan?.planName || 'Inactive'}</span>
                     {activePlan?.planName && (
                       <Button
                         size="sm"
@@ -401,13 +397,20 @@ export default function ClassRecommendations() {
             <div className="p-0">
               <WeeklySchedule
                 weeks={getWeeklySchedules()}
-                isEditing={planStatus === 'not started'}
+                // isEditing={planStatus === 'not started'}
+                isEditing={true}
                 onDeleteClass={handleDeleteClass}
                 onAddClass={handleAddNewClass}
                 onBookClass={handleBookClass}
                 editingWeeks={editingWeeks}
                 onToggleWeekEdit={toggleWeekEdit}
                 isActivePlan={true}
+                planData={activePlan ? {
+                  startDate: activePlan.startDate,
+                  pausedAt: activePlan.pausedAt,
+                  resumedAt: activePlan.resumedAt,
+                  totalPausedDuration: activePlan.totalPausedDuration
+                } : undefined}
               />
             </div>
           </div>
@@ -519,7 +522,7 @@ export default function ClassRecommendations() {
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
-                            Previous Plan
+                            Archived
                           </span>
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-gray-900">{plan.planName}</span>
@@ -604,17 +607,18 @@ export default function ClassRecommendations() {
                 className="border-gray-200 focus:border-[#007AFF] focus:ring-[#007AFF]"
               />
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-center gap-3">
               <Button
                 variant="outline"
                 onClick={() => setEditPlanNameDialogOpen(false)}
-                className="border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                className="w-1/2"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handlePlanNameSave}
-                className="bg-[#007AFF] text-white hover:bg-[#007AFF]/90 transition-colors"
+                variant="default"
+                className="w-1/2"
               >
                 Save Changes
               </Button>
