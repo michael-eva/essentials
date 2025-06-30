@@ -162,7 +162,13 @@ export default function Dashboard() {
       return `Week ${workout.weekNumber} workout`;
     }
   };
-
+  const handleUpcomingWorkoutClick = (workout: Workout) => {
+    if (workout.type === "class") {
+      router.push(`/dashboard/class/${workout.id}`);
+    } else {
+      router.push(`/dashboard/workout/${workout.id}`);
+    }
+  }
   return (
     <div className="space-y-6">
       {OnboardingDialog}
@@ -248,6 +254,7 @@ export default function Dashboard() {
             <div
               key={index}
               className="flex items-center justify-between bg-brand-white border-b px-4 rounded-lg border-gray-100 py-3 last:border-0 last:pb-0"
+              onClick={() => handleUpcomingWorkoutClick(classItem)}
             >
               <div>
                 <p className="font-medium text-gray-900">{classItem.name}</p>
