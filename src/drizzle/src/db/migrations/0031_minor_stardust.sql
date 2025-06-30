@@ -1,0 +1,1 @@
+ALTER TABLE "workout_tracking" RENAME COLUMN "would_do_again" TO "likely_to_do_again";

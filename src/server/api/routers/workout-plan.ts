@@ -265,7 +265,7 @@ export const workoutPlanRouter = createTRPCRouter({
         notes: z.string().optional(),
         intensity: z.number().optional(),
         name: z.string(),
-        wouldDoAgain: z.boolean().optional(),
+        likelyToDoAgain: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -278,7 +278,7 @@ export const workoutPlanRouter = createTRPCRouter({
           notes: input.notes ?? undefined,
           intensity: input.intensity ?? undefined,
           name: input.name,
-          wouldDoAgain: input.wouldDoAgain ?? undefined,
+          likelyToDoAgain: input.likelyToDoAgain ?? undefined,
         } as NewWorkoutTracking;
         await updateCompletedClass(input.workoutId, "completed");
         return await insertWorkoutTracking(newActivity);
@@ -461,7 +461,10 @@ export const workoutPlanRouter = createTRPCRouter({
     const isCompleted = await checkOnboardingCompletion(userId);
 
     if (!isCompleted) {
-      throw new Error("Onboarding is not completed");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Onboarding is not completed",
+      });
     }
 
     const userContext = await buildUserContext(ctx.userId);

@@ -11,6 +11,44 @@ import { supabase } from "@/lib/supabase/client";
 
 type AuthMode = "existing" | "new";
 
+// Add CSS for scrolling animation
+const scrollStyles = `
+  @keyframes scrollText {
+    0% {
+      transform: translateX(-50%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  
+  .scroll-container {
+    overflow: hidden;
+    width: 100%;
+    background: transparent;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  
+  .scroll-ticker-track {
+    display: flex;
+    width: max-content;
+    animation: scrollText 16s linear infinite;
+  }
+  
+  .scroll-ticker {
+    white-space: nowrap;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #2952a3; /* blue shade, adjust as needed */
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 2rem;
+  }
+`;
+
 function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -102,6 +140,9 @@ function SignInForm() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden bg-brand-white">
+      {/* Inject CSS for scrolling animation */}
+      <style dangerouslySetInnerHTML={{ __html: scrollStyles }} />
+
       {/* Background video */}
       <video
         src="https://rflvcogfitcffdappsuz.supabase.co/storage/v1/object/public/marketing-videos//new_essentials.webm"
@@ -239,9 +280,16 @@ function SignInForm() {
         </div>
 
         <div className="mt-8 sm:mt-12 text-center">
-          <p className="text-brand-light-yellow text-sm sm:text-sm italic font-bold">
-            Experience the Burn.
-          </p>
+          <div className="scroll-container">
+            <div className="scroll-ticker-track">
+              <span className="scroll-ticker">
+                EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ●
+              </span>
+              <span className="scroll-ticker" aria-hidden="true">
+                EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ●
+              </span>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>
