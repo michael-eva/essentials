@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import DefaultBox from '@/app/_components/global/DefaultBox';
 import { motion } from 'framer-motion';
 import RecordManualActivity, { type ActivityFormValues } from '@/app/_components/dashboard/RecordManualActivity';
+import type { Exercise } from '@/app/_components/dashboard/ExerciseList';
 
 type PageProps = {
   params: Promise<{
@@ -222,16 +223,16 @@ export default function WorkoutPage({ params }: PageProps) {
           </div>
 
           {/* Exercises Section */}
-          {Array.isArray(workout.exercises) && workout.exercises.length > 0 && (
+          {Array.isArray(workout.exercises) && (workout.exercises as Exercise[]).length > 0 && (
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-brand-brown">Exercises</h3>
               <ul className="space-y-2">
-                {workout.exercises.map((exercise: any) => (
+                {(workout.exercises as Exercise[]).map((exercise) => (
                   <li key={exercise.id} className="border rounded p-3 bg-brand-light-nude">
                     <div className="font-semibold text-brand-brown">{exercise.name}</div>
                     {exercise.sets && exercise.sets.length > 0 && (
                       <ul className="ml-4 mt-1 list-disc text-sm text-brand-brown/80">
-                        {exercise.sets.map((set: any, idx: number) => (
+                        {exercise.sets.map((set, idx) => (
                           <li key={set.id}>
                             Set {idx + 1}: {set.reps} reps{typeof set.weight === 'number' ? ` @ ${set.weight}kg` : ""}
                           </li>

@@ -134,11 +134,16 @@ export async function getUpcomingActivities(
     .map((t) => t.workoutId)
     .filter((id): id is string => Boolean(id));
 
-  return workouts.map((workout) => ({
-    ...workout,
-    tracking: trackingData.find((t) => t.workoutId === workout.id) ?? null,
-    weekNumber: workout.weekNumber ?? undefined,
-  }));
+  return workouts.map((workout) => {
+    const tracking =
+      trackingData.find((t) => t.workoutId === workout.id) ?? null;
+    return {
+      ...workout,
+      tracking,
+      weekNumber: workout.weekNumber ?? undefined,
+      exercises: tracking?.exercises ?? null,
+    };
+  });
 }
 export async function getSupplementaryWorkouts(
   userId: string,
