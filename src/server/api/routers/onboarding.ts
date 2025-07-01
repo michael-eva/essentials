@@ -194,8 +194,7 @@ export const onboardingRouter = createTRPCRouter({
       z.object({
         preferredWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
         avoidedWorkoutTimes: z
-          .array(z.enum(workoutTimesEnum.enumValues))
-          .optional(),
+          .array(z.enum(workoutTimesEnum.enumValues)),
         weekendWorkoutTimes: z.enum(weekendTimesEnum.enumValues),
       }),
     )
