@@ -232,6 +232,13 @@
       "when": 1751270233646,
       "tag": "0032_safe_yellowjacket",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1751268314210,
+      "tag": "0031_minor_stardust",
+      "breakpoints": true
     }
   ]
 }

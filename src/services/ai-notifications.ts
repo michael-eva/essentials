@@ -132,7 +132,7 @@ ${
         .slice(-5) // Last 5 workouts
         .map(
           (workout) =>
-            `- ${workout.workout?.name ?? "Unnamed"} (${workout.workout?.activityType ?? "Unknown"}) - ${workout.workoutTracking.durationHours}h ${workout.workoutTracking.durationMinutes}m - Intensity: ${workout.workoutTracking.intensity}/10 - Would do again: ${workout.workoutTracking.wouldDoAgain ? "Yes" : "No"}`,
+            `- ${workout.workout?.name ?? "Unnamed"} (${workout.workout?.activityType ?? "Unknown"}) - ${workout.workoutTracking.durationHours}h ${workout.workoutTracking.durationMinutes}m - Intensity: ${workout.workoutTracking.intensity}/10 - Would do again: ${workout.workoutTracking.likelyToDoAgain}/10`,
         )
         .join("\n")
     : "- No recent workouts recorded"

@@ -44,7 +44,7 @@ export type WorkoutTrackingInput = {
   notes?: string | null;
   intensity?: number | null;
   name?: string | null;
-  wouldDoAgain?: boolean | null;
+  likelyToDoAgain?: number | null;
   exercises?: Array<{
     id: string;
     name: string;
@@ -73,7 +73,7 @@ export async function insertWorkoutTracking(data: WorkoutTrackingInput) {
       notes: data.notes,
       intensity: data.intensity,
       name: data.name,
-      wouldDoAgain: data.wouldDoAgain,
+      likelyToDoAgain: data.likelyToDoAgain,
       exercises: data.exercises,
     })
     .returning();

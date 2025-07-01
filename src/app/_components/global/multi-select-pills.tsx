@@ -8,7 +8,6 @@ interface MultiSelectPillsProps {
     selectedValues: string[]
     onChange: (value: string) => void
     className?: string
-    pillClassName?: string
     singleSelect?: boolean
 }
 
@@ -17,7 +16,6 @@ export function MultiSelectPills({
     selectedValues,
     onChange,
     className,
-    pillClassName,
     singleSelect = false,
 }: MultiSelectPillsProps) {
     return (
@@ -38,9 +36,7 @@ export function MultiSelectPills({
                     className={cn(
                         "px-4 py-2 text-sm rounded-full border transition-colors capitalize",
                         selectedValues.includes(option)
-                            ? "bg-orange-500 border-primary text-primary-foreground"
-                            : "bg-muted border-muted text-muted-foreground",
-                        pillClassName
+                        && "bg-brand-light-nude border-brand-brown text-primary-foreground"
                     )}
                 >
                     {option}

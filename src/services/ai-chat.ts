@@ -46,7 +46,10 @@ export async function generateAiChatResponse(
     const response = await openai.responses.create({
       model: "gpt-4.1-2025-04-14",
       instructions: fullSystemContext,
-      input: [...conversationHistory, currentInput] as Array<{ role: "user" | "assistant"; content: string }>,
+      input: [...conversationHistory, currentInput] as Array<{
+        role: "user" | "assistant";
+        content: string;
+      }>,
       max_output_tokens: 500,
     });
 
@@ -148,7 +151,7 @@ ${
         .slice(-5) // Last 5 workouts
         .map(
           (workout) =>
-            `- ${workout.workout?.name ?? "Unnamed"} (${workout.workout?.activityType ?? "Unknown"}) - ${workout.workoutTracking.durationHours}h ${workout.workoutTracking.durationMinutes}m - Intensity: ${workout.workoutTracking.intensity}/10 - Would do again: ${workout.workoutTracking.wouldDoAgain ? "Yes" : "No"}`,
+            `- ${workout.workout?.name ?? "Unnamed"} (${workout.workout?.activityType ?? "Unknown"}) - ${workout.workoutTracking.durationHours}h ${workout.workoutTracking.durationMinutes}m - Intensity: ${workout.workoutTracking.intensity}/10 - Would do again: ${workout.workoutTracking.likelyToDoAgain}/10`,
         )
         .join("\n")
     : "- No recent workouts recorded"
