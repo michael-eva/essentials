@@ -225,6 +225,13 @@
       "when": 1751254827715,
       "tag": "0031_amazing_blob",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1751270233646,
+      "tag": "0032_safe_yellowjacket",
+      "breakpoints": true
     }
   ]
 }

@@ -19,11 +19,14 @@ interface FitnessBgFormProps {
   currentStep: typeof STEPS[number];
 }
 
-export const formSchema = z.object({
+export const formSchema = z
+  .object({
     fitnessLevel: z.enum(FITNESS_LEVEL, {
       required_error: "Fitness level is required",
     }),
-  exercises: z.array(z.string()).min(1, "Please select at least one exercise"),
+    exercises: z
+      .array(z.string())
+      .min(1, "Please select at least one exercise"),
     otherExercises: z.array(z.string()).optional(),
     exerciseFrequency: z.enum(EXERCISE_FREQUENCY, {
       required_error: "Exercise frequency is required",
@@ -36,12 +39,15 @@ export const formSchema = z.object({
   .refine(
     (data) => {
       // If "Other" is selected, at least one custom exercise must be added
-      return !data.exercises.includes("Other") || (data.otherExercises && data.otherExercises.length > 0);
+      return (
+        !data.exercises.includes("Other") ||
+        (data.otherExercises && data.otherExercises.length > 0)
+      );
     },
     {
       message: "Please add at least one custom exercise",
       path: ["otherExercises"],
-    }
+    },
   );
 
 

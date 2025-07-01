@@ -5,6 +5,7 @@ import {
   checkOnboardingCompletion,
   getOnboardingData,
 } from "@/drizzle/src/db/queries";
+import { workoutTimesEnum, weekendTimesEnum } from "@/drizzle/src/db/schema";
 
 export const onboardingRouter = createTRPCRouter({
   postBasicQuestions: protectedProcedure
@@ -39,9 +40,6 @@ export const onboardingRouter = createTRPCRouter({
         otherExercises: z.array(z.string()).optional().nullable(),
         exerciseFrequency: z.string().nullable(),
         sessionLength: z.string().nullable(),
-        preferred_workout_times:z.array(z.string()).optional().nullable(),
-        avoided_workout_times:z.array(z.string()).optional().nullable(),
-        weekend_workout_times:z.array(z.string()).optional().nullable()
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -51,10 +49,6 @@ export const onboardingRouter = createTRPCRouter({
         otherExercises,
         exerciseFrequency,
         sessionLength,
-        preferred_workout_times,
-        avoided_workout_times,
-        weekend_workout_times
-
       } = input;
       const userId = ctx.userId;
 
@@ -66,9 +60,6 @@ export const onboardingRouter = createTRPCRouter({
         exerciseFrequency,
         sessionLength,
         step: "fitness_background",
-        preferred_workout_times,
-        avoided_workout_times,
-        weekend_workout_times
       });
     }),
   postHealthConsiderations: protectedProcedure
@@ -80,7 +71,7 @@ export const onboardingRouter = createTRPCRouter({
         surgeryDetails: z.string().optional().nullable(),
         chronicConditions: z.array(z.string()),
         otherHealthConditions: z.array(z.string()).optional().nullable(),
-        pregnancy: z.string(),
+        pregnancy: z.string().nullable(),
         pregnancyConsultedDoctor: z.boolean().optional().nullable(),
         pregnancyConsultedDoctorDetails: z.string().optional().nullable(),
       }),
@@ -198,7 +189,31 @@ export const onboardingRouter = createTRPCRouter({
         step: isCompleted ? "completed" : "motivation",
       });
     }),
-
+  postWorkoutTiming: protectedProcedure
+    .input(
+      z.object({
+        preferredWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
+        avoidedWorkoutTimes: z
+          .array(z.enum(workoutTimesEnum.enumValues))
+          .optional(),
+        weekendWorkoutTimes: z.enum(weekendTimesEnum.enumValues),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const {
+        preferredWorkoutTimes,
+        avoidedWorkoutTimes,
+        weekendWorkoutTimes,
+      } = input;
+      const userId = ctx.userId;
+      await insertOnboarding({
+        userId,
+        preferredWorkoutTimes,
+        avoidedWorkoutTimes,
+        weekendWorkoutTimes,
+        step: "workout_timing",
+      });
+    }),
   checkOnboardingCompletion: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
     const isCompleted = await checkOnboardingCompletion(userId);

@@ -1,20 +1,19 @@
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useState } from "react";
 import { STEPS } from "@/app/onboarding/constants";
 import FormLayout from "./FormLayout";
 import { Label } from "@/components/ui/label";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import { SECTION_LABELS } from "@/app/_constants/ui-labels";
+import { api } from "@/trpc/react";
+import { isDeveloper } from "@/app/_utils/user-role";
+import { workoutTimesEnum, weekendTimesEnum } from "@/drizzle/src/db/schema";
 
-const TIME_OPTIONS = [
-  "Early Morning",
-  "Mid Morning",
-  "Lunchtime",
-  "Afternoon",
-  "Evening",
-  "Other",
-];
 
-const WEEKEND_OPTIONS = ["No", "Sometimes", "Saturday", "Sunday", "Both"];
+const TIME_OPTIONS = workoutTimesEnum.enumValues;
+const WEEKEND_OPTIONS = weekendTimesEnum.enumValues;
 
 interface WorkoutTimingFormProps {
   isFirstStep?: boolean;
@@ -22,68 +21,139 @@ interface WorkoutTimingFormProps {
   currentStep: (typeof STEPS)[number];
 }
 
-// Plan. 
+export const formSchema = z.object({
+  preferredWorkoutTimes: z.string().array().min(1, "Please select at least one preferred time"),
+  avoidedWorkoutTimes: z.string().array().optional(),
+  weekendWorkoutTimes: z.enum(WEEKEND_OPTIONS),
+});
 
 export default function WorkoutTimingForm(props: WorkoutTimingFormProps) {
-  const [preferredTimes, setPreferredTimes] = useState<string[]>([]);
-  const [avoidTimes, setAvoidTimes] = useState<string[]>([]);
-  const [weekendPrefs, setWeekendPrefs] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    handleSubmit,
+    formState: { errors },
+    control,
+    watch,
+    setValue,
+  } = useForm({
+    resolver: zodResolver(formSchema),
+    mode: "onChange",
+    defaultValues: {
+      preferredWorkoutTimes: isDeveloper() ? [TIME_OPTIONS[0]] : [],
+      avoidedWorkoutTimes: isDeveloper() ? [TIME_OPTIONS[0]] : [],
+      weekendWorkoutTimes: isDeveloper() ? WEEKEND_OPTIONS[0] : undefined,
+    },
+  });
+  const { mutate: postWorkoutTiming } =
+    api.onboarding.postWorkoutTiming.useMutation();
+
+  const handlePreferredTimesChange = (value: string) => {
+    const currentValues = watch("preferredWorkoutTimes");
+    const newValues = currentValues.includes(value)
+      ? currentValues.filter((v) => v !== value)
+      : [...currentValues, value];
+    setValue("preferredWorkoutTimes", newValues, { shouldValidate: true });
+  };
+
+  const handleAvoidedTimesChange = (value: string) => {
+    const currentValues = watch("avoidedWorkoutTimes") ?? [];
+    const newValues = currentValues.includes(value)
+      ? currentValues.filter((v) => v !== value)
+      : [...currentValues, value];
+    setValue("avoidedWorkoutTimes", newValues, { shouldValidate: true });
+  };
+
+  const onSubmit = async (): Promise<boolean> => {
+    setIsSubmitting(true);
+    try {
+      let isValid = false;
+      await handleSubmit(async (data) => {
+        postWorkoutTiming({
+          ...data,
+          preferredWorkoutTimes: data.preferredWorkoutTimes as (typeof TIME_OPTIONS[number])[],
+          avoidedWorkoutTimes: data.avoidedWorkoutTimes as (typeof TIME_OPTIONS[number])[],
+        });
+        isValid = true;
+      })();
+      return isValid;
+    } catch (error) {
+      console.error("Form validation failed:", error);
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <FormLayout {...props} onSubmit={async () => true}>
+    <FormLayout
+      onSubmit={onSubmit}
+      isFirstStep={props.isFirstStep}
+      isLastStep={props.isLastStep}
+      currentStep={props.currentStep}
+      isSubmitting={isSubmitting}
+    >
       <form className="mx-auto max-w-md space-y-8 px-2">
         <h2 className="text-2xl font-bold text-gray-900">
           {SECTION_LABELS.WORKOUT_TIMING.TITLE}
         </h2>
-
         <div className="space-y-8">
           <div>
-            <label
-              htmlFor="workout-level"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
+            <Label className="mb-2 text-base">
               What time of day is best for you to work out?
-            </label>{" "}
-            <MultiSelectPills
-              options={TIME_OPTIONS}
-              selectedValues={preferredTimes}
-              onChange={(value) => {
-                setPreferredTimes((prev) =>
-                  prev.includes(value)
-                    ? prev.filter((v) => v !== value)
-                    : [...prev, value],
-                );
-              }}
+            </Label>
+            {errors.preferredWorkoutTimes && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.preferredWorkoutTimes.message as string}
+              </p>
+            )}
+            <Controller
+              name="preferredWorkoutTimes"
+              control={control}
+              render={({ field }) => (
+                <MultiSelectPills
+                  options={TIME_OPTIONS}
+                  selectedValues={field.value}
+                  onChange={handlePreferredTimesChange}
+                />
+              )}
             />
           </div>
-
           <div>
-            <Label>Are there times you prefer not to work out?</Label>
-            <MultiSelectPills
-              options={TIME_OPTIONS}
-              selectedValues={avoidTimes}
-              onChange={(value) => {
-                setAvoidTimes((prev) =>
-                  prev.includes(value)
-                    ? prev.filter((v) => v !== value)
-                    : [...prev, value],
-                );
-              }}
+            <Label className="mb-2 text-base">
+              Are there times you prefer not to work out?
+            </Label>
+            <Controller
+              name="avoidedWorkoutTimes"
+              control={control}
+              render={({ field }) => (
+                <MultiSelectPills
+                  options={TIME_OPTIONS}
+                  selectedValues={field.value ?? []}
+                  onChange={handleAvoidedTimesChange}
+                />
+              )}
             />
           </div>
-
           <div>
-            <Label>Do you usually work out on weekends?</Label>
-            <MultiSelectPills
-              options={WEEKEND_OPTIONS}
-              selectedValues={weekendPrefs}
-              onChange={(value) => {
-                setWeekendPrefs((prev) =>
-                  prev.includes(value)
-                    ? prev.filter((v) => v !== value)
-                    : [...prev, value],
-                );
-              }}
+            <Label className="mb-2 text-base">
+              Do you usually work out on weekends?
+            </Label>
+            {errors.weekendWorkoutTimes && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.weekendWorkoutTimes.message as string}
+              </p>
+            )}
+            <Controller
+              name="weekendWorkoutTimes"
+              control={control}
+              render={({ field }) => (
+                <MultiSelectPills
+                  options={WEEKEND_OPTIONS}
+                  selectedValues={field.value ? [field.value] : []}
+                  onChange={field.onChange}
+                  singleSelect
+                />
+              )}
             />
           </div>
         </div>

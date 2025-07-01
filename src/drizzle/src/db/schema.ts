@@ -212,9 +212,9 @@ export const onboarding = pgTable("onboarding", {
   progressTracking: text("progress_tracking").array(),
   otherProgressTracking: text("other_progress_tracking").array(),
 
-  preferred_workout_times: text("preferred_workout_times").array(),
-  avoided_workout_times: text("avoided_workout_times").array(),
-  weekend_workout_times: text("weekend_workout_times").array(),
+  preferredWorkoutTimes: workoutTimesEnum("preferred_workout_times").array(),
+  avoidedWorkoutTimes: workoutTimesEnum("avoided_workout_times").array(),
+  weekendWorkoutTimes: weekendTimesEnum("weekend_workout_times"),
 });
 
 export const personalTrainerInteractions = pgTable(
