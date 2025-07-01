@@ -49,7 +49,6 @@ async function InsertAiWorkoutPlan({
   console.log("🏋️ Processing workouts");
   const workoutsWithIds = generatedPlan.workouts.map((workout) => ({
     ...workout,
-    id: uuidv4(),
     status: workout.status ?? "not_recorded",
     isBooked: workout.isBooked ?? false,
     classId: workout.classId === null ? undefined : workout.classId,
@@ -62,13 +61,12 @@ async function InsertAiWorkoutPlan({
   // Insert weekly schedules with correct workout IDs
 
   const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(
-    (schedule, index) => {
-      const workout = workouts[index % workouts.length];
+    (schedule) => {
       return {
         id: uuidv4(),
         planId: plan.id,
         weekNumber: schedule.weekNumber,
-        workoutId: workout?.id ?? schedule.workoutId, // Use actual workout ID or fallback
+        workoutId: schedule.workoutId,
         userId: userId,
       };
     },

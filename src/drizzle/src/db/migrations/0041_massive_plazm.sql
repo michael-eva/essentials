@@ -1,0 +1,1 @@
+ALTER TABLE "weekly_schedule" DROP CONSTRAINT "weekly_schedule_workout_id_unique";

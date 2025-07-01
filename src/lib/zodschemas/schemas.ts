@@ -15,6 +15,7 @@ export const NewWorkoutPlanSchema = z.object({
 });
 
 export const NewWorkoutSchema = z.object({
+  id: z.string().uuid(),
   name: z.string(),
   instructor: z.string(),
   duration: z.number().int(),

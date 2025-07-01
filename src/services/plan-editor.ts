@@ -9,8 +9,10 @@ import { nonPilates } from "@/data";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { UserContext } from "./context-manager";
-import { NewWorkoutSchema, GeneratedWorkoutPlanResponseSchema } from "@/lib/zodschemas/schemas";
-
+import {
+  NewWorkoutSchema,
+  GeneratedWorkoutPlanResponseSchema,
+} from "@/lib/zodschemas/schemas";
 
 type GeneratedWorkoutPlanResponse = z.infer<
   typeof GeneratedWorkoutPlanResponseSchema
@@ -81,6 +83,10 @@ Releveant context about the user, that you should use to generate the workout pl
 - Other Motivations: ${context.profile.otherMotivation?.join(", ") ?? "Not specified"}
 
 Generate a comprehensive workout plan for the user that takes into account their fitness level, goals, health considerations, and preferences.
+
+IMPORTANT: 
+1. Each workout MUST have a unique 'id' field (UUID format). No two workouts should have the same ID.
+2. Each weekly schedule should reference the exact workout ID from the workouts array.
 
 Make sure the plan is realistic, progressive, and aligned with the user's context.
 
