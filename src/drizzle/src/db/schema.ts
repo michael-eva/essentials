@@ -366,6 +366,8 @@ export const PilatesVideos = pgTable("pilates_videos", {
   updatedAt: timestamp("updated_at")
     .notNull()
     .default(sql`now()`),
+  mux_playback_id: text("mux_playback_id"),
+  instructor: text("instructor"),
 });
 
 // Custom Zod schemas for complex types

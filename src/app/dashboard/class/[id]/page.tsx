@@ -4,38 +4,130 @@ import MuxPlayer from '@mux/mux-player-react';
 import { Badge } from "@/components/ui/badge";
 import { Clock, Target, Users, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { api } from "@/trpc/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Dummy data for now
-const dummyClassData = {
-  title: "FULL BODY",
-  summary: "Dynamic intermediate full-body flow with minimal rest periods",
-  description:
-    "A dynamic 24-minute full body workout with minimal rests that gets the heart rate up. Starting with breathwork and abs, flowing into side waist and outer glutes, standing curtsey lunges, and back work. This intermediate level class features a continuous flow style that's more challenging for beginners but includes modifications throughout. The workout progresses through abs on back, side kneeling core series, lunge series, and plank series, repeated on both sides for a comprehensive full body burn.",
-  difficulty: "Intermediate",
-  duration: 24,
-  instructor: "Emma Uden",
-  equipment: "None",
-  pilatesStyle: "Mat Pilates",
-  classType: "Full Body",
-  focusArea: "Full Body",
-  targetedMuscles:
-    "Abdominals, Side Waist, Outer Glutes, Quadriceps, Back, Shoulders, Arms",
-  intensity: 3,
-  modifications: true,
-  beginnerFriendly: false,
-  tags: '["Dynamic", "Flow", "Heart Rate", "Burn", "Shaking", "Minimal Rest", "Breathwork", "Balance"]',
-  exerciseSequence:
-    '["Breathwork", "Abs on back", "Side kneeling core", "Lunge series", "Plank series", "Repeat other side", "Stretching"]',
-  videoUrl: "", // To be provided
-  mux_playback_id: "ZZCGrwKKUeFCNGP4nChYBycHZ9lotx24O02026OSiNakg"
-};
+type PageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+}
 
-export default function page() {
-  const parsedTags = JSON.parse(dummyClassData.tags) as string[];
-  const equipmentList = dummyClassData.equipment.split(',').map(e => e.trim());
-  const parsedExerciseSequence = JSON.parse(dummyClassData.exerciseSequence) as string[];
-  const targetedMuscles = dummyClassData.targetedMuscles.split(',').map(m => m.trim());
+// Loading Skeleton Component
+function ClassPageSkeleton() {
+  return (
+    <>
+      <div>
+        <Button
+          variant="ghost"
+          onClick={() => window.history.back()}
+          className="flex items-center gap-2 text-brand-brown hover:text-brand-brown/80 mb-2"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back</span>
+        </Button>
+      </div>
+      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm border border-brand-brown overflow-hidden md:p-8 p-0">
+        <div className="flex flex-col md:flex-row md:gap-8">
+          {/* Video Player Skeleton */}
+          <div className="aspect-video bg-gray-200 w-full md:w-1/2 md:min-w-[340px] md:max-w-[420px] md:rounded-lg overflow-hidden">
+            <Skeleton className="w-full h-full" />
+          </div>
 
+          {/* Info Section Skeleton */}
+          <div className="p-5 md:p-0 flex-1 flex flex-col justify-center">
+            {/* Title and Summary Skeleton */}
+            <div className="mb-2">
+              <Skeleton className="h-8 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+
+            {/* Key Info Row Skeleton */}
+            <div className="flex flex-wrap items-center gap-4 mb-2">
+              <div className="flex items-center gap-1">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+              <div className="flex items-center gap-1">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+              <div className="flex items-center gap-1">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            </div>
+
+            {/* Targeted Muscles Skeleton */}
+            <div className="flex flex-wrap gap-2 mb-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-6 w-16 rounded-full" />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <hr className="my-4 border-gray-100" />
+
+        {/* About Section Skeleton */}
+        <div className="px-5 md:px-0 mb-4">
+          <Skeleton className="h-6 w-48 mb-2" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
+        </div>
+
+        {/* Equipment Needed Skeleton */}
+        <div className="px-5 md:px-0 mb-4">
+          <Skeleton className="h-5 w-32 mb-2" />
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-6 w-20 rounded-full" />
+            ))}
+          </div>
+        </div>
+
+        {/* Exercise Sequence Skeleton */}
+        <div className="px-5 md:px-0 mb-2">
+          <Skeleton className="h-5 w-36 mb-2" />
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="w-7 h-7 rounded-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tags Skeleton */}
+        <div className="px-5 pt-2 md:px-0 mb-6">
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-6 w-16 rounded-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default function Page({ params }: PageProps) {
+  const { id } = use(params);
+  const { data: pilatesClass, isLoading } = api.workout.getPilatesClassViaWorkout.useQuery({ workoutId: id });
+
+  if (isLoading || !pilatesClass?.mux_playback_id) {
+    return <ClassPageSkeleton />;
+  }
+
+  const parsedTags = JSON.parse(pilatesClass?.tags) as string[];
+  const equipmentList = pilatesClass?.equipment?.split(',').map(e => e.trim());
+  const parsedExerciseSequence = JSON.parse(pilatesClass?.exerciseSequence) as string[];
+  const targetedMuscles = pilatesClass?.targetedMuscles?.split(',').map(m => m.trim());
+  console.log(pilatesClass);
   return (
     <>
       <div>
@@ -55,8 +147,8 @@ export default function page() {
           {/* Video Player */}
           <div className="aspect-video bg-black w-full md:w-1/2 md:min-w-[340px] md:max-w-[420px] md:rounded-lg overflow-hidden">
             <MuxPlayer
-              playbackId={dummyClassData.mux_playback_id}
-              metadata={{ title: dummyClassData.title }}
+              playbackId={pilatesClass?.mux_playback_id}
+              metadata={{ title: pilatesClass?.title }}
               className="w-full h-full"
             />
           </div>
@@ -65,23 +157,23 @@ export default function page() {
           <div className="p-5 md:p-0 flex-1 flex flex-col justify-center">
             {/* Title and Summary */}
             <div className="mb-2">
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-semibold leading-tight text-gray-900">{dummyClassData.title}</h1>
-              <p className="text-sm md:text-base text-muted-foreground">with {dummyClassData.instructor}</p>
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-semibold leading-tight text-gray-900">{pilatesClass?.title}</h1>
+              <p className="text-sm md:text-base text-muted-foreground">with {pilatesClass?.instructor}</p>
             </div>
 
             {/* Key Info Row */}
             <div className="flex flex-wrap items-center gap-4 text-sm md:text-base text-gray-700 mb-2">
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {dummyClassData.duration} min
+                {pilatesClass?.duration} min
               </div>
               <div className="flex items-center gap-1">
                 <Users className="w-4 h-4" />
-                {dummyClassData.difficulty}
+                {pilatesClass?.difficulty}
               </div>
               <div className="flex items-center gap-1">
                 <Target className="w-4 h-4" />
-                {dummyClassData.focusArea}
+                {pilatesClass?.focusArea}
               </div>
             </div>
 
@@ -101,7 +193,7 @@ export default function page() {
         {/* About Section */}
         <div className="px-5 md:px-0 mb-4">
           <h2 className="font-semibold text-base md:text-lg mb-1">About This Workout</h2>
-          <p className="text-sm md:text-base text-gray-700 leading-relaxed">{dummyClassData.description}</p>
+          <p className="text-sm md:text-base text-gray-700 leading-relaxed">{pilatesClass?.description}</p>
         </div>
 
         {/* Equipment Needed */}

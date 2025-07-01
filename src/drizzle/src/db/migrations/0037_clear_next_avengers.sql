@@ -1,0 +1,1 @@
+ALTER TABLE "pilates_videos" ADD COLUMN "mux_playback_id" text;

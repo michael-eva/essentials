@@ -1,0 +1,1 @@
+ALTER TABLE "pilates_videos" ALTER COLUMN "instructor" DROP NOT NULL;

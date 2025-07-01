@@ -656,3 +656,18 @@ export async function getPilatesClasses(): Promise<Array<PilatesVideos>> {
   const pilatesClasses = await db.select().from(PilatesVideos);
   return pilatesClasses;
 }
+export async function getPilatesClassViaWorkout(
+  workoutId: string,
+): Promise<PilatesVideos | null> {
+  const workoutResult = await db
+    .select()
+    .from(workout)
+    .where(eq(workout.id, workoutId));
+  if (!workoutResult[0]?.classId) return null;
+  console.log(workoutResult[0].classId);
+  const pilatesClass = await db
+    .select()
+    .from(PilatesVideos)
+    .where(eq(PilatesVideos.id, workoutResult[0].classId));
+  return pilatesClass[0] ?? null;
+}

@@ -1,7 +1,10 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { getWorkoutById } from "@/drizzle/src/db/queries";
+import {
+  getPilatesClassViaWorkout,
+  getWorkoutById,
+} from "@/drizzle/src/db/queries";
 import { deleteWorkout, insertWorkouts } from "@/drizzle/src/db/mutations";
 
 export const workoutRouter = createTRPCRouter({
@@ -66,5 +69,11 @@ export const workoutRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const workout = await insertWorkouts(input);
       return workout;
+    }),
+  getPilatesClassViaWorkout: protectedProcedure
+    .input(z.object({ workoutId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const pilatesClass = await getPilatesClassViaWorkout(input.workoutId);
+      return pilatesClass;
     }),
 });
