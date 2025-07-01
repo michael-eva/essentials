@@ -8,6 +8,7 @@ interface MultiSelectPillsProps {
     selectedValues: string[]
     onChange: (value: string) => void
     className?: string
+    singleSelect?: boolean
 }
 
 export function MultiSelectPills({
@@ -15,6 +16,7 @@ export function MultiSelectPills({
     selectedValues,
     onChange,
     className,
+    singleSelect = false,
 }: MultiSelectPillsProps) {
     return (
         <div className={cn("flex flex-wrap gap-2", className)}>
@@ -22,9 +24,17 @@ export function MultiSelectPills({
                 <button
                     key={option}
                     type="button"
-                    onClick={() => onChange(option)}
+                    onClick={() => {
+                        if (singleSelect) {
+                            if (selectedValues[0] !== option) {
+                                onChange(option);
+                            }
+                        } else {
+                            onChange(option);
+                        }
+                    }}
                     className={cn(
-                        "px-4 py-2 text-sm rounded-full border transition-colors",
+                        "px-4 py-2 text-sm rounded-full border transition-colors capitalize",
                         selectedValues.includes(option)
                         && "bg-brand-light-nude border-brand-brown text-primary-foreground"
                     )}

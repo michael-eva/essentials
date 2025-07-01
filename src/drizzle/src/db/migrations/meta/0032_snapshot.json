@@ -1,6 +1,6 @@
 {
-  "id": "f16a83f2-3a33-42c5-9088-2faa5562ce27",
-  "prevId": "253aed2b-b062-4082-8da2-f284a5e9f6df",
+  "id": "86b015bf-6159-4800-a746-28292b209aeb",
+  "prevId": "47731af4-022e-42c0-b3bd-eec72fa2c410",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -411,6 +411,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "pregnancy_consulted_doctor": {
+          "name": "pregnancy_consulted_doctor",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pregnancy_consulted_doctor_details": {
+          "name": "pregnancy_consulted_doctor_details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "fitness_goals": {
           "name": "fitness_goals",
           "type": "text[]",
@@ -491,19 +503,22 @@
         },
         "preferred_workout_times": {
           "name": "preferred_workout_times",
-          "type": "text[]",
+          "type": "workout_times[]",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
         "avoided_workout_times": {
           "name": "avoided_workout_times",
-          "type": "text[]",
+          "type": "workout_times[]",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         },
         "weekend_workout_times": {
           "name": "weekend_workout_times",
-          "type": "text[]",
+          "type": "weekend_workout_times",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
         }
@@ -632,6 +647,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "workout_tracking_id": {
+          "name": "workout_tracking_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "date": {
           "name": "date",
           "type": "timestamp",
@@ -695,6 +716,19 @@
           "tableTo": "user",
           "columnsFrom": [
             "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "progress_tracking_workout_tracking_id_workout_tracking_id_fk": {
+          "name": "progress_tracking_workout_tracking_id_workout_tracking_id_fk",
+          "tableFrom": "progress_tracking",
+          "tableTo": "workout_tracking",
+          "columnsFrom": [
+            "workout_tracking_id"
           ],
           "columnsTo": [
             "id"

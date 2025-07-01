@@ -26,6 +26,31 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "rowing",
   "elliptical",
   "workout",
+  "weightlift",
+  "dance",
+  "team sports",
+  "pilates",
+  "bodyweight",
+  "resistance",
+  "other",
+]);
+
+export const workoutTimesEnum = pgEnum("workout_times", [
+  "early morning",
+  "mid morning",
+  "lunchtime",
+  "afternoon",
+  "evening",
+  "other",
+]);
+
+export const weekendTimesEnum = pgEnum("weekend_workout_times", [
+  "no",
+  "sometimes",
+  "saturday",
+  "sunday",
+  "both",
+  "other",
 ]);
 
 export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
@@ -175,6 +200,8 @@ export const onboarding = pgTable("onboarding", {
   chronicConditions: text("chronic_conditions").array(),
   otherHealthConditions: text("other_health_conditions").array(),
   pregnancy: text("pregnancy"),
+  pregnancyConsultedDoctor: boolean("pregnancy_consulted_doctor"),
+  pregnancyConsultedDoctorDetails: text("pregnancy_consulted_doctor_details"),
 
   fitnessGoals: text("fitness_goals").array(),
   goalTimeline: text("goal_timeline"),
@@ -191,6 +218,10 @@ export const onboarding = pgTable("onboarding", {
   otherMotivation: text("other_motivation").array(),
   progressTracking: text("progress_tracking").array(),
   otherProgressTracking: text("other_progress_tracking").array(),
+
+  preferredWorkoutTimes: workoutTimesEnum("preferred_workout_times").array(),
+  avoidedWorkoutTimes: workoutTimesEnum("avoided_workout_times").array(),
+  weekendWorkoutTimes: weekendTimesEnum("weekend_workout_times"),
 });
 
 export const personalTrainerInteractions = pgTable(

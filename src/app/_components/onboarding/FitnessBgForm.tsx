@@ -19,11 +19,14 @@ interface FitnessBgFormProps {
   currentStep: typeof STEPS[number];
 }
 
-export const formSchema = z.object({
+export const formSchema = z
+  .object({
     fitnessLevel: z.enum(FITNESS_LEVEL, {
       required_error: "Fitness level is required",
     }),
-  exercises: z.array(z.string()).min(1, "Please select at least one exercise"),
+    exercises: z
+      .array(z.string())
+      .min(1, "Please select at least one exercise"),
     otherExercises: z.array(z.string()).optional(),
     exerciseFrequency: z.enum(EXERCISE_FREQUENCY, {
       required_error: "Exercise frequency is required",
@@ -36,12 +39,15 @@ export const formSchema = z.object({
   .refine(
     (data) => {
       // If "Other" is selected, at least one custom exercise must be added
-      return !data.exercises.includes("Other") || (data.otherExercises && data.otherExercises.length > 0);
+      return (
+        !data.exercises.includes("Other") ||
+        (data.otherExercises && data.otherExercises.length > 0)
+      );
     },
     {
       message: "Please add at least one custom exercise",
       path: ["otherExercises"],
-    }
+    },
   );
 
 
@@ -117,7 +123,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
           <div>
             <label
               htmlFor="fitness-level"
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="mb-2 block text-base font-medium text-gray-700"
             >
               How would you rate your current fitness level?
             </label>
@@ -146,7 +152,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-base font-medium text-gray-700">
               What forms of exercise do you currently engage in?
             </label>
             {errors.exercises && (
@@ -209,7 +215,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
           <div>
             <label
               htmlFor="exercise-frequency"
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="mb-2 block text-base font-medium text-gray-700"
             >
               How many days per week do you currently exercise?
             </label>
@@ -240,7 +246,7 @@ export default function FitnessBgForm({ isFirstStep, isLastStep, currentStep }: 
           <div>
             <label
               htmlFor="session-length"
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="mb-2 block text-base font-medium text-gray-700"
             >
               How long are your typical workout sessions?
             </label>

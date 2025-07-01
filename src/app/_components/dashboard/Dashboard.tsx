@@ -417,7 +417,7 @@ export default function Dashboard() {
                 className="flex items-center justify-between border-b border-brand-brown pb-3 last:border-0 last:pb-0"
               >
                 <div>
-                  <p className="font-medium text-gray-900">{activity.tracking.name}</p>
+                  <p className="font-medium text-gray-900 capitalize">{activity.tracking.name}</p>
                   <p className="text-sm text-gray-500">
                     {new Date(activity.tracking?.date ?? "").toLocaleDateString(
                       "en-US",

@@ -1,6 +1,6 @@
 {
-  "id": "f1a24ed8-a180-4ada-a3d3-a33da346edc5",
-  "prevId": "cd4cac44-cbb5-4a32-8406-fead10b728be",
+  "id": "47731af4-022e-42c0-b3bd-eec72fa2c410",
+  "prevId": "f16a83f2-3a33-42c5-9088-2faa5562ce27",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -411,6 +411,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "pregnancy_consulted_doctor": {
+          "name": "pregnancy_consulted_doctor",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pregnancy_consulted_doctor_details": {
+          "name": "pregnancy_consulted_doctor_details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "fitness_goals": {
           "name": "fitness_goals",
           "type": "text[]",
@@ -485,6 +497,24 @@
         },
         "other_progress_tracking": {
           "name": "other_progress_tracking",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "preferred_workout_times": {
+          "name": "preferred_workout_times",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avoided_workout_times": {
+          "name": "avoided_workout_times",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weekend_workout_times": {
+          "name": "weekend_workout_times",
           "type": "text[]",
           "primaryKey": false,
           "notNull": false
@@ -1125,9 +1155,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "likely_to_do_again": {
-          "name": "likely_to_do_again",
-          "type": "integer",
+        "would_do_again": {
+          "name": "would_do_again",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false
         },
@@ -1185,6 +1215,18 @@
         "assistant"
       ]
     },
+    "public.weekend_workout_times": {
+      "name": "weekend_workout_times",
+      "schema": "public",
+      "values": [
+        "no",
+        "sometimes",
+        "saturday",
+        "sunday",
+        "both",
+        "other"
+      ]
+    },
     "public.workout_status": {
       "name": "workout_status",
       "schema": "public",
@@ -1192,6 +1234,18 @@
         "completed",
         "not_completed",
         "not_recorded"
+      ]
+    },
+    "public.workout_times": {
+      "name": "workout_times",
+      "schema": "public",
+      "values": [
+        "early morning",
+        "mid morning",
+        "lunchtime",
+        "afternoon",
+        "evening",
+        "other"
       ]
     },
     "public.workout_type": {
