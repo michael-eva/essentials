@@ -473,7 +473,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
           {hasPregnancy && hasConsultedDoctor && (
             <div className="mt-4">
               <label htmlFor="pregnancy-consulted-details" className="block text-sm font-medium text-gray-700">
-                Please provide more information about your doctor's consultation:
+                Please provide more information about your doctor&apos;s consultation:
               </label>
               {errors.pregnancyConsultedDoctorDetails && (
                 <p className="mt-1 text-sm text-red-600">{errors.pregnancyConsultedDoctorDetails.message}</p>

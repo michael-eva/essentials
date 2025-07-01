@@ -112,7 +112,7 @@ export default function WorkoutTimingForm(props: WorkoutTimingFormProps) {
             </Label>
             {errors.preferredWorkoutTimes && (
               <p className="mb-1 text-sm text-red-600">
-                {errors.preferredWorkoutTimes.message as string}
+                {errors.preferredWorkoutTimes.message!}
               </p>
             )}
             <Controller
@@ -133,7 +133,7 @@ export default function WorkoutTimingForm(props: WorkoutTimingFormProps) {
             </Label>
             {errors.avoidedWorkoutTimes && (
               <p className="mb-1 text-sm text-red-600">
-                {errors.avoidedWorkoutTimes.message as string}
+                {errors.avoidedWorkoutTimes.message!}
               </p>
             )}
             <Controller
@@ -154,7 +154,7 @@ export default function WorkoutTimingForm(props: WorkoutTimingFormProps) {
             </Label>
             {errors.weekendWorkoutTimes && (
               <p className="mt-1 text-sm text-red-600">
-                {errors.weekendWorkoutTimes.message as string}
+                {errors.weekendWorkoutTimes.message!}
               </p>
             )}
             <Controller
