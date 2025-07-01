@@ -13,35 +13,35 @@ export default function LandingPage() {
       <div className="space-y-8 text-center">
         <div className="space-y-4">
           <div className="flex justify-center">
-            <Sparkles className="w-12 h-12 text-primary animate-pulse" />
+            <Sparkles className="w-12 h-12 text-primary" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold text-gray-900">
             Your Journey to Greatness Begins Here
           </h1>
         </div>
 
         <div className="space-y-6">
-          <p className="text-xl text-muted-foreground leading-relaxed">
+          <p className="text-xl text-gray-600 leading-relaxed">
             We&apos;ve crafted something special just for you. Your fitness goals, your current level, your unique journey -
-            <span className="font-semibold text-foreground"> it&apos;s all been carefully considered</span> to create your perfect workout companion.
+            <span className="font-semibold text-gray-900"> it&apos;s all been carefully considered</span> to create your perfect workout companion.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-6">
-            <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
+            <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
               <Trophy className="w-8 h-8 text-primary mx-auto mb-2" />
-              <p className="text-sm font-medium">Personalized Goals</p>
+              <p className="text-sm font-medium text-gray-900">Personalized Goals</p>
             </div>
-            <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
+            <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
               <Heart className="w-8 h-8 text-primary mx-auto mb-2" />
-              <p className="text-sm font-medium">Health-First Approach</p>
+              <p className="text-sm font-medium text-gray-900">Health-First Approach</p>
             </div>
-            <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
+            <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
               <Zap className="w-8 h-8 text-primary mx-auto mb-2" />
-              <p className="text-sm font-medium">Optimized Workouts</p>
+              <p className="text-sm font-medium text-gray-900">Optimized Workouts</p>
             </div>
           </div>
 
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-gray-600">
             Ready to transform your fitness journey? Your personalized plan is just one click away.
           </p>
         </div>
@@ -49,24 +49,23 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
           <Button
             size="lg"
-            className="group relative overflow-hidden bg-primary hover:bg-primary/90 transition-all duration-300"
+            className="group relative overflow-hidden"
             disabled={isLoading}
             onClick={() => {
               void generatePlan({});
             }}
           >
             <span className="relative z-10 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              <Sparkles className="w-5 h-5" />
               {isLoading ? "Generating..." : "Generate My Workout Plan"}
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-white/20 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
           </Button>
 
           <Button
             variant="outline"
             size="lg"
             onClick={() => router.push("/dashboard/overview")}
-            className="hover:bg-muted/50"
+            className="hover:bg-gray-50"
           >
             Skip for Now
           </Button>
