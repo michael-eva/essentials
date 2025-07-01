@@ -5,6 +5,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import {
   createWorkoutPlanTool,
+  manageWorkoutPlanTool,
   // editWorkoutPlanTool
 } from "./ai-chat-tools";
 import {
@@ -22,6 +23,7 @@ const agent = createReactAgent({
   llm: model,
   tools: [
     createWorkoutPlanTool,
+    manageWorkoutPlanTool,
     // editWorkoutPlanTool
   ],
 });
@@ -84,7 +86,7 @@ export async function generateAiChatResponse(
 
     // Extract tool calls and tool responses
     let toolCalls: any[] = [];
-    let toolResponses: any[] = [];
+    const toolResponses: any[] = [];
 
     for (const message of response.messages || []) {
       if (message.constructor.name === "AIMessage") {
@@ -154,6 +156,35 @@ function buildSystemContext(
   
 Here is how the user would like you to behave:
 ${basePrompt}
+
+WORKOUT PLAN SCHEMA RELATIONSHIPS:
+Understanding the database structure is crucial for managing workout plans correctly:
+
+1. WORKOUT_PLAN: The main plan entity
+   - Contains plan metadata (name, weeks, start date, etc.)
+   - One plan can have multiple weekly schedules
+   - Plans belong to a specific user
+
+2. WEEKLY_SCHEDULE: The junction table that connects plans to workouts
+   - Links workout_plan.id to workout.id
+   - Specifies which workout appears in which week (weekNumber)
+   - One plan can have multiple weekly schedules
+   - One workout can appear in multiple weeks or plans
+
+3. WORKOUT: Individual workout entities
+   - Contains workout details (name, instructor, duration, description, level, etc.)
+   - Can be referenced by multiple weekly schedules
+   - Workouts belong to a specific user
+
+KEY RELATIONSHIPS:
+- workout_plan (1) ←→ (many) weekly_schedule
+- weekly_schedule (many) ←→ (1) workout
+- When updating plans, you can:
+  * Update workout details (name, duration, instructor, etc.)
+  * Update weekly schedule assignments (which workout in which week)
+  * Add workouts to specific weeks
+  * Remove workouts from specific weeks
+  * Update plan metadata (name, weeks, etc.)
 
 USER CONTEXT:
 ${userContextText}

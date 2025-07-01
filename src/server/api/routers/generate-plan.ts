@@ -53,7 +53,7 @@ function safeDateParse(
 }
 
 // Helper function to recursively convert Date objects to ISO strings
-function convertDatesToISOStrings(obj: any): any {
+function convertDatesToISOStrings(obj: unknown): unknown {
   if (obj === null || obj === undefined) {
     return obj;
   }
@@ -67,7 +67,7 @@ function convertDatesToISOStrings(obj: any): any {
   }
 
   if (typeof obj === "object") {
-    const result: any = {};
+    const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       result[key] = convertDatesToISOStrings(value);
     }
@@ -483,12 +483,12 @@ export const workoutPlanRouter = createTRPCRouter({
       const userId = ctx.userId;
       const isCompleted = await checkOnboardingCompletion(userId);
 
-    if (!isCompleted) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Onboarding is not completed",
-      });
-    }
+      if (!isCompleted) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Onboarding is not completed",
+        });
+      }
 
       const userContext = await buildUserContext(ctx.userId);
       const generatedPlan = await generateWorkoutPlanAI(
