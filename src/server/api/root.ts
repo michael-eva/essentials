@@ -1,6 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
-import { workoutPlanRouter } from "./routers/workout-plan";
 import { workoutRouter } from "./routers/workout";
+import { workoutPlanRouter } from "./routers/generate-plan";
 import { onboardingRouter } from "./routers/onboarding";
 import { authRouter } from "./routers/auth";
 import { personalTrainerRouter } from "./routers/personal-trainer";

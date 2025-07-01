@@ -28,7 +28,7 @@ import {
   bookClass,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
-import { generateAIResponse } from "@/services/personal-trainer";
+import { generateWorkoutPlanAI } from "@/services/plan-generator";
 import { buildUserContext } from "@/services/context-manager";
 import { createGzip } from "zlib";
 
@@ -50,6 +50,31 @@ function safeDateParse(
       `Failed to parse date for ${fieldName}: ${dateString}. ${error}`,
     );
   }
+}
+
+// Helper function to recursively convert Date objects to ISO strings
+function convertDatesToISOStrings(obj: unknown): unknown {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (obj instanceof Date) {
+    return obj.toISOString();
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(convertDatesToISOStrings);
+  }
+
+  if (typeof obj === "object") {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = convertDatesToISOStrings(value);
+    }
+    return result;
+  }
+
+  return obj;
 }
 
 export const workoutPlanRouter = createTRPCRouter({
@@ -366,8 +391,6 @@ export const workoutPlanRouter = createTRPCRouter({
           (currentPlan.totalPausedDuration ?? 0) + pauseDuration;
 
         return await updateWorkoutPlan(input.planId, {
-          resumedAt: now,
-          pausedAt: null,
           totalPausedDuration: newTotalPausedDuration,
         });
       } catch (error) {
@@ -411,9 +434,6 @@ export const workoutPlanRouter = createTRPCRouter({
       try {
         const result = await updateWorkoutPlan(input.planId, {
           isActive: true,
-          startDate: null,
-          pausedAt: null,
-          resumedAt: null,
           totalPausedDuration: 0,
         });
 
@@ -456,102 +476,103 @@ export const workoutPlanRouter = createTRPCRouter({
         });
       }
     }),
-  generatePlan: protectedProcedure.mutation(async ({ ctx }) => {
-    const userId = ctx.userId;
-    const isCompleted = await checkOnboardingCompletion(userId);
+  generatePlan: protectedProcedure
+    .input(z.object({ prompt: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      console.log("🚀 Starting generatePlan mutation");
+      const userId = ctx.userId;
+      const isCompleted = await checkOnboardingCompletion(userId);
 
-    if (!isCompleted) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Onboarding is not completed",
-      });
-    }
-
-    const userContext = await buildUserContext(ctx.userId);
-
-    const generatedPlan = await generateAIResponse(ctx.userId, userContext);
-
-    // Insert the plan with better date parsing error handling
-    try {
-      const planWithDates = {
-        ...generatedPlan.plan,
-        savedAt:
-          safeDateParse(generatedPlan.plan.savedAt, "savedAt") ?? new Date(),
-        archivedAt: safeDateParse(generatedPlan.plan.archivedAt, "archivedAt"),
-        startDate: safeDateParse(generatedPlan.plan.startDate, "startDate"),
-        pausedAt: safeDateParse(generatedPlan.plan.pausedAt, "pausedAt"),
-        resumedAt: safeDateParse(generatedPlan.plan.resumedAt, "resumedAt"),
-      };
-      const plan = await insertWorkoutPlan(planWithDates);
-
-      // Insert all workouts first with better date parsing
-      const workoutsWithIds = generatedPlan.workouts.map((workout) => ({
-        ...workout,
-        id: uuidv4(),
-        classId: workout.classId === null ? undefined : workout.classId,
-        bookedDate:
-          safeDateParse(workout.bookedDate, "bookedDate") ?? undefined,
-        activityType:
-          workout.activityType === null ? undefined : workout.activityType,
-      }));
-      const workouts = await insertWorkouts(workoutsWithIds);
-
-      // Create a mapping from original workout IDs to inserted workout IDs
-      const workoutIdMap = new Map();
-      generatedPlan.workouts.forEach((originalWorkout, index) => {
-        const insertedWorkout = workouts[index];
-        if (insertedWorkout) {
-          workoutIdMap.set(originalWorkout.userId, insertedWorkout.id);
-        }
-      });
-
-      // Insert weekly schedules with correct workout IDs
-      const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(
-        (schedule, index) => {
-          const workout = workouts[index % workouts.length];
-          return {
-            ...schedule,
-            id: uuidv4(),
-            planId: plan.id,
-            workoutId: workout?.id ?? schedule.workoutId, // Use actual workout ID or fallback
-          };
-        },
-      );
-      const weeklySchedules = await insertWeeklySchedules(
-        weeklySchedulesWithIds,
-      );
-
-      return {
-        ...plan,
-        workouts: workouts.map((workout, index) => ({
-          ...workout,
-          weekNumber: Math.floor(index / 3) + 1,
-        })),
-      };
-    } catch (error) {
-      console.error("Error in generatePlan:", error);
-      console.error(
-        "Generated plan data:",
-        JSON.stringify(generatedPlan, null, 2),
-      );
-
-      // Check if it's a date parsing error
-      if (
-        error instanceof Error &&
-        error.message.includes("Invalid time value")
-      ) {
+      if (!isCompleted) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "AI returned invalid date format. Please try again.",
+          message: "Onboarding is not completed",
         });
       }
 
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to generate workout plan",
-      });
-    }
-  }),
+      const userContext = await buildUserContext(ctx.userId);
+      const generatedPlan = await generateWorkoutPlanAI(
+        userContext,
+        input.prompt,
+      );
+
+      // Insert the plan with better date parsing error handling
+      try {
+        // morph the plan into the type epxected by the Funtion
+
+        const typedPLan = {
+          ...generatedPlan.plan,
+          id: uuidv4(),
+          savedAt: new Date(),
+          archivedAt: null,
+          startDate: new Date(),
+          pausedAt: null,
+          resumedAt: null,
+          userId: ctx.userId,
+        };
+
+        const plan = await insertWorkoutPlan(typedPLan);
+        console.log("💾 Plan inserted into database:", { planId: plan.id });
+
+        console.log("🏋️ Processing workouts");
+        const workoutsWithIds = generatedPlan.workouts.map((workout) => ({
+          ...workout,
+          id: uuidv4(),
+          status: workout.status ?? "not_recorded",
+          isBooked: workout.isBooked ?? false,
+          classId: workout.classId === null ? undefined : workout.classId,
+          activityType:
+            workout.activityType === null ? undefined : workout.activityType,
+          userId: ctx.userId,
+        }));
+
+        const workouts = await insertWorkouts(workoutsWithIds);
+        // Insert weekly schedules with correct workout IDs
+
+        const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(
+          (schedule, index) => {
+            const workout = workouts[index % workouts.length];
+            return {
+              id: uuidv4(),
+              planId: plan.id,
+              weekNumber: schedule.weekNumber,
+              workoutId: workout?.id ?? schedule.workoutId, // Use actual workout ID or fallback
+              userId: ctx.userId,
+            };
+          },
+        );
+
+        const weeklySchedules = await insertWeeklySchedules(
+          weeklySchedulesWithIds,
+        );
+
+        console.log("✅ All database operations completed successfully");
+        return 200;
+      } catch (error) {
+        console.error("❌ Error in generatePlan:", error);
+        console.error(
+          "🔍 Generated plan data:",
+          JSON.stringify(generatedPlan, null, 2),
+        );
+
+        // Check if it's a date parsing error
+        if (
+          error instanceof Error &&
+          error.message.includes("Invalid time value")
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "AI returned invalid date format. Please try again.",
+          });
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to generate workout plan",
+        });
+      }
+    }),
+
   bookClass: protectedProcedure
     .input(z.object({ workoutId: z.string() }))
     .mutation(async ({ ctx, input }) => {

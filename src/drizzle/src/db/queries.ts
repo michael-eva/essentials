@@ -24,6 +24,7 @@ import {
   progressTracking,
   AiChatMessages,
   AiSystemPrompt,
+  PilatesVideos,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -35,6 +36,7 @@ export type WeeklySchedule = InferSelectModel<typeof weeklySchedule>;
 export type ProgressTracking = InferSelectModel<typeof progressTracking>;
 export type AiChatMessages = InferSelectModel<typeof AiChatMessages>;
 export type AiSystemPrompt = InferSelectModel<typeof AiSystemPrompt>;
+export type PilatesVideos = InferSelectModel<typeof PilatesVideos>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -132,11 +134,16 @@ export async function getUpcomingActivities(
     .map((t) => t.workoutId)
     .filter((id): id is string => Boolean(id));
 
-  return workouts.map((workout) => ({
-    ...workout,
-    tracking: trackingData.find((t) => t.workoutId === workout.id) ?? null,
-    weekNumber: workout.weekNumber ?? undefined,
-  }));
+  return workouts.map((workout) => {
+    const tracking =
+      trackingData.find((t) => t.workoutId === workout.id) ?? null;
+    return {
+      ...workout,
+      tracking,
+      weekNumber: workout.weekNumber ?? undefined,
+      exercises: tracking?.exercises ?? null,
+    };
+  });
 }
 export async function getSupplementaryWorkouts(
   userId: string,
@@ -581,7 +588,7 @@ export async function getMessages(userId: string): Promise<AiChatMessages[]> {
     .select()
     .from(AiChatMessages)
     .where(eq(AiChatMessages.userId, userId))
-    .orderBy(desc(AiChatMessages.createdAt));
+    .orderBy(asc(AiChatMessages.createdAt), asc(AiChatMessages.id));
   return result;
 }
 
@@ -643,4 +650,9 @@ export async function getActivityHistoryWithProgress(
       progress,
     };
   });
+}
+
+export async function getPilatesClasses(): Promise<Array<PilatesVideos>> {
+  const pilatesClasses = await db.select().from(PilatesVideos);
+  return pilatesClasses;
 }

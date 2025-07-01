@@ -10,6 +10,8 @@ import {
   jsonb,
   type PgTableWithColumns,
 } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const workoutTypeEnum = pgEnum("workout_type", ["class", "workout"]);
 export const workoutStatusEnum = pgEnum("workout_status", [
@@ -74,7 +76,10 @@ export const workout = pgTable("workout", {
   type: workoutTypeEnum("type").notNull(),
   status: workoutStatusEnum("status").default("not_recorded"),
   isBooked: boolean("is_booked").notNull().default(false),
-  classId: integer("class_id"),
+  classId: uuid("class_id").references(() => PilatesVideos.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   userId: uuid("user_id")
     .notNull()
     .references(() => user.id, {
@@ -82,6 +87,17 @@ export const workout = pgTable("workout", {
       onUpdate: "cascade",
     }),
   activityType: activityTypeEnum("activity_type"),
+  exercises: jsonb("exercises").$type<
+    Array<{
+      id: string;
+      name: string;
+      sets: Array<{
+        id: string;
+        reps: number;
+        weight: number;
+      }>;
+    }>
+  >(),
 });
 
 export const workoutTracking = pgTable("workout_tracking", {
@@ -311,6 +327,16 @@ export const AiChatMessages = pgTable("ai_chat", {
     .default(sql`now()`),
   role: roleEnum("role").notNull(),
   content: text("content").notNull(),
+  toolCalls: jsonb("tool_calls").$type<
+    Array<{
+      id: string;
+      type: string;
+      function: {
+        name: string;
+        arguments: Record<string, any>;
+      };
+    }>
+  >(),
 });
 
 export const PilatesVideos = pgTable("pilates_videos", {
@@ -341,3 +367,59 @@ export const PilatesVideos = pgTable("pilates_videos", {
     .notNull()
     .default(sql`now()`),
 });
+
+// Custom Zod schemas for complex types
+export const workoutTrackingInputSchema = z.object({
+  userId: z.string().uuid(),
+  workoutId: z.string().uuid().nullable().optional(),
+  activityType: z.string(),
+  date: z.date(),
+  durationHours: z.number().int().nullable().optional(),
+  durationMinutes: z.number().int().nullable().optional(),
+  distance: z.string().nullable().optional(),
+  distanceUnit: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  intensity: z.number().int().nullable().optional(),
+  name: z.string().nullable().optional(),
+  likelyToDoAgain: z.number().int().nullable().optional(),
+  exercises: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        sets: z.array(
+          z.object({
+            id: z.string(),
+            reps: z.number(),
+            weight: z.number(),
+          }),
+        ),
+      }),
+    )
+    .nullable()
+    .optional(),
+});
+
+// Type exports for convenience - using the existing types from queries.ts
+export type WorkoutTrackingInput = z.infer<typeof workoutTrackingInputSchema>;
+
+export const insertUserSchema = createInsertSchema(user);
+export const selectUserSchema = createSelectSchema(user);
+
+export const insertWorkoutSchema = createInsertSchema(workout);
+export const selectWorkoutSchema = createSelectSchema(workout);
+
+export const insertWorkoutTrackingSchema = createInsertSchema(workoutTracking);
+export const selectWorkoutTrackingSchema = createSelectSchema(workoutTracking);
+
+export const insertWorkoutPlanSchema = createInsertSchema(workoutPlan);
+
+export const insertWeeklyScheduleSchema = createInsertSchema(weeklySchedule);
+export const selectWeeklyScheduleSchema = createSelectSchema(weeklySchedule);
+
+export const insertOnboardingSchema = createInsertSchema(onboarding);
+export const selectOnboardingSchema = createSelectSchema(onboarding);
+
+export const insertPersonalTrainerInteractionsSchema = createInsertSchema(
+  personalTrainerInteractions,
+);

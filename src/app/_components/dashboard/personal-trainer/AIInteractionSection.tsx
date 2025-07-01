@@ -18,6 +18,21 @@ type Message = {
   content: string;
   role: "user" | "assistant" | "developer";
   timestamp: Date;
+  toolCalls?: Array<{
+    id: string;
+    type: string;
+    function?: {
+      name: string;
+      arguments: Record<string, any>;
+    };
+    name?: string;
+    args?: Record<string, any>;
+    response?: {
+      name: string;
+      content: string;
+      tool_call_id: string;
+    };
+  }>;
 };
 
 export function AIInteractionSection() {
@@ -39,6 +54,15 @@ export function AIInteractionSection() {
     { enabled: trainerInfo?.isOnboardingComplete }
   );
 
+  // Debug: Log tool calls for assistant messages
+  useEffect(() => {
+    messages.forEach(message => {
+      if (message.role === "assistant" && message.toolCalls) {
+        console.log("🔍 Tool calls for message:", message.id, message.toolCalls);
+      }
+    });
+  }, [messages]);
+
   // Load chat history into messages when it's fetched
   useEffect(() => {
     if (chatHistory?.messages) {
@@ -47,7 +71,16 @@ export function AIInteractionSection() {
         content: msg.content,
         role: msg.role,
         timestamp: new Date(msg.createdAt),
-      })).reverse(); // Reverse to show oldest first
+        toolCalls: msg.toolCalls || undefined,
+      }));
+      
+      // Debug: Log timestamps to see the order
+      console.log("📅 Message timestamps:", formattedMessages.map(m => ({
+        id: m.id,
+        timestamp: m.timestamp.toISOString(),
+        role: m.role
+      })));
+      
       setMessages(formattedMessages);
 
       // Scroll to bottom after loading chat history
@@ -304,6 +337,39 @@ export function AIInteractionSection() {
                         }`}
                       style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
                     >
+                      {/* Tool Calls Display */}
+                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
+                        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                          <div className="text-xs font-semibold text-blue-700 mb-2">🔧 Tool Calls:</div>
+                          {message.toolCalls.map((toolCall, index) => (
+                            <div key={toolCall.id || index} className="text-xs text-blue-600 mb-1">
+                              <span className="font-medium">{toolCall.function?.name || toolCall.name}</span>
+                              <span className="text-blue-500 ml-1">
+                                ({JSON.stringify(toolCall.function?.arguments || toolCall.args)})
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Tool Response Display */}
+                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && 
+                       message.toolCalls.some(toolCall => toolCall.response) && (
+                        <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
+                          <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
+                          {message.toolCalls.map((toolCall, index) => (
+                            toolCall.response && (
+                              <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
+                                <span className="font-medium">{toolCall.response.name}:</span>
+                                <span className="text-purple-500 ml-1">
+                                  {toolCall.response.content}
+                                </span>
+                              </div>
+                            )
+                          ))}
+                        </div>
+                      )}
+                      
                       <div className="text-sm">{message.content}</div>
                       <div className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString()}
@@ -424,6 +490,39 @@ export function AIInteractionSection() {
                         }`}
                       style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
                     >
+                      {/* Tool Calls Display */}
+                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
+                        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                          <div className="text-xs font-semibold text-blue-700 mb-2">🔧 Tool Calls:</div>
+                          {message.toolCalls.map((toolCall, index) => (
+                            <div key={toolCall.id || index} className="text-xs text-blue-600 mb-1">
+                              <span className="font-medium">{toolCall.function?.name || toolCall.name}</span>
+                              <span className="text-blue-500 ml-1">
+                                ({JSON.stringify(toolCall.function?.arguments || toolCall.args)})
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Tool Response Display */}
+                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && 
+                       message.toolCalls.some(toolCall => toolCall.response) && (
+                        <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
+                          <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
+                          {message.toolCalls.map((toolCall, index) => (
+                            toolCall.response && (
+                              <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
+                                <span className="font-medium">{toolCall.response.name}:</span>
+                                <span className="text-purple-500 ml-1">
+                                  {toolCall.response.content}
+                                </span>
+                              </div>
+                            )
+                          ))}
+                        </div>
+                      )}
+                      
                       <div className="text-sm">{message.content}</div>
                       <div className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString()}

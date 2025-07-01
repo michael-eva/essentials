@@ -1,14 +1,32 @@
 import type { UserContext } from "./context-manager";
 import { getMessages, getAiSystemPrompt } from "@/drizzle/src/db/queries";
 import { insertAiChatMessages } from "@/drizzle/src/db/mutations";
-import OpenAI from "openai";
+import { ChatOpenAI } from "@langchain/openai";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import {
+  createWorkoutPlanTool,
+  manageWorkoutPlanTool,
+  // editWorkoutPlanTool
+} from "./ai-chat-tools";
+import {
+  HumanMessage,
+  AIMessage,
+  SystemMessage,
+} from "@langchain/core/messages";
 
-const openai = new OpenAI();
+const model = new ChatOpenAI({
+  model: "gpt-4o",
+  maxTokens: 2000,
+});
 
-export interface ChatMessage {
-  role: "user" | "assistant" | "developer";
-  content: string;
-}
+const agent = createReactAgent({
+  llm: model,
+  tools: [
+    createWorkoutPlanTool,
+    manageWorkoutPlanTool,
+    // editWorkoutPlanTool
+  ],
+});
 
 /**
  * Generates an AI chat response based on user input, context, and chat history
@@ -31,49 +49,87 @@ export async function generateAiChatResponse(
     userContext,
   );
 
+  // add the user's ID to the system prompt
+  const systemPromptWithUserId = `
+  ${fullSystemContext ?? ""}
+  We are dealing with the current user who has the user ID : ${userId}.
+  `;
+
   // Convert chat history to OpenAI format (in chronological order)
   const conversationHistory = chatHistory
     .reverse() // Reverse since getMessages returns in desc order
-    .map((msg) => ({
-      role: msg.role === "assistant" ? "assistant" : "user",
-      content: msg.content ?? msg.message ?? "",
-    })) as Array<{ role: "user" | "assistant"; content: string }>;
+    .map((msg) =>
+      msg.role === "assistant"
+        ? new AIMessage(msg.content ?? msg.message ?? "")
+        : new HumanMessage(msg.content ?? msg.message ?? ""),
+    );
+
+  // add the system prompt to the conversation history
+  conversationHistory.unshift(new SystemMessage(systemPromptWithUserId));
 
   // Add the current user input
-  const currentInput = { role: "user" as const, content: userInput };
+  const currentInput = new HumanMessage(userInput);
 
   try {
-    const response = await openai.responses.create({
-      model: "gpt-4.1-2025-04-14",
-      instructions: fullSystemContext,
-      input: [...conversationHistory, currentInput] as Array<{
-        role: "user" | "assistant";
-        content: string;
-      }>,
-      max_output_tokens: 500,
+    const response = await agent.invoke({
+      messages: [...conversationHistory, currentInput],
     });
 
+    console.log("🚀 ~ generateAiChatResponse ~ response:", response.messages);
+
     const aiResponse =
-      response.output_text ??
-      "I apologize, but I couldn't generate a response. Please try again.";
+      response.messages?.[response.messages.length - 1]?.content;
+    const aiResponseString =
+      typeof aiResponse === "string"
+        ? aiResponse
+        : "I apologize, but I couldn't generate a response. Please try again.";
 
-    // Save both user message and AI response to database
-    await Promise.all([
-      insertAiChatMessages({
-        userId,
-        message: userInput,
-        content: userInput,
-        role: "user",
-      }),
-      insertAiChatMessages({
-        userId,
-        message: aiResponse,
-        content: aiResponse,
-        role: "assistant",
-      }),
-    ]);
+    // Extract tool calls and tool responses
+    let toolCalls: any[] = [];
+    const toolResponses: any[] = [];
 
-    return aiResponse;
+    for (const message of response.messages || []) {
+      if (message.constructor.name === "AIMessage") {
+        const aiMsg = message as any;
+        if (aiMsg.tool_calls && aiMsg.tool_calls.length > 0) {
+          toolCalls = aiMsg.tool_calls;
+        }
+      } else if (message.constructor.name === "ToolMessage") {
+        const toolMsg = message as any;
+        toolResponses.push({
+          tool_call_id: toolMsg.tool_call_id,
+          content: toolMsg.content,
+          name: toolMsg.name,
+        });
+      }
+    }
+
+    // Combine tool calls with their responses
+    const enhancedToolCalls = toolCalls.map((toolCall) => ({
+      ...toolCall,
+      response:
+        toolResponses.find((resp) => resp.tool_call_id === toolCall.id) || null,
+    }));
+
+    console.log("🔧 Enhanced tool calls:", enhancedToolCalls);
+
+    // Save user message first, then assistant message to ensure correct chronological order
+    await insertAiChatMessages({
+      userId,
+      message: userInput,
+      content: userInput,
+      role: "user",
+    });
+
+    await insertAiChatMessages({
+      userId,
+      message: aiResponseString,
+      content: aiResponseString,
+      role: "assistant",
+      toolCalls: enhancedToolCalls.length > 0 ? enhancedToolCalls : undefined,
+    });
+
+    return aiResponseString;
   } catch (error) {
     console.error("Error generating AI chat response:", error);
     throw new Error("Failed to generate AI response");
@@ -100,6 +156,35 @@ function buildSystemContext(
   
 Here is how the user would like you to behave:
 ${basePrompt}
+
+WORKOUT PLAN SCHEMA RELATIONSHIPS:
+Understanding the database structure is crucial for managing workout plans correctly:
+
+1. WORKOUT_PLAN: The main plan entity
+   - Contains plan metadata (name, weeks, start date, etc.)
+   - One plan can have multiple weekly schedules
+   - Plans belong to a specific user
+
+2. WEEKLY_SCHEDULE: The junction table that connects plans to workouts
+   - Links workout_plan.id to workout.id
+   - Specifies which workout appears in which week (weekNumber)
+   - One plan can have multiple weekly schedules
+   - One workout can appear in multiple weeks or plans
+
+3. WORKOUT: Individual workout entities
+   - Contains workout details (name, instructor, duration, description, level, etc.)
+   - Can be referenced by multiple weekly schedules
+   - Workouts belong to a specific user
+
+KEY RELATIONSHIPS:
+- workout_plan (1) ←→ (many) weekly_schedule
+- weekly_schedule (many) ←→ (1) workout
+- When updating plans, you can:
+  * Update workout details (name, duration, instructor, etc.)
+  * Update weekly schedule assignments (which workout in which week)
+  * Add workouts to specific weeks
+  * Remove workouts from specific weeks
+  * Update plan metadata (name, weeks, etc.)
 
 USER CONTEXT:
 ${userContextText}
@@ -191,7 +276,9 @@ MOTIVATION:
 /**
  * Fetches chat history for a user
  */
-export async function getChatHistory(userId: string): Promise<ChatMessage[]> {
+export async function getChatHistory(
+  userId: string,
+): Promise<Array<{ role: string; content: string }>> {
   const messages = await getMessages(userId);
 
   return messages.map((msg) => ({

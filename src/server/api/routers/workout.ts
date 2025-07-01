@@ -2,6 +2,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { getWorkoutById } from "@/drizzle/src/db/queries";
+import { deleteWorkout, insertWorkouts } from "@/drizzle/src/db/mutations";
 
 export const workoutRouter = createTRPCRouter({
   getWorkout: protectedProcedure
@@ -37,5 +38,33 @@ export const workoutRouter = createTRPCRouter({
           message: "Failed to fetch workout",
         });
       }
+    }),
+  deleteWorkout: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const workout = await deleteWorkout(input.id);
+      return workout;
+    }),
+  insertWorkouts: protectedProcedure
+    .input(
+      z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          instructor: z.string(),
+          duration: z.number(),
+          description: z.string(),
+          level: z.string(),
+          type: z.enum(["workout", "class"]),
+          status: z.enum(["completed", "not_completed", "not_recorded"]),
+          isBooked: z.boolean(),
+          userId: z.string(),
+          classId: z.string().optional(),
+        }),
+      ),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const workout = await insertWorkouts(input);
+      return workout;
     }),
 });

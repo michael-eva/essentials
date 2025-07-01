@@ -21,6 +21,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
+    "@langchain/core": "^0.3.61",
+    "@langchain/langgraph": "^0.3.4",
+    "@langchain/openai": "^0.5.15",
     "@libsql/client": "^0.14.0",
     "@mux/mux-player": "^3.5.0",
     "@mux/mux-player-react": "^3.5.0",

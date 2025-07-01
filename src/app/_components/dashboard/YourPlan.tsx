@@ -330,7 +330,7 @@ export default function ClassRecommendations() {
   }
 
   const handleGeneratePlan = () => {
-    generatePlan();
+    generatePlan({});
   };
   return (
     <DefaultBox title="Your Personalised Plan" description="Combined classes and supplementary workouts" showViewAll={false}>

@@ -236,8 +236,36 @@
     {
       "idx": 31,
       "version": "7",
+      "when": 1751254892181,
+      "tag": "0031_unusual_lucky_pierre",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1751265366620,
+      "tag": "0032_stormy_sebastian_shaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
       "when": 1751268314210,
       "tag": "0031_minor_stardust",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1751335299397,
+      "tag": "0034_square_korvac",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1751339883042,
+      "tag": "0035_wide_storm",
       "breakpoints": true
     }
   ]

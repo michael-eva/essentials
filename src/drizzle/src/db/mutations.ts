@@ -11,6 +11,7 @@ import {
   personalTrainerInteractions,
   progressTracking,
   workoutTypeEnum,
+  activityTypeEnum,
   AiChatMessages,
   AiSystemPrompt,
 } from "./schema";
@@ -175,7 +176,7 @@ export async function insertWorkouts(
     status: (typeof workoutStatusEnum.enumValues)[number];
     isBooked: boolean;
     userId: string;
-    classId?: number;
+    classId?: string;
   }>,
 ) {
   const result = await db.insert(workout).values(workouts).returning();
@@ -231,4 +232,91 @@ export async function updateAiSystemPrompt(
     .where(eq(AiSystemPrompt.id, id))
     .returning();
   return result[0]!;
+}
+
+export async function deleteWorkout(workoutId: string) {
+  const result = await db.delete(workout).where(eq(workout.id, workoutId));
+  return result;
+}
+
+// New mutations for workout plan management
+export async function updateWorkout(
+  workoutId: string,
+  data: {
+    name?: string;
+    instructor?: string;
+    duration?: number;
+    description?: string;
+    level?: string;
+    type?: (typeof workoutTypeEnum.enumValues)[number];
+    status?: (typeof workoutStatusEnum.enumValues)[number];
+    isBooked?: boolean;
+    bookedDate?: Date | null;
+    classId?: string | null;
+    activityType?: (typeof activityTypeEnum.enumValues)[number] | null;
+  },
+) {
+  const result = await db
+    .update(workout)
+    .set(data)
+    .where(eq(workout.id, workoutId))
+    .returning();
+  return result[0];
+}
+
+export async function updateWeeklySchedule(
+  scheduleId: string,
+  data: {
+    weekNumber?: number;
+    workoutId?: string;
+  },
+) {
+  const result = await db
+    .update(weeklySchedule)
+    .set(data)
+    .where(eq(weeklySchedule.id, scheduleId))
+    .returning();
+  return result[0];
+}
+
+export async function deleteWeeklySchedule(scheduleId: string) {
+  const result = await db
+    .delete(weeklySchedule)
+    .where(eq(weeklySchedule.id, scheduleId));
+  return result;
+}
+
+export async function insertWeeklySchedule(data: {
+  id: string;
+  planId: string;
+  weekNumber: number;
+  workoutId: string;
+}) {
+  const result = await db.insert(weeklySchedule).values(data).returning();
+  return result[0];
+}
+
+// Helper function to get weekly schedules for a plan
+export async function getWeeklySchedulesByPlan(planId: string) {
+  const result = await db
+    .select()
+    .from(weeklySchedule)
+    .where(eq(weeklySchedule.planId, planId));
+  return result;
+}
+
+// Helper function to get workouts for a specific week in a plan
+export async function getWorkoutsByWeek(planId: string, weekNumber: number) {
+  const result = await db
+    .select({
+      schedule: weeklySchedule,
+      workout: workout,
+    })
+    .from(weeklySchedule)
+    .innerJoin(workout, eq(weeklySchedule.workoutId, workout.id))
+    .where(
+      eq(weeklySchedule.planId, planId) &&
+        eq(weeklySchedule.weekNumber, weekNumber),
+    );
+  return result;
 }
