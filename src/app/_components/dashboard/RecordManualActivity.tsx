@@ -124,10 +124,9 @@ export default function RecordManualActivity({
   }, [initialDurationHours, initialDurationMinutes, form])
 
   const onSubmit = (data: ActivityFormValues) => {
-    console.log(data)
-    // handleSubmitActivity({ ...data, workoutId })
-    // form.reset()
-    // setExercises([])
+    handleSubmitActivity({ ...data, workoutId })
+    form.reset()
+    setExercises([])
   }
 
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false)
