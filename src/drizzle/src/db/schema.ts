@@ -26,6 +26,13 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "rowing",
   "elliptical",
   "workout",
+  "weightlift",
+  "dance",
+  "team sports",
+  "pilates",
+  "bodyweight",
+  "resistance",
+  "other",
 ]);
 
 export const workoutTimesEnum = pgEnum("workout_times", [

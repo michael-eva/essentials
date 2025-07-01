@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useState, useEffect } from "react"
-import { Clock, Ruler, Activity, Bike, Waves, Footprints, Mountain, Ship, Dumbbell, Ellipsis } from "lucide-react"
+import { Clock, Ruler, Activity, Bike, Waves, Footprints, Mountain, Ship, Dumbbell, Ellipsis, LandPlot, Scaling, Weight, Anvil, CircleGauge } from "lucide-react"
 import { WheelPicker } from "./WheelPicker"
 import { CustomInput } from "@/app/_components/dashboard/InputLayout"
 import { DatePicker } from "@/components/ui/date-picker"
@@ -57,6 +57,13 @@ const ACTIVITY_ICONS = {
   rowing: Ship,
   elliptical: Ellipsis,
   workout: Dumbbell,
+  weightlift: Anvil,
+  dance: Activity,
+  "team sports": LandPlot,
+  pilates: CircleGauge,
+  bodyweight: Weight,
+  resistance: Scaling,
+  other: Ellipsis,
 } as const;
 
 function safeParseInt(val: string | undefined) {
