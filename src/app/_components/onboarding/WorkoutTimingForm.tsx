@@ -11,7 +11,6 @@ import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
 import { workoutTimesEnum, weekendTimesEnum } from "@/drizzle/src/db/schema";
 
-
 const TIME_OPTIONS = workoutTimesEnum.enumValues;
 const WEEKEND_OPTIONS = weekendTimesEnum.enumValues;
 
@@ -22,9 +21,17 @@ interface WorkoutTimingFormProps {
 }
 
 export const formSchema = z.object({
-  preferredWorkoutTimes: z.string().array().min(1, "Please select at least one preferred time"),
-  avoidedWorkoutTimes: z.string().array().optional(),
-  weekendWorkoutTimes: z.enum(WEEKEND_OPTIONS),
+  preferredWorkoutTimes: z
+    .string()
+    .array()
+    .min(1, "Please select at least one preferred time"),
+  avoidedWorkoutTimes: z
+    .string()
+    .array()
+    .min(1, "Please select at least one avoided time"),
+  weekendWorkoutTimes: z.enum(WEEKEND_OPTIONS, {
+    required_error: "Please select a weekend workout time",
+  }),
 });
 
 export default function WorkoutTimingForm(props: WorkoutTimingFormProps) {
@@ -70,8 +77,10 @@ export default function WorkoutTimingForm(props: WorkoutTimingFormProps) {
       await handleSubmit(async (data) => {
         postWorkoutTiming({
           ...data,
-          preferredWorkoutTimes: data.preferredWorkoutTimes as (typeof TIME_OPTIONS[number])[],
-          avoidedWorkoutTimes: data.avoidedWorkoutTimes as (typeof TIME_OPTIONS[number])[],
+          preferredWorkoutTimes:
+            data.preferredWorkoutTimes as (typeof TIME_OPTIONS)[number][],
+          avoidedWorkoutTimes:
+            data.avoidedWorkoutTimes as (typeof TIME_OPTIONS)[number][],
         });
         isValid = true;
       })();
@@ -102,7 +111,7 @@ export default function WorkoutTimingForm(props: WorkoutTimingFormProps) {
               What time of day is best for you to work out?
             </Label>
             {errors.preferredWorkoutTimes && (
-              <p className="mt-1 text-sm text-red-600">
+              <p className="mb-1 text-sm text-red-600">
                 {errors.preferredWorkoutTimes.message as string}
               </p>
             )}
@@ -122,6 +131,11 @@ export default function WorkoutTimingForm(props: WorkoutTimingFormProps) {
             <Label className="mb-2 text-base">
               Are there times you prefer not to work out?
             </Label>
+            {errors.avoidedWorkoutTimes && (
+              <p className="mb-1 text-sm text-red-600">
+                {errors.avoidedWorkoutTimes.message as string}
+              </p>
+            )}
             <Controller
               name="avoidedWorkoutTimes"
               control={control}
