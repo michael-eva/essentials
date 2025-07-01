@@ -2,7 +2,10 @@ import { tool } from "@langchain/core/tools";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
-import { insertWorkouts } from "@/drizzle/src/db/mutations";
+import {
+  insertWeeklySchedules,
+  insertWorkouts,
+} from "@/drizzle/src/db/mutations";
 import { generateWorkoutPlanAI } from "./plan-generator";
 import { buildUserContext, type UserContext } from "./context-manager";
 import { v4 as uuidv4 } from "uuid";
@@ -59,6 +62,7 @@ async function InsertAiWorkoutPlan({
       };
     },
   );
+  await insertWeeklySchedules(weeklySchedulesWithIds);
 }
 
 export const createWorkoutPlanTool = tool(InsertAiWorkoutPlan, {
