@@ -51,8 +51,7 @@ export const workout = pgTable("workout", {
   type: workoutTypeEnum("type").notNull(),
   status: workoutStatusEnum("status").default("not_recorded"),
   isBooked: boolean("is_booked").notNull().default(false),
-  classId: uuid("class_id")
-  .references(() => PilatesVideos.id, {
+  classId: uuid("class_id").references(() => PilatesVideos.id, {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
@@ -63,6 +62,17 @@ export const workout = pgTable("workout", {
       onUpdate: "cascade",
     }),
   activityType: activityTypeEnum("activity_type"),
+  exercises: jsonb("exercises").$type<
+    Array<{
+      id: string;
+      name: string;
+      sets: Array<{
+        id: string;
+        reps: number;
+        weight: number;
+      }>;
+    }>
+  >(),
 });
 
 export const workoutTracking = pgTable("workout_tracking", {
@@ -286,14 +296,16 @@ export const AiChatMessages = pgTable("ai_chat", {
     .default(sql`now()`),
   role: roleEnum("role").notNull(),
   content: text("content").notNull(),
-  toolCalls: jsonb("tool_calls").$type<Array<{
-    id: string;
-    type: string;
-    function: {
-      name: string;
-      arguments: Record<string, any>;
-    };
-  }>>(),
+  toolCalls: jsonb("tool_calls").$type<
+    Array<{
+      id: string;
+      type: string;
+      function: {
+        name: string;
+        arguments: Record<string, any>;
+      };
+    }>
+  >(),
 });
 
 export const PilatesVideos = pgTable("pilates_videos", {
@@ -377,4 +389,6 @@ export const selectWeeklyScheduleSchema = createSelectSchema(weeklySchedule);
 export const insertOnboardingSchema = createInsertSchema(onboarding);
 export const selectOnboardingSchema = createSelectSchema(onboarding);
 
-export const insertPersonalTrainerInteractionsSchema = createInsertSchema(personalTrainerInteractions);
+export const insertPersonalTrainerInteractionsSchema = createInsertSchema(
+  personalTrainerInteractions,
+);

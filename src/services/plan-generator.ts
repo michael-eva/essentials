@@ -43,7 +43,7 @@ Non-Pilates Classes: ${JSON.stringify(availableClasses.nonPilates, null, 2)}
 
 Note the "type" field of all Pilates classes is "class" and the "type" field of all non-Pilates classes is "workout".
 
-Releveant context about the user, that you should use to generate the workout plan:
+Relevant context about the user, that you should use to generate the workout plan:
 - Name: ${context.profile.name ?? "Not specified"}
 - Age: ${context.profile.age ?? "Not specified"}
 - Height: ${context.profile.height ?? "Not specified"} cm
@@ -56,7 +56,7 @@ Releveant context about the user, that you should use to generate the workout pl
 - Workout Frequency (preference for how many workouts to assign to each week): ${context.profile.exerciseFrequency ?? "Not specified"}
 - Session Length (per session): ${context.profile.sessionLength ?? "Not specified"}
 - Pilates Experience: ${context.profile.pilatesExperience ? "Yes" : "No"}
-- Studio Frequency (max number of workouts of type "class"  - which is derived from the available PIlates classes - to assign to each week): ${context.profile.studioFrequency ?? "Not specified"}
+- Studio Frequency (max number of workouts of type "class"  - which is derived from the available Pilates classes - to assign to each week): ${context.profile.studioFrequency ?? "Not specified"}
 - Session Preference: ${context.profile.sessionPreference ?? "Not specified"}
 - Apparatus Preference: ${context.profile.apparatusPreference?.join(", ") ?? "Not specified"}
 - Health Considerations: ${context.profile.health.injuries ? `Has injuries: ${context.profile.health.injuriesDetails}` : "No injuries reported"}
@@ -70,7 +70,9 @@ Releveant context about the user, that you should use to generate the workout pl
           .map(
             (workout) =>
               `Name: ${workout.workout?.name ?? "Unnamed"}, Activity Type: ${workout.workout?.activityType ?? "Unknown"}, Would Do Again: ${
-                workout.workoutTracking.likelyToDoAgain ? workout.workoutTracking.likelyToDoAgain : "Not specified"
+                workout.workoutTracking.likelyToDoAgain
+                  ? workout.workoutTracking.likelyToDoAgain
+                  : "Not specified"
               }, Duration: ${workout.workoutTracking.durationHours} hours ${workout.workoutTracking.durationMinutes} mins, Intensity: ${workout.workoutTracking.intensity}`,
           )
           .join("; ")
@@ -85,6 +87,8 @@ Releveant context about the user, that you should use to generate the workout pl
 - Other Motivations: ${context.profile.otherMotivation?.join(", ") ?? "Not specified"}
 
 Generate a comprehensive workout plan for the user that takes into account their fitness level, goals, health considerations, and preferences.
+
+IMPORTANT: For every workout of type 'workout', you MUST provide a detailed 'exercises' array. Each exercise should include a name, and a list of sets (with reps and weight if applicable). Do NOT just give a generic label like 'Full Body Workout'—the user must be able to see exactly what exercises to do, with sets and reps. For Pilates or class-based workouts (type 'class'), you may use the class description and do not need to provide an exercises array.
 
 Make sure the plan is realistic, progressive, and aligned with the user's context.
 
@@ -101,7 +105,9 @@ You should generate a plan that is 4 weeks long (meaning 4 weekly_schedules are 
       { role: "system", content: systemPrompt },
       {
         role: "user",
-        content: userPrompt ? `The user has also provided the following additional prompt to guide the workout plan: ${userPrompt}` : "",
+        content: userPrompt
+          ? `The user has also provided the following additional prompt to guide the workout plan: ${userPrompt}`
+          : "",
       },
     ],
     text: {
