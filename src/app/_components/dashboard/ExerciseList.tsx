@@ -133,7 +133,7 @@ export function ExerciseList({ exercises, onChange }: ExerciseListProps) {
                   <Input
                     type="number"
                     min="0"
-                    value={set.reps}
+                    value={set.reps || ""}
                     onChange={(e) => updateSet(exercise.id, set.id, "reps", parseInt(e.target.value) || 0)}
                   />
                 </div>
@@ -144,7 +144,7 @@ export function ExerciseList({ exercises, onChange }: ExerciseListProps) {
                       type="number"
                       min="0"
                       step="0.5"
-                      value={set.weight}
+                      value={set.weight || ""}
                       onChange={(e) => updateSet(exercise.id, set.id, "weight", parseFloat(e.target.value) || 0)}
                     />
                     <Button
