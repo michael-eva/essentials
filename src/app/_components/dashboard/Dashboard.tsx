@@ -76,7 +76,7 @@ export default function Dashboard() {
 
   const handleMarkComplete = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
     setSelectedWorkout(workout);
-    setIsDialogOpen(true);
+    workout.type === "class" ? setIsDialogOpen(true) : setIsManualActivityDialogOpen(true);
   };
 
   const handleMarkMissed = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
@@ -445,6 +445,9 @@ export default function Dashboard() {
         isDialogOpen={isManualActivityDialogOpen}
         setIsDialogOpen={setIsManualActivityDialogOpen}
         handleSubmitActivity={handleSubmitManualActivity}
+        workoutId={selectedWorkout?.id}
+        initialActivityType={selectedWorkout?.activityType ?? undefined}
+        initialDurationMinutes={selectedWorkout?.duration ?? undefined}
       />
     </div>
   );
