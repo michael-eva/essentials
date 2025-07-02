@@ -76,7 +76,11 @@ export default function Dashboard() {
 
   const handleMarkComplete = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
     setSelectedWorkout(workout);
-    workout.type === "class" ? setIsDialogOpen(true) : setIsManualActivityDialogOpen(true);
+    if (workout.type === "class") {
+      setIsDialogOpen(true);
+    } else {
+      setIsManualActivityDialogOpen(true);
+    }
   };
 
   const handleMarkMissed = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
