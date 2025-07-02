@@ -434,15 +434,6 @@ export const workoutPlanRouter = createTRPCRouter({
     .input(z.object({ prompt: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
       console.log("🚀 Starting generatePlan mutation");
-      const userId = ctx.userId;
-      const isCompleted = await checkOnboardingCompletion(userId);
-
-      if (!isCompleted) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Onboarding is not completed",
-        });
-      }
 
       const userContext = await buildUserContext(ctx.userId);
       const generatedPlan = await generateWorkoutPlanAI(

@@ -1,10 +1,9 @@
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useState } from "react";
-import { OnboardingRequiredDialog } from "@/components/onboarding/OnboardingRequiredDialog";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
-import GeneratePlanDialog from "@/app/_components/dashboard/GeneratePlanDialog";
+import MultiStepGeneratePlanDialog from "@/app/_components/dashboard/MultiStepGeneratePlanDialog";
 
 interface PlanPreferences {
   workoutDuration: number;
@@ -17,18 +16,13 @@ interface PlanPreferences {
 export default function useGeneratePlan({ redirectToPlan = true } = {}) {
   const router = useRouter();
   const utils = api.useUtils();
-  const [showOnboardingDialog, setShowOnboardingDialog] = useState(false);
   const [showGeneratePlanDialog, setShowGeneratePlanDialog] = useState(false);
 
   const generatePlanMutation = api.workoutPlan.generatePlan.useMutation({
     onError: (error) => {
-      if (error.message === "Onboarding is not completed") {
-        setShowOnboardingDialog(true);
-      } else {
-        toast.error("Failed to generate plan", {
-          description: error.message,
-        });
-      }
+      toast.error("Failed to generate plan", {
+        description: error.message,
+      });
     },
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
@@ -86,14 +80,8 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
     isLoading: generatePlanMutation.isPending,
     error: generatePlanMutation.error,
     LoadingScreen,
-    OnboardingDialog: (
-      <OnboardingRequiredDialog
-        open={showOnboardingDialog}
-        onOpenChange={setShowOnboardingDialog}
-      />
-    ),
     GeneratePlanDialog: (
-      <GeneratePlanDialog
+      <MultiStepGeneratePlanDialog
         open={showGeneratePlanDialog}
         onOpenChange={setShowGeneratePlanDialog}
         onConfirm={handleConfirmGeneratePlan}
@@ -102,4 +90,3 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
     ),
   };
 }
-
