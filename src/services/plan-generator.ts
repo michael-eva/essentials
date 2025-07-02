@@ -6,7 +6,6 @@ import type {
 import { getPilatesClasses } from "@/drizzle/src/db/queries";
 
 import { z } from "zod";
-import { pilatesClasses } from "@/data";
 import { nonPilates } from "@/data";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";

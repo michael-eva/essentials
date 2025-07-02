@@ -76,7 +76,11 @@ export default function Dashboard() {
 
   const handleMarkComplete = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
     setSelectedWorkout(workout);
-    setIsDialogOpen(true);
+    if (workout.type === "class") {
+      setIsDialogOpen(true);
+    } else {
+      setIsManualActivityDialogOpen(true);
+    }
   };
 
   const handleMarkMissed = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
@@ -140,28 +144,7 @@ export default function Dashboard() {
   const handleGeneratePlan = () => {
     generatePlan({});
   };
-  const handleActivityClick = (activity: Workout) => {
-    if (activity.type === "class") {
-      router.push(`/dashboard/class/${activity.id}`);
-    } else {
-      router.push(`/dashboard/workout/${activity.id}`);
-    }
-  }
 
-  // Helper function to get week display text
-  const getWeekDisplayText = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
-    if (!workout.weekNumber || !pastWorkoutsData.currentWeek) {
-      return "Workout to log";
-    }
-
-    if (workout.weekNumber === pastWorkoutsData.currentWeek) {
-      return "Workout for this week";
-    } else if (workout.weekNumber < pastWorkoutsData.currentWeek) {
-      return `Catch up from Week ${workout.weekNumber}`;
-    } else {
-      return `Week ${workout.weekNumber} workout`;
-    }
-  };
   const handleUpcomingWorkoutClick = (workout: Workout) => {
     if (workout.type === "class") {
       router.push(`/dashboard/class/${workout.id}`);
@@ -466,6 +449,9 @@ export default function Dashboard() {
         isDialogOpen={isManualActivityDialogOpen}
         setIsDialogOpen={setIsManualActivityDialogOpen}
         handleSubmitActivity={handleSubmitManualActivity}
+        workoutId={selectedWorkout?.id}
+        initialActivityType={selectedWorkout?.activityType ?? undefined}
+        initialDurationMinutes={selectedWorkout?.duration ?? undefined}
       />
     </div>
   );
