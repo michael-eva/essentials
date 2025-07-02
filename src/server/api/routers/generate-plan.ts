@@ -30,52 +30,6 @@ import {
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
 import { generateWorkoutPlanAI } from "@/services/plan-generator";
 import { buildUserContext } from "@/services/context-manager";
-import { createGzip } from "zlib";
-
-// Helper function to safely parse dates
-function safeDateParse(
-  dateString: string | null,
-  fieldName: string,
-): Date | null {
-  if (!dateString) return null;
-
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      throw new Error(`Invalid date format for ${fieldName}: ${dateString}`);
-    }
-    return date;
-  } catch (error) {
-    throw new Error(
-      `Failed to parse date for ${fieldName}: ${dateString}. ${error}`,
-    );
-  }
-}
-
-// Helper function to recursively convert Date objects to ISO strings
-function convertDatesToISOStrings(obj: unknown): unknown {
-  if (obj === null || obj === undefined) {
-    return obj;
-  }
-
-  if (obj instanceof Date) {
-    return obj.toISOString();
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(convertDatesToISOStrings);
-  }
-
-  if (typeof obj === "object") {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      result[key] = convertDatesToISOStrings(value);
-    }
-    return result;
-  }
-
-  return obj;
-}
 
 export const workoutPlanRouter = createTRPCRouter({
   getPreviousPlans: protectedProcedure.query(async ({ ctx }) => {
@@ -525,7 +479,7 @@ export const workoutPlanRouter = createTRPCRouter({
           userId: ctx.userId,
         }));
 
-        const workouts = await insertWorkouts(workoutsWithIds);
+        await insertWorkouts(workoutsWithIds);
 
         // Insert weekly schedules with correct workout IDs
         const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(

@@ -140,28 +140,7 @@ export default function Dashboard() {
   const handleGeneratePlan = () => {
     generatePlan({});
   };
-  const handleActivityClick = (activity: Workout) => {
-    if (activity.type === "class") {
-      router.push(`/dashboard/class/${activity.id}`);
-    } else {
-      router.push(`/dashboard/workout/${activity.id}`);
-    }
-  }
 
-  // Helper function to get week display text
-  const getWeekDisplayText = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
-    if (!workout.weekNumber || !pastWorkoutsData.currentWeek) {
-      return "Workout to log";
-    }
-
-    if (workout.weekNumber === pastWorkoutsData.currentWeek) {
-      return "Workout for this week";
-    } else if (workout.weekNumber < pastWorkoutsData.currentWeek) {
-      return `Catch up from Week ${workout.weekNumber}`;
-    } else {
-      return `Week ${workout.weekNumber} workout`;
-    }
-  };
   const handleUpcomingWorkoutClick = (workout: Workout) => {
     if (workout.type === "class") {
       router.push(`/dashboard/class/${workout.id}`);
