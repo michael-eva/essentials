@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Trash2, RotateCcw, Edit, Play, Pause, X, Plus } from "lucide-react"
 import { api } from "@/trpc/react"
@@ -39,6 +39,9 @@ export default function ClassRecommendations() {
     variant: "default"
   })
   const [planToDeleteId, setPlanToDeleteId] = useState<string | null>(null)
+  const [durationDialogOpen, setDurationDialogOpen] = useState(false)
+  const [workoutDuration, setWorkoutDuration] = useState(30)
+  const [classDuration, setClassDuration] = useState(30)
   // Fetch data using tRPC
   const utils = api.useUtils();
   const { data: previousPlans = [], isLoading: isLoadingPreviousPlans } = api.workoutPlan.getPreviousPlans.useQuery()
@@ -330,8 +333,16 @@ export default function ClassRecommendations() {
   }
 
   const handleGeneratePlan = () => {
-    generatePlan({});
+    setDurationDialogOpen(true);
   };
+
+  const handleConfirmDurations = () => {
+    setDurationDialogOpen(false);
+    generatePlan({
+      prompt: `For every workout of type 'workout', set the duration to ${workoutDuration} minutes. For every workout of type 'class', set the duration to ${classDuration} minutes.`,
+    });
+  };
+
   return (
     <DefaultBox title="Your Personalised Plan" description="Combined classes and supplementary workouts" showViewAll={false}>
       {OnboardingDialog}
@@ -653,6 +664,70 @@ export default function ClassRecommendations() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={durationDialogOpen} onOpenChange={setDurationDialogOpen}>
+        <DialogContent className="border-red-200 border-2 gap-8">
+          <DialogHeader>
+            <DialogTitle className="text-center">Set Workout & Class Duration</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="workout-duration" className="block text-sm font-medium text-gray-700 mb-1 text-center">Workout Duration (minutes)</label>
+              <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-3 sm:justify-center">
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setWorkoutDuration(Math.max(10, workoutDuration - 5))}
+                    aria-label="Decrease workout duration"
+                  >
+                    -
+                  </Button>
+                  <span className="text-lg font-semibold w-12 text-center">{workoutDuration}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setWorkoutDuration(Math.min(180, workoutDuration + 5))}
+                    aria-label="Increase workout duration"
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="class-duration" className="block text-sm font-medium text-gray-700 mb-1 text-center">Class Duration (minutes)</label>
+              <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-3 sm:justify-center">
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setClassDuration(Math.max(10, classDuration - 5))}
+                    aria-label="Decrease class duration"
+                  >
+                    -
+                  </Button>
+                  <span className="text-lg font-semibold w-12 text-center">{classDuration}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setClassDuration(Math.min(180, classDuration + 5))}
+                    aria-label="Increase class duration"
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:justify-center">
+            <Button variant="outline" onClick={() => setDurationDialogOpen(false)} type="button">Cancel</Button>
+            <Button onClick={handleConfirmDurations} type="button" disabled={isLoading}>
+              {isLoading ? "Generating..." : "Proceed"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DefaultBox>
