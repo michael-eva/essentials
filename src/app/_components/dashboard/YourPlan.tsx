@@ -12,9 +12,7 @@ import useGeneratePlan from "@/hooks/useGeneratePlan"
 import { motion } from "framer-motion"
 import { ActivePlanSkeleton, PreviousPlansSkeleton } from "./ClassRecommendationsSkeleton"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import DefaultBox from "../global/DefaultBox"
-import DurationDialog from "./DurationDialog"
 
 
 
@@ -25,7 +23,6 @@ export default function ClassRecommendations() {
   const [editedPlanName, setEditedPlanName] = useState("")
   const [editingWeeks, setEditingWeeks] = useState<Set<number>>(new Set())
   const [addClassDialogOpen, setAddClassDialogOpen] = useState(false)
-  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false)
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -40,9 +37,6 @@ export default function ClassRecommendations() {
     variant: "default"
   })
   const [planToDeleteId, setPlanToDeleteId] = useState<string | null>(null)
-  const [durationDialogOpen, setDurationDialogOpen] = useState(false)
-  const [workoutDuration, setWorkoutDuration] = useState(30)
-  const [classDuration, setClassDuration] = useState(30)
   // Fetch data using tRPC
   const utils = api.useUtils();
   const { data: previousPlans = [], isLoading: isLoadingPreviousPlans } = api.workoutPlan.getPreviousPlans.useQuery()
@@ -87,7 +81,7 @@ export default function ClassRecommendations() {
       void utils.workoutPlan.getPreviousPlans.invalidate();
     },
   });
-  const { generatePlan, OnboardingDialog, isLoading, LoadingScreen } = useGeneratePlan();
+  const { generatePlan, OnboardingDialog, isLoading, LoadingScreen, GeneratePlanDialog } = useGeneratePlan();
   const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
   const handleBookClass = (workoutId: string, name: string) => {
@@ -334,19 +328,13 @@ export default function ClassRecommendations() {
   }
 
   const handleGeneratePlan = () => {
-    setDurationDialogOpen(true);
-  };
-
-  const handleConfirmDurations = () => {
-    setDurationDialogOpen(false);
-    generatePlan({
-      prompt: `For every workout of type 'workout', set the duration to ${workoutDuration} minutes. For every workout of type 'class', set the duration to ${classDuration} minutes.`,
-    });
+    generatePlan();
   };
 
   return (
     <DefaultBox title="Your Personalised Plan" description="Combined classes and supplementary workouts" showViewAll={false}>
       {OnboardingDialog}
+      {GeneratePlanDialog}
       <LoadingScreen />
       {isLoadingActivePlan ? (
         <ActivePlanSkeleton />
@@ -667,17 +655,6 @@ export default function ClassRecommendations() {
           </div>
         </DialogContent>
       </Dialog>
-
-      <DurationDialog
-        open={durationDialogOpen}
-        onOpenChange={setDurationDialogOpen}
-        workoutDuration={workoutDuration}
-        setWorkoutDuration={setWorkoutDuration}
-        classDuration={classDuration}
-        setClassDuration={setClassDuration}
-        isLoading={isLoading}
-        onConfirm={handleConfirmDurations}
-      />
     </DefaultBox>
   )
 }
