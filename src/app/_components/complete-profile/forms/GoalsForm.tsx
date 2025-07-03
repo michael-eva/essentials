@@ -9,16 +9,16 @@ import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { GOAL_TIMELINE, GOALS } from "@/app/_constants/goals";
 import { Button } from "@/components/ui/button";
-import type { GoalsField } from "../../dashboard/MultiStepGeneratePlanDialog";
+import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
 
-export default function GoalsForm({
+export default function GoalsFormComplete({
   missingFields,
   isSubmitting,
   onNext,
   onPrevious
 }: {
-  missingFields?: GoalsField[];
+  missingFields?: MissingFieldsGrouped;
   isSubmitting?: boolean;
   onNext: () => void;
   onPrevious: () => void;
@@ -26,14 +26,18 @@ export default function GoalsForm({
   const utils = api.useUtils();
   const { mutate: postFitnessGoals } = api.onboarding.postFitnessGoals.useMutation({
     onSuccess: () => {
-      toast.success("Fitness goals saved successfully");
+      toast.success("Goals saved successfully");
       utils.onboarding.getOnboardingData.invalidate();
       onNext();
     },
     onError: () => {
-      toast.error("Failed to save fitness goals");
+      toast.error("Failed to save goals");
     }
   });
+
+  // Get goals missing fields - much simpler!
+  const goalsMissingFields = missingFields?.goals || [];
+  const hasMissingFields = goalsMissingFields.length > 0;
 
   // Create dynamic schema based on missingFields
   const createSchema = () => {
@@ -41,7 +45,7 @@ export default function GoalsForm({
 
     // Helper function to check if field is required
     const isRequired = (fieldName: string) => {
-      return !missingFields || missingFields.includes(fieldName as GoalsField);
+      return hasMissingFields && goalsMissingFields.includes(fieldName);
     };
 
     // Fitness goals field
@@ -60,9 +64,6 @@ export default function GoalsForm({
       schemaFields.goalTimeline = z.enum(GOAL_TIMELINE).optional();
     }
 
-    // Optional fields
-    schemaFields.specificGoals = z.string().optional();
-
     return z.object(schemaFields);
   };
 
@@ -75,11 +76,10 @@ export default function GoalsForm({
     defaultValues: {
       fitnessGoals: [],
       goalTimeline: undefined,
-      specificGoals: "",
     }
   });
 
-  const handleFitnessGoalsChange = (goal: string) => {
+  const handleGoalChange = (goal: string) => {
     const currentGoals = watch("fitnessGoals") || [];
     const newGoals = currentGoals.includes(goal)
       ? currentGoals.filter((g: string) => g !== goal)
@@ -88,14 +88,25 @@ export default function GoalsForm({
   };
 
   const onSubmit = async (data: GoalsFormData) => {
-    // Ensure all required fields are present with proper types
-    const submitData = {
-      fitnessGoals: data.fitnessGoals || [],
-      goalTimeline: data.goalTimeline || null,
-      specificGoals: data.specificGoals,
-    };
+    // Build submit data object dynamically, only including fields with actual data
+    const submitData: any = {};
 
-    postFitnessGoals(submitData);
+    // Only include fields that have values
+    if (data.fitnessGoals && data.fitnessGoals.length > 0) {
+      submitData.fitnessGoals = data.fitnessGoals;
+    }
+
+    if (data.goalTimeline !== undefined && data.goalTimeline !== null) {
+      submitData.goalTimeline = data.goalTimeline;
+    }
+
+    // Only call API if there's actual data to submit
+    if (Object.keys(submitData).length > 0) {
+      postFitnessGoals(submitData);
+    } else {
+      // No data to submit, proceed to next step
+      onNext();
+    }
   };
 
   const handleNext = async () => {
@@ -103,16 +114,16 @@ export default function GoalsForm({
   };
 
   // If no missing fields for goals, show a message
-  if (missingFields && missingFields.length === 0) {
+  if (!hasMissingFields) {
     return (
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Fitness Goals</h3>
-          <p className="text-sm text-gray-500">Your fitness goals information is already complete!</p>
+          <h3 className="text-lg font-semibold text-gray-900">Goals & Timeline</h3>
+          <p className="text-sm text-gray-500">Your goals and timeline information is already complete!</p>
         </div>
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <p className="text-green-800 text-sm">
-            All required fitness goals information has been provided. You can proceed to the next step.
+            All required goals and timeline information has been provided. You can proceed to the next step.
           </p>
         </div>
         <DialogFooter className="gap-2 sm:justify-center">
@@ -141,20 +152,15 @@ export default function GoalsForm({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">Fitness Goals</h3>
-        <p className="text-sm text-gray-500">
-          {missingFields && missingFields.length > 0
-            ? `Please complete the following information: ${missingFields.join(', ')}`
-            : "Tell us about your fitness goals and timeline"
-          }
-        </p>
+        <h3 className="text-lg font-semibold text-gray-900">Goals & Timeline</h3>
+        <p className="text-sm text-gray-500">Tell us about your fitness goals and timeline</p>
       </div>
 
       <div className="space-y-4">
-        {(!missingFields || missingFields.includes('fitnessGoals')) && (
+        {goalsMissingFields.includes('fitnessGoals') && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              What are your primary fitness goals? (Select all that apply)
+            <label className="block text-sm font-medium text-gray-700 mb-4">
+              What are your primary fitness goals?
             </label>
             {errors.fitnessGoals && (
               <p className="mb-2 text-sm text-red-600">{errors.fitnessGoals.message?.toString()}</p>
@@ -166,20 +172,20 @@ export default function GoalsForm({
                 <MultiSelectPills
                   options={GOALS}
                   selectedValues={field.value || []}
-                  onChange={handleFitnessGoalsChange}
+                  onChange={handleGoalChange}
                 />
               )}
             />
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('goalTimeline')) && (
+        {goalsMissingFields.includes('goalTimeline') && (
           <div>
-            <label htmlFor="goal-timeline" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="goal-timeline" className="mb-2 block text-sm font-medium text-gray-700">
               What is your timeline for achieving these goals?
             </label>
             {errors.goalTimeline && (
-              <p className="mb-2 text-sm text-red-600">{errors.goalTimeline.message?.toString()}</p>
+              <p className="mt-1 text-sm text-red-600">{errors.goalTimeline.message?.toString()}</p>
             )}
             <Controller
               name="goalTimeline"
@@ -203,31 +209,6 @@ export default function GoalsForm({
             />
           </div>
         )}
-
-        <div>
-          <label htmlFor="specific-goals" className="block text-sm font-medium text-gray-700">
-            Do you have any specific goals or milestones?
-          </label>
-          {errors.specificGoals && (
-            <p className="mt-1 text-sm text-red-600">{errors.specificGoals.message?.toString()}</p>
-          )}
-          <Controller
-            name="specificGoals"
-            control={control}
-            render={({ field }) => (
-              <Textarea
-                {...field}
-                id="specific-goals"
-                rows={3}
-                className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.specificGoals
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-gray-300 focus:border-indigo-500"
-                  }`}
-                placeholder="E.g., Run 5k, Lose 10kg, etc."
-              />
-            )}
-          />
-        </div>
       </div>
 
       <DialogFooter className="gap-2 sm:justify-center">

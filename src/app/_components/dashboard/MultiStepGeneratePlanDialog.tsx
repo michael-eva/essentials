@@ -12,15 +12,12 @@ import { Input } from "@/components/ui/input";
 import { DEFAULT_EXERCISE_OPTIONS, EXERCISE_FREQUENCY, FITNESS_LEVEL, SESSION_LENGTH } from "@/app/_constants/fitness";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import BasicQuestionsForm from "../complete-profile/forms/BasicQuestions";
-import HealthConsForm from "@/app/_components/onboarding/HealthConsForm";
 import HealthConsiderationsForm from "../complete-profile/forms/HealthConsiderationsForm";
-import GoalsForm from "@/app/_components/onboarding/GoalsForm";
 import GoalsFormComplete from "../complete-profile/forms/GoalsForm";
-import PilatesForm from "@/app/_components/onboarding/PilatesForm";
 import PilatesFormComplete from "../complete-profile/forms/PilatesForm";
-import MotivationForm from "@/app/_components/onboarding/MotivationForm";
-import WorkoutTimingForm from "@/app/_components/onboarding/WorkoutTimingForm";
-import GeneratePlanDialog from "./GeneratePlanDialog";
+import MotivationFormComplete from "../complete-profile/forms/MotivationForm";
+import WorkoutTimingFormComplete from "../complete-profile/forms/WorkoutTimingForm";
+import GeneratePlanForm from "./GeneratePlanDialog";
 import { STEPS } from "@/app/onboarding/constants";
 import FitnessBackgroundForm from "../complete-profile/forms/FitnessBg";
 
@@ -51,6 +48,17 @@ export const FIELD_GROUPS = {
   motivation: ['motivation', 'progressTracking'] as const,
   workoutTiming: ['preferredWorkoutTimes', 'avoidedWorkoutTimes', 'weekendWorkoutTimes'] as const,
 } as const;
+
+// New type for grouped missing fields
+export type MissingFieldsGrouped = {
+  basic?: string[];
+  fitness?: string[];
+  health?: string[];
+  goals?: string[];
+  pilates?: string[];
+  motivation?: string[];
+  timing?: string[];
+};
 
 // Export types for use in form components
 export type BasicInfoField = typeof FIELD_GROUPS.basicInfo[number];
@@ -88,22 +96,22 @@ export default function MultiStepGeneratePlanDialog({
     }
     // If onboarding is not complete, determine which steps are needed
     else if (onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult) {
-      const missingFields = onboardingResult.missingFields;
+      const missingFields = onboardingResult.missingFields as MissingFieldsGrouped;
 
       // Dynamically add steps in the order defined in onboarding constants
       STEPS.forEach(step => {
-        const fieldGroupMap = {
-          'basic-info': FIELD_GROUPS.basicInfo,
-          'fitness-background': FIELD_GROUPS.fitnessBackground,
-          'health-considerations': FIELD_GROUPS.healthConsiderations,
-          'goals': FIELD_GROUPS.goals,
-          'pilates': FIELD_GROUPS.pilates,
-          'motivation': FIELD_GROUPS.motivation,
-          'workout-timing': FIELD_GROUPS.workoutTiming,
+        const stepFieldMap = {
+          'basic-info': missingFields.basic,
+          'fitness-background': missingFields.fitness,
+          'health-considerations': missingFields.health,
+          'goals': missingFields.goals,
+          'pilates': missingFields.pilates,
+          'motivation': missingFields.motivation,
+          'workout-timing': missingFields.timing,
         };
 
-        const fieldGroup = fieldGroupMap[step];
-        if (fieldGroup && fieldGroup.some(field => missingFields.includes(field))) {
+        const stepFields = stepFieldMap[step];
+        if (stepFields && stepFields.length > 0) {
           steps.push(step);
         }
       });
@@ -148,7 +156,7 @@ export default function MultiStepGeneratePlanDialog({
         return (
           <BasicQuestionsForm
             missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
-              ? onboardingResult.missingFields.filter(field => FIELD_GROUPS.basicInfo.includes(field as BasicInfoField)) as BasicInfoField[]
+              ? onboardingResult.missingFields as MissingFieldsGrouped
               : undefined
             }
             isSubmitting={isSubmittingStep}
@@ -160,7 +168,7 @@ export default function MultiStepGeneratePlanDialog({
         return (
           <FitnessBackgroundForm
             missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
-              ? onboardingResult.missingFields.filter(field => FIELD_GROUPS.fitnessBackground.includes(field as any)) as FitnessBackgroundField[]
+              ? onboardingResult.missingFields as MissingFieldsGrouped
               : undefined
             }
             isSubmitting={isSubmittingStep}
@@ -172,7 +180,7 @@ export default function MultiStepGeneratePlanDialog({
         return (
           <HealthConsiderationsForm
             missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
-              ? onboardingResult.missingFields.filter(field => FIELD_GROUPS.healthConsiderations.includes(field as any)) as HealthConsiderationsField[]
+              ? onboardingResult.missingFields as MissingFieldsGrouped
               : undefined
             }
             isSubmitting={isSubmittingStep}
@@ -184,7 +192,7 @@ export default function MultiStepGeneratePlanDialog({
         return (
           <GoalsFormComplete
             missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
-              ? onboardingResult.missingFields.filter(field => FIELD_GROUPS.goals.includes(field as any)) as GoalsField[]
+              ? onboardingResult.missingFields as MissingFieldsGrouped
               : undefined
             }
             isSubmitting={isSubmittingStep}
@@ -196,7 +204,7 @@ export default function MultiStepGeneratePlanDialog({
         return (
           <PilatesFormComplete
             missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
-              ? onboardingResult.missingFields.filter(field => FIELD_GROUPS.pilates.includes(field as any)) as PilatesField[]
+              ? onboardingResult.missingFields as MissingFieldsGrouped
               : undefined
             }
             isSubmitting={isSubmittingStep}
@@ -206,88 +214,50 @@ export default function MultiStepGeneratePlanDialog({
         );
       case 'motivation':
         return (
-          <MotivationForm
-            isFirstStep={currentStepIndex === 0}
-            isLastStep={currentStepIndex === onboardingSteps.length - 1}
-            currentStep={currentStep}
+          <MotivationFormComplete
+            missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
+              ? onboardingResult.missingFields as MissingFieldsGrouped
+              : undefined
+            }
+            isSubmitting={isSubmittingStep}
+            onNext={() => setCurrentStepIndex(prev => prev + 1)}
+            onPrevious={handlePrevious}
           />
         );
-      case 'workout-timing':
-        return (
-          <WorkoutTimingForm
-            isFirstStep={currentStepIndex === 0}
-            isLastStep={currentStepIndex === onboardingSteps.length - 1}
-            currentStep={currentStep}
-          />
-        );
+      // case 'workout-timing':
+      //   return (
+      //     <WorkoutTimingFormComplete
+      //       missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
+      //         ? onboardingResult.missingFields as MissingFieldsGrouped
+      //         : undefined
+      //       }
+      //       isSubmitting={isSubmittingStep}
+      //       onNext={() => setCurrentStepIndex(prev => prev + 1)}
+      //       onPrevious={handlePrevious}
+      //     />
+      //   );
       case 'plan-generation':
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Customize Your Workout Plan</h3>
-              <p className="text-sm text-gray-500">Set your preferences for the generated plan</p>
-            </div>
-            <GeneratePlanDialog
-              open={true}
-              onOpenChange={() => { }} // This is controlled by the parent
-              onConfirm={onConfirm}
-              isLoading={isLoading}
-            />
-          </div>
+          <GeneratePlanForm
+            isSubmitting={isLoading}
+            onNext={onConfirm}
+            onPrevious={handlePrevious}
+          />
         );
       default:
         return <div>Invalid step</div>;
     }
   };
 
-  const getStepTitle = (step: OnboardingStep) => {
-    switch (step) {
-      case 'basic-info': return 'Basic Information';
-      case 'fitness-background': return 'Fitness Background';
-      case 'health-considerations': return 'Health Considerations';
-      case 'goals': return 'Goals & Timeline';
-      case 'pilates': return 'Pilates Experience';
-      case 'motivation': return 'Motivation';
-      case 'workout-timing': return 'Workout Timing';
-      case 'plan-generation': return 'Plan Preferences';
-      default: return 'Unknown Step';
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-center text-xl">
-            {isPlanGenerationStep ? 'Generate Your Workout Plan' : 'Complete Your Profile'}
+            Generate Your Workout Plan
           </DialogTitle>
-
-          {/* Progress indicator */}
-          {onboardingSteps.length > 1 && (
-            <div className="mt-4">
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-                <span>Step {currentStepIndex + 1} of {onboardingSteps.length}</span>
-                <span>{getStepTitle(currentStep!)}</span>
-              </div>
-              <div className="flex space-x-2">
-                {onboardingSteps.map((step, index) => (
-                  <div key={step} className="flex items-center">
-                    {index < currentStepIndex ? (
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                    ) : index === currentStepIndex ? (
-                      <Circle className="w-5 h-5 text-blue-500 fill-current" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-gray-300" />
-                    )}
-                    {index < onboardingSteps.length - 1 && (
-                      <div className={`w-8 h-0.5 mx-1 ${index < currentStepIndex ? 'bg-green-500' : 'bg-gray-300'
-                        }`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="text-sm text-gray-500">Before we generate your plan, we just need to ask you a few questions:</div>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-1">

@@ -439,7 +439,7 @@ export async function getActivityHistoryCount(userId: string): Promise<number> {
 
 export async function checkOnboardingCompletion(
   userId: string,
-): Promise<boolean | { missingFields: string[] }> {
+): Promise<boolean | { missingFields: Record<string, string[]> }> {
   const onboardingData = await db
     .select()
     .from(onboarding)
@@ -447,122 +447,118 @@ export async function checkOnboardingCompletion(
 
   if (onboardingData.length === 0) {
     return {
-      missingFields: [
-        // Basic info
-        "name",
-        "age",
-        "weight",
-        "gender",
-        "height",
-        "fitnessLevel",
-        "exercises",
-        "exerciseFrequency",
-        "sessionLength",
-
-        // Health considerations
-        "injuries",
-        "recentSurgery",
-        "chronicConditions",
-        "pregnancy",
-        "injuriesDetails",
-        "otherHealthConditions",
-        "pregnancyConsultedDoctor",
-        "pregnancyConsultedDoctorDetails",
-        "surgeryDetails",
-
-        // Goals
-        "fitnessGoals",
-        "goalTimeline",
-        "pilatesExperience",
-
-        // Pilates
-        "studioFrequency",
-        "sessionPreference",
-        "apparatusPreference",
-
-        // Motivation
-        "motivation",
-        "progressTracking",
-
-        // Workout timing
-        "preferredWorkoutTimes",
-        "avoidedWorkoutTimes",
-        "weekendWorkoutTimes",
-      ],
+      missingFields: {
+        basic: ["name", "age", "weight", "gender", "height"],
+        fitness: [
+          "fitnessLevel",
+          "exercises",
+          "exerciseFrequency",
+          "sessionLength",
+        ],
+        health: [
+          "injuries",
+          "recentSurgery",
+          "chronicConditions",
+          "pregnancy",
+          "injuriesDetails",
+          "otherHealthConditions",
+          "pregnancyConsultedDoctor",
+          "pregnancyConsultedDoctorDetails",
+          "surgeryDetails",
+        ],
+        goals: ["fitnessGoals", "goalTimeline"],
+        pilates: [
+          "pilatesExperience",
+          "studioFrequency",
+          "sessionPreference",
+          "apparatusPreference",
+          "customApparatus",
+        ],
+        motivation: ["motivation", "progressTracking"],
+        timing: [
+          "preferredWorkoutTimes",
+          "avoidedWorkoutTimes",
+          "weekendWorkoutTimes",
+        ],
+      },
     };
   }
 
   const data = onboardingData[0]!;
-  const missingFields: string[] = [];
-
-  // Check each required field
+  const missingFields = {
+    basic: [] as string[],
+    fitness: [] as string[],
+    health: [] as string[],
+    goals: [] as string[],
+    pilates: [] as string[],
+    motivation: [] as string[],
+    timing: [] as string[],
+  };
 
   // Basic info
-  if (data.name === null) missingFields.push("name");
-  if (data.age === null) missingFields.push("age");
-  if (data.weight === null) missingFields.push("weight");
-  if (data.height === null) missingFields.push("height");
-  if (data.gender === null) missingFields.push("gender");
+  if (data.name === null) missingFields.basic.push("name");
+  if (data.age === null) missingFields.basic.push("age");
+  if (data.weight === null) missingFields.basic.push("weight");
+  if (data.height === null) missingFields.basic.push("height");
+  if (data.gender === null) missingFields.basic.push("gender");
 
   // Fitness background
-  if (data.fitnessLevel === null) missingFields.push("fitnessLevel");
+  if (data.fitnessLevel === null) missingFields.fitness.push("fitnessLevel");
   if (data.exercises === null || data.exercises.length === 0)
-    missingFields.push("exercises");
-  if (data.exerciseFrequency === null) missingFields.push("exerciseFrequency");
-  if (data.sessionLength === null) missingFields.push("sessionLength");
+    missingFields.fitness.push("exercises");
+  if (data.exerciseFrequency === null)
+    missingFields.fitness.push("exerciseFrequency");
+  if (data.sessionLength === null) missingFields.fitness.push("sessionLength");
 
   // Health considerations
-  if (data.injuries === null) missingFields.push("injuries");
-  if (data.recentSurgery === null) missingFields.push("recentSurgery");
+  if (data.injuries === null) missingFields.health.push("injuries");
+  if (data.recentSurgery === null) missingFields.health.push("recentSurgery");
   if (data.chronicConditions === null || data.chronicConditions.length === 0)
-    missingFields.push("chronicConditions");
+    missingFields.health.push("chronicConditions");
   if (data.pregnancy === null && data.gender !== "Male")
-    missingFields.push("pregnancy");
-  if (
-    (data.injuries === true || data.injuries === null) &&
-    data.injuriesDetails === null
-  )
-    missingFields.push("injuriesDetails");
-  if (
-    (data.recentSurgery === true || data.recentSurgery === null) &&
-    data.surgeryDetails === null
-  )
-    missingFields.push("surgeryDetails");
-  if (
-    data.pregnancyConsultedDoctor === true &&
-    data.pregnancyConsultedDoctorDetails === null
-  )
-    missingFields.push("pregnancyConsultedDoctorDetails");
+    missingFields.health.push("pregnancy");
 
   // Goals
-  if (data.fitnessGoals === null) missingFields.push("fitnessGoals");
-  if (data.goalTimeline === null) missingFields.push("goalTimeline");
+  if (data.fitnessGoals === null || data.fitnessGoals.length === 0)
+    missingFields.goals.push("fitnessGoals");
+  if (data.goalTimeline === null) missingFields.goals.push("goalTimeline");
 
   // Pilates
-  if (data.pilatesExperience === null) missingFields.push("pilatesExperience");
+  if (data.pilatesExperience === null)
+    missingFields.pilates.push("pilatesExperience");
   if (data.pilatesExperience === true && data.pilatesDuration === null)
-    missingFields.push("pilatesDuration");
+    missingFields.pilates.push("pilatesDuration");
   if (
     data.apparatusPreference === null ||
     data.apparatusPreference.length === 0
   )
-    missingFields.push("apparatusPreference");
+    missingFields.pilates.push("apparatusPreference");
   if (data.customApparatus === null || data.customApparatus.length === 0)
-    missingFields.push("customApparatus");
+    missingFields.pilates.push("customApparatus");
 
   // Motivation
-  if (data.studioFrequency === null) missingFields.push("studioFrequency");
-  if (data.sessionPreference === null) missingFields.push("sessionPreference");
-  if (data.motivation === null) missingFields.push("motivation");
-  if (data.progressTracking === null) missingFields.push("progressTracking");
+  if (data.studioFrequency === null)
+    missingFields.pilates.push("studioFrequency");
+  if (data.sessionPreference === null)
+    missingFields.pilates.push("sessionPreference");
+  if (data.motivation === null) missingFields.motivation.push("motivation");
+  if (data.progressTracking === null)
+    missingFields.motivation.push("progressTracking");
   if (data.preferredWorkoutTimes === null)
-    missingFields.push("preferredWorkoutTimes");
+    missingFields.timing.push("preferredWorkoutTimes");
   if (data.avoidedWorkoutTimes === null)
-    missingFields.push("avoidedWorkoutTimes");
+    missingFields.timing.push("avoidedWorkoutTimes");
   if (data.weekendWorkoutTimes === null)
-    missingFields.push("weekendWorkoutTimes");
+    missingFields.timing.push("weekendWorkoutTimes");
 
-  return missingFields.length === 0 ? true : { missingFields };
+  // Remove empty categories
+  const filteredMissingFields = Object.fromEntries(
+    Object.entries(missingFields).filter(([_, fields]) => fields.length > 0),
+  );
+
+  return Object.keys(filteredMissingFields).length === 0
+    ? true
+    : { missingFields: filteredMissingFields };
 }
 
 export async function getOnboardingData(

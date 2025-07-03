@@ -1,18 +1,18 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { HEALTH_CONDITIONS, PREGNANCY_OPTIONS } from "@/app/_constants/health";
 import { Button } from "@/components/ui/button";
-import type { HealthConsiderationsField } from "../../dashboard/MultiStepGeneratePlanDialog";
+import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export default function HealthConsiderationsForm({
   missingFields,
@@ -20,14 +20,13 @@ export default function HealthConsiderationsForm({
   onNext,
   onPrevious
 }: {
-  missingFields?: HealthConsiderationsField[];
+  missingFields?: MissingFieldsGrouped;
   isSubmitting?: boolean;
   onNext: () => void;
   onPrevious: () => void;
 }) {
   console.log(missingFields);
   const utils = api.useUtils();
-  const [customCondition, setCustomCondition] = useState("");
   const { mutate: postHealthConsiderations } = api.onboarding.postHealthConsiderations.useMutation({
     onSuccess: () => {
       toast.success("Health considerations saved successfully");
@@ -39,13 +38,17 @@ export default function HealthConsiderationsForm({
     }
   });
 
-  // Create dynamic schema based on missingFields
-  const createSchema = () => {
+  // Get health missing fields - much simpler!
+  const healthMissingFields = missingFields?.health || [];
+  const hasMissingFields = healthMissingFields.length > 0;
+
+  // Create base schema based on missingFields (without conditional dependencies)
+  const createBaseSchema = () => {
     const schemaFields: Record<string, any> = {};
 
     // Helper function to check if field is required
     const isRequired = (fieldName: string) => {
-      return !missingFields || missingFields.includes(fieldName as HealthConsiderationsField);
+      return hasMissingFields && healthMissingFields.includes(fieldName);
     };
 
     // Injuries field
@@ -82,101 +85,26 @@ export default function HealthConsiderationsForm({
       schemaFields.pregnancy = z.enum(PREGNANCY_OPTIONS).optional();
     }
 
-    // Optional fields
+    // Optional fields (always optional)
     schemaFields.injuriesDetails = z.string().optional();
     schemaFields.surgeryDetails = z.string().optional();
     schemaFields.otherHealthConditions = z.array(z.string()).optional();
     schemaFields.pregnancyConsultedDoctor = z.boolean().optional();
     schemaFields.pregnancyConsultedDoctorDetails = z.string().optional();
 
-    return z.object(schemaFields)
-      .refine(
-        (data) => {
-          // If injuries is true, injuriesDetails should not be empty
-          return !data.injuries || (data.injuries && data.injuriesDetails && data.injuriesDetails.trim() !== "");
-        },
-        {
-          message: "Please describe your injuries or limitations",
-          path: ["injuriesDetails"],
-        }
-      )
-      .refine(
-        (data) => {
-          // If recentSurgery is true, surgeryDetails should not be empty
-          return !data.recentSurgery || (data.recentSurgery && data.surgeryDetails && data.surgeryDetails.trim() !== "");
-        },
-        {
-          message: "Please provide details about your surgery and recovery timeline",
-          path: ["surgeryDetails"],
-        }
-      )
-      .refine(
-        (data) => {
-          // If "Other" is selected, at least one custom condition must be added
-          return !data.chronicConditions?.includes("Other") || (data.otherHealthConditions && data.otherHealthConditions.length > 0);
-        },
-        {
-          message: "Please add at least one custom health condition",
-          path: ["otherHealthConditions"],
-        }
-      )
-      .refine(
-        (data) => {
-          // If pregnancyConsultedDoctor is true, details are required
-          if (data.pregnancyConsultedDoctor === true) {
-            return data.pregnancyConsultedDoctorDetails && data.pregnancyConsultedDoctorDetails.trim() !== "";
-          }
-          return true;
-        },
-        {
-          message: "Please provide more information about your doctor's consultation",
-          path: ["pregnancyConsultedDoctorDetails"],
-        }
-      );
+    return z.object(schemaFields);
   };
 
-  const healthConsiderationsSchema = createSchema();
+  const healthConsiderationsSchema = createBaseSchema();
   type HealthConsiderationsFormData = z.infer<typeof healthConsiderationsSchema>;
-
-  // Determine default value for injuries based on missing fields
-  const getInjuriesDefaultValue = () => {
-    if (!missingFields) return undefined;
-
-    const hasInjuries = missingFields.includes('injuries');
-    const hasInjuriesDetails = missingFields.includes('injuriesDetails');
-
-    if (hasInjuries && hasInjuriesDetails) {
-      return undefined;
-    } else if (hasInjuries && !hasInjuriesDetails) {
-      return false;
-    } else {
-      return true;
-    }
-  };
-
-  // Determine default value for recentSurgery based on missing fields
-  const getRecentSurgeryDefaultValue = () => {
-    if (!missingFields) return undefined;
-
-    const hasRecentSurgery = missingFields.includes('recentSurgery');
-    const hasSurgeryDetails = missingFields.includes('surgeryDetails');
-
-    if (hasRecentSurgery && hasSurgeryDetails) {
-      return undefined;
-    } else if (hasRecentSurgery && !hasSurgeryDetails) {
-      return false;
-    } else {
-      return true;
-    }
-  };
 
   const { handleSubmit, formState: { errors }, control, watch, setValue, setError, clearErrors, trigger } = useForm<HealthConsiderationsFormData>({
     resolver: zodResolver(healthConsiderationsSchema),
     mode: "onChange",
     defaultValues: {
-      injuries: getInjuriesDefaultValue(),
+      injuries: undefined,
       injuriesDetails: "",
-      recentSurgery: getRecentSurgeryDefaultValue(),
+      recentSurgery: undefined,
       surgeryDetails: "",
       chronicConditions: [],
       otherHealthConditions: [],
@@ -191,39 +119,36 @@ export default function HealthConsiderationsForm({
   const hasPregnancy = watch("pregnancy") && watch("pregnancy") !== "Not applicable";
   const hasConsultedDoctor = watch("pregnancyConsultedDoctor") === true;
 
-  // Add this to trigger validation when injuries changes
-  const handleInjuriesChange = (value: boolean) => {
-    setValue("injuries", value, { shouldValidate: true });
-
-    // If switching to true, validate injuriesDetails field immediately
-    if (value && watch("injuriesDetails")?.trim() === "") {
-      setError("injuriesDetails", {
-        type: "custom",
-        message: "Please describe your injuries or limitations"
-      });
-    } else if (!value) {
-      // If switching to false, clear any errors on injuriesDetails
-      clearErrors("injuriesDetails");
+  // Add conditional validation for details fields
+  useEffect(() => {
+    // Validate injuries details when injuries is true
+    if (hasInjuries === true) {
+      const injuriesDetails = watch("injuriesDetails");
+      if (!injuriesDetails || injuriesDetails.trim() === "") {
+        setError("injuriesDetails", {
+          type: "manual",
+          message: "Please describe your injuries or limitations"
+        });
+      } else {
+        clearErrors("injuriesDetails");
+      }
     }
-  };
 
-  // Add this to trigger validation when recentSurgery changes
-  const handleRecentSurgeryChange = (value: boolean) => {
-    setValue("recentSurgery", value, { shouldValidate: true });
-
-    // If switching to true, validate surgeryDetails field immediately
-    if (value && watch("surgeryDetails")?.trim() === "") {
-      setError("surgeryDetails", {
-        type: "custom",
-        message: "Please provide details about your surgery and recovery timeline"
-      });
-    } else if (!value) {
-      // If switching to false, clear any errors on surgeryDetails
-      clearErrors("surgeryDetails");
+    // Validate surgery details when recentSurgery is true
+    if (hasRecentSurgery === true) {
+      const surgeryDetails = watch("surgeryDetails");
+      if (!surgeryDetails || surgeryDetails.trim() === "") {
+        setError("surgeryDetails", {
+          type: "manual",
+          message: "Please describe your recent surgery"
+        });
+      } else {
+        clearErrors("surgeryDetails");
+      }
     }
-  };
+  }, [hasInjuries, hasRecentSurgery, watch, setError, clearErrors]);
 
-  const handleChronicConditionsChange = (condition: string) => {
+  const handleChronicConditionChange = (condition: string) => {
     const currentConditions = watch("chronicConditions") || [];
     const newConditions = currentConditions.includes(condition)
       ? currentConditions.filter((c: string) => c !== condition)
@@ -231,29 +156,93 @@ export default function HealthConsiderationsForm({
     setValue("chronicConditions", newConditions);
   };
 
-  const handleAddOtherHealthCondition = () => {
-    if (customCondition.trim()) {
-      const currentOtherConditions = watch("otherHealthConditions") || [];
-      setValue("otherHealthConditions", [...currentOtherConditions, customCondition]);
-      setCustomCondition("");
+  const handleInjuriesChange = (value: boolean) => {
+    setValue("injuries", value);
+    if (value === false) {
+      setValue("injuriesDetails", "");
+      clearErrors("injuriesDetails");
     }
   };
 
-  const removeOtherHealthCondition = (condition: string) => {
-    const currentOtherConditions = watch("otherHealthConditions") || [];
-    setValue("otherHealthConditions", currentOtherConditions.filter((c: string) => c !== condition));
+  const handleRecentSurgeryChange = (value: boolean) => {
+    setValue("recentSurgery", value);
+    if (value === false) {
+      setValue("surgeryDetails", "");
+      clearErrors("surgeryDetails");
+    }
   };
 
   const onSubmit = async (data: HealthConsiderationsFormData) => {
-    postHealthConsiderations(data);
+    // Validate required details before proceeding
+    if (data.injuries === true && (!data.injuriesDetails || data.injuriesDetails.trim() === "")) {
+      setError("injuriesDetails", {
+        type: "manual",
+        message: "Please describe your injuries or limitations"
+      });
+      return;
+    }
+
+    if (data.recentSurgery === true && (!data.surgeryDetails || data.surgeryDetails.trim() === "")) {
+      setError("surgeryDetails", {
+        type: "manual",
+        message: "Please describe your recent surgery"
+      });
+      return;
+    }
+
+    // Build submit data object dynamically, only including fields with actual data
+    const submitData: any = {};
+
+    // Only include fields that have values
+    if (data.injuries !== undefined && data.injuries !== null) {
+      submitData.injuries = data.injuries;
+      if (data.injuries === true && data.injuriesDetails?.trim()) {
+        submitData.injuriesDetails = data.injuriesDetails.trim();
+      }
+    }
+
+    if (data.recentSurgery !== undefined && data.recentSurgery !== null) {
+      submitData.recentSurgery = data.recentSurgery;
+      if (data.recentSurgery === true && data.surgeryDetails?.trim()) {
+        submitData.surgeryDetails = data.surgeryDetails.trim();
+      }
+    }
+
+    if (data.chronicConditions && data.chronicConditions.length > 0) {
+      submitData.chronicConditions = data.chronicConditions;
+    }
+
+    if (data.otherHealthConditions && data.otherHealthConditions.length > 0) {
+      submitData.otherHealthConditions = data.otherHealthConditions;
+    }
+
+    if (data.pregnancy !== undefined && data.pregnancy !== null) {
+      submitData.pregnancy = data.pregnancy;
+      if (data.pregnancy === true) {
+        if (data.pregnancyConsultedDoctor !== undefined && data.pregnancyConsultedDoctor !== null) {
+          submitData.pregnancyConsultedDoctor = data.pregnancyConsultedDoctor;
+          if (data.pregnancyConsultedDoctor === true && data.pregnancyConsultedDoctorDetails?.trim()) {
+            submitData.pregnancyConsultedDoctorDetails = data.pregnancyConsultedDoctorDetails.trim();
+          }
+        }
+      }
+    }
+
+    // Only call API if there's actual data to submit
+    if (Object.keys(submitData).length > 0) {
+      postHealthConsiderations(submitData);
+    } else {
+      // No data to submit, proceed to next step
+      onNext();
+    }
   };
 
   const handleNext = async () => {
     handleSubmit(onSubmit)();
   };
 
-  // If no missing fields for health considerations, show a message
-  if (missingFields && missingFields.length === 0) {
+  // If no missing fields for health, show a message
+  if (!hasMissingFields) {
     return (
       <div className="space-y-6">
         <div>
@@ -292,19 +281,14 @@ export default function HealthConsiderationsForm({
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900">Health Considerations</h3>
-        <p className="text-sm text-gray-500">
-          {missingFields && missingFields.length > 0
-            ? `Please complete the following information: ${missingFields.join(', ')}`
-            : "Tell us about any health considerations that may affect your fitness journey"
-          }
-        </p>
+        <p className="text-sm text-gray-500">Tell us about any health considerations that may affect your fitness journey</p>
       </div>
 
       <div className="space-y-4">
-        {(!missingFields || (missingFields.includes('injuries')) || missingFields.includes("injuriesDetails")) && (
+        {(healthMissingFields.includes('injuries')) && (
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Do you have any injuries or physical limitations?
+              Do you have any current injuries or physical limitations?
             </label>
             {errors.injuries && (
               <p className="mt-1 text-sm text-red-600">{errors.injuries.message?.toString()}</p>
@@ -332,10 +316,10 @@ export default function HealthConsiderationsForm({
           </div>
         )}
 
-        {hasInjuries && (!missingFields || missingFields.includes('injuriesDetails')) && (
+        {hasInjuries === true && (
           <div>
-            <label htmlFor="injuries-details" className="block text-sm font-medium text-gray-700">
-              Please describe your injuries or limitations:
+            <label htmlFor="injuries-details" className="block text-sm font-medium text-gray-700 mb-2">
+              Please describe your injuries or limitations
             </label>
             {errors.injuriesDetails && (
               <p className="mt-1 text-sm text-red-600">{errors.injuriesDetails.message?.toString()}</p>
@@ -347,29 +331,16 @@ export default function HealthConsiderationsForm({
                 <Textarea
                   {...field}
                   id="injuries-details"
+                  placeholder="Describe your injuries or limitations..."
+                  className="w-full"
                   rows={3}
-                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.injuriesDetails
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:border-indigo-500"
-                    }`}
-                  placeholder="Please provide details about your injuries or limitations..."
-                  onBlur={() => {
-                    if (hasInjuries && (field.value?.trim() === "")) {
-                      setError("injuriesDetails", {
-                        type: "custom",
-                        message: "Please describe your injuries or limitations"
-                      });
-                    } else {
-                      void trigger("injuriesDetails");
-                    }
-                  }}
                 />
               )}
             />
           </div>
         )}
 
-        {(!missingFields || (missingFields.includes('recentSurgery')) || missingFields.includes("surgeryDetails")) && (
+        {healthMissingFields.includes('recentSurgery') && (
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Are you recovering from any recent surgeries?
@@ -400,10 +371,10 @@ export default function HealthConsiderationsForm({
           </div>
         )}
 
-        {hasRecentSurgery && (!missingFields || missingFields.includes('surgeryDetails')) && (
+        {hasRecentSurgery === true && (
           <div>
-            <label htmlFor="surgery-details" className="block text-sm font-medium text-gray-700">
-              Please provide details about your surgery and recovery timeline:
+            <label htmlFor="surgery-details" className="block text-sm font-medium text-gray-700 mb-2">
+              Please describe your recent surgery
             </label>
             {errors.surgeryDetails && (
               <p className="mt-1 text-sm text-red-600">{errors.surgeryDetails.message?.toString()}</p>
@@ -415,29 +386,16 @@ export default function HealthConsiderationsForm({
                 <Textarea
                   {...field}
                   id="surgery-details"
+                  placeholder="Describe your recent surgery..."
+                  className="w-full"
                   rows={3}
-                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.surgeryDetails
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:border-indigo-500"
-                    }`}
-                  placeholder="Please provide details about your surgery and recovery timeline..."
-                  onBlur={() => {
-                    if (hasRecentSurgery && (field.value?.trim() === "")) {
-                      setError("surgeryDetails", {
-                        type: "custom",
-                        message: "Please provide details about your surgery and recovery timeline"
-                      });
-                    } else {
-                      void trigger("surgeryDetails");
-                    }
-                  }}
                 />
               )}
             />
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('chronicConditions')) && (
+        {healthMissingFields.includes('chronicConditions') && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-4">
               Do you have any chronic health conditions?
@@ -452,55 +410,25 @@ export default function HealthConsiderationsForm({
                 <MultiSelectPills
                   options={HEALTH_CONDITIONS}
                   selectedValues={field.value || []}
-                  onChange={handleChronicConditionsChange}
+                  onChange={handleChronicConditionChange}
                 />
               )}
             />
-            {watch("chronicConditions")?.includes("Other") && (
-              <>
-                <div className="mt-4 flex gap-2">
-                  <Input
-                    type="text"
-                    value={customCondition}
-                    onChange={(e) => setCustomCondition(e.target.value)}
-                    placeholder="Add custom condition"
-                    className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.otherHealthConditions ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
-                      }`}
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleAddOtherHealthCondition}
-                    variant="outline"
-                  >
-                    Add
-                  </Button>
-                </div>
-                {errors.otherHealthConditions && (
-                  <p className="mt-2 text-sm text-red-600">{errors.otherHealthConditions.message?.toString()}</p>
-                )}
-                <div className="mt-3 space-y-2">
-                  {watch("otherHealthConditions")?.map((condition: string) => (
-                    <div key={condition} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                      <span className="text-sm text-gray-700">{condition}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeOtherHealthCondition(condition)}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
           </div>
         )}
-
-        {(!missingFields || missingFields.includes('pregnancy')) && (
+        {watch("chronicConditions").includes("Other") && (
+          <div className="mt-2">
+            <Input
+              placeholder="Add custom condition"
+              value={watch("otherHealthConditions")[0] ?? ""}
+              onChange={(e) => setValue("otherHealthConditions", [e.target.value])}
+            />
+          </div>
+        )}
+        {healthMissingFields.includes('pregnancy') && (
           <div>
             <label htmlFor="pregnancy" className="mb-2 block text-sm font-medium text-gray-700">
-              Are you pregnant or postpartum?
+              Are you currently pregnant?
             </label>
             {errors.pregnancy && (
               <p className="mt-1 text-sm text-red-600">{errors.pregnancy.message?.toString()}</p>
@@ -510,19 +438,12 @@ export default function HealthConsiderationsForm({
               control={control}
               render={({ field }) => (
                 <Select
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    // Reset doctor fields if "Not applicable" is selected
-                    if (value === "Not applicable") {
-                      setValue("pregnancyConsultedDoctor", false);
-                      setValue("pregnancyConsultedDoctorDetails", "");
-                    }
-                  }}
+                  onValueChange={field.onChange}
                   value={field.value}
                   defaultValue={field.value}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder="Select pregnancy status" />
                   </SelectTrigger>
                   <SelectContent>
                     {PREGNANCY_OPTIONS.map((option) => (
@@ -536,20 +457,17 @@ export default function HealthConsiderationsForm({
         )}
 
         {hasPregnancy && (
-          <div className="mt-4">
+          <div>
             <label className="block text-sm font-medium text-gray-700">
-              Have you consulted a doctor about your pregnancy or postpartum status?
+              Have you consulted with your doctor about exercise during pregnancy?
             </label>
-            {errors.pregnancyConsultedDoctor && (
-              <p className="mt-1 text-sm text-red-600">{errors.pregnancyConsultedDoctor.message?.toString()}</p>
-            )}
             <Controller
               name="pregnancyConsultedDoctor"
               control={control}
               render={({ field }) => (
                 <RadioGroup
-                  onValueChange={val => field.onChange(val === "true")}
-                  value={field.value === undefined ? undefined : String(field.value)}
+                  onValueChange={(value) => field.onChange(value === "true")}
+                  value={field.value !== undefined ? field.value.toString() : undefined}
                   className="flex space-x-4 mt-2"
                 >
                   <div className="flex items-center space-x-2">
@@ -566,27 +484,21 @@ export default function HealthConsiderationsForm({
           </div>
         )}
 
-        {hasPregnancy && hasConsultedDoctor && (
-          <div className="mt-4">
-            <label htmlFor="pregnancy-consulted-details" className="block text-sm font-medium text-gray-700">
-              Please provide more information about your doctor&apos;s consultation:
+        {hasConsultedDoctor && (
+          <div>
+            <label htmlFor="consulted-details" className="block text-sm font-medium text-gray-700 mb-2">
+              What did your doctor recommend?
             </label>
-            {errors.pregnancyConsultedDoctorDetails && (
-              <p className="mt-1 text-sm text-red-600">{errors.pregnancyConsultedDoctorDetails.message?.toString()}</p>
-            )}
             <Controller
               name="pregnancyConsultedDoctorDetails"
               control={control}
               render={({ field }) => (
                 <Textarea
                   {...field}
-                  id="pregnancy-consulted-details"
+                  id="consulted-details"
+                  placeholder="What did your doctor recommend..."
+                  className="w-full"
                   rows={3}
-                  className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.pregnancyConsultedDoctorDetails
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:border-indigo-500"
-                    }`}
-                  placeholder="Please provide details about your doctor's consultation..."
                 />
               )}
             />

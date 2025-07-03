@@ -35,11 +35,11 @@ export const onboardingRouter = createTRPCRouter({
   postFitnessBackground: protectedProcedure
     .input(
       z.object({
-        fitnessLevel: z.string().nullable(),
-        exercises: z.array(z.string()),
+        fitnessLevel: z.string().nullable().optional(),
+        exercises: z.array(z.string()).optional(),
         otherExercises: z.array(z.string()).optional().nullable(),
-        exerciseFrequency: z.string().nullable(),
-        sessionLength: z.string().nullable(),
+        exerciseFrequency: z.string().nullable().optional(),
+        sessionLength: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -107,8 +107,8 @@ export const onboardingRouter = createTRPCRouter({
   postFitnessGoals: protectedProcedure
     .input(
       z.object({
-        fitnessGoals: z.array(z.string()),
-        goalTimeline: z.string().nullable(),
+        fitnessGoals: z.array(z.string()).optional(),
+        goalTimeline: z.string().nullable().optional(),
         specificGoals: z.string().optional(),
       }),
     )
@@ -127,12 +127,12 @@ export const onboardingRouter = createTRPCRouter({
   postPilatesExperience: protectedProcedure
     .input(
       z.object({
-        pilatesExperience: z.boolean().nullable(),
+        pilatesExperience: z.boolean().nullable().optional(),
         pilatesDuration: z.string().optional().nullable(),
-        studioFrequency: z.string().nullable(),
-        sessionPreference: z.string().nullable(),
-        apparatusPreference: z.array(z.string()),
-        customApparatus: z.array(z.string()),
+        studioFrequency: z.string().nullable().optional(),
+        sessionPreference: z.string().nullable().optional(),
+        apparatusPreference: z.array(z.string()).optional(),
+        customApparatus: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {

@@ -9,7 +9,7 @@ import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, CUSTOM_PILATES_APPARATUS } from "@/app/_constants/pilates";
 import { Button } from "@/components/ui/button";
-import type { PilatesField } from "../../dashboard/MultiStepGeneratePlanDialog";
+import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
 
 export default function PilatesForm({
@@ -18,11 +18,13 @@ export default function PilatesForm({
   onNext,
   onPrevious
 }: {
-  missingFields?: PilatesField[];
+  missingFields?: MissingFieldsGrouped;
   isSubmitting?: boolean;
   onNext: () => void;
   onPrevious: () => void;
 }) {
+  console.log(missingFields);
+
   const utils = api.useUtils();
   const { mutate: postPilatesExperience } = api.onboarding.postPilatesExperience.useMutation({
     onSuccess: () => {
@@ -34,14 +36,18 @@ export default function PilatesForm({
       toast.error("Failed to save Pilates preferences");
     }
   });
-  console.log(missingFields);
-  // Create dynamic schema based on missingFields
+
+  // Get pilates missing fields - much simpler!
+  const pilatesMissingFields = missingFields?.pilates || [];
+  const hasMissingFields = pilatesMissingFields.length > 0;
+
+  // Create dynamic schema based on missing fields
   const createSchema = () => {
     const schemaFields: Record<string, any> = {};
 
     // Helper function to check if field is required
     const isRequired = (fieldName: string) => {
-      return !missingFields || missingFields.includes(fieldName as PilatesField);
+      return hasMissingFields && pilatesMissingFields.includes(fieldName);
     };
 
     // Pilates experience field
@@ -86,6 +92,7 @@ export default function PilatesForm({
     } else {
       schemaFields.pilatesDuration = z.enum(PILATES_DURATION).optional();
     }
+
     if (isRequired("customApparatus")) {
       schemaFields.customApparatus = z.array(z.string()).min(1, "Please select at least one custom apparatus");
     } else {
@@ -119,7 +126,6 @@ export default function PilatesForm({
     }
   });
 
-  const pilatesExperience = watch("pilatesExperience");
 
   const handleApparatusChange = (apparatus: string) => {
     const currentApparatus = watch("apparatusPreference") || [];
@@ -138,17 +144,35 @@ export default function PilatesForm({
   };
 
   const onSubmit = async (data: PilatesFormData) => {
-    // Ensure all required fields are present with proper types
-    const submitData = {
-      pilatesExperience: data.pilatesExperience ?? null,
-      studioFrequency: data.studioFrequency ?? null,
-      sessionPreference: data.sessionPreference ?? null,
-      apparatusPreference: data.apparatusPreference || [],
-      customApparatus: data.customApparatus || [],
-      pilatesDuration: data.pilatesDuration,
-    };
+    // Build submit data with proper types, only including fields that have values
+    const submitData: any = {};
 
-    postPilatesExperience(submitData);
+    if (data.pilatesExperience !== undefined) {
+      submitData.pilatesExperience = data.pilatesExperience;
+    }
+    if (data.studioFrequency !== undefined) {
+      submitData.studioFrequency = data.studioFrequency;
+    }
+    if (data.sessionPreference !== undefined) {
+      submitData.sessionPreference = data.sessionPreference;
+    }
+    if (data.apparatusPreference && data.apparatusPreference.length > 0) {
+      submitData.apparatusPreference = data.apparatusPreference;
+    }
+    if (data.customApparatus && data.customApparatus.length > 0) {
+      submitData.customApparatus = data.customApparatus;
+    }
+    if (data.pilatesDuration !== undefined) {
+      submitData.pilatesDuration = data.pilatesDuration;
+    }
+
+    // Only submit if there's actual data
+    if (Object.keys(submitData).length > 0) {
+      postPilatesExperience(submitData);
+    } else {
+      // If no data to submit, just proceed to next step
+      onNext();
+    }
   };
 
   const handleNext = async () => {
@@ -156,7 +180,7 @@ export default function PilatesForm({
   };
 
   // If no missing fields for pilates, show a message
-  if (missingFields && missingFields.length === 0) {
+  if (!hasMissingFields) {
     return (
       <div className="space-y-6">
         <div>
@@ -195,16 +219,11 @@ export default function PilatesForm({
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900">Pilates Experience</h3>
-        <p className="text-sm text-gray-500">
-          {missingFields && missingFields.length > 0
-            ? `Please complete the following information: ${missingFields.join(', ')}`
-            : "Tell us about your Pilates experience and preferences"
-          }
-        </p>
+        <p className="text-sm text-gray-500">Tell us about your Pilates experience and preferences</p>
       </div>
 
       <div className="space-y-4">
-        {(!missingFields || missingFields.includes('pilatesExperience')) && (
+        {pilatesMissingFields.includes('pilatesExperience') && (
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Have you practiced Pilates before?
@@ -235,7 +254,7 @@ export default function PilatesForm({
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('pilatesDuration')) && (
+        {(watch("pilatesExperience") === true || pilatesMissingFields.includes('pilatesDuration')) && (
           <div>
             <label htmlFor="pilates-duration" className="block text-sm font-medium text-gray-700">
               How long have you been practicing Pilates?
@@ -266,7 +285,7 @@ export default function PilatesForm({
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('studioFrequency')) && (
+        {pilatesMissingFields.includes('studioFrequency') && (
           <div>
             <label htmlFor="studio-frequency" className="mb-2 block text-sm font-medium text-gray-700">
               How often can you attend in-studio Pilates sessions?
@@ -297,7 +316,7 @@ export default function PilatesForm({
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('sessionPreference')) && (
+        {pilatesMissingFields.includes('sessionPreference') && (
           <div>
             <label htmlFor="session-preference" className="mb-2 block text-sm font-medium text-gray-700">
               Do you prefer group classes or private sessions?
@@ -328,7 +347,7 @@ export default function PilatesForm({
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('apparatusPreference')) && (
+        {pilatesMissingFields.includes('apparatusPreference') && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-4">
               Are there specific Pilates apparatus you enjoy using or want to learn?
@@ -349,7 +368,8 @@ export default function PilatesForm({
             />
           </div>
         )}
-        {(!missingFields || missingFields.includes('customApparatus')) &&
+
+        {pilatesMissingFields.includes('customApparatus') && (
           <div className="mt-8">
             <label className="block text-sm font-medium text-gray-700 mb-4">
               Do you use any of the following at home?
@@ -368,7 +388,8 @@ export default function PilatesForm({
                 />
               )}
             />
-          </div>}
+          </div>
+        )}
       </div>
 
       <DialogFooter className="gap-2 sm:justify-center">

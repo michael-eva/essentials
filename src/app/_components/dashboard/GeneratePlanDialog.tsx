@@ -30,6 +30,7 @@ const NumberSelector = ({ value, onChange, min, max, step }: { value: number, on
     </div>
   );
 };
+
 interface PlanPreferences {
   workoutDuration: number;
   classDuration: number;
@@ -42,18 +43,16 @@ interface PlanPreferences {
   // focusAreas?: string[];
 }
 
-interface GeneratePlanDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  isLoading: boolean;
-  onConfirm: (preferences: PlanPreferences) => void;
+interface GeneratePlanFormProps {
+  isSubmitting?: boolean;
+  onNext: (preferences: PlanPreferences) => void;
+  onPrevious: () => void;
 }
 
-const GeneratePlanDialog: React.FC<GeneratePlanDialogProps> = ({
-  open,
-  onOpenChange,
-  isLoading,
-  onConfirm,
+const GeneratePlanForm: React.FC<GeneratePlanFormProps> = ({
+  isSubmitting,
+  onNext,
+  onPrevious,
 }) => {
   const [preferences, setPreferences] = useState<PlanPreferences>({
     workoutDuration: 30,
@@ -68,7 +67,7 @@ const GeneratePlanDialog: React.FC<GeneratePlanDialogProps> = ({
   });
 
   const handleConfirm = () => {
-    onConfirm(preferences);
+    onNext(preferences);
   };
 
   const updatePreference = <K extends keyof PlanPreferences>(
@@ -90,219 +89,217 @@ const GeneratePlanDialog: React.FC<GeneratePlanDialogProps> = ({
   const breakdown = getWorkoutClassBreakdown();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-6 max-w-md max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="text-center text-xl">Customise Your Workout Plan</DialogTitle>
-        </DialogHeader>
+    <div className="space-y-6">
+      {/* <div>
+        <h3 className="text-lg font-semibold text-gray-900">Customize Your Workout Plan</h3>
+        <p className="text-sm text-gray-500">Set your preferences for the generated plan</p>
+      </div> */}
 
+      <div className="space-y-6">
+        {/* Activities Per Week */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-gray-900">Weekly Schedule</h3>
 
-        <div className="space-y-6 overflow-y-auto flex-1 pr-2">
-          {/* Activities Per Week */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-gray-900">Weekly Schedule</h3>
-
-            <div className="space-y-3">
-              <div >
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm font-medium text-gray-700" htmlFor="activities-per-week">
-                    Activities per week
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="cursor-pointer text-gray-400 rounded-full p-1"
-                        tabIndex={0}
-                        aria-label="More info about activities per week"
-                      >
-                        <Info className="w-4 h-4" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent side="top" className="max-w-xs text-sm">
-                      How many workouts and classes you&apos;d like to do each week.
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <NumberSelector
-                  value={preferences.activitiesPerWeek}
-                  onChange={(value) => updatePreference('activitiesPerWeek', value)}
-                  min={1}
-                  max={7}
-                  step={1}
-                />
-              </div>
-            </div>
-          </div>
-          {/* Duration Settings */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-gray-900">Duration Settings</h3>
-
-            <div className="space-y-3 flex justify-between">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="workout-duration" className="text-sm font-medium text-gray-700">
-                    Workout Duration
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="cursor-pointer text-gray-400 rounded-full p-1"
-                        tabIndex={0}
-                        aria-label="More info about workout duration"
-                      >
-                        <Info className="w-4 h-4" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent side="top" className="max-w-xs text-sm">
-                      These are self-guided sessions (strength training, cardio, etc.) you&apos;ll do at home or the gym.
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <span className="text-xs text-gray-500  mb-1">(minutes)</span>
-                <NumberSelector
-                  value={preferences.workoutDuration}
-                  onChange={(value) => updatePreference('workoutDuration', value)}
-                  min={10}
-                  max={180}
-                  step={5}
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="class-duration" className="text-sm font-medium text-gray-700">
-                    Class Duration
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="cursor-pointer text-gray-400 rounded-full p-1"
-                        tabIndex={0}
-                        aria-label="More info about class duration"
-                      >
-                        <Info className="w-4 h-4" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent side="top" className="max-w-xs text-sm">
-                      The length of your Pilates classes. These are instructor-led video sessions.
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <span className="text-xs text-gray-500 mb-1">(minutes)</span>
-                <NumberSelector
-                  value={preferences.classDuration}
-                  onChange={(value) => updatePreference('classDuration', value)}
-                  min={10}
-                  max={180}
-                  step={5}
-                />
-
-              </div>
-            </div>
-          </div>
-
-
-          {/* Workout vs Class Distribution */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-gray-900">Workout vs Class Distribution</h3>
-            <div className="bg-brand-light-nude rounded-lg p-3">
-              <div className="text-sm font-medium text-gray-700 mb-2">Distribution:</div>
-              <div className="flex justify-between text-sm">
-                <span className="text-blue-600">
-                  {breakdown.classes}% Classes
-                </span>
-                <span className="text-green-600">
-                  {breakdown.workouts}% Workouts
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1 text-center">
-                This will be used to balance your plan
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium text-gray-700">
-                  Balance between workouts and classes
-                </Label>
-                <div className="mt-2">
-                  <Slider
-                    value={[preferences.workoutClassRatio]}
-                    onValueChange={(value) => updatePreference('workoutClassRatio', value[0] ?? 50)}
-                    max={100}
-                    min={0}
-                    step={10}
-                    className="w-full"
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>More Classes</span>
-                  <span>More Workouts</span>
-                </div>
-              </div>
-
-
-            </div>
-          </div>
-
-          {/* Additional Notes */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-gray-900">Additional Preferences</h3>
-
-            <div>
-              <Label htmlFor="additional-notes" className="text-sm font-medium text-gray-700">
-                Additional notes or preferences (optional)
-              </Label>
-              <Textarea
-                id="additional-notes"
-                placeholder="E.g., focus on core strength, avoid high-impact exercises..."
-                value={preferences.additionalNotes}
-                onChange={(e) => updatePreference('additionalNotes', e.target.value)}
-                className="mt-2 resize-none"
-                rows={3}
+            <div >
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-medium text-gray-700" htmlFor="activities-per-week">
+                  Activities per week
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="cursor-pointer text-gray-400 rounded-full p-1"
+                      tabIndex={0}
+                      aria-label="More info about activities per week"
+                    >
+                      <Info className="w-4 h-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="top" className="max-w-xs text-sm">
+                    How many workouts and classes you&apos;d like to do each week.
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <NumberSelector
+                value={preferences.activitiesPerWeek}
+                onChange={(value) => updatePreference('activitiesPerWeek', value)}
+                min={1}
+                max={7}
+                step={1}
               />
             </div>
           </div>
+        </div>
+        {/* Duration Settings */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-gray-900">Duration Settings</h3>
 
-          {/* 
-          ADD NEW QUESTIONS HERE
-          Example:
-          <div className="space-y-3">
-            <h3 className="font-semibold text-gray-900">Preferred Days</h3>
-            <div>
-              <Label className="text-sm font-medium text-gray-700">
-                Which days work best for you?
-              </Label>
-              Add your UI component here
+          <div className="space-y-3 flex justify-between">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="workout-duration" className="text-sm font-medium text-gray-700">
+                  Workout Duration
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="cursor-pointer text-gray-400 rounded-full p-1"
+                      tabIndex={0}
+                      aria-label="More info about workout duration"
+                    >
+                      <Info className="w-4 h-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="top" className="max-w-xs text-sm">
+                    These are self-guided sessions (strength training, cardio, etc.) you&apos;ll do at home or the gym.
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <span className="text-xs text-gray-500  mb-1">(minutes)</span>
+              <NumberSelector
+                value={preferences.workoutDuration}
+                onChange={(value) => updatePreference('workoutDuration', value)}
+                min={10}
+                max={180}
+                step={5}
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="class-duration" className="text-sm font-medium text-gray-700">
+                  Class Duration
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="cursor-pointer text-gray-400 rounded-full p-1"
+                      tabIndex={0}
+                      aria-label="More info about class duration"
+                    >
+                      <Info className="w-4 h-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="top" className="max-w-xs text-sm">
+                    The length of your Pilates classes. These are instructor-led video sessions.
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <span className="text-xs text-gray-500 mb-1">(minutes)</span>
+              <NumberSelector
+                value={preferences.classDuration}
+                onChange={(value) => updatePreference('classDuration', value)}
+                min={10}
+                max={180}
+                step={5}
+              />
+
             </div>
           </div>
-          */}
         </div>
 
-        <DialogFooter className="gap-2 sm:justify-center flex-row ">
+
+        {/* Workout vs Class Distribution */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-gray-900">Workout vs Class Distribution</h3>
+          <div className="bg-brand-light-nude rounded-lg p-3">
+            <div className="text-sm font-medium text-gray-700 mb-2">Distribution:</div>
+            <div className="flex justify-between text-sm">
+              <span className="text-blue-600">
+                {breakdown.classes}% Classes
+              </span>
+              <span className="text-green-600">
+                {breakdown.workouts}% Workouts
+              </span>
+            </div>
+            <div className="text-xs text-gray-500 mt-1 text-center">
+              This will be used to balance your plan
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                Balance between workouts and classes
+              </Label>
+              <div className="mt-2">
+                <Slider
+                  value={[preferences.workoutClassRatio]}
+                  onValueChange={(value) => updatePreference('workoutClassRatio', value[0] ?? 50)}
+                  max={100}
+                  min={0}
+                  step={10}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>More Classes</span>
+                <span>More Workouts</span>
+              </div>
+            </div>
+
+
+          </div>
+        </div>
+
+        {/* Additional Notes */}
+        <div className="space-y-3">
+          <h3 className="font-semibold text-gray-900">Additional Preferences</h3>
+
+          <div>
+            <Label htmlFor="additional-notes" className="text-sm font-medium text-gray-700">
+              Additional notes or preferences (optional)
+            </Label>
+            <Textarea
+              id="additional-notes"
+              placeholder="E.g., focus on core strength, avoid high-impact exercises..."
+              value={preferences.additionalNotes}
+              onChange={(e) => updatePreference('additionalNotes', e.target.value)}
+              className="mt-2 resize-none"
+              rows={3}
+            />
+          </div>
+        </div>
+
+        {/* 
+      ADD NEW QUESTIONS HERE
+      Example:
+      <div className="space-y-3">
+        <h3 className="font-semibold text-gray-900">Preferred Days</h3>
+        <div>
+          <Label className="text-sm font-medium text-gray-700">
+            Which days work best for you?
+          </Label>
+          Add your UI component here
+        </div>
+      </div>
+      */}
+      </div>
+
+      <DialogFooter className="gap-2 sm:justify-center">
+        <div className="flex gap-2 w-full">
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
-            type="button"
-            disabled={isLoading}
+            onClick={onPrevious}
+            disabled={isSubmitting}
             className="w-1/2"
           >
-            Cancel
+            Previous
           </Button>
           <Button
             onClick={handleConfirm}
-            type="button"
-            disabled={isLoading}
-            className=" w-1/2"
+            disabled={isSubmitting}
+            className="w-1/2"
           >
-            {isLoading ? "Generating..." : "Generate Plan"}
+            {isSubmitting ? "Generating..." : "Generate Plan"}
           </Button>
-        </DialogFooter>
-      </DialogContent >
-    </Dialog >
+        </div>
+      </DialogFooter>
+    </div>
   );
 };
 
-export default GeneratePlanDialog; 
+export default GeneratePlanForm; 

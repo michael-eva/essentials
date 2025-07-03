@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { GENDER } from "@/app/_constants/gender";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import type { BasicInfoField } from "../../dashboard/MultiStepGeneratePlanDialog";
+import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
 
 export default function BasicQuestionsForm({
@@ -18,7 +18,7 @@ export default function BasicQuestionsForm({
   onNext,
   onPrevious
 }: {
-  missingFields?: BasicInfoField[];
+  missingFields?: MissingFieldsGrouped;
   isSubmitting?: boolean;
   onNext: () => void;
   onPrevious: () => void;
@@ -35,13 +35,17 @@ export default function BasicQuestionsForm({
     }
   });
 
+  // Get basic missing fields - much simpler!
+  const basicMissingFields = missingFields?.basic || [];
+  const hasMissingFields = basicMissingFields.length > 0;
+
   // Create dynamic schema based on missingFields
   const createSchema = () => {
     const schemaFields: Record<string, any> = {};
 
     // Helper function to check if field is required
     const isRequired = (fieldName: string) => {
-      return !missingFields || missingFields.includes(fieldName as BasicInfoField);
+      return hasMissingFields && basicMissingFields.includes(fieldName);
     };
 
     // Name field
@@ -114,7 +118,7 @@ export default function BasicQuestionsForm({
   };
 
   // If no missing fields for basic info, show a message
-  if (missingFields && missingFields.length === 0) {
+  if (!hasMissingFields) {
     return (
       <div className="space-y-6">
         <div>
@@ -153,16 +157,11 @@ export default function BasicQuestionsForm({
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-        <p className="text-sm text-gray-500">
-          {missingFields && missingFields.length > 0
-            ? `Please complete the following information: ${missingFields.join(', ')}`
-            : "Tell us a bit about yourself to personalize your experience"
-          }
-        </p>
+        <p className="text-sm text-gray-500">Tell us a bit about yourself to personalise your experience</p>
       </div>
 
       <div className="space-y-4">
-        {(!missingFields || missingFields.includes('name')) && (
+        {basicMissingFields.includes('name') && (
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
               What is your name?
@@ -180,7 +179,7 @@ export default function BasicQuestionsForm({
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('age')) && (
+        {basicMissingFields.includes('age') && (
           <div>
             <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
               What is your age?
@@ -198,7 +197,7 @@ export default function BasicQuestionsForm({
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('height')) && (
+        {basicMissingFields.includes('height') && (
           <div>
             <label htmlFor="height" className="block text-sm font-medium text-gray-700 mb-2">
               What is your height? (cm)
@@ -216,7 +215,7 @@ export default function BasicQuestionsForm({
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('weight')) && (
+        {basicMissingFields.includes('weight') && (
           <div>
             <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-2">
               What is your weight? (kg)
@@ -234,7 +233,7 @@ export default function BasicQuestionsForm({
           </div>
         )}
 
-        {(!missingFields || missingFields.includes('gender')) && (
+        {basicMissingFields.includes('gender') && (
           <div>
             <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
               What is your gender?
