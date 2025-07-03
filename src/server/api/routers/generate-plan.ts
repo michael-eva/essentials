@@ -443,9 +443,9 @@ export const workoutPlanRouter = createTRPCRouter({
 
       // Insert the plan with better date parsing error handling
       try {
-        // morph the plan into the type epxected by the Funtion
+        // morph the plan into the type expected by the Function
 
-        const typedPLan = {
+        const typedPlan = {
           ...generatedPlan.plan,
           id: uuidv4(),
           savedAt: new Date(),
@@ -456,7 +456,7 @@ export const workoutPlanRouter = createTRPCRouter({
           userId: ctx.userId,
         };
 
-        const plan = await insertWorkoutPlan(typedPLan);
+        const plan = await insertWorkoutPlan(typedPlan);
         console.log("💾 Plan inserted into database:", { planId: plan.id });
 
         console.log("🏋️ Processing workouts");
@@ -480,7 +480,6 @@ export const workoutPlanRouter = createTRPCRouter({
               planId: plan.id,
               weekNumber: schedule.weekNumber,
               workoutId: schedule.workoutId,
-              userId: ctx.userId,
             };
           },
         );

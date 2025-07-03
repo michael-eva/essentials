@@ -177,6 +177,16 @@ export async function insertWorkouts(
     isBooked: boolean;
     userId: string;
     classId?: string;
+    activityType?: (typeof activityTypeEnum.enumValues)[number] | null;
+    exercises?: Array<{
+      id: string;
+      name: string;
+      sets: Array<{
+        id: string;
+        reps: number;
+        weight: number;
+      }>;
+    }> | null;
   }>,
 ) {
   const result = await db.insert(workout).values(workouts).returning();

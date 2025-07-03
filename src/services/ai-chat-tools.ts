@@ -67,7 +67,6 @@ async function InsertAiWorkoutPlan({
         planId: plan.id,
         weekNumber: schedule.weekNumber,
         workoutId: schedule.workoutId,
-        userId: userId,
       };
     },
   );

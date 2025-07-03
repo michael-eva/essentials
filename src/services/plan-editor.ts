@@ -85,7 +85,10 @@ Releveant context about the user, that you should use to generate the workout pl
 Generate a comprehensive workout plan for the user that takes into account their fitness level, goals, health considerations, and preferences.
 
 IMPORTANT: 
-1. Each workout MUST have a unique 'id' field (UUID format). No two workouts should have the same ID.
+1. Each workout MUST have a unique 'id' field (UUID format). No two workouts should have the same ID. IMPORTANT: When creating class-based workouts (type 'class'), you should:
+   - Generate a NEW unique UUID for the workout 'id' field
+   - Set the 'classId' field to reference the existing Pilates class ID from the available classes
+   - Do NOT reuse the existing class ID as the workout ID
 2. Each weekly schedule should reference the exact workout ID from the workouts array.
 
 Make sure the plan is realistic, progressive, and aligned with the user's context.
