@@ -5,5 +5,5 @@ export const STEPS = [
   "health-considerations",
   "goals",
   "motivation",
-  "workout-timing",
+  // "workout-timing",
 ] as const;

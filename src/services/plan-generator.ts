@@ -53,7 +53,6 @@ Relevant context about the user, that you should use to generate the workout pla
 - Fitness Level: ${context.profile.fitnessLevel ?? "Not specified"}
 - Goals: ${context.profile.fitnessGoals?.join(", ") ?? "Not specified"}
 - Workout Frequency (preference for how many workouts to assign to each week): ${context.profile.exerciseFrequency ?? "Not specified"}
-- Session Length (per session): ${context.profile.sessionLength ?? "Not specified"}
 - Pilates Experience: ${context.profile.pilatesExperience ? "Yes" : "No"}
 - Studio Frequency (max number of workouts of type "class"  - which is derived from the available Pilates classes - to assign to each week): ${context.profile.studioFrequency ?? "Not specified"}
 - Session Preference: ${context.profile.sessionPreference ?? "Not specified"}

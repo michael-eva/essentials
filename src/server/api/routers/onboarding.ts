@@ -11,11 +11,11 @@ export const onboardingRouter = createTRPCRouter({
   postBasicQuestions: protectedProcedure
     .input(
       z.object({
-        name: z.string().nullable(),
-        age: z.number().nullable(),
-        height: z.number().nullable(),
-        weight: z.number().nullable(),
-        gender: z.string().nullable(),
+        name: z.string().nullable().optional(),
+        age: z.number().nullable().optional(),
+        height: z.number().nullable().optional(),
+        weight: z.number().nullable().optional(),
+        gender: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -35,11 +35,11 @@ export const onboardingRouter = createTRPCRouter({
   postFitnessBackground: protectedProcedure
     .input(
       z.object({
-        fitnessLevel: z.string().nullable(),
-        exercises: z.array(z.string()),
+        fitnessLevel: z.string().nullable().optional(),
+        exercises: z.array(z.string()).optional(),
         otherExercises: z.array(z.string()).optional().nullable(),
-        exerciseFrequency: z.string().nullable(),
-        sessionLength: z.string().nullable(),
+        exerciseFrequency: z.string().nullable().optional(),
+        sessionLength: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -65,13 +65,13 @@ export const onboardingRouter = createTRPCRouter({
   postHealthConsiderations: protectedProcedure
     .input(
       z.object({
-        injuries: z.boolean().nullable(),
+        injuries: z.boolean().nullable().optional(),
         injuriesDetails: z.string().optional().nullable(),
-        recentSurgery: z.boolean().nullable(),
+        recentSurgery: z.boolean().nullable().optional(),
         surgeryDetails: z.string().optional().nullable(),
-        chronicConditions: z.array(z.string()),
+        chronicConditions: z.array(z.string()).optional().nullable(),
         otherHealthConditions: z.array(z.string()).optional().nullable(),
-        pregnancy: z.string().nullable(),
+        pregnancy: z.string().nullable().optional(),
         pregnancyConsultedDoctor: z.boolean().optional().nullable(),
         pregnancyConsultedDoctorDetails: z.string().optional().nullable(),
       }),
@@ -107,8 +107,8 @@ export const onboardingRouter = createTRPCRouter({
   postFitnessGoals: protectedProcedure
     .input(
       z.object({
-        fitnessGoals: z.array(z.string()),
-        goalTimeline: z.string().nullable(),
+        fitnessGoals: z.array(z.string()).optional(),
+        goalTimeline: z.string().nullable().optional(),
         specificGoals: z.string().optional(),
       }),
     )
@@ -127,12 +127,12 @@ export const onboardingRouter = createTRPCRouter({
   postPilatesExperience: protectedProcedure
     .input(
       z.object({
-        pilatesExperience: z.boolean().nullable(),
+        pilatesExperience: z.boolean().nullable().optional(),
         pilatesDuration: z.string().optional().nullable(),
-        studioFrequency: z.string().nullable(),
-        sessionPreference: z.string().nullable(),
-        apparatusPreference: z.array(z.string()),
-        customApparatus: z.array(z.string()),
+        studioFrequency: z.string().nullable().optional(),
+        sessionPreference: z.string().nullable().optional(),
+        apparatusPreference: z.array(z.string()).optional(),
+        customApparatus: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -193,9 +193,7 @@ export const onboardingRouter = createTRPCRouter({
     .input(
       z.object({
         preferredWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
-        avoidedWorkoutTimes: z
-          .array(z.enum(workoutTimesEnum.enumValues))
-          .optional(),
+        avoidedWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
         weekendWorkoutTimes: z.enum(weekendTimesEnum.enumValues),
       }),
     )
@@ -216,8 +214,8 @@ export const onboardingRouter = createTRPCRouter({
     }),
   checkOnboardingCompletion: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
-    const isCompleted = await checkOnboardingCompletion(userId);
-    return isCompleted;
+    const result = await checkOnboardingCompletion(userId);
+    return result;
   }),
   getOnboardingData: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;

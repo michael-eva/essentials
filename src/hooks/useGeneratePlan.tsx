@@ -1,24 +1,28 @@
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { useState } from "react";
-import { OnboardingRequiredDialog } from "@/components/onboarding/OnboardingRequiredDialog";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
+import MultiStepGeneratePlanDialog from "@/app/_components/dashboard/MultiStepGeneratePlanDialog";
+
+interface PlanPreferences {
+  workoutDuration: number;
+  classDuration: number;
+  workoutClassRatio: number;
+  activitiesPerWeek: number;
+  additionalNotes: string;
+}
 
 export default function useGeneratePlan({ redirectToPlan = true } = {}) {
   const router = useRouter();
   const utils = api.useUtils();
-  const [showOnboardingDialog, setShowOnboardingDialog] = useState(false);
+  const [showGeneratePlanDialog, setShowGeneratePlanDialog] = useState(false);
 
   const generatePlanMutation = api.workoutPlan.generatePlan.useMutation({
     onError: (error) => {
-      if (error.message === "Onboarding is not completed") {
-        setShowOnboardingDialog(true);
-      } else {
-        toast.error("Failed to generate plan", {
-          description: error.message,
-        });
-      }
+      toast.error("Failed to generate plan", {
+        description: error.message,
+      });
     },
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
@@ -44,17 +48,45 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
     );
   };
 
+  const handleGeneratePlan = () => {
+    setShowGeneratePlanDialog(true);
+  };
+
+  const handleConfirmGeneratePlan = (preferences: PlanPreferences) => {
+    const { workoutDuration, classDuration, workoutClassRatio, activitiesPerWeek, additionalNotes } = preferences;
+
+    // Build a comprehensive prompt based on user preferences
+    let prompt = `For every workout of type 'workout', set the duration to ${workoutDuration} minutes. For every workout of type 'class', set the duration to ${classDuration} minutes.`;
+
+    // Add activities per week preference
+    prompt += ` The plan should have approximately ${activitiesPerWeek} activities per week.`;
+
+    // Add distribution preference
+    const workoutPercentage = workoutClassRatio;
+    const classPercentage = 100 - workoutClassRatio;
+    prompt += ` The plan should have approximately ${workoutPercentage}% workouts and ${classPercentage}% classes.`;
+
+    // Add additional notes if provided
+    if (additionalNotes.trim()) {
+      prompt += ` Additional preferences: ${additionalNotes}`;
+    }
+
+    generatePlanMutation.mutate({ prompt });
+    setShowGeneratePlanDialog(false);
+  };
+
   return {
-    generatePlan: generatePlanMutation.mutate,
+    generatePlan: handleGeneratePlan,
     isLoading: generatePlanMutation.isPending,
     error: generatePlanMutation.error,
     LoadingScreen,
-    OnboardingDialog: (
-      <OnboardingRequiredDialog
-        open={showOnboardingDialog}
-        onOpenChange={setShowOnboardingDialog}
+    GeneratePlanDialog: (
+      <MultiStepGeneratePlanDialog
+        open={showGeneratePlanDialog}
+        onOpenChange={setShowGeneratePlanDialog}
+        onConfirm={handleConfirmGeneratePlan}
+        isLoading={generatePlanMutation.isPending}
       />
     ),
   };
 }
-

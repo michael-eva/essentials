@@ -60,7 +60,7 @@ export default function Dashboard() {
         void utils.workoutPlan.getWorkoutsToLog.invalidate();
       },
     });
-  const { generatePlan, OnboardingDialog, isLoading, LoadingScreen } = useGeneratePlan();
+  const { generatePlan, isLoading, LoadingScreen, GeneratePlanDialog } = useGeneratePlan();
 
   const [selectedWorkout, setSelectedWorkout] = useState<
     (typeof pastWorkoutsData.workouts)[0] | null
@@ -142,7 +142,8 @@ export default function Dashboard() {
   };
 
   const handleGeneratePlan = () => {
-    generatePlan({});
+    console.log("generate plan");
+    generatePlan();
   };
 
   const handleUpcomingWorkoutClick = (workout: Workout) => {
@@ -154,7 +155,7 @@ export default function Dashboard() {
   }
   return (
     <div className="space-y-6">
-      {OnboardingDialog}
+      {GeneratePlanDialog}
       <LoadingScreen />
       <DefaultBox
         title="Progress Tracking"

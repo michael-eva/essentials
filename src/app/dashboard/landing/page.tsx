@@ -6,10 +6,11 @@ import useGeneratePlan from "@/hooks/useGeneratePlan";
 
 export default function LandingPage() {
   const router = useRouter();
-  const { generatePlan, isLoading, LoadingScreen } = useGeneratePlan();
+  const { generatePlan, isLoading, LoadingScreen, GeneratePlanDialog } = useGeneratePlan();
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-3xl">
+      {GeneratePlanDialog}
       <div className="space-y-8 text-center">
         <div className="space-y-4">
           <div className="flex justify-center">
@@ -52,7 +53,7 @@ export default function LandingPage() {
             className="group relative overflow-hidden"
             disabled={isLoading}
             onClick={() => {
-              void generatePlan({});
+              void generatePlan();
             }}
           >
             <span className="relative z-10 flex items-center gap-2">

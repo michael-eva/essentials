@@ -51,7 +51,7 @@ export function AIInteractionSection() {
   // Get chat history
   const { data: chatHistory, isLoading: isLoadingHistory } = api.myPt.getChatHistory.useQuery(
     { limit: 50 },
-    { enabled: trainerInfo?.isOnboardingComplete }
+    // { enabled: trainerInfo?.isOnboardingComplete }
   );
 
   // Debug: Log tool calls for assistant messages
@@ -73,14 +73,14 @@ export function AIInteractionSection() {
         timestamp: new Date(msg.createdAt),
         toolCalls: msg.toolCalls || undefined,
       }));
-      
+
       // Debug: Log timestamps to see the order
       console.log("📅 Message timestamps:", formattedMessages.map(m => ({
         id: m.id,
         timestamp: m.timestamp.toISOString(),
         role: m.role
       })));
-      
+
       setMessages(formattedMessages);
 
       // Scroll to bottom after loading chat history
@@ -353,23 +353,23 @@ export function AIInteractionSection() {
                       )}
 
                       {/* Tool Response Display */}
-                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && 
-                       message.toolCalls.some(toolCall => toolCall.response) && (
-                        <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
-                          <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
-                          {message.toolCalls.map((toolCall, index) => (
-                            toolCall.response && (
-                              <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
-                                <span className="font-medium">{toolCall.response.name}:</span>
-                                <span className="text-purple-500 ml-1">
-                                  {toolCall.response.content}
-                                </span>
-                              </div>
-                            )
-                          ))}
-                        </div>
-                      )}
-                      
+                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 &&
+                        message.toolCalls.some(toolCall => toolCall.response) && (
+                          <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
+                            <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
+                            {message.toolCalls.map((toolCall, index) => (
+                              toolCall.response && (
+                                <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
+                                  <span className="font-medium">{toolCall.response.name}:</span>
+                                  <span className="text-purple-500 ml-1">
+                                    {toolCall.response.content}
+                                  </span>
+                                </div>
+                              )
+                            ))}
+                          </div>
+                        )}
+
                       <div className="text-sm">{message.content}</div>
                       <div className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString()}
@@ -506,23 +506,23 @@ export function AIInteractionSection() {
                       )}
 
                       {/* Tool Response Display */}
-                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && 
-                       message.toolCalls.some(toolCall => toolCall.response) && (
-                        <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
-                          <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
-                          {message.toolCalls.map((toolCall, index) => (
-                            toolCall.response && (
-                              <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
-                                <span className="font-medium">{toolCall.response.name}:</span>
-                                <span className="text-purple-500 ml-1">
-                                  {toolCall.response.content}
-                                </span>
-                              </div>
-                            )
-                          ))}
-                        </div>
-                      )}
-                      
+                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 &&
+                        message.toolCalls.some(toolCall => toolCall.response) && (
+                          <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
+                            <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
+                            {message.toolCalls.map((toolCall, index) => (
+                              toolCall.response && (
+                                <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
+                                  <span className="font-medium">{toolCall.response.name}:</span>
+                                  <span className="text-purple-500 ml-1">
+                                    {toolCall.response.content}
+                                  </span>
+                                </div>
+                              )
+                            ))}
+                          </div>
+                        )}
+
                       <div className="text-sm">{message.content}</div>
                       <div className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString()}

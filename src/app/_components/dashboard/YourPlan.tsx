@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Trash2, RotateCcw, Edit, Play, Pause, X, Plus } from "lucide-react"
 import { api } from "@/trpc/react"
@@ -12,7 +12,6 @@ import useGeneratePlan from "@/hooks/useGeneratePlan"
 import { motion } from "framer-motion"
 import { ActivePlanSkeleton, PreviousPlansSkeleton } from "./ClassRecommendationsSkeleton"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import DefaultBox from "../global/DefaultBox"
 
 
@@ -24,7 +23,6 @@ export default function ClassRecommendations() {
   const [editedPlanName, setEditedPlanName] = useState("")
   const [editingWeeks, setEditingWeeks] = useState<Set<number>>(new Set())
   const [addClassDialogOpen, setAddClassDialogOpen] = useState(false)
-  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false)
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -83,7 +81,7 @@ export default function ClassRecommendations() {
       void utils.workoutPlan.getPreviousPlans.invalidate();
     },
   });
-  const { generatePlan, OnboardingDialog, isLoading, LoadingScreen } = useGeneratePlan();
+  const { generatePlan, isLoading, LoadingScreen, GeneratePlanDialog } = useGeneratePlan();
   const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
   const handleBookClass = (workoutId: string, name: string) => {
@@ -330,11 +328,12 @@ export default function ClassRecommendations() {
   }
 
   const handleGeneratePlan = () => {
-    generatePlan({});
+    generatePlan();
   };
+
   return (
     <DefaultBox title="Your Personalised Plan" description="Combined classes and supplementary workouts" showViewAll={false}>
-      {OnboardingDialog}
+      {GeneratePlanDialog}
       <LoadingScreen />
       {isLoadingActivePlan ? (
         <ActivePlanSkeleton />
