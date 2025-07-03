@@ -759,3 +759,26 @@ export async function getPilatesClassViaWorkout(
     .where(eq(PilatesVideos.id, workoutResult[0].classId));
   return pilatesClass[0] ?? null;
 }
+
+export async function getWorkoutsByWeek(planId: string, weekNumber: number) {
+  const result = await db
+    .select({
+      schedule: weeklySchedule,
+      workout: workout,
+    })
+    .from(weeklySchedule)
+    .innerJoin(workout, eq(weeklySchedule.workoutId, workout.id))
+    .where(
+      eq(weeklySchedule.planId, planId) &&
+        eq(weeklySchedule.weekNumber, weekNumber),
+    );
+  return result;
+}
+
+export async function getWeeklySchedulesByPlan(planId: string) {
+  const result = await db
+    .select()
+    .from(weeklySchedule)
+    .where(eq(weeklySchedule.planId, planId));
+  return result;
+}

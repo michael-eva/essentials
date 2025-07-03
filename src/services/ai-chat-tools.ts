@@ -12,10 +12,8 @@ import {
   insertWeeklySchedule,
   deleteWorkout,
   deleteWorkoutPlan,
-  getWeeklySchedulesByPlan,
-  getWorkoutsByWeek,
 } from "@/drizzle/src/db/mutations";
-import { getActivePlan } from "@/drizzle/src/db/queries";
+import { getActivePlan, getWeeklySchedulesByPlan, getWorkoutsByWeek } from "@/drizzle/src/db/queries";
 import { generateWorkoutPlanAI } from "./plan-generator";
 import { buildUserContext, type UserContext } from "./context-manager";
 import { v4 as uuidv4 } from "uuid";

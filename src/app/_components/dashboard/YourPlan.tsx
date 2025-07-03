@@ -36,7 +36,7 @@ export default function ClassRecommendations() {
     onConfirm: () => { console.log("confirm") },
     variant: "default"
   })
-  const [planToDeleteId, setPlanToDeleteId] = useState<string | null>(null)
+  
   // Fetch data using tRPC
   const utils = api.useUtils();
   const { data: previousPlans = [], isLoading: isLoadingPreviousPlans } = api.workoutPlan.getPreviousPlans.useQuery()
@@ -127,28 +127,23 @@ export default function ClassRecommendations() {
       }
     })
   }
+  
 
 
   const handleDeletePreviousPlan = (idx: number) => {
     const planToDelete = previousPlans[idx];
     if (!planToDelete?.id) return;
-
-    setPlanToDeleteId(planToDelete.id);
+    console.log("Deleting plan:", planToDelete.id);
     setConfirmationDialog({
       open: true,
       title: "Delete Plan",
       description: "Are you sure you want to delete this plan? This action cannot be undone.",
-      onConfirm: confirmDeletePlan,
+      onConfirm: () => {
+        deletePlan.mutate({ planId: planToDelete.id });
+        setConfirmationDialog({ ...confirmationDialog, open: false });
+      },
       variant: "destructive"
     });
-  }
-
-  const confirmDeletePlan = () => {
-    if (planToDeleteId) {
-      deletePlan.mutate({ planId: planToDeleteId });
-      setConfirmationDialog({ ...confirmationDialog, open: false });
-      setPlanToDeleteId(null);
-    }
   }
 
   const handleStartPlan = () => {
@@ -570,14 +565,7 @@ export default function ClassRecommendations() {
       )}
 
       {/* Dialogs */}
-      <ConfirmationDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Delete Plan"
-        description="Are you sure you want to delete this plan? This action cannot be undone."
-        onConfirm={confirmDeletePlan}
-        variant="destructive"
-      />
+      
 
       <ConfirmationDialog
         open={confirmationDialog.open}

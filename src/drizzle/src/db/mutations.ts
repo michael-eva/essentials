@@ -27,8 +27,9 @@ import type {
   NewAiChatMessages,
   NewAiSystemPrompt,
 } from "./queries";
-import { eq } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
+import { getWeeklySchedulesByPlan } from "./queries";
 
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
@@ -115,6 +116,37 @@ export async function updateWorkoutPlan(
   return updatedPlan;
 }
 export async function deleteWorkoutPlan(planId: string) {
+  // First, get the plan to get the userId
+  const plan = await db
+    .select()
+    .from(workoutPlan)
+    .where(eq(workoutPlan.id, planId));
+
+  if (plan.length === 0) {
+    // Plan not found, nothing to delete
+    return;
+  }
+
+  const userId = plan[0]!.userId;
+
+  // Get all weekly schedules for the plan
+  const weeklySchedules = await getWeeklySchedulesByPlan(planId);
+
+  if (weeklySchedules.length > 0) {
+    const workoutIds = weeklySchedules.map((ws) => ws.workoutId);
+
+    // Delete all workouts associated with the plan and user
+    await db
+      .delete(workout)
+      .where(and(inArray(workout.id, workoutIds), eq(workout.userId, userId)));
+
+    // Delete all weekly schedules for the plan
+    await db
+      .delete(weeklySchedule)
+      .where(eq(weeklySchedule.planId, planId));
+  }
+
+  // Finally, delete the plan itself
   const deletedPlan = await db
     .delete(workoutPlan)
     .where(eq(workoutPlan.id, planId));
@@ -306,27 +338,6 @@ export async function insertWeeklySchedule(data: {
   return result[0];
 }
 
-// Helper function to get weekly schedules for a plan
-export async function getWeeklySchedulesByPlan(planId: string) {
-  const result = await db
-    .select()
-    .from(weeklySchedule)
-    .where(eq(weeklySchedule.planId, planId));
-  return result;
-}
 
-// Helper function to get workouts for a specific week in a plan
-export async function getWorkoutsByWeek(planId: string, weekNumber: number) {
-  const result = await db
-    .select({
-      schedule: weeklySchedule,
-      workout: workout,
-    })
-    .from(weeklySchedule)
-    .innerJoin(workout, eq(weeklySchedule.workoutId, workout.id))
-    .where(
-      eq(weeklySchedule.planId, planId) &&
-        eq(weeklySchedule.weekNumber, weekNumber),
-    );
-  return result;
-}
+
+
