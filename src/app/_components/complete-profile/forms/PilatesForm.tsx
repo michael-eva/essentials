@@ -12,6 +12,22 @@ import { Button } from "@/components/ui/button";
 import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
 
+// Define proper types for the form data
+type PilatesDuration = typeof PILATES_DURATION[number];
+type PilatesSessions = typeof PILATES_SESSIONS[number];
+type PilatesSessionPreference = typeof PILATES_SESSION_PREFERENCE[number];
+type PilatesApparatus = typeof PILATES_APPARATUS[number];
+type CustomPilatesApparatus = typeof CUSTOM_PILATES_APPARATUS[number];
+
+interface PilatesSubmitData {
+  pilatesExperience: boolean | null;
+  pilatesDuration: PilatesDuration | null;
+  studioFrequency: PilatesSessions | null;
+  sessionPreference: PilatesSessionPreference | null;
+  apparatusPreference: PilatesApparatus[];
+  customApparatus: CustomPilatesApparatus[];
+}
+
 export default function PilatesForm({
   missingFields,
   isSubmitting,
@@ -23,17 +39,15 @@ export default function PilatesForm({
   onNext: () => void;
   onPrevious: () => void;
 }) {
-  console.log(missingFields);
-
   const utils = api.useUtils();
   const { mutate: postPilatesExperience } = api.onboarding.postPilatesExperience.useMutation({
     onSuccess: () => {
-      toast.success("Pilates preferences saved successfully");
+      toast.success("Pilates experience saved successfully");
       utils.onboarding.getOnboardingData.invalidate();
       onNext();
     },
     onError: () => {
-      toast.error("Failed to save Pilates preferences");
+      toast.error("Failed to save pilates experience");
     }
   });
 
@@ -41,9 +55,9 @@ export default function PilatesForm({
   const pilatesMissingFields = missingFields?.pilates || [];
   const hasMissingFields = pilatesMissingFields.length > 0;
 
-  // Create dynamic schema based on missing fields
+  // Create dynamic schema based on missingFields
   const createSchema = () => {
-    const schemaFields: Record<string, any> = {};
+    const schemaFields: Record<string, z.ZodTypeAny> = {};
 
     // Helper function to check if field is required
     const isRequired = (fieldName: string) => {
@@ -53,16 +67,19 @@ export default function PilatesForm({
     // Pilates experience field
     if (isRequired('pilatesExperience')) {
       schemaFields.pilatesExperience = z.boolean({
-        required_error: "Please indicate if you have Pilates experience",
+        required_error: "Please select whether you have pilates experience",
       });
     } else {
       schemaFields.pilatesExperience = z.boolean().optional();
     }
 
+    // Pilates duration field (optional)
+    schemaFields.pilatesDuration = z.enum(PILATES_DURATION).optional();
+
     // Studio frequency field
     if (isRequired('studioFrequency')) {
       schemaFields.studioFrequency = z.enum(PILATES_SESSIONS, {
-        required_error: "Please select how often you can attend in-studio sessions",
+        required_error: "Please select your studio frequency",
       });
     } else {
       schemaFields.studioFrequency = z.enum(PILATES_SESSIONS).optional();
@@ -84,30 +101,10 @@ export default function PilatesForm({
       schemaFields.apparatusPreference = z.array(z.string()).optional();
     }
 
-    // Pilates duration field
-    if (isRequired('pilatesDuration')) {
-      schemaFields.pilatesDuration = z.enum(PILATES_DURATION, {
-        required_error: "Please select your Pilates experience duration",
-      });
-    } else {
-      schemaFields.pilatesDuration = z.enum(PILATES_DURATION).optional();
-    }
+    // Custom apparatus field (optional)
+    schemaFields.customApparatus = z.array(z.string()).optional();
 
-    if (isRequired("customApparatus")) {
-      schemaFields.customApparatus = z.array(z.string()).min(1, "Please select at least one custom apparatus");
-    } else {
-      schemaFields.customApparatus = z.array(z.string()).optional();
-    }
-
-    return z.object(schemaFields).refine(
-      (data) => {
-        return data.pilatesExperience ? data.pilatesDuration !== undefined : true;
-      },
-      {
-        message: "Please select your Pilates experience duration",
-        path: ["pilatesDuration"],
-      }
-    );
+    return z.object(schemaFields);
   };
 
   const pilatesSchema = createSchema();
@@ -126,49 +123,61 @@ export default function PilatesForm({
     }
   });
 
-
   const handleApparatusChange = (apparatus: string) => {
     const currentApparatus = watch("apparatusPreference") || [];
-    const newApparatus = currentApparatus.includes(apparatus)
-      ? currentApparatus.filter((a: string) => a !== apparatus)
-      : [...currentApparatus, apparatus];
-    setValue("apparatusPreference", newApparatus);
+    if (Array.isArray(currentApparatus)) {
+      const newApparatus = currentApparatus.includes(apparatus)
+        ? currentApparatus.filter((a: string) => a !== apparatus)
+        : [...currentApparatus, apparatus];
+      setValue("apparatusPreference", newApparatus);
+    }
   };
 
   const handleCustomApparatusChange = (apparatus: string) => {
     const currentApparatus = watch("customApparatus") || [];
-    const newApparatus = currentApparatus.includes(apparatus)
-      ? currentApparatus.filter((a: string) => a !== apparatus)
-      : [...currentApparatus, apparatus];
-    setValue("customApparatus", newApparatus);
+    if (Array.isArray(currentApparatus)) {
+      const newApparatus = currentApparatus.includes(apparatus)
+        ? currentApparatus.filter((a: string) => a !== apparatus)
+        : [...currentApparatus, apparatus];
+      setValue("customApparatus", newApparatus);
+    }
   };
 
   const onSubmit = async (data: PilatesFormData) => {
     // Build submit data with proper types, only including fields that have values
-    const submitData: any = {};
+    const submitData: Partial<PilatesSubmitData> = {};
 
     if (data.pilatesExperience !== undefined) {
       submitData.pilatesExperience = data.pilatesExperience;
     }
+    if (data.pilatesDuration !== undefined) {
+      submitData.pilatesDuration = data.pilatesDuration as PilatesDuration;
+    }
     if (data.studioFrequency !== undefined) {
-      submitData.studioFrequency = data.studioFrequency;
+      submitData.studioFrequency = data.studioFrequency as PilatesSessions;
     }
     if (data.sessionPreference !== undefined) {
-      submitData.sessionPreference = data.sessionPreference;
+      submitData.sessionPreference = data.sessionPreference as PilatesSessionPreference;
     }
-    if (data.apparatusPreference && data.apparatusPreference.length > 0) {
-      submitData.apparatusPreference = data.apparatusPreference;
+    if (data.apparatusPreference && Array.isArray(data.apparatusPreference) && data.apparatusPreference.length > 0) {
+      submitData.apparatusPreference = data.apparatusPreference as PilatesApparatus[];
     }
-    if (data.customApparatus && data.customApparatus.length > 0) {
-      submitData.customApparatus = data.customApparatus;
-    }
-    if (data.pilatesDuration !== undefined) {
-      submitData.pilatesDuration = data.pilatesDuration;
+    if (data.customApparatus && Array.isArray(data.customApparatus) && data.customApparatus.length > 0) {
+      submitData.customApparatus = data.customApparatus as CustomPilatesApparatus[];
     }
 
     // Only submit if there's actual data
     if (Object.keys(submitData).length > 0) {
-      postPilatesExperience(submitData);
+      // Ensure all required fields are present for the API
+      const apiData: PilatesSubmitData = {
+        pilatesExperience: submitData.pilatesExperience ?? null,
+        pilatesDuration: submitData.pilatesDuration ?? null,
+        studioFrequency: submitData.studioFrequency ?? null,
+        sessionPreference: submitData.sessionPreference ?? null,
+        apparatusPreference: submitData.apparatusPreference || [],
+        customApparatus: submitData.customApparatus || [],
+      };
+      postPilatesExperience(apiData);
     } else {
       // If no data to submit, just proceed to next step
       onNext();
@@ -185,11 +194,11 @@ export default function PilatesForm({
       <div className="space-y-6">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Pilates Experience</h3>
-          <p className="text-sm text-gray-500">Your Pilates experience information is already complete!</p>
+          <p className="text-sm text-gray-500">Your pilates experience information is already complete!</p>
         </div>
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <p className="text-green-800 text-sm">
-            All required Pilates experience information has been provided. You can proceed to the next step.
+            All required pilates experience information has been provided. You can proceed to the next step.
           </p>
         </div>
         <DialogFooter className="gap-2 sm:justify-center">
@@ -219,17 +228,17 @@ export default function PilatesForm({
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900">Pilates Experience</h3>
-        <p className="text-sm text-gray-500">Tell us about your Pilates experience and preferences</p>
+        <p className="text-sm text-gray-500">Tell us about your pilates experience and preferences</p>
       </div>
 
       <div className="space-y-4">
         {pilatesMissingFields.includes('pilatesExperience') && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Have you practiced Pilates before?
+            <label className="block text-sm font-medium text-gray-700 mb-4">
+              Do you have any pilates experience?
             </label>
             {errors.pilatesExperience && (
-              <p className="mt-1 text-sm text-red-600">{errors.pilatesExperience.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.pilatesExperience?.message === 'string' ? errors.pilatesExperience.message : 'Invalid input'}</p>
             )}
             <Controller
               name="pilatesExperience"
@@ -237,16 +246,15 @@ export default function PilatesForm({
               render={({ field }) => (
                 <RadioGroup
                   onValueChange={(value) => field.onChange(value === "true")}
-                  value={field.value !== undefined ? field.value.toString() : undefined}
-                  className="flex space-x-4 mt-2"
+                  value={field.value !== null && field.value !== undefined ? String(field.value) : ""}
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="true" id="pilates-yes" />
-                    <label htmlFor="pilates-yes" className="text-sm">Yes</label>
+                    <label htmlFor="pilates-yes" className="text-sm font-medium text-gray-700">Yes</label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="false" id="pilates-no" />
-                    <label htmlFor="pilates-no" className="text-sm">No</label>
+                    <label htmlFor="pilates-no" className="text-sm font-medium text-gray-700">No</label>
                   </div>
                 </RadioGroup>
               )}
@@ -254,22 +262,22 @@ export default function PilatesForm({
           </div>
         )}
 
-        {(watch("pilatesExperience") === true || pilatesMissingFields.includes('pilatesDuration')) && (
+        {watch("pilatesExperience") && (
           <div>
-            <label htmlFor="pilates-duration" className="block text-sm font-medium text-gray-700">
-              How long have you been practicing Pilates?
+            <label htmlFor="pilates-duration" className="block text-sm font-medium text-gray-700 mb-2">
+              How long have you been practicing pilates?
             </label>
             {errors.pilatesDuration && (
-              <p className="mt-1 text-sm text-red-600">{errors.pilatesDuration.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.pilatesDuration?.message === 'string' ? errors.pilatesDuration.message : 'Invalid input'}</p>
             )}
             <Controller
               name="pilatesDuration"
               control={control}
               render={({ field }) => (
                 <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
+                  onValueChange={(value: PilatesDuration) => field.onChange(value)}
+                  value={field.value || ""}
+                  defaultValue={field.value || ""}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select duration" />
@@ -287,20 +295,20 @@ export default function PilatesForm({
 
         {pilatesMissingFields.includes('studioFrequency') && (
           <div>
-            <label htmlFor="studio-frequency" className="mb-2 block text-sm font-medium text-gray-700">
-              How often can you attend in-studio Pilates sessions?
+            <label htmlFor="studio-frequency" className="block text-sm font-medium text-gray-700 mb-2">
+              How often do you visit a pilates studio?
             </label>
             {errors.studioFrequency && (
-              <p className="mt-1 text-sm text-red-600">{errors.studioFrequency.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.studioFrequency?.message === 'string' ? errors.studioFrequency.message : 'Invalid input'}</p>
             )}
             <Controller
               name="studioFrequency"
               control={control}
               render={({ field }) => (
                 <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
+                  onValueChange={(value: PilatesSessions) => field.onChange(value)}
+                  value={field.value || ""}
+                  defaultValue={field.value || ""}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select frequency" />
@@ -318,20 +326,20 @@ export default function PilatesForm({
 
         {pilatesMissingFields.includes('sessionPreference') && (
           <div>
-            <label htmlFor="session-preference" className="mb-2 block text-sm font-medium text-gray-700">
-              Do you prefer group classes or private sessions?
+            <label htmlFor="session-preference" className="block text-sm font-medium text-gray-700 mb-2">
+              What type of pilates sessions do you prefer?
             </label>
             {errors.sessionPreference && (
-              <p className="mt-1 text-sm text-red-600">{errors.sessionPreference.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.sessionPreference?.message === 'string' ? errors.sessionPreference.message : 'Invalid input'}</p>
             )}
             <Controller
               name="sessionPreference"
               control={control}
               render={({ field }) => (
                 <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
+                  onValueChange={(value: PilatesSessionPreference) => field.onChange(value)}
+                  value={field.value || ""}
+                  defaultValue={field.value || ""}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select preference" />
@@ -350,10 +358,10 @@ export default function PilatesForm({
         {pilatesMissingFields.includes('apparatusPreference') && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-4">
-              Are there specific Pilates apparatus you enjoy using or want to learn?
+              What pilates apparatus do you prefer?
             </label>
             {errors.apparatusPreference && (
-              <p className="mb-2 text-sm text-red-600">{errors.apparatusPreference.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.apparatusPreference?.message === 'string' ? errors.apparatusPreference.message : 'Invalid input'}</p>
             )}
             <Controller
               name="apparatusPreference"
@@ -369,27 +377,25 @@ export default function PilatesForm({
           </div>
         )}
 
-        {pilatesMissingFields.includes('customApparatus') && (
-          <div className="mt-8">
-            <label className="block text-sm font-medium text-gray-700 mb-4">
-              Do you use any of the following at home?
-            </label>
-            {errors.customApparatus && (
-              <p className="mb-2 text-sm text-red-600">{errors.customApparatus?.message?.toString()}</p>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-4">
+            Custom pilates apparatus (optional)
+          </label>
+          {errors.customApparatus && (
+            <p className="mb-2 text-sm text-red-600">{typeof errors.customApparatus?.message === 'string' ? errors.customApparatus.message : 'Invalid input'}</p>
+          )}
+          <Controller
+            name="customApparatus"
+            control={control}
+            render={({ field }) => (
+              <MultiSelectPills
+                options={CUSTOM_PILATES_APPARATUS}
+                selectedValues={field.value || []}
+                onChange={handleCustomApparatusChange}
+              />
             )}
-            <Controller
-              name="customApparatus"
-              control={control}
-              render={({ field }) => (
-                <MultiSelectPills
-                  options={CUSTOM_PILATES_APPARATUS}
-                  selectedValues={field.value || []}
-                  onChange={handleCustomApparatusChange}
-                />
-              )}
-            />
-          </div>
-        )}
+          />
+        </div>
       </div>
 
       <DialogFooter className="gap-2 sm:justify-center">

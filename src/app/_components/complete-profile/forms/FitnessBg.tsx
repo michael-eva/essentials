@@ -12,6 +12,19 @@ import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
 
+// Define proper types for the form data
+type FitnessLevel = typeof FITNESS_LEVEL[number];
+type ExerciseFrequency = typeof EXERCISE_FREQUENCY[number];
+type SessionLength = typeof SESSION_LENGTH[number];
+
+interface FitnessBackgroundSubmitData {
+  fitnessLevel: FitnessLevel | null;
+  exercises: string[];
+  otherExercises: string[] | null;
+  exerciseFrequency: ExerciseFrequency | null;
+  sessionLength: SessionLength | null;
+}
+
 export default function FitnessBackgroundForm({
   missingFields,
   isSubmitting,
@@ -41,7 +54,7 @@ export default function FitnessBackgroundForm({
 
   // Create dynamic schema based on missingFields
   const createSchema = () => {
-    const schemaFields: Record<string, any> = {};
+    const schemaFields: Record<string, z.ZodTypeAny> = {};
 
     // Helper function to check if field is required
     const isRequired = (fieldName: string) => {
@@ -63,6 +76,9 @@ export default function FitnessBackgroundForm({
     } else {
       schemaFields.exercises = z.array(z.string()).optional();
     }
+
+    // Custom exercise field (for "Other" option)
+    schemaFields.customExercise = z.string().optional();
 
     // Exercise frequency field
     if (isRequired('exerciseFrequency')) {
@@ -94,6 +110,7 @@ export default function FitnessBackgroundForm({
     defaultValues: {
       fitnessLevel: undefined,
       exercises: [],
+      customExercise: undefined,
       exerciseFrequency: undefined,
       sessionLength: undefined,
     }
@@ -101,32 +118,46 @@ export default function FitnessBackgroundForm({
 
   const handleExerciseChange = (exercise: string) => {
     const currentExercises = watch("exercises") || [];
-    const newExercises = currentExercises.includes(exercise)
-      ? currentExercises.filter((e: string) => e !== exercise)
-      : [...currentExercises, exercise];
-    setValue("exercises", newExercises);
+    if (Array.isArray(currentExercises)) {
+      const newExercises = currentExercises.includes(exercise)
+        ? currentExercises.filter((e: string) => e !== exercise)
+        : [...currentExercises, exercise];
+      setValue("exercises", newExercises);
+    }
   };
 
   const onSubmit = async (data: FitnessBackgroundFormData) => {
     // Build submit data with proper types, only including fields that have values
-    const submitData: any = {};
+    const submitData: Partial<FitnessBackgroundSubmitData> = {};
 
     if (data.fitnessLevel !== undefined) {
-      submitData.fitnessLevel = data.fitnessLevel;
+      submitData.fitnessLevel = data.fitnessLevel as FitnessLevel;
     }
-    if (data.exercises && data.exercises.length > 0) {
-      submitData.exercises = data.exercises;
+    if (data.exercises && Array.isArray(data.exercises) && data.exercises.length > 0) {
+      submitData.exercises = data.exercises as string[];
+      // Handle "Other" exercises
+      if (data.exercises.includes("Other") && data.customExercise) {
+        submitData.otherExercises = [data.customExercise];
+      }
     }
     if (data.exerciseFrequency !== undefined) {
-      submitData.exerciseFrequency = data.exerciseFrequency;
+      submitData.exerciseFrequency = data.exerciseFrequency as ExerciseFrequency;
     }
     if (data.sessionLength !== undefined) {
-      submitData.sessionLength = data.sessionLength;
+      submitData.sessionLength = data.sessionLength as SessionLength;
     }
 
     // Only submit if there's actual data
     if (Object.keys(submitData).length > 0) {
-      postFitnessBackground(submitData);
+      // Ensure all required fields are present for the API
+      const apiData: FitnessBackgroundSubmitData = {
+        fitnessLevel: submitData.fitnessLevel || null,
+        exercises: submitData.exercises || [],
+        otherExercises: submitData.otherExercises || null,
+        exerciseFrequency: submitData.exerciseFrequency || null,
+        sessionLength: submitData.sessionLength || null,
+      };
+      postFitnessBackground(apiData);
     } else {
       // If no data to submit, just proceed to next step
       onNext();
@@ -187,16 +218,16 @@ export default function FitnessBackgroundForm({
               What is your current fitness level?
             </label>
             {errors.fitnessLevel && (
-              <p className="mt-1 text-sm text-red-600">{errors.fitnessLevel.message?.toString()}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.fitnessLevel?.message === 'string' ? errors.fitnessLevel.message : 'Invalid input'}</p>
             )}
             <Controller
               name="fitnessLevel"
               control={control}
               render={({ field }) => (
                 <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
+                  onValueChange={(value: FitnessLevel) => field.onChange(value)}
+                  value={field.value || ""}
+                  defaultValue={field.value || ""}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select fitness level" />
@@ -218,7 +249,7 @@ export default function FitnessBackgroundForm({
               What types of exercise do you currently do?
             </label>
             {errors.exercises && (
-              <p className="mb-2 text-sm text-red-600">{errors.exercises.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.exercises?.message === 'string' ? errors.exercises.message : 'Invalid input'}</p>
             )}
             <Controller
               name="exercises"
@@ -233,15 +264,18 @@ export default function FitnessBackgroundForm({
             />
           </div>
         )}
-        {watch("exercises").includes("Other") && (
-          <Input
-            placeholder="Add custom exercise"
-            value={watch("customExercise") ?? ""}
-            onChange={(e) => setValue("customExercise", e.target.value || null)}
-            className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
-            style={{ height: "44px", fontSize: "15px" }}
-          />
-        )}
+        {(() => {
+          const exercises = watch("exercises");
+          return Array.isArray(exercises) && exercises.includes("Other") ? (
+            <Input
+              placeholder="Add custom exercise"
+              value={watch("customExercise") ?? ""}
+              onChange={(e) => setValue("customExercise", e.target.value || undefined)}
+              className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
+              style={{ height: "44px", fontSize: "15px" }}
+            />
+          ) : null;
+        })()}
 
         {fitnessMissingFields.includes('exerciseFrequency') && (
           <div>
@@ -249,16 +283,16 @@ export default function FitnessBackgroundForm({
               How often do you exercise?
             </label>
             {errors.exerciseFrequency && (
-              <p className="mt-1 text-sm text-red-600">{errors.exerciseFrequency.message?.toString()}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.exerciseFrequency?.message === 'string' ? errors.exerciseFrequency.message : 'Invalid input'}</p>
             )}
             <Controller
               name="exerciseFrequency"
               control={control}
               render={({ field }) => (
                 <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
+                  onValueChange={(value: ExerciseFrequency) => field.onChange(value)}
+                  value={field.value || ""}
+                  defaultValue={field.value || ""}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select frequency" />
@@ -280,16 +314,16 @@ export default function FitnessBackgroundForm({
               How long are your typical workout sessions?
             </label>
             {errors.sessionLength && (
-              <p className="mt-1 text-sm text-red-600">{errors.sessionLength.message?.toString()}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.sessionLength?.message === 'string' ? errors.sessionLength.message : 'Invalid input'}</p>
             )}
             <Controller
               name="sessionLength"
               control={control}
               render={({ field }) => (
                 <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
+                  onValueChange={(value: SessionLength) => field.onChange(value)}
+                  value={field.value || ""}
+                  defaultValue={field.value || ""}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select session length" />

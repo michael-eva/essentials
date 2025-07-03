@@ -11,6 +11,17 @@ import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlan
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
+// Define proper types for the form data
+type MotivationFactor = typeof MOTIVATION_FACTORS[number];
+type ProgressTrackingMethod = typeof PROGRESS_TRACKING_METHODS[number];
+
+interface MotivationSubmitData {
+  motivation: MotivationFactor[];
+  otherMotivation: string[] | undefined;
+  progressTracking: ProgressTrackingMethod[];
+  otherProgressTracking: string[] | undefined;
+}
+
 export default function MotivationForm({
   missingFields,
   isSubmitting,
@@ -40,19 +51,22 @@ export default function MotivationForm({
 
   // Create dynamic schema based on missingFields
   const createSchema = () => {
-    const schemaFields: Record<string, any> = {};
+    const schemaFields: Record<string, z.ZodTypeAny> = {};
 
     // Helper function to check if field is required
     const isRequired = (fieldName: string) => {
       return hasMissingFields && motivationMissingFields.includes(fieldName);
     };
 
-    // Motivation field
+    // Motivation factors field
     if (isRequired('motivation')) {
       schemaFields.motivation = z.array(z.string()).min(1, "Please select at least one motivation factor");
     } else {
       schemaFields.motivation = z.array(z.string()).optional();
     }
+
+    // Other motivation field (optional)
+    schemaFields.otherMotivation = z.array(z.string()).optional();
 
     // Progress tracking field
     if (isRequired('progressTracking')) {
@@ -60,6 +74,9 @@ export default function MotivationForm({
     } else {
       schemaFields.progressTracking = z.array(z.string()).optional();
     }
+
+    // Other progress tracking field (optional)
+    schemaFields.otherProgressTracking = z.array(z.string()).optional();
 
     return z.object(schemaFields);
   };
@@ -72,40 +89,62 @@ export default function MotivationForm({
     mode: "onChange",
     defaultValues: {
       motivation: [],
+      otherMotivation: [],
       progressTracking: [],
+      otherProgressTracking: [],
     }
   });
 
-  const handleMotivationChange = (motivation: string) => {
+  const handleMotivationChange = (factor: string) => {
     const currentMotivation = watch("motivation") || [];
-    const newMotivation = currentMotivation.includes(motivation)
-      ? currentMotivation.filter((m: string) => m !== motivation)
-      : [...currentMotivation, motivation];
-    setValue("motivation", newMotivation);
+    if (Array.isArray(currentMotivation)) {
+      const newMotivation = currentMotivation.includes(factor)
+        ? currentMotivation.filter((f: string) => f !== factor)
+        : [...currentMotivation, factor];
+      setValue("motivation", newMotivation);
+    }
   };
 
   const handleProgressTrackingChange = (method: string) => {
-    const currentMethods = watch("progressTracking") || [];
-    const newMethods = currentMethods.includes(method)
-      ? currentMethods.filter((m: string) => m !== method)
-      : [...currentMethods, method];
-    setValue("progressTracking", newMethods);
+    const currentTracking = watch("progressTracking") || [];
+    if (Array.isArray(currentTracking)) {
+      const newTracking = currentTracking.includes(method)
+        ? currentTracking.filter((m: string) => m !== method)
+        : [...currentTracking, method];
+      setValue("progressTracking", newTracking);
+    }
   };
 
   const onSubmit = async (data: MotivationFormData) => {
     // Build submit data with proper types, only including fields that have values
-    const submitData: any = {};
+    const submitData: Partial<MotivationSubmitData> = {};
 
-    if (data.motivation && data.motivation.length > 0) {
-      submitData.motivation = data.motivation;
+    if (data.motivation && Array.isArray(data.motivation) && data.motivation.length > 0) {
+      submitData.motivation = data.motivation as MotivationFactor[];
+      // Handle "Other" motivation
+      if (data.motivation.includes("Other") && data.otherMotivation && Array.isArray(data.otherMotivation) && data.otherMotivation.length > 0) {
+        submitData.otherMotivation = data.otherMotivation;
+      }
     }
-    if (data.progressTracking && data.progressTracking.length > 0) {
-      submitData.progressTracking = data.progressTracking;
+
+    if (data.progressTracking && Array.isArray(data.progressTracking) && data.progressTracking.length > 0) {
+      submitData.progressTracking = data.progressTracking as ProgressTrackingMethod[];
+      // Handle "Other" progress tracking
+      if (data.progressTracking.includes("Other") && data.otherProgressTracking && Array.isArray(data.otherProgressTracking) && data.otherProgressTracking.length > 0) {
+        submitData.otherProgressTracking = data.otherProgressTracking;
+      }
     }
 
     // Only submit if there's actual data
     if (Object.keys(submitData).length > 0) {
-      postMotivation(submitData);
+      // Ensure all required fields are present for the API
+      const apiData: MotivationSubmitData = {
+        motivation: submitData.motivation || [],
+        otherMotivation: submitData.otherMotivation ?? undefined,
+        progressTracking: submitData.progressTracking || [],
+        otherProgressTracking: submitData.otherProgressTracking ?? undefined,
+      };
+      postMotivation(apiData);
     } else {
       // If no data to submit, just proceed to next step
       onNext();
@@ -122,11 +161,11 @@ export default function MotivationForm({
       <div className="space-y-6">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Motivation & Progress Tracking</h3>
-          <p className="text-sm text-gray-500">Your motivation and progress tracking information is already complete!</p>
+          <p className="text-sm text-gray-500">Your motivation preferences are already complete!</p>
         </div>
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <p className="text-green-800 text-sm">
-            All required motivation and progress tracking information has been provided. You can proceed to the next step.
+            All required motivation information has been provided. You can proceed to the next step.
           </p>
         </div>
         <DialogFooter className="gap-2 sm:justify-center">
@@ -156,7 +195,7 @@ export default function MotivationForm({
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900">Motivation & Progress Tracking</h3>
-        <p className="text-sm text-gray-500">Tell us about your motivation factors and how you like to track progress</p>
+        <p className="text-sm text-gray-500">Tell us what motivates you and how you like to track your progress</p>
       </div>
 
       <div className="space-y-4">
@@ -166,7 +205,7 @@ export default function MotivationForm({
               What motivates you to stay active and healthy?
             </label>
             {errors.motivation && (
-              <p className="mb-2 text-sm text-red-600">{errors.motivation.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.motivation?.message === 'string' ? errors.motivation.message : 'Invalid input'}</p>
             )}
             <Controller
               name="motivation"
@@ -181,22 +220,35 @@ export default function MotivationForm({
             />
           </div>
         )}
-        {watch("motivation")?.includes("Other") && (
-          <div className="mt-2">
-            <Input
-              placeholder="Add custom motivation"
-              value={watch("otherMotivation")?.[0] ?? ""}
-              onChange={(e) => setValue("otherMotivation", [e.target.value])}
-            />
-          </div>
-        )}
+
+        {(() => {
+          const motivation = watch("motivation");
+          return Array.isArray(motivation) && motivation.includes("Other") ? (
+            <div>
+              <label htmlFor="other-motivation" className="block text-sm font-medium text-gray-700 mb-2">
+                Please specify other motivation factors
+              </label>
+              <Input
+                id="other-motivation"
+                placeholder="Add custom motivation factor"
+                value={(() => {
+                  const otherMotivation = watch("otherMotivation");
+                  return Array.isArray(otherMotivation) && otherMotivation.length > 0 ? otherMotivation[0] as string : "";
+                })()}
+                onChange={(e) => setValue("otherMotivation", [e.target.value])}
+                className="w-full"
+              />
+            </div>
+          ) : null;
+        })()}
+
         {motivationMissingFields.includes('progressTracking') && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-4">
               How do you prefer to track your progress?
             </label>
             {errors.progressTracking && (
-              <p className="mb-2 text-sm text-red-600">{errors.progressTracking.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.progressTracking?.message === 'string' ? errors.progressTracking.message : 'Invalid input'}</p>
             )}
             <Controller
               name="progressTracking"
@@ -211,15 +263,27 @@ export default function MotivationForm({
             />
           </div>
         )}
-        {watch("progressTracking")?.includes("Other") && (
-          <div className="mt-2">
-            <Input
-              placeholder="Add custom tracking method"
-              value={watch("otherProgressTracking")?.[0] ?? ""}
-              onChange={(e) => setValue("otherProgressTracking", [e.target.value])}
-            />
-          </div>
-        )}
+
+        {(() => {
+          const progressTracking = watch("progressTracking");
+          return Array.isArray(progressTracking) && progressTracking.includes("Other") ? (
+            <div>
+              <label htmlFor="other-progress-tracking" className="block text-sm font-medium text-gray-700 mb-2">
+                Please specify other progress tracking methods
+              </label>
+              <Input
+                id="other-progress-tracking"
+                placeholder="Add custom tracking method"
+                value={(() => {
+                  const otherProgressTracking = watch("otherProgressTracking");
+                  return Array.isArray(otherProgressTracking) && otherProgressTracking.length > 0 ? otherProgressTracking[0] as string : "";
+                })()}
+                onChange={(e) => setValue("otherProgressTracking", [e.target.value])}
+                className="w-full"
+              />
+            </div>
+          ) : null;
+        })()}
       </div>
 
       <DialogFooter className="gap-2 sm:justify-center">

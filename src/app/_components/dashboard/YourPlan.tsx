@@ -81,7 +81,7 @@ export default function ClassRecommendations() {
       void utils.workoutPlan.getPreviousPlans.invalidate();
     },
   });
-  const { generatePlan, OnboardingDialog, isLoading, LoadingScreen, GeneratePlanDialog } = useGeneratePlan();
+  const { generatePlan, isLoading, LoadingScreen, GeneratePlanDialog } = useGeneratePlan();
   const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
   const handleBookClass = (workoutId: string, name: string) => {
@@ -333,7 +333,6 @@ export default function ClassRecommendations() {
 
   return (
     <DefaultBox title="Your Personalised Plan" description="Combined classes and supplementary workouts" showViewAll={false}>
-      {OnboardingDialog}
       {GeneratePlanDialog}
       <LoadingScreen />
       {isLoadingActivePlan ? (

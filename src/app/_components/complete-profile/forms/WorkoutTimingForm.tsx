@@ -13,6 +13,16 @@ import { DialogFooter } from "@/components/ui/dialog";
 const WORKOUT_TIMES = workoutTimesEnum.enumValues;
 const WEEKEND_TIMES = weekendTimesEnum.enumValues;
 
+// Define proper types for the form data
+type WorkoutTime = typeof WORKOUT_TIMES[number];
+type WeekendTime = typeof WEEKEND_TIMES[number];
+
+interface WorkoutTimingSubmitData {
+  preferredWorkoutTimes: WorkoutTime[];
+  avoidedWorkoutTimes: WorkoutTime[];
+  weekendWorkoutTimes: WeekendTime;
+}
+
 export default function WorkoutTimingForm({
   missingFields,
   isSubmitting,
@@ -42,7 +52,7 @@ export default function WorkoutTimingForm({
 
   // Create dynamic schema based on missingFields
   const createSchema = () => {
-    const schemaFields: Record<string, any> = {};
+    const schemaFields: Record<string, z.ZodTypeAny> = {};
 
     // Helper function to check if field is required
     const isRequired = (fieldName: string) => {
@@ -51,16 +61,16 @@ export default function WorkoutTimingForm({
 
     // Preferred workout times field
     if (isRequired('preferredWorkoutTimes')) {
-      schemaFields.preferredWorkoutTimes = z.array(z.string()).min(1, "Please select at least one preferred workout time");
+      schemaFields.preferredWorkoutTimes = z.array(z.enum(WORKOUT_TIMES)).min(1, "Please select at least one preferred workout time");
     } else {
-      schemaFields.preferredWorkoutTimes = z.array(z.string()).optional();
+      schemaFields.preferredWorkoutTimes = z.array(z.enum(WORKOUT_TIMES)).optional();
     }
 
     // Avoided workout times field
     if (isRequired('avoidedWorkoutTimes')) {
-      schemaFields.avoidedWorkoutTimes = z.array(z.string()).min(1, "Please select at least one time to avoid");
+      schemaFields.avoidedWorkoutTimes = z.array(z.enum(WORKOUT_TIMES)).min(1, "Please select at least one time to avoid");
     } else {
-      schemaFields.avoidedWorkoutTimes = z.array(z.string()).optional();
+      schemaFields.avoidedWorkoutTimes = z.array(z.enum(WORKOUT_TIMES)).optional();
     }
 
     // Weekend workout times field
@@ -90,41 +100,51 @@ export default function WorkoutTimingForm({
 
   const handlePreferredTimesChange = (time: string) => {
     const currentTimes = watch("preferredWorkoutTimes") || [];
-    const newTimes = currentTimes.includes(time)
-      ? currentTimes.filter((t: string) => t !== time)
-      : [...currentTimes, time];
-    setValue("preferredWorkoutTimes", newTimes);
+    if (Array.isArray(currentTimes)) {
+      const newTimes = currentTimes.includes(time as WorkoutTime)
+        ? currentTimes.filter((t: WorkoutTime) => t !== time)
+        : [...currentTimes, time as WorkoutTime];
+      setValue("preferredWorkoutTimes", newTimes);
+    }
   };
 
   const handleAvoidedTimesChange = (time: string) => {
     const currentTimes = watch("avoidedWorkoutTimes") || [];
-    const newTimes = currentTimes.includes(time)
-      ? currentTimes.filter((t: string) => t !== time)
-      : [...currentTimes, time];
-    setValue("avoidedWorkoutTimes", newTimes);
+    if (Array.isArray(currentTimes)) {
+      const newTimes = currentTimes.includes(time as WorkoutTime)
+        ? currentTimes.filter((t: WorkoutTime) => t !== time)
+        : [...currentTimes, time as WorkoutTime];
+      setValue("avoidedWorkoutTimes", newTimes);
+    }
   };
 
   const handleWeekendTimesChange = (time: string) => {
-    setValue("weekendWorkoutTimes", time as any);
+    setValue("weekendWorkoutTimes", time as WeekendTime);
   };
 
   const onSubmit = async (data: WorkoutTimingFormData) => {
     // Build submit data with proper types, only including fields that have values
-    const submitData: any = {};
+    const submitData: Partial<WorkoutTimingSubmitData> = {};
 
-    if (data.preferredWorkoutTimes && data.preferredWorkoutTimes.length > 0) {
-      submitData.preferredWorkoutTimes = data.preferredWorkoutTimes;
+    if (data.preferredWorkoutTimes && Array.isArray(data.preferredWorkoutTimes) && data.preferredWorkoutTimes.length > 0) {
+      submitData.preferredWorkoutTimes = data.preferredWorkoutTimes as WorkoutTime[];
     }
-    if (data.avoidedWorkoutTimes && data.avoidedWorkoutTimes.length > 0) {
-      submitData.avoidedWorkoutTimes = data.avoidedWorkoutTimes;
+    if (data.avoidedWorkoutTimes && Array.isArray(data.avoidedWorkoutTimes) && data.avoidedWorkoutTimes.length > 0) {
+      submitData.avoidedWorkoutTimes = data.avoidedWorkoutTimes as WorkoutTime[];
     }
     if (data.weekendWorkoutTimes !== undefined) {
-      submitData.weekendWorkoutTimes = data.weekendWorkoutTimes;
+      submitData.weekendWorkoutTimes = data.weekendWorkoutTimes as WeekendTime;
     }
 
     // Only submit if there's actual data
     if (Object.keys(submitData).length > 0) {
-      postWorkoutTiming(submitData);
+      // Ensure all required fields are present for the API
+      const apiData: WorkoutTimingSubmitData = {
+        preferredWorkoutTimes: submitData.preferredWorkoutTimes || [],
+        avoidedWorkoutTimes: submitData.avoidedWorkoutTimes || [],
+        weekendWorkoutTimes: submitData.weekendWorkoutTimes || WEEKEND_TIMES[0], // Provide default
+      };
+      postWorkoutTiming(apiData);
     } else {
       // If no data to submit, just proceed to next step
       onNext();
@@ -190,7 +210,7 @@ export default function WorkoutTimingForm({
               What are your preferred workout times during the week?
             </label>
             {errors.preferredWorkoutTimes && (
-              <p className="mb-2 text-sm text-red-600">{errors.preferredWorkoutTimes.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.preferredWorkoutTimes?.message === 'string' ? errors.preferredWorkoutTimes.message : 'Invalid input'}</p>
             )}
             <Controller
               name="preferredWorkoutTimes"
@@ -212,7 +232,7 @@ export default function WorkoutTimingForm({
               What times would you prefer to avoid for workouts?
             </label>
             {errors.avoidedWorkoutTimes && (
-              <p className="mb-2 text-sm text-red-600">{errors.avoidedWorkoutTimes.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.avoidedWorkoutTimes?.message === 'string' ? errors.avoidedWorkoutTimes.message : 'Invalid input'}</p>
             )}
             <Controller
               name="avoidedWorkoutTimes"
@@ -234,7 +254,7 @@ export default function WorkoutTimingForm({
               What are your preferred workout times on weekends?
             </label>
             {errors.weekendWorkoutTimes && (
-              <p className="mb-2 text-sm text-red-600">{errors.weekendWorkoutTimes.message?.toString()}</p>
+              <p className="mb-2 text-sm text-red-600">{typeof errors.weekendWorkoutTimes?.message === 'string' ? errors.weekendWorkoutTimes.message : 'Invalid input'}</p>
             )}
             <Controller
               name="weekendWorkoutTimes"

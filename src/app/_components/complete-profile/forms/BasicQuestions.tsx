@@ -12,6 +12,17 @@ import { Button } from "@/components/ui/button";
 import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
 
+// Define proper types for the form data
+type Gender = typeof GENDER[number];
+
+interface BasicQuestionsSubmitData {
+  name: string | null;
+  age: number | null;
+  height: number | null;
+  weight: number | null;
+  gender: Gender | null;
+}
+
 export default function BasicQuestionsForm({
   missingFields,
   isSubmitting,
@@ -41,7 +52,7 @@ export default function BasicQuestionsForm({
 
   // Create dynamic schema based on missingFields
   const createSchema = () => {
-    const schemaFields: Record<string, any> = {};
+    const schemaFields: Record<string, z.ZodTypeAny> = {};
 
     // Helper function to check if field is required
     const isRequired = (fieldName: string) => {
@@ -110,7 +121,35 @@ export default function BasicQuestionsForm({
   });
 
   const onSubmit = async (data: BasicQuestionsFormData) => {
-    postBasicQuestions(data);
+    // Build submit data with proper types, only including fields that have values
+    const submitData: Partial<BasicQuestionsSubmitData> = {};
+
+    if (data.name !== undefined && data.name !== "") {
+      submitData.name = data.name as string;
+    }
+    if (data.age !== undefined) {
+      submitData.age = data.age as number;
+    }
+    if (data.height !== undefined) {
+      submitData.height = data.height as number;
+    }
+    if (data.weight !== undefined) {
+      submitData.weight = data.weight as number;
+    }
+    if (data.gender !== undefined) {
+      submitData.gender = data.gender as Gender;
+    }
+
+    // Ensure all required fields are present for the API
+    const apiData: BasicQuestionsSubmitData = {
+      name: submitData.name || null,
+      age: submitData.age || null,
+      height: submitData.height || null,
+      weight: submitData.weight || null,
+      gender: submitData.gender || null,
+    };
+
+    postBasicQuestions(apiData);
   };
 
   const handleNext = async () => {
@@ -167,7 +206,7 @@ export default function BasicQuestionsForm({
               What is your name?
             </label>
             {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name.message?.toString()}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.name?.message === 'string' ? errors.name.message : 'Invalid input'}</p>
             )}
             <Input
               {...register("name")}
@@ -185,7 +224,7 @@ export default function BasicQuestionsForm({
               What is your age?
             </label>
             {errors.age && (
-              <p className="mt-1 text-sm text-red-600">{errors.age.message?.toString()}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.age?.message === 'string' ? errors.age.message : 'Invalid input'}</p>
             )}
             <Input
               {...register("age", { valueAsNumber: true })}
@@ -203,7 +242,7 @@ export default function BasicQuestionsForm({
               What is your height? (cm)
             </label>
             {errors.height && (
-              <p className="mt-1 text-sm text-red-600">{errors.height.message?.toString()}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.height?.message === 'string' ? errors.height.message : 'Invalid input'}</p>
             )}
             <Input
               {...register("height", { valueAsNumber: true })}
@@ -221,7 +260,7 @@ export default function BasicQuestionsForm({
               What is your weight? (kg)
             </label>
             {errors.weight && (
-              <p className="mt-1 text-sm text-red-600">{errors.weight.message?.toString()}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.weight?.message === 'string' ? errors.weight.message : 'Invalid input'}</p>
             )}
             <Input
               {...register("weight", { valueAsNumber: true })}
@@ -239,16 +278,16 @@ export default function BasicQuestionsForm({
               What is your gender?
             </label>
             {errors.gender && (
-              <p className="mt-1 text-sm text-red-600">{errors.gender.message?.toString()}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.gender?.message === 'string' ? errors.gender.message : 'Invalid input'}</p>
             )}
             <Controller
               name="gender"
               control={control}
               render={({ field }) => (
                 <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
+                  onValueChange={(value: Gender) => field.onChange(value)}
+                  value={field.value || ""}
+                  defaultValue={field.value || ""}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select gender" />
