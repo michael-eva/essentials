@@ -2,10 +2,16 @@
 import { use } from "react";
 import MuxPlayer from '@mux/mux-player-react';
 import { Badge } from "@/components/ui/badge";
-import { Clock, Target, Users, ArrowLeft } from "lucide-react";
+import { Clock, Target, Users, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import MarkClassComplete from "@/app/_components/dashboard/MarkClassComplete";
+import MarkClassMissed from "@/app/_components/dashboard/MarkClassMissed";
+import type { WorkoutFormValues } from "@/app/_components/dashboard/MarkClassComplete";
 
 type PageProps = {
   params: Promise<{
@@ -118,6 +124,36 @@ function ClassPageSkeleton() {
 export default function Page({ params }: PageProps) {
   const { id } = use(params);
   const { data: pilatesClass, isLoading } = api.workout.getPilatesClassViaWorkout.useQuery({ workoutId: id });
+  const { data: workout } = api.workout.getWorkout.useQuery({ id });
+  const utils = api.useUtils();
+
+  // State for dialogs
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isMarkMissedDialogOpen, setIsMarkMissedDialogOpen] = useState(false);
+
+  // Mutations
+  const updateWorkoutStatus = api.workoutPlan.updateWorkoutStatus.useMutation({
+    onSuccess: () => {
+      void utils.workout.getWorkout.invalidate({ id });
+      void utils.workout.getPilatesClassViaWorkout.invalidate({ workoutId: id });
+      toast.success("Workout status updated successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update workout status");
+    },
+  });
+
+  const insertCompletedClass = api.workoutPlan.insertCompletedClass.useMutation({
+    onSuccess: () => {
+      void utils.workout.getWorkout.invalidate({ id });
+      void utils.workout.getPilatesClassViaWorkout.invalidate({ workoutId: id });
+      void utils.workoutPlan.getActivePlan.invalidate();
+      toast.success("Class completed successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to complete class");
+    },
+  });
 
   if (isLoading || !pilatesClass?.mux_playback_id) {
     return <ClassPageSkeleton />;
@@ -127,7 +163,33 @@ export default function Page({ params }: PageProps) {
   const equipmentList = pilatesClass?.equipment?.split(',').map(e => e.trim());
   const parsedExerciseSequence = JSON.parse(pilatesClass?.exerciseSequence) as string[];
   const targetedMuscles = pilatesClass?.targetedMuscles?.split(',').map(m => m.trim());
-  console.log(pilatesClass);
+
+  const handleMarkMissed = () => {
+    updateWorkoutStatus.mutate({
+      workoutId: id,
+      status: "not_completed"
+    });
+    setIsMarkMissedDialogOpen(false);
+  };
+
+  const handleSubmitWorkoutDetails = (
+    workoutId: string,
+    data: WorkoutFormValues,
+    bookedDate: Date,
+    name: string,
+  ) => {
+    insertCompletedClass.mutate({
+      workoutId,
+      activityType: "class",
+      date: bookedDate,
+      notes: data.notes,
+      intensity: data.intensity,
+      name,
+      likelyToDoAgain: data.likelyToDoAgain,
+    });
+    setIsDialogOpen(false);
+  };
+
   return (
     <>
       <div>
@@ -233,7 +295,57 @@ export default function Page({ params }: PageProps) {
             ))}
           </div>
         </div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="space-y-4 px-5 md:px-0 pb-4"
+        >
+          <h3 className="text-lg font-semibold text-brand-brown">Quick Actions</h3>
+          <div className="flex gap-3 justify-center">
+            <Button
+              className="bg-[#34C759]/90 text-white font-bold transition-colors hover:bg-[#34C759] w-1/2"
+              onClick={() => {
+                setIsDialogOpen(true);
+              }}
+              disabled={updateWorkoutStatus.isPending || workout?.status === "completed"}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {updateWorkoutStatus.isPending ? "Updating..." : "Mark Complete"}
+            </Button>
+            <Button
+              className="bg-[#FF3B30]/80 text-white font-bold transition-colors hover:bg-[#FF3B30]/90 w-1/2"
+              onClick={() => setIsMarkMissedDialogOpen(true)}
+              disabled={updateWorkoutStatus.isPending || workout?.status === "not_completed"}
+            >
+              <XCircle className="h-4 w-4" />
+              {updateWorkoutStatus.isPending ? "Updating..." : "Mark Missed"}
+            </Button>
+          </div>
+        </motion.div>
       </div>
+
+      {/* Dialogs */}
+      <MarkClassComplete
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        handleSubmitWorkoutDetails={handleSubmitWorkoutDetails}
+        workoutId={id}
+        bookedDate={
+          workout?.bookedDate
+            ? new Date(workout.bookedDate)
+            : new Date()
+        }
+        name={workout?.name ?? pilatesClass?.title ?? ""}
+      />
+      <MarkClassMissed
+        isDialogOpen={isMarkMissedDialogOpen}
+        setIsDialogOpen={setIsMarkMissedDialogOpen}
+        onSubmit={handleMarkMissed}
+        workoutId={id}
+      />
     </>
   );
 }

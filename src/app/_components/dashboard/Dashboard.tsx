@@ -55,6 +55,7 @@ export default function Dashboard() {
       onSuccess: () => {
         void toast.success("Workout details saved successfully");
         void utils.workoutPlan.getWorkoutsToLog.invalidate();
+        void utils.workoutPlan.getActivityHistory.invalidate();
       },
     });
   const { mutate: updateWorkoutStatus, isPending: isUpdatingWorkoutStatus } =

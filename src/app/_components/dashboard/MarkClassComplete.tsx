@@ -27,7 +27,7 @@ export default function MarkClassComplete({ isDialogOpen, setIsDialogOpen, handl
     resolver: zodResolver(workoutFormSchema),
     defaultValues: {
       intensity: 5,
-      likelyToDoAgain: undefined,
+      likelyToDoAgain: 5,
       notes: "",
     },
   })
