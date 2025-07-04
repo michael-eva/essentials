@@ -401,22 +401,13 @@ export function AIInteractionSection() {
       {/* Desktop: Regular layout */}
       <div className="hidden md:block space-y-6">
         <DefaultBox
-          title="Personal Trainer"
+          title="Coach Emma"
           description="Your fitness companion"
           showViewAll={false}
+          icon={<Settings />}
+          iconClick={() => setShowCustomize(true)}
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-sm font-medium bg-brand-bright-orange/10 text-brand-bright-orange">
-                Active
-              </span>
-              {trainerInfo && (
-                <span className="text-sm text-muted-foreground">
-                  {trainerInfo.messageCount} messages
-                </span>
-              )}
-            </div>
-          </div>
+          <CustomizePTDialog open={showCustomize} onOpenChange={setShowCustomize} />
 
           {/* Messages Area - Desktop */}
           <div ref={desktopScrollRef} className="h-96 overflow-y-auto px-4 py-4 border border-brand-brown/20 rounded-lg bg-brand-nude/30">
