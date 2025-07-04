@@ -2,17 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Settings, Sparkles, Info } from "lucide-react";
+import { Send, MessageSquare, Settings, Sparkles, Info, Activity } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import type { AppRouter } from "@/server/api/root";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
-import { CustomizePTSection } from "./CustomizePTSection";
 import DefaultBox from "../../global/DefaultBox";
 import { motion } from "framer-motion";
 import useGeneratePlan from "@/hooks/useGeneratePlan";
+import { CustomizePTDialog } from "./CustomizePTSection";
 
 type Message = {
   id: string;
@@ -268,40 +268,15 @@ export function AIInteractionSection() {
       {/* Mobile: Fixed chat interface */}
       <div className="md:hidden fixed inset-0 top-20 flex flex-col bg-white">
         {/* Personal Trainer Header Section - Mobile */}
-        <div className="flex-shrink-0 px-4 pt-4 pb-2">
+        <div className="flex-shrink-0 px-4 pt-4">
           <DefaultBox
-            title="Personal Trainer"
+            title="Coach Emma"
             description="Your fitness companion"
             showViewAll={false}
+            icon={<Settings />}
+            iconClick={() => setShowCustomize(true)}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-brand-bright-orange/10 text-brand-bright-orange">
-                  Active
-                </span>
-                {trainerInfo && (
-                  <span className="text-sm text-muted-foreground">
-                    {trainerInfo.messageCount} messages
-                  </span>
-                )}
-              </div>
-              <Dialog open={showCustomize} onOpenChange={setShowCustomize}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowCustomize(true)}
-                    className="h-8 w-8"
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl p-0">
-                  <DialogTitle className="px-6 pt-6 pb-2">Customise My PT</DialogTitle>
-                  <CustomizePTSection />
-                </DialogContent>
-              </Dialog>
-            </div>
+            <CustomizePTDialog open={showCustomize} onOpenChange={setShowCustomize} />
           </DefaultBox>
         </div>
 
@@ -339,7 +314,7 @@ export function AIInteractionSection() {
                       {/* Tool Calls Display */}
                       {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
                         <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                          <div className="text-xs font-semibold text-blue-700 mb-2">�� Tool Calls:</div>
+                          <div className="text-xs font-semibold text-blue-700 mb-2">🔧 Tool Calls:</div>
                           {message.toolCalls.map((toolCall, index) => (
                             <div key={toolCall.id || index} className="text-xs text-blue-600 mb-1">
                               <span className="font-medium">{toolCall.function?.name || toolCall.name}</span>
@@ -440,34 +415,6 @@ export function AIInteractionSection() {
                   {trainerInfo.messageCount} messages
                 </span>
               )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGeneratePlan}
-                disabled={isGeneratePlanLoading}
-                className="h-8 px-3 text-xs bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 border-brand-bright-orange"
-              >
-                <Sparkles className="h-3 w-3 mr-1" />
-                {isGeneratePlanLoading ? "Generating..." : "Generate Plan"}
-              </Button>
-              <Dialog open={showCustomize} onOpenChange={setShowCustomize}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowCustomize(true)}
-                    className="h-8 w-8"
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl p-0">
-                  <DialogTitle className="px-6 pt-6 pb-2">Customize My PT</DialogTitle>
-                  <CustomizePTSection />
-                </DialogContent>
-              </Dialog>
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { ReactNode } from "react"
 import { motion } from "framer-motion"
+import { Activity } from "lucide-react"
 
 interface DashboardCardLayoutProps {
   title: string
@@ -10,6 +11,8 @@ interface DashboardCardLayoutProps {
   viewAllText?: string
   viewAllHref?: string
   color?: string
+  icon?: ReactNode
+  iconClick?: any
 }
 
 export default function DashboardCardLayout({
@@ -19,6 +22,8 @@ export default function DashboardCardLayout({
   showViewAll = true,
   viewAllText = "View All Classes",
   viewAllHref = "#",
+  icon,
+  iconClick
 }: DashboardCardLayoutProps) {
   return (
     <motion.div
@@ -30,6 +35,9 @@ export default function DashboardCardLayout({
         <CardHeader className="px-6">
           <div className="flex justify-between items-center ">
             <CardTitle className="text-3xl sm:text-4xl font-extrabold text-brand-brown">{title}</CardTitle>
+            <div onClick={iconClick ? iconClick : null}>
+              {icon}
+            </div>
           </div>
           <CardDescription className="text-brand-black">{description}</CardDescription>
         </CardHeader>
