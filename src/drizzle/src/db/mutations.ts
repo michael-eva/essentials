@@ -115,6 +115,18 @@ export async function updateWorkoutPlan(
     .where(eq(workoutPlan.id, planId));
   return updatedPlan;
 }
+
+/**
+ * Deactivates all workout plans for a specific user
+ * Used when creating a new plan to ensure only one plan is active at a time
+ */
+export async function deactivateAllUserPlans(userId: string) {
+  const result = await db
+    .update(workoutPlan)
+    .set({ isActive: false })
+    .where(eq(workoutPlan.userId, userId));
+  return result;
+}
 export async function deleteWorkoutPlan(planId: string) {
   // First, get the plan to get the userId
   const plan = await db
@@ -141,9 +153,7 @@ export async function deleteWorkoutPlan(planId: string) {
       .where(and(inArray(workout.id, workoutIds), eq(workout.userId, userId)));
 
     // Delete all weekly schedules for the plan
-    await db
-      .delete(weeklySchedule)
-      .where(eq(weeklySchedule.planId, planId));
+    await db.delete(weeklySchedule).where(eq(weeklySchedule.planId, planId));
   }
 
   // Finally, delete the plan itself
@@ -337,7 +347,3 @@ export async function insertWeeklySchedule(data: {
   const result = await db.insert(weeklySchedule).values(data).returning();
   return result[0];
 }
-
-
-
-

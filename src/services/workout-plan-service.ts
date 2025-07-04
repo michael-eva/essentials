@@ -5,6 +5,7 @@ import {
   insertWorkoutPlan,
   insertWorkouts,
   insertWeeklySchedules,
+  deactivateAllUserPlans,
 } from "@/drizzle/src/db/mutations";
 import type { TRPCError } from "@trpc/server";
 
@@ -36,6 +37,10 @@ export async function generateAndInsertWorkoutPlan({
     const userContext = await buildUserContext(userId);
     const generatedPlan = await generateWorkoutPlanAI(userContext, userPrompt);
 
+    // Deactivate all existing plans for this user first
+    console.log("🔄 Deactivating all existing plans for user:", userId);
+    await deactivateAllUserPlans(userId);
+
     // Create the typed plan with required fields
     const typedPlan = {
       ...generatedPlan.plan,
@@ -46,6 +51,7 @@ export async function generateAndInsertWorkoutPlan({
       pausedAt: null,
       resumedAt: null,
       userId: userId,
+      isActive: true, // Set the new plan as active
     };
 
     // Insert the workout plan
