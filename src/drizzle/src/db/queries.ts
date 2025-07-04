@@ -475,11 +475,11 @@ export async function checkOnboardingCompletion(
           "customApparatus",
         ],
         motivation: ["motivation", "progressTracking"],
-        timing: [
-          "preferredWorkoutTimes",
-          "avoidedWorkoutTimes",
-          "weekendWorkoutTimes",
-        ],
+        // timing: [
+        //   "preferredWorkoutTimes",
+        //   "avoidedWorkoutTimes",
+        //   "weekendWorkoutTimes",
+        // ],
       },
     };
   }
@@ -544,12 +544,12 @@ export async function checkOnboardingCompletion(
   if (data.motivation === null) missingFields.motivation.push("motivation");
   if (data.progressTracking === null)
     missingFields.motivation.push("progressTracking");
-  if (data.preferredWorkoutTimes === null)
-    missingFields.timing.push("preferredWorkoutTimes");
-  if (data.avoidedWorkoutTimes === null)
-    missingFields.timing.push("avoidedWorkoutTimes");
-  if (data.weekendWorkoutTimes === null)
-    missingFields.timing.push("weekendWorkoutTimes");
+  // if (data.preferredWorkoutTimes === null)
+  //   missingFields.timing.push("preferredWorkoutTimes");
+  // if (data.avoidedWorkoutTimes === null)
+  //   missingFields.timing.push("avoidedWorkoutTimes");
+  // if (data.weekendWorkoutTimes === null)
+  //   missingFields.timing.push("weekendWorkoutTimes");
 
   // Remove empty categories
   const filteredMissingFields = Object.fromEntries(
