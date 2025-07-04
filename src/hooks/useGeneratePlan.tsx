@@ -36,7 +36,7 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
     if (!generatePlanMutation.isPending) return null;
 
     return (
-      <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-100 h-full flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
             <Sparkles className="w-12 h-12 text-primary animate-pulse" />
