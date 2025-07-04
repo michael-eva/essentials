@@ -58,28 +58,104 @@ export async function generateAndInsertWorkoutPlan({
     const plan = await insertWorkoutPlan(typedPlan);
     console.log("💾 Plan inserted into database:", { planId: plan.id });
 
-    // Process and insert workouts
-    console.log("🏋️ Processing workouts");
-    const workoutsWithIds = generatedPlan.workouts.map((workout) => ({
-      ...workout,
-      status: workout.status ?? "not_recorded",
-      isBooked: workout.isBooked ?? false,
-      classId: workout.classId === null ? undefined : workout.classId,
-      activityType:
-        workout.activityType === null ? undefined : workout.activityType,
-      userId: userId,
-    }));
+    // Create a map to store original workout IDs and their week-specific instances
+    const workoutInstanceMap = new Map<string, string>();
+    const allWorkoutsToInsert: Array<{
+      id: string;
+      name: string;
+      instructor: string;
+      duration: number;
+      description: string;
+      level: string;
+      type: "workout" | "class";
+      status: "completed" | "not_completed" | "not_recorded";
+      isBooked: boolean;
+      userId: string;
+      classId?: string;
+      activityType?:
+        | "run"
+        | "cycle"
+        | "swim"
+        | "walk"
+        | "hike"
+        | "rowing"
+        | "elliptical"
+        | null;
+      exercises?: Array<{
+        id: string;
+        name: string;
+        sets: Array<{
+          id: string;
+          reps: number;
+          weight: number;
+        }>;
+      }> | null;
+    }> = [];
 
-    await insertWorkouts(workoutsWithIds);
+    // Process and create unique workout instances for each week
+    console.log("🏋️ Processing workouts and creating week-specific instances");
 
-    // Insert weekly schedules
+    for (const schedule of generatedPlan.weeklySchedules) {
+      const originalWorkout = generatedPlan.workouts.find(
+        (w) => w.id === schedule.workoutId,
+      );
+      if (!originalWorkout) {
+        console.warn(
+          `⚠️ Workout not found for schedule: ${schedule.workoutId}`,
+        );
+        continue;
+      }
+
+      // Create a unique workout instance for this week
+      const weekSpecificWorkoutId = uuidv4();
+      workoutInstanceMap.set(
+        `${schedule.workoutId}-week-${schedule.weekNumber}`,
+        weekSpecificWorkoutId,
+      );
+
+      const weekSpecificWorkout = {
+        ...originalWorkout,
+        id: weekSpecificWorkoutId,
+        status: originalWorkout.status ?? "not_recorded",
+        isBooked: originalWorkout.isBooked ?? false,
+        classId:
+          originalWorkout.classId === null
+            ? undefined
+            : originalWorkout.classId,
+        activityType:
+          originalWorkout.activityType === null
+            ? undefined
+            : originalWorkout.activityType,
+        userId: userId,
+        // Add week information to the workout name for clarity
+        name: `${originalWorkout.name} (Week ${schedule.weekNumber})`,
+      };
+
+      allWorkoutsToInsert.push(weekSpecificWorkout);
+    }
+
+    // Insert all workout instances
+    await insertWorkouts(allWorkoutsToInsert);
+
+    // Update weekly schedules to use the new workout instance IDs
     const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(
-      (schedule) => ({
-        id: uuidv4(),
-        planId: plan.id,
-        weekNumber: schedule.weekNumber,
-        workoutId: schedule.workoutId,
-      }),
+      (schedule) => {
+        const weekSpecificWorkoutId = workoutInstanceMap.get(
+          `${schedule.workoutId}-week-${schedule.weekNumber}`,
+        );
+        if (!weekSpecificWorkoutId) {
+          throw new Error(
+            `No workout instance found for ${schedule.workoutId} in week ${schedule.weekNumber}`,
+          );
+        }
+
+        return {
+          id: uuidv4(),
+          planId: plan.id,
+          weekNumber: schedule.weekNumber,
+          workoutId: weekSpecificWorkoutId,
+        };
+      },
     );
 
     await insertWeeklySchedules(weeklySchedulesWithIds);

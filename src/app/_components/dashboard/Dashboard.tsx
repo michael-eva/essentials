@@ -47,6 +47,7 @@ export default function Dashboard() {
         void utils.workoutPlan.getActivityHistory.invalidate();
         void utils.workoutPlan.getWorkoutsToLog.invalidate();
         void utils.workoutPlan.getUpcomingActivities.invalidate();
+        void utils.workoutPlan.getActivePlan.invalidate();
       },
     });
   const { mutate: insertCompletedClass, isPending: isInsertingCompletedClass } =

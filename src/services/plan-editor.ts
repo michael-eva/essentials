@@ -91,6 +91,8 @@ IMPORTANT:
    - Do NOT reuse the existing class ID as the workout ID
 2. Each weekly schedule should reference the exact workout ID from the workouts array.
 
+3. IMPORTANT: You should create 3-4 unique workout definitions in the workouts array, and then reference these same workout IDs across different weeks in the weekly_schedules. The system will automatically create week-specific instances of these workouts to prevent completion conflicts.
+
 Make sure the plan is realistic, progressive, and aligned with the user's context.
 
 You should generate a plan that is 4 weeks long (meaning 4 weekly_schedules are to be created from week number 1 through 4).

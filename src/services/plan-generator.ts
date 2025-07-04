@@ -96,6 +96,8 @@ IMPORTANT:
 
 3. Each weekly schedule should reference the exact workout ID from the workouts array.
 
+4. IMPORTANT: You should create 3-4 unique workout definitions in the workouts array, and then reference these same workout IDs across different weeks in the weekly_schedules. The system will automatically create week-specific instances of these workouts to prevent completion conflicts.
+
 EXAMPLE: If you want to include the "Abs, Arms & Booty" class (ID: d24df388-15c9-46f3-bf4a-98353784aa6c), create a workout like this:
 {
   "id": "f393983b-4525-4f69-b1d4-7ce4e099c635", // NEW unique UUID
