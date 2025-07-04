@@ -180,6 +180,7 @@ export const workoutPlanRouter = createTRPCRouter({
   insertManualActivity: protectedProcedure
     .input(
       z.object({
+        workoutId: z.string().nullable().optional(),
         workoutType: z.string(),
         date: z.date(),
         durationHours: z.number().optional(),
@@ -209,8 +210,8 @@ export const workoutPlanRouter = createTRPCRouter({
       try {
         const newActivity = {
           userId: ctx.userId,
-          workoutId: uuidv4(),
-          activityType: "workout",
+          workoutId: input.workoutId ?? uuidv4(),
+          activityType: input.workoutType,
           date: input.date,
           durationHours: input.durationHours ?? undefined,
           durationMinutes: input.durationMinutes ?? undefined,
@@ -221,7 +222,9 @@ export const workoutPlanRouter = createTRPCRouter({
           name: input.workoutType,
           exercises: input.exercises ?? undefined,
         } as NewWorkoutTracking;
-
+        if (input.workoutId) {
+          await updateWorkoutStatus(input.workoutId, "completed");
+        }
         return await insertWorkoutTracking(newActivity);
       } catch (error) {
         const errorMessage =

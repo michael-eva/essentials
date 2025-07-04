@@ -151,7 +151,7 @@ export default function WorkoutPage({ params }: PageProps) {
     });
   };
 
-  const handleSubmitManualActivity = async (data: ActivityFormValues) => {
+  const handleSubmitManualActivity = async (data: ActivityFormValues, workoutId?: string) => {
     // First update the workout status to completed
     await updateWorkoutStatus.mutateAsync({
       workoutId: workout.id,
@@ -159,7 +159,7 @@ export default function WorkoutPage({ params }: PageProps) {
     });
 
     // Then insert the manual activity
-    insertManualActivity.mutate(data);
+    insertManualActivity.mutate({ ...data, workoutId: workoutId || workout.id });
     setIsManualActivityDialogOpen(false);
   };
 

@@ -45,6 +45,8 @@ export default function Dashboard() {
     api.workoutPlan.insertManualActivity.useMutation({
       onSuccess: () => {
         void utils.workoutPlan.getActivityHistory.invalidate();
+        void utils.workoutPlan.getWorkoutsToLog.invalidate();
+        void utils.workoutPlan.getUpcomingActivities.invalidate();
       },
     });
   const { mutate: insertCompletedClass, isPending: isInsertingCompletedClass } =
@@ -114,9 +116,11 @@ export default function Dashboard() {
     setSelectedWorkout(null);
   };
 
-  const handleSubmitManualActivity = async (data: ActivityFormValues) => {
+  const handleSubmitManualActivity = async (data: ActivityFormValues, workoutId?: string) => {
     setIsManualActivityDialogOpen(false);
-    insertManualActivity(data, {
+
+
+    insertManualActivity({ ...data, workoutId: workoutId ? workoutId : null }, {
       onSuccess: () => {
         toast.success("Activity recorded successfully");
       },
@@ -126,6 +130,7 @@ export default function Dashboard() {
         setIsManualActivityDialogOpen(true);
       },
     });
+
   };
 
   const getStatusIcon = (status: WorkoutStatus | null | undefined) => {
@@ -142,7 +147,6 @@ export default function Dashboard() {
   };
 
   const handleGeneratePlan = () => {
-    console.log("generate plan");
     generatePlan();
   };
 
@@ -153,6 +157,7 @@ export default function Dashboard() {
       router.push(`/dashboard/workout/${workout.id}`);
     }
   }
+
   return (
     <div className="space-y-6">
       {GeneratePlanDialog}

@@ -119,8 +119,14 @@ export async function getUpcomingActivities(
       weekNumber: weeklySchedule.weekNumber,
     })
     .from(workout)
-    .leftJoin(weeklySchedule, eq(workout.id, weeklySchedule.workoutId))
-    .where(and(eq(workout.userId, userId), eq(workout.status, "not_recorded")))
+    .innerJoin(weeklySchedule, eq(workout.id, weeklySchedule.workoutId))
+    .where(
+      and(
+        eq(workout.userId, userId),
+        eq(workout.status, "not_recorded"),
+        eq(weeklySchedule.planId, activePlan[0].id),
+      ),
+    )
     .orderBy(asc(weeklySchedule.weekNumber))
     .limit(3);
 

@@ -40,7 +40,6 @@ const activityFormSchema = z.object({
   }),
   intensity: z.number().min(1, "Please rate the intensity from 1-10").max(10, "Rating must be between 1-10"),
   notes: z.string().optional(),
-  workoutId: z.string().optional(),
   exercises: z.array(exerciseSchema).optional(),
   likelyToDoAgain: z.number().min(1, "Please rate the likelihood of doing this activity again from 1-10").max(10, "Rating must be between 1-10"),
 })
@@ -82,17 +81,16 @@ export default function RecordManualActivity({
 }: {
   isDialogOpen: boolean
   setIsDialogOpen: (isOpen: boolean) => void
-  handleSubmitActivity: (data: ActivityFormValues) => void
+  handleSubmitActivity: (data: ActivityFormValues, workoutId?: string) => void
   initialActivityType?: string
   workoutId?: string
   initialDurationHours?: number
   initialDurationMinutes?: number
 }) {
-  console.log(initialDurationHours, initialDurationMinutes)
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activityFormSchema),
     defaultValues: {
-      workoutType: initialActivityType ?? "",
+      workoutType: initialActivityType,
       date: new Date(),
       durationHours: initialDurationHours ?? 0,
       durationMinutes: initialDurationMinutes ?? 0,
@@ -100,7 +98,6 @@ export default function RecordManualActivity({
       distanceUnit: "kilometers",
       intensity: 5,
       notes: "",
-      workoutId: workoutId,
       exercises: [],
       likelyToDoAgain: 5,
     },
@@ -124,7 +121,7 @@ export default function RecordManualActivity({
   }, [initialDurationHours, initialDurationMinutes, form])
 
   const onSubmit = (data: ActivityFormValues) => {
-    handleSubmitActivity({ ...data, workoutId })
+    handleSubmitActivity(data, workoutId)
     form.reset()
     setExercises([])
   }
