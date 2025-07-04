@@ -342,6 +342,8 @@ export const workoutPlanRouter = createTRPCRouter({
 
         return await updateWorkoutPlan(input.planId, {
           totalPausedDuration: newTotalPausedDuration,
+          resumedAt: now,
+          pausedAt: null,
         });
       } catch (error) {
         console.error("Error resuming workout plan:", error);
@@ -385,6 +387,8 @@ export const workoutPlanRouter = createTRPCRouter({
         const result = await updateWorkoutPlan(input.planId, {
           isActive: true,
           totalPausedDuration: 0,
+          startDate: null,
+          pausedAt: null,
         });
 
         return result;

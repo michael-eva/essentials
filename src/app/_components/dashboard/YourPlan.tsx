@@ -36,7 +36,7 @@ export default function ClassRecommendations() {
     onConfirm: () => { console.log("confirm") },
     variant: "default"
   })
-  
+
   // Fetch data using tRPC
   const utils = api.useUtils();
   const { data: previousPlans = [], isLoading: isLoadingPreviousPlans } = api.workoutPlan.getPreviousPlans.useQuery()
@@ -127,7 +127,7 @@ export default function ClassRecommendations() {
       }
     })
   }
-  
+
 
 
   const handleDeletePreviousPlan = (idx: number) => {
@@ -565,7 +565,7 @@ export default function ClassRecommendations() {
       )}
 
       {/* Dialogs */}
-      
+
 
       <ConfirmationDialog
         open={confirmationDialog.open}
