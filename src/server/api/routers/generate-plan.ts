@@ -21,15 +21,11 @@ import {
   insertWorkoutTracking,
   updateCompletedClass,
   updateWorkoutPlan,
-  insertWorkoutPlan,
-  insertWorkouts,
-  insertWeeklySchedules,
   updateWorkoutStatus,
   bookClass,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
-import { generateWorkoutPlanAI } from "@/services/plan-generator";
-import { buildUserContext } from "@/services/context-manager";
+import { generateAndInsertWorkoutPlan } from "@/services/workout-plan-service";
 
 export const workoutPlanRouter = createTRPCRouter({
   getPreviousPlans: protectedProcedure.query(async ({ ctx }) => {
@@ -435,84 +431,33 @@ export const workoutPlanRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       console.log("🚀 Starting generatePlan mutation");
 
-      const userContext = await buildUserContext(ctx.userId);
-      const generatedPlan = await generateWorkoutPlanAI(
-        userContext,
-        input.prompt,
-      );
+      const result = await generateAndInsertWorkoutPlan({
+        userId: ctx.userId,
+        userPrompt: input.prompt,
+        throwOnError: false,
+      });
 
-      // Insert the plan with better date parsing error handling
-      try {
-        // morph the plan into the type expected by the Function
-
-        const typedPlan = {
-          ...generatedPlan.plan,
-          id: uuidv4(),
-          savedAt: new Date(),
-          archivedAt: null,
-          startDate: new Date(),
-          pausedAt: null,
-          resumedAt: null,
-          userId: ctx.userId,
-        };
-
-        const plan = await insertWorkoutPlan(typedPlan);
-        console.log("💾 Plan inserted into database:", { planId: plan.id });
-
-        console.log("🏋️ Processing workouts");
-        const workoutsWithIds = generatedPlan.workouts.map((workout) => ({
-          ...workout,
-          status: workout.status ?? "not_recorded",
-          isBooked: workout.isBooked ?? false,
-          classId: workout.classId === null ? undefined : workout.classId,
-          activityType:
-            workout.activityType === null ? undefined : workout.activityType,
-          userId: ctx.userId,
-        }));
-
-        await insertWorkouts(workoutsWithIds);
-
-        // Insert weekly schedules with correct workout IDs
-        const weeklySchedulesWithIds = generatedPlan.weeklySchedules.map(
-          (schedule) => {
-            return {
-              id: uuidv4(),
-              planId: plan.id,
-              weekNumber: schedule.weekNumber,
-              workoutId: schedule.workoutId,
-            };
-          },
-        );
-
-        const weeklySchedules = await insertWeeklySchedules(
-          weeklySchedulesWithIds,
-        );
-
-        console.log("✅ All database operations completed successfully");
-        return 200;
-      } catch (error) {
-        console.error("❌ Error in generatePlan:", error);
-        console.error(
-          "🔍 Generated plan data:",
-          JSON.stringify(generatedPlan, null, 2),
-        );
-
-        // Check if it's a date parsing error
-        if (
-          error instanceof Error &&
-          error.message.includes("Invalid time value")
-        ) {
+      if (!result.success) {
+        // Check for specific error types
+        if (result.errorCode === "BAD_REQUEST") {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "AI returned invalid date format. Please try again.",
+            message:
+              result.error ||
+              "AI returned invalid date format. Please try again.",
           });
         }
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to generate workout plan",
+          message: result.error || "Failed to generate workout plan",
         });
       }
+
+      console.log("✅ Workout plan generated successfully:", {
+        planId: result.planId,
+      });
+      return 200;
     }),
 
   bookClass: protectedProcedure
