@@ -21,7 +21,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
       if (!session && !isPublicRoute) {
         // Store the current path to redirect back after login
         const redirectUrl = encodeURIComponent(pathname);
-        router.push(`/auth/sign-in?redirectedFrom=${redirectUrl}`);
+        router.push(`/auth?redirectedFrom=${redirectUrl}`);
       }
     };
 
@@ -32,7 +32,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
-        router.push('/auth/sign-in');
+        router.push('/auth');
       }
     });
 

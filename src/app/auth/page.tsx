@@ -15,7 +15,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden w-full">
+    <div className="relative h-screen overflow-hidden w-full">
       {/* Video Background */}
       <video
         src="https://rflvcogfitcffdappsuz.supabase.co/storage/v1/object/public/marketing-videos//new_essentials.webm"

@@ -30,12 +30,12 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error("Auth error:", error);
-      return NextResponse.redirect(new URL("/auth/sign-in", requestUrl.origin));
+      return NextResponse.redirect(new URL("/auth", requestUrl.origin));
     }
 
     if (!session) {
       console.error("No session after code exchange");
-      return NextResponse.redirect(new URL("/auth/sign-in", requestUrl.origin));
+      return NextResponse.redirect(new URL("/auth", requestUrl.origin));
     }
   }
 
