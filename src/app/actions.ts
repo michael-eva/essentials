@@ -16,9 +16,18 @@ if (vapidPublicKey && vapidPrivateKey) {
 
 // In a production environment, you would store subscriptions in a database
 // For now, we'll use a simple in-memory store
-let subscriptions: any[] = []
+// We'll use the browser's PushSubscription type, but only store serializable data
+interface SerializablePushSubscription {
+  endpoint: string
+  keys: {
+    p256dh: string
+    auth: string
+  }
+}
 
-export async function subscribeUser(sub: any) {
+let subscriptions: SerializablePushSubscription[] = []
+
+export async function subscribeUser(sub: SerializablePushSubscription) {
   try {
     // Check if subscription already exists
     const exists = subscriptions.some(
@@ -51,7 +60,7 @@ export async function unsubscribeUser() {
   }
 }
 
-export async function sendNotification(message: string, title: string = 'Essentials') {
+export async function sendNotification(message: string, title = 'Essentials') {
   if (!vapidPublicKey || !vapidPrivateKey) {
     return { success: false, error: 'VAPID keys not configured' }
   }

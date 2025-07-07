@@ -54,8 +54,10 @@ export function PushNotificationManager() {
         applicationServerKey: vapidPublicKey,
       })
 
+      // Convert subscription to a serializable object
+      const raw = subscription.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
       // Send subscription to server
-      await subscribeUser(subscription)
+      await subscribeUser(raw)
       setIsSubscribed(true)
     } catch (error) {
       console.error('Error subscribing to notifications:', error)

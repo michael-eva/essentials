@@ -80,7 +80,7 @@ export function PWATest() {
         </div>
         
         <div className="text-xs text-muted-foreground space-y-1">
-          <p>• Make sure you've subscribed to notifications first</p>
+          <p>• Make sure you&apos;ve subscribed to notifications first</p>
           <p>• Check browser console for service worker logs</p>
           <p>• Ensure HTTPS is enabled for testing</p>
         </div>

@@ -5,9 +5,15 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Smartphone, Download } from 'lucide-react'
 
+// Define the BeforeInstallPromptEvent interface
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
 export function InstallPrompt() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
@@ -18,7 +24,7 @@ export function InstallPrompt() {
     // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
-      setDeferredPrompt(e)
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
       setShowInstallPrompt(true)
     }
 
@@ -70,9 +76,9 @@ export function InstallPrompt() {
                 To install Essentials on your iPhone or iPad:
               </p>
               <ol className="text-sm space-y-2 list-decimal list-inside">
-                <li>Tap the Share button <span className="font-mono">⎋</span> in your browser</li>
-                <li>Scroll down and tap "Add to Home Screen"</li>
-                <li>Tap "Add" to confirm</li>
+                <li>Tap the Share button <span className="font-mono">&larr;</span> in your browser</li>
+                <li>Scroll down and tap &quot;Add to Home Screen&quot;</li>
+                <li>Tap &quot;Add&quot; to confirm</li>
               </ol>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Smartphone className="h-4 w-4" />
