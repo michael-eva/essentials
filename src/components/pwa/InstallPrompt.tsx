@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Smartphone, Download } from 'lucide-react'
+import { Smartphone, Download, Share } from 'lucide-react'
 
 // Define the BeforeInstallPromptEvent interface
 interface BeforeInstallPromptEvent extends Event {
@@ -15,13 +15,24 @@ export function InstallPrompt() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isIOS, setIsIOS] = useState(false)
+  const [showIOSPrompt, setShowIOSPrompt] = useState(false)
 
   useEffect(() => {
     // Check if running on iOS
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
     setIsIOS(isIOSDevice)
+    
+    // Show iOS prompt after a delay to avoid showing immediately
+    if (isIOSDevice) {
+      const timer = setTimeout(() => {
+        setShowIOSPrompt(true)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [])
 
-    // Listen for beforeinstallprompt event
+  // Listen for beforeinstallprompt event
+  useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
@@ -55,12 +66,28 @@ export function InstallPrompt() {
     setShowInstallPrompt(false)
   }
 
-  if (!showInstallPrompt && !isIOS) {
+  const handleIOSClose = () => {
+    setShowIOSPrompt(false)
+  }
+
+  const handleOpenChange = (open: boolean) => {
+    if (isIOS) {
+      setShowIOSPrompt(open)
+    } else {
+      setShowInstallPrompt(open)
+    }
+  }
+
+  // Don't render anything if no prompts should be shown
+  if (!showInstallPrompt && !showIOSPrompt) {
     return null
   }
 
   return (
-    <Dialog open={showInstallPrompt || isIOS} onOpenChange={setShowInstallPrompt}>
+    <Dialog 
+      open={showInstallPrompt || showIOSPrompt} 
+      onOpenChange={handleOpenChange}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -76,13 +103,18 @@ export function InstallPrompt() {
                 To install Essentials on your iPhone or iPad:
               </p>
               <ol className="text-sm space-y-2 list-decimal list-inside">
-                <li>Tap the Share button <span className="font-mono">&larr;</span> in your browser</li>
+                <li>Tap the Share button <Share className="inline h-4 w-4" /> in your browser</li>
                 <li>Scroll down and tap &quot;Add to Home Screen&quot;</li>
                 <li>Tap &quot;Add&quot; to confirm</li>
               </ol>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Smartphone className="h-4 w-4" />
                 <span>You can then access Essentials from your home screen</span>
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleIOSClose} variant="outline" size="sm">
+                  Got it
+                </Button>
               </div>
             </div>
           ) : (
