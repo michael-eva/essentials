@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
 import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, CUSTOM_PILATES_APPARATUS } from "@/app/_constants/pilates";
+import { handleNoneMultiSelect } from "@/app/_utils/multiSelectNoneUtils";
 
 interface PilatesFormProps {
     isFirstStep?: boolean;
@@ -60,17 +61,13 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
 
     const handleApparatusChange = (apparatus: string) => {
         const currentApparatus = watch("apparatusPreference");
-        const newApparatus = currentApparatus.includes(apparatus)
-            ? currentApparatus.filter(a => a !== apparatus)
-            : [...currentApparatus, apparatus];
+        const newApparatus = handleNoneMultiSelect(currentApparatus, apparatus)
         setValue("apparatusPreference", newApparatus);
     };
 
     const handleCustomApparatusChange = (apparatus: string) => {
         const currentApparatus = watch("customApparatus") ?? [];
-        const newApparatus = currentApparatus.includes(apparatus)
-            ? currentApparatus.filter((a) => a !== apparatus)
-            : [...currentApparatus, apparatus];
+        const newApparatus = handleNoneMultiSelect(currentApparatus, apparatus)
         setValue("customApparatus", newApparatus);
     };
 
