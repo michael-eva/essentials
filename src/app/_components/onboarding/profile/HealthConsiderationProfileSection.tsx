@@ -24,6 +24,7 @@ import {
   PREGNANCY_OPTIONS,
   type PregnancyOption,
 } from "@/app/_constants/health";
+import { handleNoneMultiSelect } from "@/app/_utils/multiSelectNoneUtils";
 
 type HealthConsiderationProps = {
   data: FormData["healthCons"];
@@ -103,9 +104,11 @@ const HealthConsiderationProfileSection: React.FC<HealthConsiderationProps> = ({
           selectedValues={data.chronicConditions}
           onChange={(value) => {
             const currentConditions = data.chronicConditions;
-            const newConditions = currentConditions.includes(value)
-              ? currentConditions.filter((condition) => condition !== value)
-              : [...currentConditions, value];
+            const newConditions = handleNoneMultiSelect(
+              currentConditions,
+              value,
+            );
+            
             setData({ ...data, chronicConditions: newConditions });
           }}
         />
