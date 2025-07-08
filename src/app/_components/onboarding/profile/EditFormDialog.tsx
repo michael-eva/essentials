@@ -422,7 +422,7 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
         return (
           <HealthConsiderationProfileSection
             data={typedData}
-            setData={(updated) => setData(updated as FormData["healthCons"])}
+            setData={setData}
           />
         );
       }
