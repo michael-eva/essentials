@@ -544,9 +544,9 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
         const typedData = safeData as FormData["motivation"]
         return (
           <>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <Label>Motivation Factors</Label>
+                <Label className="mb-2">Motivation Factors</Label>
                 <MultiSelectPills
                   options={MOTIVATION_FACTORS}
                   selectedValues={typedData.motivation}
@@ -569,7 +569,7 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
                 )}
               </div>
               <div>
-                <Label>Progress Tracking Methods</Label>
+                <Label className="mb-2">Progress Tracking Methods</Label>
                 <MultiSelectPills
                   options={PROGRESS_TRACKING_METHODS}
                   selectedValues={typedData.progressTracking}

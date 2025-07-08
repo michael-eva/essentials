@@ -143,42 +143,45 @@ const HealthConsiderationProfileSection: React.FC<HealthConsiderationProps> = ({
           </SelectContent>
         </Select>
       </div>
-      <div>
-        <Label className="mb-2">Doctor Consultation</Label>
-        <RadioGroup
-          className="flex gap-6"
-          value={booleanToRadioValue(data.pregnancyConsultedDoctor)}
-          onValueChange={(value) => {
-            setData({
-              ...data,
-              pregnancyConsultedDoctor: radioValueToBoolean(value),
-            });
-          }}
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="true" id="pregnancy-consultation-yes" />
-            <Label htmlFor="pregnancy-consultation-yes">Yes</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="false" id="pregnancy-consultation-no" />
-            <Label htmlFor="pregnancy-consultation-no">No</Label>
-          </div>
-        </RadioGroup>
-        {data.pregnancyConsultedDoctor && (
-          <div className="mt-2">
-            <Textarea
-              placeholder="Describe your injuries..."
-              value={data.pregnancyConsultedDoctorDetails ?? ""}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  pregnancyConsultedDoctorDetails: e.target.value || null,
-                })
-              }
-            />
-          </div>
-        )}
-      </div>
+
+      {data.pregnancy !== "Not applicable" && (
+        <div>
+          <Label className="mb-2">Doctor Consultation</Label>
+          <RadioGroup
+            className="flex gap-6"
+            value={booleanToRadioValue(data.pregnancyConsultedDoctor)}
+            onValueChange={(value) => {
+              setData({
+                ...data,
+                pregnancyConsultedDoctor: radioValueToBoolean(value),
+              });
+            }}
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="true" id="pregnancy-consultation-yes" />
+              <Label htmlFor="pregnancy-consultation-yes">Yes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="false" id="pregnancy-consultation-no" />
+              <Label htmlFor="pregnancy-consultation-no">No</Label>
+            </div>
+          </RadioGroup>
+          {data.pregnancyConsultedDoctor && (
+            <div className="mt-2">
+              <Textarea
+                placeholder="Please provide more information about your doctor's consultation"
+                value={data.pregnancyConsultedDoctorDetails ?? ""}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    pregnancyConsultedDoctorDetails: e.target.value || null,
+                  })
+                }
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
