@@ -19,6 +19,7 @@ import {  type MotivationFactor, type ProgressTrackingMethod } from "@/app/_cons
 import HealthConsiderationProfileSection from "@/app/_components/onboarding/profile/HealthConsiderationProfileSection";
 import PilatesProfileSection from "@/app/_components/onboarding/profile/PilatesProfileSection";
 import MotivationProfileSection from "./MotivationProfileSection";
+import { FitnessGoalsProfileSection } from "./FitnessGoalsProfileSection";
 
 type FormType = "basicQuestion" | "fitnessBg" | "goals" | "healthCons" | "pilates" | "motivation"
 
@@ -309,45 +310,12 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
       case "goals": {
         const typedData = safeData as FormData["goals"]
         return (
-          <>
-            {renderField("Fitness Goals", (
-              <MultiSelectPills
-                options={GOALS}
-                selectedValues={typedData.fitnessGoals}
-                onChange={(value) => {
-                  const currentGoals = typedData.fitnessGoals
-                  const newGoals = currentGoals.includes(value)
-                    ? currentGoals.filter(goal => goal !== value)
-                    : [...currentGoals, value]
-                  setData({ ...typedData, fitnessGoals: newGoals })
-                }}
-              />
-            ), 0)}
-            {renderField("Goal Timeline", (
-              <Select
-                value={typedData.goalTimeline ?? ""}
-                onValueChange={(value: GoalTimeline) => setData({ ...typedData, goalTimeline: value })}
-              >
-                <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
-                  <SelectValue placeholder="Select timeline" />
-                </SelectTrigger>
-                <SelectContent>
-                  {GOAL_TIMELINE.map((timeline) => (
-                    <SelectItem key={timeline} value={timeline}>{timeline}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ), 1)}
-            {renderField("Specific Goals (Optional)", (
-              <Textarea
-                id="specificGoals"
-                value={typedData.specificGoals ?? ""}
-                onChange={(e) => setData({ ...typedData, specificGoals: e.target.value || null })}
-                placeholder="Describe your specific goals..."
-                className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[100px] text-[15px]"
-              />
-            ), 2)}
-          </>
+          <FitnessGoalsProfileSection
+            typedData={typedData}
+            setData={setData}
+            GOALS={GOALS}
+            GOAL_TIMELINE={GOAL_TIMELINE}
+          />
         )
       }
 

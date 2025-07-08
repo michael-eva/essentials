@@ -133,7 +133,8 @@ export default function ProfilePage() {
           postFitnessGoals({
             fitnessGoals: goalsData.fitnessGoals,
             goalTimeline: goalsData.goalTimeline,
-            specificGoals: goalsData.specificGoals ?? undefined
+            specificGoals: goalsData.specificGoals ?? undefined,
+            otherFitnessGoals: goalsData.otherFitnessGoals
           })
           break
         }

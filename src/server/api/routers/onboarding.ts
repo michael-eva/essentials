@@ -114,7 +114,7 @@ export const onboardingRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { fitnessGoals, goalTimeline, specificGoals } = input;
+      const { fitnessGoals, goalTimeline, specificGoals, otherFitnessGoals } = input;
       const userId = ctx.userId;
 
       await insertOnboarding({
@@ -122,6 +122,7 @@ export const onboardingRouter = createTRPCRouter({
         fitnessGoals,
         goalTimeline,
         specificGoals,
+        otherFitnessGoals,
         step: "fitness_goals",
       });
     }),

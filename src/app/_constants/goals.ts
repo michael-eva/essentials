@@ -8,6 +8,7 @@ export const GOALS = [
   "Reduce stress",
   "Other",
 ];
+
 export const GOAL_TIMELINE = [
   "Ongoing",
   "1-3 months",
