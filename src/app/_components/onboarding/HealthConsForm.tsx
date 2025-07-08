@@ -97,7 +97,9 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
       pregnancy: isDeveloper() ? "Not applicable" : undefined,
         }
   });
-    const { mutate: postHealthConsiderations } = api.onboarding.postHealthConsiderations.useMutation()
+  
+  const { mutate: postHealthConsiderations } = api.onboarding.postHealthConsiderations.useMutation()
+  
   const hasInjuries = watch("injuries");
   const hasRecentSurgery = watch("recentSurgery");
   const hasPregnancy = watch("pregnancy") && watch("pregnancy") !== "Not applicable";
@@ -442,7 +444,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
           </div>
           {hasPregnancy && (
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-base font-medium text-gray-700">
                 Have you consulted a doctor about your pregnancy or postpartum status?
               </label>
               {errors.pregnancyConsultedDoctor && (
@@ -472,7 +474,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
           )}
           {hasPregnancy && hasConsultedDoctor && (
             <div className="mt-4">
-              <label htmlFor="pregnancy-consulted-details" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="pregnancy-consulted-details" className="block text-base font-medium text-gray-700">
                 Please provide more information about your doctor&apos;s consultation:
               </label>
               {errors.pregnancyConsultedDoctorDetails && (

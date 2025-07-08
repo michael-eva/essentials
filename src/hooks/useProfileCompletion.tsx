@@ -35,12 +35,14 @@ export interface FormData {
   };
   healthCons: {
     injuries: boolean | null;
-    recentSurgery: boolean | null;
-    chronicConditions: HealthCondition[];
-    pregnancy: PregnancyOption | null;
     injuriesDetails: string | null;
+    recentSurgery: boolean | null;
     surgeryDetails: string | null;
+    chronicConditions: HealthCondition[];
     otherHealthConditions: string[];
+    pregnancy: PregnancyOption | null;
+    pregnancyConsultedDoctor: boolean | null,
+    pregnancyConsultedDoctorDetails: string | null,
   };
   motivation: {
     motivation: MotivationFactor[];
@@ -97,12 +99,14 @@ export function useProfileCompletion() {
       },
       healthCons: {
         injuries: onboardingData.injuries ?? null,
-        recentSurgery: onboardingData.recentSurgery ?? null,
-        chronicConditions: onboardingData.chronicConditions ?? [],
-        pregnancy: onboardingData.pregnancy as PregnancyOption | null,
         injuriesDetails: onboardingData.injuriesDetails,
+        recentSurgery: onboardingData.recentSurgery ?? null,
         surgeryDetails: onboardingData.surgeryDetails,
-        otherHealthConditions: onboardingData.otherHealthConditions ?? []
+        chronicConditions: onboardingData.chronicConditions ?? [],
+        otherHealthConditions: onboardingData.otherHealthConditions ?? [],
+        pregnancy: onboardingData.pregnancy as PregnancyOption | null,
+        pregnancyConsultedDoctor: onboardingData.pregnancyConsultedDoctor ?? null,
+        pregnancyConsultedDoctorDetails: onboardingData.pregnancyConsultedDoctorDetails ?? null
       },
       pilates: {
         pilatesExperience: onboardingData.pilatesExperience ?? null,

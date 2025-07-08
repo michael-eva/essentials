@@ -220,6 +220,7 @@ export const onboardingRouter = createTRPCRouter({
   getOnboardingData: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
     const onboardingData = await getOnboardingData(userId);
+    
     if (!onboardingData) {
       return {
         name: null,
@@ -239,6 +240,8 @@ export const onboardingRouter = createTRPCRouter({
         chronicConditions: [],
         otherHealthConditions: [],
         pregnancy: null,
+        pregnancyConsultedDoctor: null,
+        pregnancyConsultedDoctorDetails: null,
         fitnessGoals: [],
         goalTimeline: null,
         specificGoals: null,

@@ -17,11 +17,12 @@ import { DEFAULT_EXERCISE_OPTIONS, EXERCISE_FREQUENCY, FITNESS_LEVEL, SESSION_LE
 import { GOAL_TIMELINE, GOALS, type GoalTimeline } from "@/app/_constants/goals"
 import { CUSTOM_PILATES_APPARATUS, PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, type CustomPilateApparatus, type PilatesApparatus, type PilatesDuration, type PilatesSessionPreference, type PilatesSessions } from "@/app/_constants/pilates"
 import { MOTIVATION_FACTORS, PROGRESS_TRACKING_METHODS, type MotivationFactor, type ProgressTrackingMethod } from "@/app/_constants/motivation"
+import HealthConsiderationProfileSection from "@/app/_components/onboarding/profile/HealthConsiderationProfileSection";
 
 type FormType = "basicQuestion" | "fitnessBg" | "goals" | "healthCons" | "pilates" | "motivation"
 
 // Form data interface with proper optional types
-interface FormData {
+export interface FormData {
   basicQuestion: {
     name: string | null;
     age: number | null;
@@ -43,12 +44,14 @@ interface FormData {
   };
   healthCons: {
     injuries: boolean | null;
-    recentSurgery: boolean | null;
-    chronicConditions: string[];
-    pregnancy: PregnancyOption | null;
     injuriesDetails: string | null;
+    recentSurgery: boolean | null;
     surgeryDetails: string | null;
+    chronicConditions: string[];
     otherHealthConditions: string[];
+    pregnancy: PregnancyOption | null;
+    pregnancyConsultedDoctor: boolean | null,
+    pregnancyConsultedDoctorDetails: string | null
   };
   motivation: {
     motivation: MotivationFactor[];
@@ -68,10 +71,10 @@ interface FormData {
 
 interface EditFormDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChangeAction: (open: boolean) => void
   formType: FormType
   formData: FormData[FormType]
-  onSubmit: (data: FormData[FormType]) => void
+  onSubmitAction: (data: FormData[FormType]) => void
   formSections: Array<{
     type: FormType
     title: string
@@ -82,7 +85,7 @@ interface EditFormDialogProps {
   }>
 }
 
-export default function EditFormDialog({ open, onOpenChange, formType, formData, onSubmit, formSections }: EditFormDialogProps) {
+export default function EditFormDialog({ open, onOpenChangeAction, formType, formData, onSubmitAction, formSections }: EditFormDialogProps) {
   const [data, setData] = useState<FormData[FormType]>(() => {
     // Initialize with default values based on form type
     switch (formType) {
@@ -111,12 +114,14 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
       case "healthCons":
         return {
           injuries: null,
-          recentSurgery: null,
-          chronicConditions: [],
-          pregnancy: null,
           injuriesDetails: null,
+          recentSurgery: null,
           surgeryDetails: null,
-          otherHealthConditions: []
+          chronicConditions: [],
+          otherHealthConditions: [],
+          pregnancy: null,
+          pregnancyConsultedDoctor: null,
+          pregnancyConsultedDoctorDetails: null
         } as FormData["healthCons"]
       case "pilates":
         return {
@@ -149,7 +154,18 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(data)
+    let submitData= data;
+    // Type guard for healthCons form
+    if (
+      formType === "healthCons" &&
+      (data as FormData["healthCons"]).pregnancyConsultedDoctor === false
+    ) {
+      submitData = {
+        ...data,
+        pregnancyConsultedDoctorDetails: null
+      };
+    }
+    onSubmitAction(submitData)
   }
 
   const renderFormFields = () => {
@@ -402,102 +418,13 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
       }
 
       case "healthCons": {
-        const typedData = safeData as FormData["healthCons"]
+        const typedData = safeData as FormData["healthCons"];
         return (
-          <>
-            <div className="space-y-4">
-              <div>
-                <Label>Injuries (Past & Present)</Label>
-                <RadioGroup
-                  value={typedData.injuries === null ? "" : typedData.injuries ? "true" : "false"}
-                  onValueChange={(value) => setData({ ...typedData, injuries: value === "" ? null : value === "true" })}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="true" id="injuries-yes" />
-                    <Label htmlFor="injuries-yes">Yes</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="false" id="injuries-no" />
-                    <Label htmlFor="injuries-no">No</Label>
-                  </div>
-                </RadioGroup>
-                {typedData.injuries && (
-                  <div className="mt-2">
-                    <Textarea
-                      placeholder="Describe your injuries..."
-                      value={typedData.injuriesDetails ?? ""}
-                      onChange={(e) => setData({ ...typedData, injuriesDetails: e.target.value || null })}
-                    />
-                  </div>
-                )}
-              </div>
-              <div>
-                <Label>Recent or Past Surgery</Label>
-                <RadioGroup
-                  value={typedData.recentSurgery === null ? "" : typedData.recentSurgery ? "true" : "false"}
-                  onValueChange={(value) => setData({ ...typedData, recentSurgery: value === "" ? null : value === "true" })}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="true" id="surgery-yes" />
-                    <Label htmlFor="surgery-yes">Yes</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="false" id="surgery-no" />
-                    <Label htmlFor="surgery-no">No</Label>
-                  </div>
-                </RadioGroup>
-                {typedData.recentSurgery && (
-                  <div className="mt-2">
-                    <Textarea
-                      placeholder="Describe your surgery and recovery timeline..."
-                      value={typedData.surgeryDetails ?? ""}
-                      onChange={(e) => setData({ ...typedData, surgeryDetails: e.target.value || null })}
-                    />
-                  </div>
-                )}
-              </div>
-              <div>
-                <Label>Health Considerations</Label>
-                <MultiSelectPills
-                  options={HEALTH_CONDITIONS}
-                  selectedValues={typedData.chronicConditions}
-                  onChange={(value) => {
-                    const currentConditions = typedData.chronicConditions
-                    const newConditions = currentConditions.includes(value)
-                      ? currentConditions.filter(condition => condition !== value)
-                      : [...currentConditions, value]
-                    setData({ ...typedData, chronicConditions: newConditions })
-                  }}
-                />
-                {typedData.chronicConditions.includes("Other") && (
-                  <div className="mt-2">
-                    <Input
-                      placeholder="Add custom condition"
-                      value={typedData.otherHealthConditions[0] ?? ""}
-                      onChange={(e) => setData({ ...typedData, otherHealthConditions: [e.target.value] })}
-                    />
-                  </div>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="pregnancy">Pregnancy Status</Label>
-                <Select
-                  value={typedData.pregnancy ?? ""}
-                  onValueChange={(value: PregnancyOption) => setData({ ...typedData, pregnancy: value })}
-                >
-                  <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PREGNANCY_OPTIONS.map((option) => (
-                      <SelectItem key={option} value={option}>{option}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </>
-        )
+          <HealthConsiderationProfileSection
+            data={typedData}
+            setData={(updated) => setData(updated as FormData["healthCons"])}
+          />
+        );
       }
 
       case "pilates": {
@@ -675,7 +602,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="sm:max-w-[425px] rounded-2xl border-0 shadow-xl p-0 overflow-hidden">
         <div className="p-6">
           <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-6">

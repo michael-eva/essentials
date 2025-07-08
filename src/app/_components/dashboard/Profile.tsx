@@ -114,14 +114,17 @@ export default function ProfilePage() {
         }
         case "healthCons": {
           const healthData = data as FormData["healthCons"]
+
           postHealthConsiderations({
             injuries: healthData.injuries ?? false,
-            recentSurgery: healthData.recentSurgery ?? false,
-            chronicConditions: healthData.chronicConditions,
-            pregnancy: healthData.pregnancy ?? "Not applicable",
             injuriesDetails: healthData.injuries ? healthData.injuriesDetails ?? null : null,
+            recentSurgery: healthData.recentSurgery ?? false,
             surgeryDetails: healthData.recentSurgery ? healthData.surgeryDetails ?? null : null,
-            otherHealthConditions: healthData.chronicConditions.includes("Other") ? healthData.otherHealthConditions ?? null : null
+            chronicConditions: healthData.chronicConditions,
+            otherHealthConditions: healthData.chronicConditions.includes("Other") ? healthData.otherHealthConditions ?? null : null,
+            pregnancy: healthData.pregnancy ?? "Not applicable",
+            pregnancyConsultedDoctor: healthData.pregnancyConsultedDoctor ?? false,
+            pregnancyConsultedDoctorDetails: healthData.pregnancyConsultedDoctorDetails ?? null
           })
           break
         }
@@ -217,10 +220,10 @@ export default function ProfilePage() {
       {selectedForm && formData && (
         <EditFormDialog
           open={!!selectedForm}
-          onOpenChange={(open) => !open && setSelectedForm(null)}
+          onOpenChangeAction={(open: boolean) => !open && setSelectedForm(null)}
           formType={selectedForm}
           formData={formData[selectedForm]}
-          onSubmit={(data) => handleFormSubmit(selectedForm, data)}
+          onSubmitAction={(data) => handleFormSubmit(selectedForm, data)}
           formSections={formSections}
         />
       )}
