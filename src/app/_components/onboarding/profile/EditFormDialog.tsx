@@ -19,6 +19,7 @@ import { CUSTOM_PILATES_APPARATUS, PILATES_APPARATUS, PILATES_DURATION, PILATES_
 import { MOTIVATION_FACTORS, PROGRESS_TRACKING_METHODS, type MotivationFactor, type ProgressTrackingMethod } from "@/app/_constants/motivation"
 import HealthConsiderationProfileSection from "@/app/_components/onboarding/profile/HealthConsiderationProfileSection";
 import PilatesProfileSection from "@/app/_components/onboarding/profile/PilatesProfileSection";
+import MotivationProfileSection from "./MotivationProfileSection";
 
 type FormType = "basicQuestion" | "fitnessBg" | "goals" | "healthCons" | "pilates" | "motivation"
 
@@ -438,57 +439,10 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
 
       case "motivation": {
         const typedData = safeData as FormData["motivation"]
+
+        console.log(typedData)
         return (
-          <>
-            <div className="space-y-6">
-              <div>
-                <Label className="mb-2">Motivation Factors</Label>
-                <MultiSelectPills
-                  options={MOTIVATION_FACTORS}
-                  selectedValues={typedData.motivation}
-                  onChange={(value) => {
-                    const currentMotivation = typedData.motivation
-                    const newMotivation = currentMotivation.includes(value)
-                      ? currentMotivation.filter(m => m !== value)
-                      : [...currentMotivation, value]
-                    setData({ ...typedData, motivation: newMotivation })
-                  }}
-                />
-                {typedData.motivation.includes("Other") && (
-                  <div className="mt-2">
-                    <Input
-                      placeholder="Add custom motivation"
-                      value={typedData.otherMotivation[0] ?? ""}
-                      onChange={(e) => setData({ ...typedData, otherMotivation: [e.target.value] })}
-                    />
-                  </div>
-                )}
-              </div>
-              <div>
-                <Label className="mb-2">Progress Tracking Methods</Label>
-                <MultiSelectPills
-                  options={PROGRESS_TRACKING_METHODS}
-                  selectedValues={typedData.progressTracking}
-                  onChange={(value) => {
-                    const currentTracking = typedData.progressTracking
-                    const newTracking = currentTracking.includes(value)
-                      ? currentTracking.filter(t => t !== value)
-                      : [...currentTracking, value]
-                    setData({ ...typedData, progressTracking: newTracking })
-                  }}
-                />
-                {typedData.progressTracking.includes("Other") && (
-                  <div className="mt-2">
-                    <Input
-                      placeholder="Add custom tracking method"
-                      value={typedData.otherProgressTracking[0] ?? ""}
-                      onChange={(e) => setData({ ...typedData, otherProgressTracking: [e.target.value] })}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </>
+          <MotivationProfileSection typedData={typedData} setData={setData} />
         )
       }
 
