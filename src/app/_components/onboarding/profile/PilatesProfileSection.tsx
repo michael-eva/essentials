@@ -1,17 +1,39 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
-import { PILATES_DURATION, PILATES_SESSIONS, PILATES_SESSION_PREFERENCE, PILATES_APPARATUS, CUSTOM_PILATES_APPARATUS, type PilatesDuration, type PilatesSessions, type PilatesSessionPreference, type PilatesApparatus, type CustomPilateApparatus } from "@/app/_constants/pilates";
+import {
+  PILATES_DURATION,
+  PILATES_SESSIONS,
+  PILATES_SESSION_PREFERENCE,
+  PILATES_APPARATUS,
+  CUSTOM_PILATES_APPARATUS,
+  type PilatesDuration,
+  type PilatesSessions,
+  type PilatesSessionPreference,
+  type PilatesApparatus,
+  type CustomPilateApparatus,
+} from "@/app/_constants/pilates";
 import type { FormData } from "./EditFormDialog";
+
+import { handleNoneMultiSelect } from "@/app/_utils/multiSelectNoneUtils";
 
 type PilatesProfileSectionProps = {
   data: FormData["pilates"];
   setData: (data: FormData["pilates"]) => void;
 };
 
-const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({ data: typedData, setData }) => {
+const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
+  data: typedData,
+  setData,
+}) => {
   return (
     <>
       <div className="space-y-4">
@@ -19,8 +41,19 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({ data: typ
           <Label className="mb-2">Pilates Experience</Label>
           <RadioGroup
             className="mb-4 flex gap-6"
-            value={typedData.pilatesExperience === null ? "" : typedData.pilatesExperience ? "true" : "false"}
-            onValueChange={(value) => setData({ ...typedData, pilatesExperience: value === "" ? null : value === "true" })}
+            value={
+              typedData.pilatesExperience === null
+                ? ""
+                : typedData.pilatesExperience
+                  ? "true"
+                  : "false"
+            }
+            onValueChange={(value) =>
+              setData({
+                ...typedData,
+                pilatesExperience: value === "" ? null : value === "true",
+              })
+            }
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="true" id="pilates-yes" />
@@ -33,17 +66,23 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({ data: typ
           </RadioGroup>
           {typedData.pilatesExperience && (
             <div className="mb-4">
-              <Label htmlFor="pilatesDuration" className="mb-2">Duration</Label>
+              <Label htmlFor="pilatesDuration" className="mb-2">
+                Duration
+              </Label>
               <Select
                 value={typedData.pilatesDuration ?? ""}
-                onValueChange={(value: PilatesDuration) => setData({ ...typedData, pilatesDuration: value })}
+                onValueChange={(value: PilatesDuration) =>
+                  setData({ ...typedData, pilatesDuration: value })
+                }
               >
-                <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
+                <SelectTrigger className="min-h-[44px] w-full rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0">
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
                 <SelectContent>
                   {PILATES_DURATION.map((duration) => (
-                    <SelectItem key={duration} value={duration}>{duration}</SelectItem>
+                    <SelectItem key={duration} value={duration}>
+                      {duration}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -51,33 +90,45 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({ data: typ
           )}
         </div>
         <div>
-          <Label htmlFor="studioFrequency" className="mb-2">Studio Frequency</Label>
+          <Label htmlFor="studioFrequency" className="mb-2">
+            Studio Frequency
+          </Label>
           <Select
             value={typedData.studioFrequency ?? ""}
-            onValueChange={(value: PilatesSessions) => setData({ ...typedData, studioFrequency: value })}
+            onValueChange={(value: PilatesSessions) =>
+              setData({ ...typedData, studioFrequency: value })
+            }
           >
-            <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
+            <SelectTrigger className="min-h-[44px] w-full rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0">
               <SelectValue placeholder="Select frequency" />
             </SelectTrigger>
             <SelectContent>
               {PILATES_SESSIONS.map((session) => (
-                <SelectItem key={session} value={session}>{session}</SelectItem>
+                <SelectItem key={session} value={session}>
+                  {session}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label htmlFor="sessionPreference" className="mb-2">Preferred Class Type</Label>
+          <Label htmlFor="sessionPreference" className="mb-2">
+            Preferred Class Type
+          </Label>
           <Select
             value={typedData.sessionPreference ?? ""}
-            onValueChange={(value: PilatesSessionPreference) => setData({ ...typedData, sessionPreference: value })}
+            onValueChange={(value: PilatesSessionPreference) =>
+              setData({ ...typedData, sessionPreference: value })
+            }
           >
-            <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
+            <SelectTrigger className="min-h-[44px] w-full rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0">
               <SelectValue placeholder="Select preference" />
             </SelectTrigger>
             <SelectContent>
               {PILATES_SESSION_PREFERENCE.map((preference) => (
-                <SelectItem key={preference} value={preference}>{preference}</SelectItem>
+                <SelectItem key={preference} value={preference}>
+                  {preference}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -88,10 +139,10 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({ data: typ
             options={PILATES_APPARATUS}
             selectedValues={typedData.apparatusPreference}
             onChange={(value) => {
-              const currentPreference = typedData.apparatusPreference;
-              const newPreference = currentPreference.includes(value)
-                ? currentPreference.filter((p) => p !== value)
-                : [...currentPreference, value];
+              const newPreference = handleNoneMultiSelect(
+                typedData.apparatusPreference,
+                value,
+              );
               setData({
                 ...typedData,
                 apparatusPreference: newPreference,
@@ -105,10 +156,11 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({ data: typ
             options={CUSTOM_PILATES_APPARATUS}
             selectedValues={typedData.customApparatus}
             onChange={(value) => {
-              const currentPreference = typedData.customApparatus;
-              const newPreference = currentPreference.includes(value)
-                ? currentPreference.filter((p) => p !== value)
-                : [...currentPreference, value];
+              const newPreference = handleNoneMultiSelect(
+                typedData.customApparatus,
+                value,
+              );
+
               setData({
                 ...typedData,
                 customApparatus: newPreference,
@@ -121,4 +173,4 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({ data: typ
   );
 };
 
-export default PilatesProfileSection; 
+export default PilatesProfileSection;
