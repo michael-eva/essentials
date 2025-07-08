@@ -27,6 +27,7 @@ export interface FormData {
     exerciseFrequency: ExerciseFrequency | null;
     sessionLength: SessionLength | null;
     customExercise: string | null;
+    otherExercises: string[]
   };
   goals: {
     fitnessGoals: string[];
@@ -90,7 +91,8 @@ export function useProfileCompletion() {
         exercises: onboardingData.exercises ?? [],
         exerciseFrequency: onboardingData.exerciseFrequency as ExerciseFrequency | null,
         sessionLength: onboardingData.sessionLength as SessionLength | null,
-        customExercise: onboardingData.otherExercises?.[0] ?? null
+        customExercise: onboardingData.otherExercises?.[0] ?? null,
+        otherExercises: onboardingData.otherExercises  ?? []
       },
       goals: {
         fitnessGoals: onboardingData.fitnessGoals ?? [],

@@ -27,7 +27,7 @@ export function CustomOtherInput({
         />
         <button
           type="button"
-          className="rounded bg-[#635BFF] px-4 py-1 text-white"
+          className="rounded bg-[#635BFF] px-4 py-1 text-white text-sm"
           onClick={() => {
             if (input.trim() !== "") {
               onAdd(input.trim());

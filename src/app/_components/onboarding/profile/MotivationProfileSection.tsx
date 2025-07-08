@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import {
   MOTIVATION_FACTORS,
   PROGRESS_TRACKING_METHODS,
 } from "@/app/_constants/motivation";
-import type { FormData } from "./EditFormDialog";
-import { CustomOtherInput } from "./CustomOtherInput";
+import type { FormData } from "@/app/_components/onboarding/profile/EditFormDialog";
+import { CustomOtherInput } from "@/app/_components/onboarding/profile/CustomOtherInput"
 
 type MotivationProfileSectionProps = {
   typedData: FormData["motivation"];

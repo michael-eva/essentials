@@ -108,7 +108,7 @@ export default function ProfilePage() {
             exercises: fitnessData.exercises,
             exerciseFrequency: fitnessData.exerciseFrequency,
             sessionLength: fitnessData.sessionLength,
-            otherExercises: fitnessData.exercises.includes("Other") ? [fitnessData.customExercise ?? ""] : null
+            otherExercises: fitnessData.otherExercises
           })
           break
         }

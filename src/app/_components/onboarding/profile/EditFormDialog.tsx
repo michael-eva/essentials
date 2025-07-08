@@ -1,22 +1,21 @@
 "use client"
 
-import type React from "react"
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { motion } from "framer-motion"
+import { AnimatedField } from "./AnimatedField";
+import { motion } from "framer-motion";
+import { FitnessBackgroundProfileSection } from "@/app/_components/onboarding/profile/FitnessBackgroundProfileSection";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills"
 import { Textarea } from "@/components/ui/textarea"
-import { HEALTH_CONDITIONS, PREGNANCY_OPTIONS, type PregnancyOption } from "@/app/_constants/health"
+import {  type PregnancyOption } from "@/app/_constants/health"
 import { GENDER, type Gender } from "@/app/_constants/gender"
 import { DEFAULT_EXERCISE_OPTIONS, EXERCISE_FREQUENCY, FITNESS_LEVEL, SESSION_LENGTH, type ExerciseFrequency, type FitnessLevel, type SessionLength } from "@/app/_constants/fitness"
 import { GOAL_TIMELINE, GOALS, type GoalTimeline } from "@/app/_constants/goals"
-import { CUSTOM_PILATES_APPARATUS, PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, type CustomPilateApparatus, type PilatesApparatus, type PilatesDuration, type PilatesSessionPreference, type PilatesSessions } from "@/app/_constants/pilates"
-import { MOTIVATION_FACTORS, PROGRESS_TRACKING_METHODS, type MotivationFactor, type ProgressTrackingMethod } from "@/app/_constants/motivation"
+import {  type CustomPilateApparatus, type PilatesApparatus, type PilatesDuration, type PilatesSessionPreference, type PilatesSessions } from "@/app/_constants/pilates"
+import {  type MotivationFactor, type ProgressTrackingMethod } from "@/app/_constants/motivation"
 import HealthConsiderationProfileSection from "@/app/_components/onboarding/profile/HealthConsiderationProfileSection";
 import PilatesProfileSection from "@/app/_components/onboarding/profile/PilatesProfileSection";
 import MotivationProfileSection from "./MotivationProfileSection";
@@ -38,6 +37,7 @@ export interface FormData {
     exerciseFrequency: ExerciseFrequency | null;
     sessionLength: SessionLength | null;
     customExercise: string | null;
+    otherExercises: string[];
   };
   goals: {
     fitnessGoals: string[];
@@ -105,7 +105,8 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
           exercises: [],
           exerciseFrequency: null,
           sessionLength: null,
-          customExercise: null
+          customExercise: null,
+          otherExercises: [],
         } as FormData["fitnessBg"]
       case "goals":
         return {
@@ -185,7 +186,8 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
         exercises: [],
         exerciseFrequency: null,
         sessionLength: null,
-        customExercise: null
+        customExercise: null,
+        otherExercises: []
       },
       goals: {
         fitnessGoals: [],
@@ -220,19 +222,10 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
     }[formType] as FormData[FormType]
 
     const renderField = (label: string, children: React.ReactNode, index: number) => (
-      <motion.div
-        key={label}
-        className="space-y-2 mb-4"
-        initial={{ opacity: 0, y: 5 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05 }}
-      >
-        <Label htmlFor={label} className="text-sm font-medium text-gray-700">
-          {label}
-        </Label>
+      <AnimatedField label={label} index={index}>
         {children}
-      </motion.div>
-    )
+      </AnimatedField>
+    );
 
     switch (formType) {
       case "basicQuestion": {
@@ -300,77 +293,14 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
       case "fitnessBg": {
         const typedData = safeData as FormData["fitnessBg"]
         return (
-          <>
-            {renderField("Fitness Level", (
-              <Select
-                value={typedData.fitnessLevel ?? ""}
-                onValueChange={(value: FitnessLevel) => setData({ ...typedData, fitnessLevel: value })}
-              >
-                <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
-                  <SelectValue placeholder="Select level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {FITNESS_LEVEL.map((level) => (
-                    <SelectItem key={level} value={level}>{level}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ), 0)}
-            {renderField("Exercises", (
-              <div className="space-y-2">
-                <MultiSelectPills
-                  options={DEFAULT_EXERCISE_OPTIONS}
-                  selectedValues={typedData.exercises}
-                  onChange={(value) => {
-                    const currentExercises = typedData.exercises
-                    const newExercises = currentExercises.includes(value)
-                      ? currentExercises.filter(ex => ex !== value)
-                      : [...currentExercises, value]
-                    setData({ ...typedData, exercises: newExercises })
-                  }}
-                />
-                {typedData.exercises.includes("Other") && (
-                  <Input
-                    placeholder="Add custom exercise"
-                    value={typedData.customExercise ?? ""}
-                    onChange={(e) => setData({ ...typedData, customExercise: e.target.value || null })}
-                    className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
-                    style={{ height: "44px", fontSize: "15px" }}
-                  />
-                )}
-              </div>
-            ), 1)}
-            {renderField("Exercise Frequency", (
-              <Select
-                value={typedData.exerciseFrequency ?? ""}
-                onValueChange={(value: ExerciseFrequency) => setData({ ...typedData, exerciseFrequency: value })}
-              >
-                <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
-                  <SelectValue placeholder="Select frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  {EXERCISE_FREQUENCY.map((frequency) => (
-                    <SelectItem key={frequency} value={frequency}>{frequency}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ), 2)}
-            {renderField("Session Length", (
-              <Select
-                value={typedData.sessionLength ?? ""}
-                onValueChange={(value: SessionLength) => setData({ ...typedData, sessionLength: value })}
-              >
-                <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 min-h-[44px] w-full">
-                  <SelectValue placeholder="Select length" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SESSION_LENGTH.map((length) => (
-                    <SelectItem key={length} value={length}>{length}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ), 3)}
-          </>
+          <FitnessBackgroundProfileSection
+            typedData={typedData}
+            setData={setData}
+            FITNESS_LEVEL={FITNESS_LEVEL}
+            DEFAULT_EXERCISE_OPTIONS={DEFAULT_EXERCISE_OPTIONS}
+            EXERCISE_FREQUENCY={EXERCISE_FREQUENCY}
+            SESSION_LENGTH={SESSION_LENGTH}
+          />
         )
       }
 
@@ -440,7 +370,6 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
       case "motivation": {
         const typedData = safeData as FormData["motivation"]
 
-        console.log(typedData)
         return (
           <MotivationProfileSection typedData={typedData} setData={setData} />
         )
