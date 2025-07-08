@@ -110,6 +110,7 @@ export const onboardingRouter = createTRPCRouter({
         fitnessGoals: z.array(z.string()).optional(),
         goalTimeline: z.string().nullable().optional(),
         specificGoals: z.string().optional(),
+        otherFitnessGoals: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -243,6 +244,7 @@ export const onboardingRouter = createTRPCRouter({
         pregnancyConsultedDoctor: null,
         pregnancyConsultedDoctorDetails: null,
         fitnessGoals: [],
+        otherFitnessGoals: [],
         goalTimeline: null,
         specificGoals: null,
         pilatesExperience: null,

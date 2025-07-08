@@ -35,6 +35,7 @@ export type UserContext = {
     fitnessGoals: string[] | null;
     goalTimeline: string | null;
     specificGoals: string | null;
+    otherFitnessGoals: string[] | null;
 
     // Pilates experience
     pilatesExperience: boolean | null;
@@ -136,6 +137,7 @@ export async function buildUserContext(
       exerciseFrequency: onboardingData?.exerciseFrequency ?? null,
       sessionLength: onboardingData?.sessionLength ?? null,
       fitnessGoals: onboardingData?.fitnessGoals ?? null,
+      otherFitnessGoals: onboardingData?.otherFitnessGoals ?? null,
       goalTimeline: onboardingData?.goalTimeline ?? null,
       specificGoals: onboardingData?.specificGoals ?? null,
       pilatesExperience: onboardingData?.pilatesExperience ?? null,

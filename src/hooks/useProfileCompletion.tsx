@@ -33,6 +33,7 @@ export interface FormData {
     fitnessGoals: string[];
     goalTimeline: GoalTimeline | null;
     specificGoals: string | null;
+    otherFitnessGoals: string[]
   };
   healthCons: {
     injuries: boolean | null;
@@ -97,7 +98,8 @@ export function useProfileCompletion() {
       goals: {
         fitnessGoals: onboardingData.fitnessGoals ?? [],
         goalTimeline: onboardingData.goalTimeline as GoalTimeline | null,
-        specificGoals: onboardingData.specificGoals
+        specificGoals: onboardingData.specificGoals,
+        otherFitnessGoals: onboardingData.otherFitnessGoals ?? []
       },
       healthCons: {
         injuries: onboardingData.injuries ?? null,

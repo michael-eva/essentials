@@ -220,6 +220,7 @@ export const onboarding = pgTable("onboarding", {
   pregnancyConsultedDoctorDetails: text("pregnancy_consulted_doctor_details"),
 
   fitnessGoals: text("fitness_goals").array(),
+  otherFitnessGoals: text("other_fitness_goals").array(),
   goalTimeline: text("goal_timeline"),
   specificGoals: text("specific_goals"),
 

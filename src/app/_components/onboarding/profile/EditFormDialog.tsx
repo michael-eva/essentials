@@ -43,6 +43,7 @@ export interface FormData {
     fitnessGoals: string[];
     goalTimeline: GoalTimeline | null;
     specificGoals: string | null;
+    otherFitnessGoals: string[]
   };
   healthCons: {
     injuries: boolean | null;
@@ -112,7 +113,8 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
         return {
           fitnessGoals: [],
           goalTimeline: null,
-          specificGoals: null
+          specificGoals: null,
+          otherFitnessGoals: []
         } as FormData["goals"]
       case "healthCons":
         return {

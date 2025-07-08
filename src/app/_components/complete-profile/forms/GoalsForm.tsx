@@ -16,6 +16,7 @@ interface GoalsSubmitData {
   fitnessGoals: string[];
   goalTimeline: GoalTimeline | null;
   specificGoals: string | undefined;
+  otherFitnessGoals: string[]
 }
 
 export default function GoalsForm({
@@ -123,6 +124,7 @@ export default function GoalsForm({
         fitnessGoals: submitData.fitnessGoals || [],
         goalTimeline: submitData.goalTimeline || null,
         specificGoals: submitData.specificGoals || undefined,
+        otherFitnessGoals: submitData.otherFitnessGoals || []
       };
       postFitnessGoals(apiData);
     } else {
