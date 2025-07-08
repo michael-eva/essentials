@@ -25,6 +25,7 @@ import {
   type PregnancyOption,
 } from "@/app/_constants/health";
 import { handleNoneMultiSelect } from "@/app/_utils/multiSelectNoneUtils";
+import { CustomOtherInput } from "@/app/_components/onboarding/profile/CustomOtherInput";
 
 type HealthConsiderationProps = {
   data: FormData["healthCons"];
@@ -108,17 +109,28 @@ const HealthConsiderationProfileSection: React.FC<HealthConsiderationProps> = ({
               currentConditions,
               value,
             );
-            
+
             setData({ ...data, chronicConditions: newConditions });
           }}
         />
         {data.chronicConditions.includes("Other") && (
           <div className="mt-2">
-            <Input
-              placeholder="Add custom condition"
-              value={data.otherHealthConditions[0] ?? ""}
-              onChange={(e) =>
-                setData({ ...data, otherHealthConditions: [e.target.value] })
+            <CustomOtherInput
+              placeholder="Add custom tracking method"
+              items={data.otherHealthConditions}
+              onAdd={(item) =>
+                setData({
+                  ...data,
+                  otherHealthConditions: [...data.otherHealthConditions, item],
+                })
+              }
+              onRemove={(idx) =>
+                setData({
+                  ...data,
+                  otherHealthConditions: data.otherHealthConditions.filter(
+                    (_, i) => i !== idx,
+                  ),
+                })
               }
             />
           </div>

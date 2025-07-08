@@ -500,7 +500,7 @@ export default function HealthConsForm({
                       <button
                         type="button"
                         onClick={() => removeOtherHealthCondition(condition)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-600 hover:text-red-800 text-sm"
                       >
                         Remove
                       </button>
