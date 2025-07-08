@@ -7,11 +7,12 @@ export const PILATES_DURATION = [
 ] as const;
 
 export const PILATES_SESSIONS = [
+  "0 time per week",
   "1 time per week",
-  "1 - 2 times per month",
   "2 - 3 times per week",
   "3 - 4 times per week",
   "4+ times per week",
+  "1 - 2 times per month",
 ] as const;
 
 export const PILATES_APPARATUS = [

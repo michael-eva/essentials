@@ -204,7 +204,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
     const renderField = (label: string, children: React.ReactNode, index: number) => (
       <motion.div
         key={label}
-        className="space-y-2"
+        className="space-y-2 mb-4"
         initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
@@ -506,8 +506,9 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
           <>
             <div className="space-y-4">
               <div>
-                <Label>Pilates Experience</Label>
-                <RadioGroup
+                <Label className="mb-2">Pilates Experience</Label>
+                <RadioGroup 
+                className="mb-4 flex gap-6"
                   value={typedData.pilatesExperience === null ? "" : typedData.pilatesExperience ? "true" : "false"}
                   onValueChange={(value) => setData({ ...typedData, pilatesExperience: value === "" ? null : value === "true" })}
                 >
@@ -521,8 +522,8 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                   </div>
                 </RadioGroup>
                 {typedData.pilatesExperience && (
-                  <div className="mt-2">
-                    <Label htmlFor="pilatesDuration">Duration</Label>
+                  <div className="mb-4">
+                    <Label htmlFor="pilatesDuration" className="mb-2">Duration</Label>
                     <Select
                       value={typedData.pilatesDuration ?? ""}
                       onValueChange={(value: PilatesDuration) => setData({ ...typedData, pilatesDuration: value })}
@@ -540,7 +541,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 )}
               </div>
               <div>
-                <Label htmlFor="studioFrequency">Studio Frequency</Label>
+                <Label htmlFor="studioFrequency" className="mb-2">Studio Frequency</Label>
                 <Select
                   value={typedData.studioFrequency ?? ""}
                   onValueChange={(value: PilatesSessions) => setData({ ...typedData, studioFrequency: value })}
@@ -556,7 +557,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 </Select>
               </div>
               <div>
-                <Label htmlFor="sessionPreference">Preferred Class Type</Label>
+                <Label htmlFor="sessionPreference" className="mb-2">Preferred Class Type</Label>
                 <Select
                   value={typedData.sessionPreference ?? ""}
                   onValueChange={(value: PilatesSessionPreference) => setData({ ...typedData, sessionPreference: value })}
@@ -572,7 +573,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                 </Select>
               </div>
               <div>
-                <Label>Type of Pilates</Label>
+                <Label className="mb-2">Type of Pilates</Label>
                 <MultiSelectPills
                   options={PILATES_APPARATUS}
                   selectedValues={typedData.apparatusPreference}
@@ -590,7 +591,7 @@ export default function EditFormDialog({ open, onOpenChange, formType, formData,
                
               </div>
               <div>
-                <Label>Custom Apparatus</Label>
+                <Label className="mb-2">Available Equipment</Label>
                 <MultiSelectPills
                   options={CUSTOM_PILATES_APPARATUS}
                   selectedValues={typedData.customApparatus}

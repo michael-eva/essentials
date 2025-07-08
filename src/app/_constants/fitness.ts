@@ -21,6 +21,7 @@ export const SESSION_LENGTH = [
   "45-60 minutes",
   "More than 60 minutes",
 ] as const;
+
 export type FitnessLevel = (typeof FITNESS_LEVEL)[number];
 export type ExerciseFrequency = (typeof EXERCISE_FREQUENCY)[number];
 export type SessionLength = (typeof SESSION_LENGTH)[number];

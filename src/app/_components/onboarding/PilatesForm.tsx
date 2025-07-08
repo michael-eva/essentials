@@ -134,7 +134,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
 
                     {pilatesExperience && (
                         <div>
-                            <label htmlFor="pilates-duration" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="pilates-duration" className="block text-sm font-medium text-gray-700 mb-2">
                                 How long have you been practicing Pilates?
                             </label>
                             {errors.pilatesDuration && (
