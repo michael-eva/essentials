@@ -100,7 +100,9 @@ export interface FormData {
     studioFrequency: PilatesSessions | null;
     sessionPreference: PilatesSessionPreference | null;
     apparatusPreference: PilatesApparatus[];
+    otherApparatusPreferences: string[],
     customApparatus: CustomPilateApparatus[];
+    otherCustomApparatus: string[]
   };
 }
 
@@ -176,7 +178,9 @@ export default function EditFormDialog({
           // instructors: [],
           // customInstructor: null,
           apparatusPreference: [],
+          otherApparatusPreferences: [],
           customApparatus: [],
+          otherCustomApparatus: []
         } as FormData["pilates"];
       case "motivation":
         return {

@@ -18,11 +18,11 @@ import {
   type PilatesDuration,
   type PilatesSessions,
   type PilatesSessionPreference,
-
 } from "@/app/_constants/pilates";
 import type { FormData } from "./EditFormDialog";
 
 import { handleNoneMultiSelect } from "@/app/_utils/multiSelectNoneUtils";
+import { CustomOtherInput } from "@/app/_components/onboarding/profile/CustomOtherInput";
 
 type PilatesProfileSectionProps = {
   data: FormData["pilates"];
@@ -132,7 +132,7 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
             </SelectContent>
           </Select>
         </div>
-        <div>
+        <div className="space-y-2">
           <Label className="mb-2">Type of Pilates</Label>
           <MultiSelectPills
             options={PILATES_APPARATUS}
@@ -148,8 +148,33 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
               });
             }}
           />
+
+          {typedData.apparatusPreference.includes("Other") && (
+            <CustomOtherInput
+              placeholder="Add custom goals"
+              items={typedData.otherApparatusPreferences}
+              onAdd={(item) =>
+                setData({
+                  ...typedData,
+                  otherApparatusPreferences: [
+                    ...typedData.otherApparatusPreferences,
+                    item,
+                  ],
+                })
+              }
+              onRemove={(idx) =>
+                setData({
+                  ...typedData,
+                  otherApparatusPreferences:
+                    typedData.otherApparatusPreferences.filter(
+                      (_, i) => i !== idx,
+                    ),
+                })
+              }
+            />
+          )}
         </div>
-        <div>
+        <div className="space-y-2">
           <Label className="mb-2">Available Equipment</Label>
           <MultiSelectPills
             options={CUSTOM_PILATES_APPARATUS}
@@ -166,6 +191,30 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
               });
             }}
           />
+
+          {typedData.customApparatus.includes("Other") && (
+            <CustomOtherInput
+              placeholder="Add custom goals"
+              items={typedData.otherCustomApparatus}
+              onAdd={(item) =>
+                setData({
+                  ...typedData,
+                  otherCustomApparatus: [
+                    ...typedData.otherCustomApparatus,
+                    item,
+                  ],
+                })
+              }
+              onRemove={(idx) =>
+                setData({
+                  ...typedData,
+                  otherCustomApparatus: typedData.otherCustomApparatus.filter(
+                    (_, i) => i !== idx,
+                  ),
+                })
+              }
+            />
+          )}
         </div>
       </div>
     </>

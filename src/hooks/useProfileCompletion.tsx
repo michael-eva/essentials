@@ -58,7 +58,9 @@ export interface FormData {
     studioFrequency: PilatesSessions | null;
     sessionPreference: PilatesSessionPreference | null;
     apparatusPreference: string[];
+    otherApparatusPreferences: string[],
     customApparatus: string[];
+    otherCustomApparatus: string[]
   };
 }
 
@@ -118,7 +120,9 @@ export function useProfileCompletion() {
         studioFrequency: onboardingData.studioFrequency as PilatesSessions | null,
         sessionPreference: onboardingData.sessionPreference as PilatesSessionPreference,
         apparatusPreference: onboardingData.apparatusPreference ?? [],
-        customApparatus: onboardingData.customApparatus ?? []
+        otherApparatusPreferences: onboardingData.otherApparatusPreferences ?? [],
+        customApparatus: onboardingData.customApparatus ?? [],
+        otherCustomApparatus: onboardingData.otherCustomApparatus ?? []
       },
       motivation: {
         motivation: onboardingData.motivation ?? [],

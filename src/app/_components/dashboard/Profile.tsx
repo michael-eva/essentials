@@ -145,8 +145,11 @@ export default function ProfilePage() {
             studioFrequency: pilatesData.studioFrequency,
             sessionPreference: pilatesData.sessionPreference,
             apparatusPreference: pilatesData.apparatusPreference,
+            otherApparatusPreferences: pilatesData.otherApparatusPreferences,
             pilatesDuration: pilatesData.pilatesExperience ? pilatesData.pilatesDuration ?? null : null,
-            customApparatus: pilatesData.customApparatus ?? undefined
+            customApparatus: pilatesData.customApparatus ?? undefined,
+            otherCustomApparatus: pilatesData.otherCustomApparatus
+
           })
           break
         }
