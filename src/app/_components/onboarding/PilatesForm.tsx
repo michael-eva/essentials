@@ -31,6 +31,7 @@ export const formSchema = z.object({
         required_error: "Please select your session preference",
     }),
     apparatusPreference: z.array(z.string()).min(1, "Please select at least one apparatus preference"),
+    otherApparatusPreferences: z.array(z.string()).optional(),
     customApparatus: z.array(z.string()).min(1, "Please select at least one apparatus preference"),
 }).refine(
     (data) => {
@@ -40,10 +41,20 @@ export const formSchema = z.object({
         message: "Please select your Pilates experience duration",
         path: ["pilatesDuration"],
     }
+).refine(
+    (data) => {
+        return !data.apparatusPreference.includes("Other") || (data.otherApparatusPreferences && data.otherApparatusPreferences.length > 0);
+    },
+    {
+        message: "Please add at least one custom apparatus",
+        path: ["otherApparatusPreferences"],
+    }
 );
 
 export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: PilatesFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [otherApparatusInput, setotherApparatusInput] = useState("");
+    const [otherApparatusList, setotherApparatusList] = useState<string[]>([]);
     const { register, handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
         resolver: zodResolver(formSchema),
         mode: "onChange",
@@ -53,6 +64,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
             studioFrequency: isDeveloper() ? "1 time per week" : undefined,
             sessionPreference: isDeveloper() ? "Group classes" : undefined,
             apparatusPreference:[],
+            otherApparatusPreferences: [],
             customApparatus: [],
         }
     });
@@ -63,6 +75,21 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
         const currentApparatus = watch("apparatusPreference");
         const newApparatus = handleNoneMultiSelect(currentApparatus, apparatus)
         setValue("apparatusPreference", newApparatus);
+    };
+
+    // Custom apparatus handlers
+    const handleOtherApparatusPreferenceAdd = () => {
+        if (otherApparatusInput.trim()) {
+            const updated = [...otherApparatusList, otherApparatusInput];
+            setotherApparatusList(updated);
+            setValue("otherApparatusPreferences", updated);
+            setotherApparatusInput("");
+        }
+    };
+    const removeOtherApparatusPreference = (apparatus: string) => {
+        const updated = otherApparatusList.filter((a) => a !== apparatus);
+        setotherApparatusList(updated);
+        setValue("otherApparatusPreferences", updated);
     };
 
     const handleCustomApparatusChange = (apparatus: string) => {
@@ -235,6 +262,48 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                                 />
                             )}
                         />
+                        {/* Custom apparatus input if 'Other' is selected */}
+                        {watch("apparatusPreference").includes("Other") && (
+                            <div className="mt-4 flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <Input
+                                        value={otherApparatusInput}
+                                        onChange={(e) => setotherApparatusInput(e.target.value)}
+                                        type="text"
+                                        placeholder="Add apparatus"
+                                        className={`flex-1 rounded-md text-sm shadow-sm focus:ring-indigo-500 ${
+                                            errors.otherApparatusPreferences
+                                                ? "border-red-500 focus:border-red-500"
+                                                : "border-gray-300 focus:border-indigo-500"
+                                        }`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleOtherApparatusPreferenceAdd}
+                                        className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm leading-4 font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                                {errors.otherApparatusPreferences && (
+                                    <p className="mt-2 text-sm text-red-600">{errors.otherApparatusPreferences.message}</p>
+                                )}
+                                <div className="mt-3 space-y-2">
+                                    {otherApparatusList.map((apparatus) => (
+                                        <div key={apparatus} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                                            <span className="text-sm text-gray-700">{apparatus}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeOtherApparatusPreference(apparatus)}
+                                                className="text-red-600 hover:text-red-800 text-sm"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         <div className="mt-8">
                             <label className="block text-sm font-medium text-gray-700 mb-4">
                                 Do you use any of the following at home?

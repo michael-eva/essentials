@@ -134,7 +134,9 @@ export const onboardingRouter = createTRPCRouter({
         studioFrequency: z.string().nullable().optional(),
         sessionPreference: z.string().nullable().optional(),
         apparatusPreference: z.array(z.string()).optional(),
+        otherApparatusPreferences: z.array(z.string()).optional(),
         customApparatus: z.array(z.string()).optional(),
+        otherCustomApparatus: z.array(z.string()).optional()
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -144,7 +146,9 @@ export const onboardingRouter = createTRPCRouter({
         studioFrequency,
         sessionPreference,
         apparatusPreference,
+        otherApparatusPreferences,
         customApparatus,
+        otherCustomApparatus
       } = input;
       const userId = ctx.userId;
 
@@ -155,7 +159,9 @@ export const onboardingRouter = createTRPCRouter({
         studioFrequency,
         sessionPreference,
         apparatusPreference,
+        otherApparatusPreferences,
         customApparatus,
+        otherCustomApparatus,
         step: "pilates_experience",
       });
     }),

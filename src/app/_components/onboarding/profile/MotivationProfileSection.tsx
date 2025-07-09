@@ -17,8 +17,6 @@ export default function MotivationProfileSection({
   typedData,
   setData,
 }: MotivationProfileSectionProps) {
-  // Local state for new custom tracking method input
-  // No local state needed here; handled in CustomOtherInput
 
   return (
     <div className="space-y-6">

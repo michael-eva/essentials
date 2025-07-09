@@ -18,8 +18,7 @@ import {
   type PilatesDuration,
   type PilatesSessions,
   type PilatesSessionPreference,
-  type PilatesApparatus,
-  type CustomPilateApparatus,
+
 } from "@/app/_constants/pilates";
 import type { FormData } from "./EditFormDialog";
 
