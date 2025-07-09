@@ -1,27 +1,58 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { AnimatedField } from "./AnimatedField";
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
 import { motion } from "framer-motion";
 import { FitnessBackgroundProfileSection } from "@/app/_components/onboarding/profile/FitnessBackgroundProfileSection";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { MultiSelectPills } from "@/app/_components/global/multi-select-pills"
-import { Textarea } from "@/components/ui/textarea"
-import {  type PregnancyOption } from "@/app/_constants/health"
-import { GENDER, type Gender } from "@/app/_constants/gender"
-import { DEFAULT_EXERCISE_OPTIONS, EXERCISE_FREQUENCY, FITNESS_LEVEL, SESSION_LENGTH, type ExerciseFrequency, type FitnessLevel, type SessionLength } from "@/app/_constants/fitness"
-import { GOAL_TIMELINE, GOALS, type GoalTimeline } from "@/app/_constants/goals"
-import {  type CustomPilateApparatus, type PilatesApparatus, type PilatesDuration, type PilatesSessionPreference, type PilatesSessions } from "@/app/_constants/pilates"
-import {  type MotivationFactor, type ProgressTrackingMethod } from "@/app/_constants/motivation"
+
+import { type PregnancyOption } from "@/app/_constants/health";
+import { type Gender } from "@/app/_constants/gender";
+import {
+  DEFAULT_EXERCISE_OPTIONS,
+  EXERCISE_FREQUENCY,
+  FITNESS_LEVEL,
+  SESSION_LENGTH,
+  type ExerciseFrequency,
+  type FitnessLevel,
+  type SessionLength,
+} from "@/app/_constants/fitness";
+import {
+  GOAL_TIMELINE,
+  GOALS,
+  type GoalTimeline,
+} from "@/app/_constants/goals";
+import {
+  type CustomPilateApparatus,
+  type PilatesApparatus,
+  type PilatesDuration,
+  type PilatesSessionPreference,
+  type PilatesSessions,
+} from "@/app/_constants/pilates";
+import {
+  type MotivationFactor,
+  type ProgressTrackingMethod,
+} from "@/app/_constants/motivation";
 import HealthConsiderationProfileSection from "@/app/_components/onboarding/profile/HealthConsiderationProfileSection";
 import PilatesProfileSection from "@/app/_components/onboarding/profile/PilatesProfileSection";
 import MotivationProfileSection from "./MotivationProfileSection";
 import { FitnessGoalsProfileSection } from "./FitnessGoalsProfileSection";
+import BasicQuestionsProfileSection from "./PersonalInfoProfileSection";
 
-type FormType = "basicQuestion" | "fitnessBg" | "goals" | "healthCons" | "pilates" | "motivation"
+type FormType =
+  | "basicQuestion"
+  | "fitnessBg"
+  | "goals"
+  | "healthCons"
+  | "pilates"
+  | "motivation";
 
 // Form data interface with proper optional types
 export interface FormData {
@@ -44,7 +75,7 @@ export interface FormData {
     fitnessGoals: string[];
     goalTimeline: GoalTimeline | null;
     specificGoals: string | null;
-    otherFitnessGoals: string[]
+    otherFitnessGoals: string[];
   };
   healthCons: {
     injuries: boolean | null;
@@ -54,8 +85,8 @@ export interface FormData {
     chronicConditions: string[];
     otherHealthConditions: string[];
     pregnancy: PregnancyOption | null;
-    pregnancyConsultedDoctor: boolean | null,
-    pregnancyConsultedDoctorDetails: string | null
+    pregnancyConsultedDoctor: boolean | null;
+    pregnancyConsultedDoctorDetails: string | null;
   };
   motivation: {
     motivation: MotivationFactor[];
@@ -74,22 +105,29 @@ export interface FormData {
 }
 
 interface EditFormDialogProps {
-  open: boolean
-  onOpenChangeAction: (open: boolean) => void
-  formType: FormType
-  formData: FormData[FormType]
-  onSubmitAction: (data: FormData[FormType]) => void
+  open: boolean;
+  onOpenChangeAction: (open: boolean) => void;
+  formType: FormType;
+  formData: FormData[FormType];
+  onSubmitAction: (data: FormData[FormType]) => void;
   formSections: Array<{
-    type: FormType
-    title: string
-    description: string
-    icon: React.ReactNode
-    completion: number
-    color: string
-  }>
+    type: FormType;
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    completion: number;
+    color: string;
+  }>;
 }
 
-export default function EditFormDialog({ open, onOpenChangeAction, formType, formData, onSubmitAction, formSections }: EditFormDialogProps) {
+export default function EditFormDialog({
+  open,
+  onOpenChangeAction,
+  formType,
+  formData,
+  onSubmitAction,
+  formSections,
+}: EditFormDialogProps) {
   const [data, setData] = useState<FormData[FormType]>(() => {
     // Initialize with default values based on form type
     switch (formType) {
@@ -99,8 +137,8 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
           age: null,
           height: null,
           weight: null,
-          gender: null
-        } as FormData["basicQuestion"]
+          gender: null,
+        } as FormData["basicQuestion"];
       case "fitnessBg":
         return {
           fitnessLevel: null,
@@ -109,14 +147,14 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
           sessionLength: null,
           customExercise: null,
           otherExercises: [],
-        } as FormData["fitnessBg"]
+        } as FormData["fitnessBg"];
       case "goals":
         return {
           fitnessGoals: [],
           goalTimeline: null,
           specificGoals: null,
-          otherFitnessGoals: []
-        } as FormData["goals"]
+          otherFitnessGoals: [],
+        } as FormData["goals"];
       case "healthCons":
         return {
           injuries: null,
@@ -127,8 +165,8 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
           otherHealthConditions: [],
           pregnancy: null,
           pregnancyConsultedDoctor: null,
-          pregnancyConsultedDoctorDetails: null
-        } as FormData["healthCons"]
+          pregnancyConsultedDoctorDetails: null,
+        } as FormData["healthCons"];
       case "pilates":
         return {
           pilatesExperience: null,
@@ -138,29 +176,29 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
           // instructors: [],
           // customInstructor: null,
           apparatusPreference: [],
-          customApparatus: []
-        } as FormData["pilates"]
+          customApparatus: [],
+        } as FormData["pilates"];
       case "motivation":
         return {
           motivation: [],
           progressTracking: [],
           otherMotivation: [],
-          otherProgressTracking: []
-        } as FormData["motivation"]
+          otherProgressTracking: [],
+        } as FormData["motivation"];
       default:
-        return {} as FormData[FormType]
+        return {} as FormData[FormType];
     }
-  })
+  });
 
   useEffect(() => {
     if (formData) {
-      setData(formData)
+      setData(formData);
     }
-  }, [formData])
+  }, [formData]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    let submitData= data;
+    e.preventDefault();
+    let submitData = data;
     // Type guard for healthCons form
     if (
       formType === "healthCons" &&
@@ -168,133 +206,77 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
     ) {
       submitData = {
         ...data,
-        pregnancyConsultedDoctorDetails: null
+        pregnancyConsultedDoctorDetails: null,
       };
     }
-    onSubmitAction(submitData)
-  }
+    onSubmitAction(submitData);
+  };
 
   const renderFormFields = () => {
     // Ensure we have valid data for the current form type
-    const safeData = data || {
-      basicQuestion: {
-        name: null,
-        age: null,
-        height: null,
-        weight: null,
-        gender: null
-      },
-      fitnessBg: {
-        fitnessLevel: null,
-        exercises: [],
-        exerciseFrequency: null,
-        sessionLength: null,
-        customExercise: null,
-        otherExercises: []
-      },
-      goals: {
-        fitnessGoals: [],
-        goalTimeline: null,
-        specificGoals: null
-      },
-      healthCons: {
-        injuries: null,
-        recentSurgery: null,
-        chronicConditions: [],
-        pregnancy: null,
-        injuriesDetails: null,
-        surgeryDetails: null,
-        otherHealthConditions: []
-      },
-      pilates: {
-        pilatesExperience: null,
-        pilatesDuration: null,
-        studioFrequency: null,
-        sessionPreference: null,
-        instructors: [],
-        customInstructor: null,
-        apparatusPreference: [],
-        customApparatus: []
-      },
-      motivation: {
-        motivation: [],
-        progressTracking: [],
-        otherMotivation: [],
-        otherProgressTracking: []
-      }
-    }[formType] as FormData[FormType]
-
-    const renderField = (label: string, children: React.ReactNode, index: number) => (
-      <AnimatedField label={label} index={index}>
-        {children}
-      </AnimatedField>
-    );
+    const safeData =
+      data ||
+      ({
+        basicQuestion: {
+          name: null,
+          age: null,
+          height: null,
+          weight: null,
+          gender: null,
+        },
+        fitnessBg: {
+          fitnessLevel: null,
+          exercises: [],
+          exerciseFrequency: null,
+          sessionLength: null,
+          customExercise: null,
+          otherExercises: [],
+        },
+        goals: {
+          fitnessGoals: [],
+          goalTimeline: null,
+          specificGoals: null,
+        },
+        healthCons: {
+          injuries: null,
+          recentSurgery: null,
+          chronicConditions: [],
+          pregnancy: null,
+          injuriesDetails: null,
+          surgeryDetails: null,
+          otherHealthConditions: [],
+        },
+        pilates: {
+          pilatesExperience: null,
+          pilatesDuration: null,
+          studioFrequency: null,
+          sessionPreference: null,
+          instructors: [],
+          customInstructor: null,
+          apparatusPreference: [],
+          customApparatus: [],
+        },
+        motivation: {
+          motivation: [],
+          progressTracking: [],
+          otherMotivation: [],
+          otherProgressTracking: [],
+        },
+      }[formType] as FormData[FormType]);
 
     switch (formType) {
       case "basicQuestion": {
-        const typedData = safeData as FormData["basicQuestion"]
+        const typedData = safeData as FormData["basicQuestion"];
         return (
-          <>
-            {renderField("Name", (
-              <Input
-                id="name"
-                value={typedData.name ?? ""}
-                onChange={(e) => setData({ ...typedData, name: e.target.value || null })}
-                className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
-                style={{ height: "44px", fontSize: "15px" }}
-              />
-            ), 0)}
-            {renderField("Age", (
-              <Input
-                id="age"
-                type="number"
-                value={typedData.age ?? ""}
-                onChange={(e) => setData({ ...typedData, age: e.target.value ? parseInt(e.target.value) : null })}
-                className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
-                style={{ height: "44px", fontSize: "15px" }}
-              />
-            ), 1)}
-            {renderField("Height (cm)", (
-              <Input
-                id="height"
-                type="number"
-                value={typedData.height ?? ""}
-                onChange={(e) => setData({ ...typedData, height: e.target.value ? parseInt(e.target.value) : null })}
-                className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
-                style={{ height: "44px", fontSize: "15px" }}
-              />
-            ), 2)}
-            {renderField("Weight (kg)", (
-              <Input
-                id="weight"
-                type="number"
-                value={typedData.weight ?? ""}
-                onChange={(e) => setData({ ...typedData, weight: e.target.value ? parseInt(e.target.value) : null })}
-                className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0"
-                style={{ height: "44px", fontSize: "15px" }}
-              />
-            ), 3)}
-            {renderField("Gender", (
-              <Select
-                value={typedData.gender ?? ""}
-                onValueChange={(value: Gender) => setData({ ...typedData, gender: value })}
-              >
-                <SelectTrigger className="rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0 w-full min-h-[44px]">
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  {GENDER.map((gender) => (
-                    <SelectItem key={gender} value={gender}>{gender}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ), 4)}
-          </>
-        )
+          <BasicQuestionsProfileSection
+            typedData={typedData}
+            setData={setData}
+          />
+        );
       }
 
       case "fitnessBg": {
-        const typedData = safeData as FormData["fitnessBg"]
+        const typedData = safeData as FormData["fitnessBg"];
         return (
           <FitnessBackgroundProfileSection
             typedData={typedData}
@@ -304,11 +286,11 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
             EXERCISE_FREQUENCY={EXERCISE_FREQUENCY}
             SESSION_LENGTH={SESSION_LENGTH}
           />
-        )
+        );
       }
 
       case "goals": {
-        const typedData = safeData as FormData["goals"]
+        const typedData = safeData as FormData["goals"];
         return (
           <FitnessGoalsProfileSection
             typedData={typedData}
@@ -316,7 +298,7 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
             GOALS={GOALS}
             GOAL_TIMELINE={GOAL_TIMELINE}
           />
-        )
+        );
       }
 
       case "healthCons": {
@@ -331,31 +313,36 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
 
       case "pilates": {
         const typedData = safeData as FormData["pilates"];
-       
-        return (
-          <PilatesProfileSection data={typedData} setData={setData} />
-        );
+
+        return <PilatesProfileSection data={typedData} setData={setData} />;
       }
 
       case "motivation": {
-        const typedData = safeData as FormData["motivation"]
+        const typedData = safeData as FormData["motivation"];
 
         return (
           <MotivationProfileSection typedData={typedData} setData={setData} />
-        )
+        );
       }
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
-      <DialogContent className="sm:max-w-[425px] rounded-2xl border-0 shadow-xl p-0 overflow-hidden">
+      <DialogContent className="overflow-hidden rounded-2xl border-0 p-0 shadow-xl sm:max-w-[425px]">
         <div className="p-6">
           <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
-            <DialogTitle className="text-xl font-semibold" style={{ color: formSections.find((section) => section.type === formType)?.color ?? "#007AFF" }}>
+            <DialogTitle
+              className="text-xl font-semibold"
+              style={{
+                color:
+                  formSections.find((section) => section.type === formType)
+                    ?.color ?? "#007AFF",
+              }}
+            >
               {formSections.find((section) => section.type === formType)?.title}
             </DialogTitle>
           </DialogHeader>
@@ -372,9 +359,11 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
             <DialogFooter className="pt-4">
               <Button
                 type="submit"
-                className="w-full rounded-xl h-11 text-white transition-all"
+                className="h-11 w-full rounded-xl text-white transition-all"
                 style={{
-                  backgroundColor: formSections.find((section) => section.type === formType)?.color ?? "#007AFF",
+                  backgroundColor:
+                    formSections.find((section) => section.type === formType)
+                      ?.color ?? "#007AFF",
                   boxShadow: `0 2px 10px ${formSections.find((section) => section.type === formType)?.color ?? "#007AFF"}40`,
                 }}
               >
@@ -385,5 +374,5 @@ export default function EditFormDialog({ open, onOpenChangeAction, formType, for
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
