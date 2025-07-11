@@ -8,7 +8,9 @@ import { SECTION_LABELS } from "@/app/_constants/ui-labels";
 import type { HealthCondition, PregnancyOption } from "@/app/_constants/health";
 import type { MotivationFactor, ProgressTrackingMethod } from "@/app/_constants/motivation";
 import type { ExerciseFrequency, FitnessLevel, SessionLength } from "@/app/_constants/fitness";
-import type { PilatesSessionPreference } from "@/app/_constants/pilates";
+import type { PilatesDuration, PilatesSessionPreference } from "@/app/_constants/pilates";
+
+import type { PilatesSessions } from "@/app/_constants/pilates";
 
 // Form data interface with proper optional types
 export interface FormData {
@@ -25,20 +27,24 @@ export interface FormData {
     exerciseFrequency: ExerciseFrequency | null;
     sessionLength: SessionLength | null;
     customExercise: string | null;
+    otherExercises: string[]
   };
   goals: {
     fitnessGoals: string[];
     goalTimeline: GoalTimeline | null;
     specificGoals: string | null;
+    otherFitnessGoals: string[]
   };
   healthCons: {
     injuries: boolean | null;
-    recentSurgery: boolean | null;
-    chronicConditions: HealthCondition[];
-    pregnancy: PregnancyOption | null;
     injuriesDetails: string | null;
+    recentSurgery: boolean | null;
     surgeryDetails: string | null;
+    chronicConditions: HealthCondition[];
     otherHealthConditions: string[];
+    pregnancy: PregnancyOption | null;
+    pregnancyConsultedDoctor: boolean | null,
+    pregnancyConsultedDoctorDetails: string | null,
   };
   motivation: {
     motivation: MotivationFactor[];
@@ -48,11 +54,13 @@ export interface FormData {
   };
   pilates: {
     pilatesExperience: boolean | null;
-    pilatesDuration: "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null;
-    studioFrequency: "1 time per week" | "1 - 2 times per month" | "2 - 3 times per week" | "3 - 4 times per week" | "4+ times per week" | null;
+    pilatesDuration: PilatesDuration | null;
+    studioFrequency: PilatesSessions | null;
     sessionPreference: PilatesSessionPreference | null;
     apparatusPreference: string[];
+    otherApparatusPreferences: string[],
     customApparatus: string[];
+    otherCustomApparatus: string[]
   };
 }
 
@@ -70,7 +78,7 @@ export interface FormSection {
 export function useProfileCompletion() {
   const { data: onboardingData, isLoading } = api.onboarding.getOnboardingData.useQuery()
 
-  const formData = useMemo(() => {
+  const formData: FormData | null = useMemo(() => {
     if (!onboardingData) return null
 
     return {
@@ -79,36 +87,42 @@ export function useProfileCompletion() {
         age: onboardingData.age,
         height: onboardingData.height,
         weight: onboardingData.weight,
-        gender: onboardingData.gender as "Male" | "Female" | "Prefer not to say" | null
+        gender: onboardingData.gender as Gender | null
       },
       fitnessBg: {
-        fitnessLevel: onboardingData.fitnessLevel as "Beginner" | "Intermediate" | "Advanced" | null,
+        fitnessLevel: onboardingData.fitnessLevel as FitnessLevel | null,
         exercises: onboardingData.exercises ?? [],
-        exerciseFrequency: onboardingData.exerciseFrequency as "0" | "1-2" | "3-4" | "5+" | null,
-        sessionLength: onboardingData.sessionLength as "Less than 15 minutes" | "15-30 minutes" | "30-45 minutes" | "45-60 minutes" | "More than 60 minutes" | null,
-        customExercise: onboardingData.otherExercises?.[0] ?? null
+        exerciseFrequency: onboardingData.exerciseFrequency as ExerciseFrequency | null,
+        sessionLength: onboardingData.sessionLength as SessionLength | null,
+        customExercise: onboardingData.otherExercises?.[0] ?? null,
+        otherExercises: onboardingData.otherExercises  ?? []
       },
       goals: {
         fitnessGoals: onboardingData.fitnessGoals ?? [],
-        goalTimeline: onboardingData.goalTimeline as "1-3 months" | "3-6 months" | "6-12 months" | "More than a year" | null,
-        specificGoals: onboardingData.specificGoals
+        goalTimeline: onboardingData.goalTimeline as GoalTimeline | null,
+        specificGoals: onboardingData.specificGoals,
+        otherFitnessGoals: onboardingData.otherFitnessGoals ?? []
       },
       healthCons: {
         injuries: onboardingData.injuries ?? null,
-        recentSurgery: onboardingData.recentSurgery ?? null,
-        chronicConditions: onboardingData.chronicConditions ?? [],
-        pregnancy: onboardingData.pregnancy as "Not applicable" | "Pregnant" | "Postpartum (0-6 months)" | "Postpartum (6-12 months)" | null,
         injuriesDetails: onboardingData.injuriesDetails,
+        recentSurgery: onboardingData.recentSurgery ?? null,
         surgeryDetails: onboardingData.surgeryDetails,
-        otherHealthConditions: onboardingData.otherHealthConditions ?? []
+        chronicConditions: onboardingData.chronicConditions ?? [],
+        otherHealthConditions: onboardingData.otherHealthConditions ?? [],
+        pregnancy: onboardingData.pregnancy as PregnancyOption | null,
+        pregnancyConsultedDoctor: onboardingData.pregnancyConsultedDoctor ?? null,
+        pregnancyConsultedDoctorDetails: onboardingData.pregnancyConsultedDoctorDetails ?? null
       },
       pilates: {
         pilatesExperience: onboardingData.pilatesExperience ?? null,
-        pilatesDuration: onboardingData.pilatesDuration as "Less than 3 months" | "3-6 months" | "6-12 months" | "1-3 years" | "More than 3 years" | null,
-        studioFrequency: onboardingData.studioFrequency as "1 time per week" | "1 - 2 times per month" | "2 - 3 times per week" | "3 - 4 times per week" | "4+ times per week" | null,
-        sessionPreference: onboardingData.sessionPreference as "Group classes" | "Private sessions" | "Both" | "No preference" | null,
+        pilatesDuration: onboardingData.pilatesDuration as PilatesDuration | null,
+        studioFrequency: onboardingData.studioFrequency as PilatesSessions | null,
+        sessionPreference: onboardingData.sessionPreference as PilatesSessionPreference,
         apparatusPreference: onboardingData.apparatusPreference ?? [],
-        customApparatus: onboardingData.customApparatus ?? []
+        otherApparatusPreferences: onboardingData.otherApparatusPreferences ?? [],
+        customApparatus: onboardingData.customApparatus ?? [],
+        otherCustomApparatus: onboardingData.otherCustomApparatus ?? []
       },
       motivation: {
         motivation: onboardingData.motivation ?? [],
@@ -116,7 +130,7 @@ export function useProfileCompletion() {
         otherMotivation: onboardingData.otherMotivation ?? [],
         otherProgressTracking: onboardingData.otherProgressTracking ?? []
       }
-    } as FormData
+    }
   }, [onboardingData])
 
   const calculateCompletion = (formType: FormType): number => {
@@ -215,20 +229,20 @@ export function useProfileCompletion() {
       color: SECTION_LABELS.BASIC_QUESTION.COLOR
     },
     {
+      type: "pilates" as FormType,
+      title: SECTION_LABELS.PILATES.TITLE,
+      description: SECTION_LABELS.PILATES.DESCRIPTION,
+      icon: <Activity className="w-5 h-5" />,
+      completion: calculateCompletion("pilates"),
+      color: SECTION_LABELS.PILATES.COLOR
+    },
+    {
       type: "fitnessBg" as FormType,
       title: SECTION_LABELS.FITNESS_BG.TITLE,
       description: SECTION_LABELS.FITNESS_BG.DESCRIPTION,
       icon: <Dumbbell className="w-5 h-5" />,
       completion: calculateCompletion("fitnessBg"),
       color: SECTION_LABELS.FITNESS_BG.COLOR
-    },
-    {
-      type: "goals" as FormType,
-      title: SECTION_LABELS.GOALS.TITLE,
-      description: SECTION_LABELS.GOALS.DESCRIPTION,
-      icon: <Target className="w-5 h-5" />,
-      completion: calculateCompletion("goals"),
-      color: SECTION_LABELS.GOALS.COLOR
     },
     {
       type: "healthCons" as FormType,
@@ -239,21 +253,21 @@ export function useProfileCompletion() {
       color: SECTION_LABELS.HEALTH_CONS.COLOR
     },
     {
+      type: "goals" as FormType,
+      title: SECTION_LABELS.GOALS.TITLE,
+      description: SECTION_LABELS.GOALS.DESCRIPTION,
+      icon: <Target className="w-5 h-5" />,
+      completion: calculateCompletion("goals"),
+      color: SECTION_LABELS.GOALS.COLOR
+    },
+    {
       type: "motivation" as FormType,
       title: SECTION_LABELS.MOTIVATION.TITLE,
       description: SECTION_LABELS.MOTIVATION.DESCRIPTION,
       icon: <Sparkles className="w-5 h-5" />,
       completion: calculateCompletion("motivation"),
       color: SECTION_LABELS.MOTIVATION.COLOR
-    },
-    {
-      type: "pilates" as FormType,
-      title: SECTION_LABELS.PILATES.TITLE,
-      description: SECTION_LABELS.PILATES.DESCRIPTION,
-      icon: <Activity className="w-5 h-5" />,
-      completion: calculateCompletion("pilates"),
-      color: SECTION_LABELS.PILATES.COLOR
-    }
+    }, 
   ], [calculateCompletion, formData]) as FormSection[]
 
   const totalCompletion = useMemo(() => {

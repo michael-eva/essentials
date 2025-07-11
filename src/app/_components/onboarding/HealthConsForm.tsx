@@ -3,7 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { STEPS } from "@/app/onboarding/constants";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
@@ -13,14 +19,16 @@ import { api } from "@/trpc/react";
 import { isDeveloper } from "@/app/_utils/user-role";
 import { HEALTH_CONDITIONS, PREGNANCY_OPTIONS } from "@/app/_constants/health";
 import { SECTION_LABELS } from "@/app/_constants/ui-labels";
+import { handleNoneMultiSelect } from "@/app/_utils/multiSelectNoneUtils";
 
 interface HealthConsFormProps {
   isFirstStep?: boolean;
   isLastStep?: boolean;
-    currentStep: typeof STEPS[number];
+  currentStep: (typeof STEPS)[number];
 }
 
-export const formSchema = z.object({
+export const formSchema = z
+  .object({
     injuries: z.boolean({
       required_error: "Please indicate if you have any injuries",
     }),
@@ -29,7 +37,9 @@ export const formSchema = z.object({
       required_error: "Please indicate if you've had recent surgery",
     }),
     surgeryDetails: z.string().optional(),
-    chronicConditions: z.array(z.string()).min(1, "Please select at least one option"),
+    chronicConditions: z
+      .array(z.string())
+      .min(1, "Please select at least one option"),
     otherHealthConditions: z.array(z.string()).optional(),
     pregnancy: z.enum(PREGNANCY_OPTIONS, {
       required_error: "Please select your pregnancy status",
@@ -40,51 +50,82 @@ export const formSchema = z.object({
   .refine(
     (data) => {
       // If injuries is true, injuriesDetails should not be empty
-            return !data.injuries || (data.injuries && data.injuriesDetails && data.injuriesDetails.trim() !== "");
+      return (
+        !data.injuries ||
+        (data.injuries &&
+          data.injuriesDetails &&
+          data.injuriesDetails.trim() !== "")
+      );
     },
     {
       message: "Please describe your injuries or limitations",
       path: ["injuriesDetails"],
-        }
+    },
   )
   .refine(
     (data) => {
       // If recentSurgery is true, surgeryDetails should not be empty
-            return !data.recentSurgery || (data.recentSurgery && data.surgeryDetails && data.surgeryDetails.trim() !== "");
+      return (
+        !data.recentSurgery ||
+        (data.recentSurgery &&
+          data.surgeryDetails &&
+          data.surgeryDetails.trim() !== "")
+      );
     },
     {
-            message: "Please provide details about your surgery and recovery timeline",
+      message:
+        "Please provide details about your surgery and recovery timeline",
       path: ["surgeryDetails"],
-        }
+    },
   )
   .refine(
     (data) => {
       // If "Other" is selected, at least one custom condition must be added
-            return !data.chronicConditions.includes("Other") || (data.otherHealthConditions && data.otherHealthConditions.length > 0);
+      return (
+        !data.chronicConditions.includes("Other") ||
+        (data.otherHealthConditions && data.otherHealthConditions.length > 0)
+      );
     },
     {
       message: "Please add at least one custom health condition",
       path: ["otherHealthConditions"],
-        }
+    },
   )
   .refine(
     (data) => {
       // If pregnancyConsultedDoctor is true, details are required
       if (data.pregnancyConsultedDoctor === true) {
-        return data.pregnancyConsultedDoctorDetails && data.pregnancyConsultedDoctorDetails.trim() !== "";
+        return (
+          data.pregnancyConsultedDoctorDetails &&
+          data.pregnancyConsultedDoctorDetails.trim() !== ""
+        );
       }
       return true;
     },
     {
-      message: "Please provide more information about your doctor's consultation",
+      message:
+        "Please provide more information about your doctor's consultation",
       path: ["pregnancyConsultedDoctorDetails"],
-    }
+    },
   );
 
-export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }: HealthConsFormProps) {
+export default function HealthConsForm({
+  isFirstStep,
+  isLastStep,
+  currentStep,
+}: HealthConsFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customCondition, setCustomCondition] = useState("");
-    const { handleSubmit, formState: { errors }, control, watch, setValue, setError, clearErrors, trigger } = useForm({
+  const {
+    handleSubmit,
+    formState: { errors },
+    control,
+    watch,
+    setValue,
+    setError,
+    clearErrors,
+    trigger,
+  } = useForm({
     resolver: zodResolver(formSchema),
     mode: "onChange",
     defaultValues: {
@@ -95,12 +136,16 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
       chronicConditions: isDeveloper() ? ["Back pain"] : [],
       otherHealthConditions: isDeveloper() ? [] : undefined,
       pregnancy: isDeveloper() ? "Not applicable" : undefined,
-        }
+    },
   });
-    const { mutate: postHealthConsiderations } = api.onboarding.postHealthConsiderations.useMutation()
+
+  const { mutate: postHealthConsiderations } =
+    api.onboarding.postHealthConsiderations.useMutation();
+
   const hasInjuries = watch("injuries");
   const hasRecentSurgery = watch("recentSurgery");
-  const hasPregnancy = watch("pregnancy") && watch("pregnancy") !== "Not applicable";
+  const hasPregnancy =
+    watch("pregnancy") && watch("pregnancy") !== "Not applicable";
   const hasConsultedDoctor = watch("pregnancyConsultedDoctor") === true;
 
   // Add this to trigger validation when injuries changes
@@ -111,7 +156,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
     if (value && watch("injuriesDetails")?.trim() === "") {
       setError("injuriesDetails", {
         type: "custom",
-        message: "Please describe your injuries or limitations"
+        message: "Please describe your injuries or limitations",
       });
     } else if (!value) {
       // If switching to false, clear any errors on injuriesDetails
@@ -127,7 +172,8 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
     if (value && watch("surgeryDetails")?.trim() === "") {
       setError("surgeryDetails", {
         type: "custom",
-                message: "Please provide details about your surgery and recovery timeline"
+        message:
+          "Please provide details about your surgery and recovery timeline",
       });
     } else if (!value) {
       // If switching to false, clear any errors on surgeryDetails
@@ -137,23 +183,31 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
 
   const handleChronicConditionsChange = (condition: string) => {
     const currentConditions = watch("chronicConditions");
-    const newConditions = currentConditions.includes(condition)
-            ? currentConditions.filter(c => c !== condition)
-      : [...currentConditions, condition];
+
+
+    const newConditions = handleNoneMultiSelect(currentConditions, condition)
+    
+    
     setValue("chronicConditions", newConditions);
   };
 
   const handleAddOtherHealthCondition = () => {
     if (customCondition.trim()) {
       const currentOtherConditions = watch("otherHealthConditions") ?? [];
-            setValue("otherHealthConditions", [...currentOtherConditions, customCondition]);
+      setValue("otherHealthConditions", [
+        ...currentOtherConditions,
+        customCondition,
+      ]);
       setCustomCondition("");
     }
   };
 
   const removeOtherHealthCondition = (condition: string) => {
     const currentOtherConditions = watch("otherHealthConditions") ?? [];
-        setValue("otherHealthConditions", currentOtherConditions.filter(c => c !== condition));
+    setValue(
+      "otherHealthConditions",
+      currentOtherConditions.filter((c) => c !== condition),
+    );
   };
 
   const onSubmit = async (): Promise<boolean> => {
@@ -161,7 +215,7 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
     if (hasInjuries && !watch("injuriesDetails")?.trim()) {
       setError("injuriesDetails", {
         type: "custom",
-                message: "Please describe your injuries or limitations"
+        message: "Please describe your injuries or limitations",
       });
       return false;
     }
@@ -169,7 +223,8 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
     if (hasRecentSurgery && !watch("surgeryDetails")?.trim()) {
       setError("surgeryDetails", {
         type: "custom",
-                message: "Please provide details about your surgery and recovery timeline"
+        message:
+          "Please provide details about your surgery and recovery timeline",
       });
       return false;
     }
@@ -177,10 +232,13 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
     // Validate custom health conditions if "Other" is selected
     const chronicConditions = watch("chronicConditions");
     const otherHealthConditions = watch("otherHealthConditions");
-        if (chronicConditions.includes("Other") && (!otherHealthConditions || otherHealthConditions.length === 0)) {
+    if (
+      chronicConditions.includes("Other") &&
+      (!otherHealthConditions || otherHealthConditions.length === 0)
+    ) {
       setError("otherHealthConditions", {
         type: "custom",
-                message: "Please add at least one custom health condition"
+        message: "Please add at least one custom health condition",
       });
       return false;
     }
@@ -220,24 +278,36 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
               Do you have any injuries or physical limitations?
             </label>
             {errors.injuries && (
-                            <p className="mt-1 text-sm text-red-600">{errors.injuries.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.injuries.message}
+              </p>
             )}
             <Controller
               name="injuries"
               control={control}
               render={({ field }) => (
                 <RadioGroup
-                                    onValueChange={(value) => handleInjuriesChange(value === "true")}
-                                    value={field.value !== undefined ? field.value.toString() : undefined}
-                                    className="flex space-x-4 mt-2"
+                  onValueChange={(value) =>
+                    handleInjuriesChange(value === "true")
+                  }
+                  value={
+                    field.value !== undefined
+                      ? field.value.toString()
+                      : undefined
+                  }
+                  className="mt-2 flex space-x-4"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="true" id="injuries-yes" />
-                                        <label htmlFor="injuries-yes" className="text-sm">Yes</label>
+                    <label htmlFor="injuries-yes" className="text-sm">
+                      Yes
+                    </label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="false" id="injuries-no" />
-                                        <label htmlFor="injuries-no" className="text-sm">No</label>
+                    <label htmlFor="injuries-no" className="text-sm">
+                      No
+                    </label>
                   </div>
                 </RadioGroup>
               )}
@@ -246,11 +316,16 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
 
           {hasInjuries && (
             <div>
-                            <label htmlFor="injuries-details" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="injuries-details"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Please describe your injuries or limitations:
               </label>
               {errors.injuriesDetails && (
-                                <p className="mt-1 text-sm text-red-600">{errors.injuriesDetails.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.injuriesDetails.message}
+                </p>
               )}
               <Controller
                 name="injuriesDetails"
@@ -260,16 +335,18 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                     {...field}
                     id="injuries-details"
                     rows={3}
-                                        className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.injuriesDetails
+                    className={`mt-1 block w-full rounded-md text-sm shadow-sm focus:ring-indigo-500 ${
+                      errors.injuriesDetails
                         ? "border-red-500 focus:border-red-500"
                         : "border-gray-300 focus:border-indigo-500"
                     }`}
                     placeholder="Please provide details about your injuries or limitations..."
                     onBlur={() => {
-                                            if (hasInjuries && (field.value?.trim() === "")) {
+                      if (hasInjuries && field.value?.trim() === "") {
                         setError("injuriesDetails", {
                           type: "custom",
-                                                    message: "Please describe your injuries or limitations"
+                          message:
+                            "Please describe your injuries or limitations",
                         });
                       } else {
                         void trigger("injuriesDetails");
@@ -286,24 +363,36 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
               Are you recovering from any recent surgeries?
             </label>
             {errors.recentSurgery && (
-                            <p className="mt-1 text-sm text-red-600">{errors.recentSurgery.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.recentSurgery.message}
+              </p>
             )}
             <Controller
               name="recentSurgery"
               control={control}
               render={({ field }) => (
                 <RadioGroup
-                                    onValueChange={(value) => handleRecentSurgeryChange(value === "true")}
-                                    value={field.value !== undefined ? field.value.toString() : undefined}
-                                    className="flex space-x-4 mt-2"
+                  onValueChange={(value) =>
+                    handleRecentSurgeryChange(value === "true")
+                  }
+                  value={
+                    field.value !== undefined
+                      ? field.value.toString()
+                      : undefined
+                  }
+                  className="mt-2 flex space-x-4"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="true" id="surgery-yes" />
-                                        <label htmlFor="surgery-yes" className="text-sm">Yes</label>
+                    <label htmlFor="surgery-yes" className="text-sm">
+                      Yes
+                    </label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="false" id="surgery-no" />
-                                        <label htmlFor="surgery-no" className="text-sm">No</label>
+                    <label htmlFor="surgery-no" className="text-sm">
+                      No
+                    </label>
                   </div>
                 </RadioGroup>
               )}
@@ -312,11 +401,16 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
 
           {hasRecentSurgery && (
             <div>
-                            <label htmlFor="surgery-details" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="surgery-details"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Please provide details about your surgery and recovery timeline:
               </label>
               {errors.surgeryDetails && (
-                                <p className="mt-1 text-sm text-red-600">{errors.surgeryDetails.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.surgeryDetails.message}
+                </p>
               )}
               <Controller
                 name="surgeryDetails"
@@ -326,16 +420,18 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                     {...field}
                     id="surgery-details"
                     rows={3}
-                                        className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 text-sm ${errors.surgeryDetails
+                    className={`mt-1 block w-full rounded-md text-sm shadow-sm focus:ring-indigo-500 ${
+                      errors.surgeryDetails
                         ? "border-red-500 focus:border-red-500"
                         : "border-gray-300 focus:border-indigo-500"
                     }`}
                     placeholder="Please provide details about your surgery and recovery timeline..."
                     onBlur={() => {
-                                            if (hasRecentSurgery && (field.value?.trim() === "")) {
+                      if (hasRecentSurgery && field.value?.trim() === "") {
                         setError("surgeryDetails", {
                           type: "custom",
-                          message: "Please provide details about your surgery and recovery timeline"
+                          message:
+                            "Please provide details about your surgery and recovery timeline",
                         });
                       } else {
                         void trigger("surgeryDetails");
@@ -348,11 +444,13 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
           )}
 
           <div>
-                        <label className="block text-base font-medium text-gray-700 mb-4">
+            <label className="mb-4 block text-base font-medium text-gray-700">
               Do you have any chronic health conditions?
             </label>
             {errors.chronicConditions && (
-                <p className="mb-2 text-sm text-red-600">{errors.chronicConditions.message}</p>
+              <p className="mb-2 text-sm text-red-600">
+                {errors.chronicConditions.message}
+              </p>
             )}
             <Controller
               name="chronicConditions"
@@ -373,28 +471,36 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                     value={customCondition}
                     onChange={(e) => setCustomCondition(e.target.value)}
                     placeholder="Add custom condition"
-                    className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.otherHealthConditions ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-indigo-500"
+                    className={`flex-1 rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${
+                      errors.otherHealthConditions
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:border-indigo-500"
                     }`}
                   />
                   <button
                     type="button"
                     onClick={handleAddOtherHealthCondition}
-                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm leading-4 font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
                   >
                     Add
                   </button>
                 </div>
                 {errors.otherHealthConditions && (
-                                    <p className="mt-2 text-sm text-red-600">{errors.otherHealthConditions.message}</p>
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.otherHealthConditions.message}
+                  </p>
                 )}
                 <div className="mt-3 space-y-2">
                   {watch("otherHealthConditions")?.map((condition) => (
-                                        <div key={condition} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                    <div
+                      key={condition}
+                      className="flex items-center justify-between rounded-md bg-gray-50 p-2"
+                    >
                       <span className="text-sm text-gray-700">{condition}</span>
                       <button
                         type="button"
                         onClick={() => removeOtherHealthCondition(condition)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-600 hover:text-red-800 text-sm"
                       >
                         Remove
                       </button>
@@ -406,11 +512,16 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
           </div>
 
           <div>
-                        <label htmlFor="pregnancy" className=" mb-2 block text-base font-medium text-gray-700">
+            <label
+              htmlFor="pregnancy"
+              className="mb-2 block text-base font-medium text-gray-700"
+            >
               Are you pregnant or postpartum?
             </label>
             {errors.pregnancy && (
-                            <p className="mt-1 text-sm text-red-600">{errors.pregnancy.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.pregnancy.message}
+              </p>
             )}
             <Controller
               name="pregnancy"
@@ -433,7 +544,9 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                   </SelectTrigger>
                   <SelectContent>
                     {PREGNANCY_OPTIONS.map((option) => (
-                                            <SelectItem key={option} value={option}>{option}</SelectItem>
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -442,28 +555,39 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
           </div>
           {hasPregnancy && (
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Have you consulted a doctor about your pregnancy or postpartum status?
+              <label className="block text-base font-medium text-gray-700">
+                Have you consulted a doctor about your pregnancy or postpartum
+                status?
               </label>
               {errors.pregnancyConsultedDoctor && (
-                <p className="mt-1 text-sm text-red-600">{errors.pregnancyConsultedDoctor.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.pregnancyConsultedDoctor.message}
+                </p>
               )}
               <Controller
                 name="pregnancyConsultedDoctor"
                 control={control}
                 render={({ field }) => (
                   <RadioGroup
-                    onValueChange={val => field.onChange(val === "true")}
-                    value={field.value === undefined ? undefined : String(field.value)}
-                    className="flex space-x-4 mt-2"
+                    onValueChange={(val) => field.onChange(val === "true")}
+                    value={
+                      field.value === undefined
+                        ? undefined
+                        : String(field.value)
+                    }
+                    className="mt-2 flex space-x-4"
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="true" id="consulted-yes" />
-                      <label htmlFor="consulted-yes" className="text-sm">Yes</label>
+                      <label htmlFor="consulted-yes" className="text-sm">
+                        Yes
+                      </label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="false" id="consulted-no" />
-                      <label htmlFor="consulted-no" className="text-sm">No</label>
+                      <label htmlFor="consulted-no" className="text-sm">
+                        No
+                      </label>
                     </div>
                   </RadioGroup>
                 )}
@@ -472,11 +596,17 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
           )}
           {hasPregnancy && hasConsultedDoctor && (
             <div className="mt-4">
-              <label htmlFor="pregnancy-consulted-details" className="block text-sm font-medium text-gray-700">
-                Please provide more information about your doctor&apos;s consultation:
+              <label
+                htmlFor="pregnancy-consulted-details"
+                className="block text-base font-medium text-gray-700"
+              >
+                Please provide more information about your doctor&apos;s
+                consultation:
               </label>
               {errors.pregnancyConsultedDoctorDetails && (
-                <p className="mt-1 text-sm text-red-600">{errors.pregnancyConsultedDoctorDetails.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.pregnancyConsultedDoctorDetails.message}
+                </p>
               )}
               <Controller
                 name="pregnancyConsultedDoctorDetails"
@@ -486,9 +616,10 @@ export default function HealthConsForm({ isFirstStep, isLastStep, currentStep }:
                     {...field}
                     id="pregnancy-consulted-details"
                     rows={3}
-                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${errors.pregnancyConsultedDoctorDetails
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:border-indigo-500"
+                    className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 sm:text-sm ${
+                      errors.pregnancyConsultedDoctorDetails
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:border-indigo-500"
                     }`}
                     placeholder="Please provide details about your doctor's consultation..."
                   />

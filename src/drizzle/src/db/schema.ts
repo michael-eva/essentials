@@ -220,6 +220,7 @@ export const onboarding = pgTable("onboarding", {
   pregnancyConsultedDoctorDetails: text("pregnancy_consulted_doctor_details"),
 
   fitnessGoals: text("fitness_goals").array(),
+  otherFitnessGoals: text("other_fitness_goals").array(),
   goalTimeline: text("goal_timeline"),
   specificGoals: text("specific_goals"),
 
@@ -228,7 +229,9 @@ export const onboarding = pgTable("onboarding", {
   studioFrequency: text("studio_frequency"),
   sessionPreference: text("session_preference"),
   apparatusPreference: text("apparatus_preference").array(),
+  otherApparatusPreferences: text("other_apparatus_preference").array(),
   customApparatus: text("custom_apparatus").array(),
+  otherCustomApparatus: text("other_custom_apparatus").array(),
 
   motivation: text("motivation").array(),
   otherMotivation: text("other_motivation").array(),

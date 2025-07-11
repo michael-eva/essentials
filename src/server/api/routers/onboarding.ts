@@ -110,10 +110,11 @@ export const onboardingRouter = createTRPCRouter({
         fitnessGoals: z.array(z.string()).optional(),
         goalTimeline: z.string().nullable().optional(),
         specificGoals: z.string().optional(),
+        otherFitnessGoals: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { fitnessGoals, goalTimeline, specificGoals } = input;
+      const { fitnessGoals, goalTimeline, specificGoals, otherFitnessGoals } = input;
       const userId = ctx.userId;
 
       await insertOnboarding({
@@ -121,6 +122,7 @@ export const onboardingRouter = createTRPCRouter({
         fitnessGoals,
         goalTimeline,
         specificGoals,
+        otherFitnessGoals,
         step: "fitness_goals",
       });
     }),
@@ -132,7 +134,9 @@ export const onboardingRouter = createTRPCRouter({
         studioFrequency: z.string().nullable().optional(),
         sessionPreference: z.string().nullable().optional(),
         apparatusPreference: z.array(z.string()).optional(),
+        otherApparatusPreferences: z.array(z.string()).optional(),
         customApparatus: z.array(z.string()).optional(),
+        otherCustomApparatus: z.array(z.string()).optional()
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -142,7 +146,9 @@ export const onboardingRouter = createTRPCRouter({
         studioFrequency,
         sessionPreference,
         apparatusPreference,
+        otherApparatusPreferences,
         customApparatus,
+        otherCustomApparatus
       } = input;
       const userId = ctx.userId;
 
@@ -153,7 +159,9 @@ export const onboardingRouter = createTRPCRouter({
         studioFrequency,
         sessionPreference,
         apparatusPreference,
+        otherApparatusPreferences,
         customApparatus,
+        otherCustomApparatus,
         step: "pilates_experience",
       });
     }),
@@ -220,6 +228,7 @@ export const onboardingRouter = createTRPCRouter({
   getOnboardingData: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
     const onboardingData = await getOnboardingData(userId);
+    
     if (!onboardingData) {
       return {
         name: null,
@@ -239,7 +248,10 @@ export const onboardingRouter = createTRPCRouter({
         chronicConditions: [],
         otherHealthConditions: [],
         pregnancy: null,
+        pregnancyConsultedDoctor: null,
+        pregnancyConsultedDoctorDetails: null,
         fitnessGoals: [],
+        otherFitnessGoals: [],
         goalTimeline: null,
         specificGoals: null,
         pilatesExperience: null,
@@ -249,7 +261,9 @@ export const onboardingRouter = createTRPCRouter({
         // instructors: [],
         // customInstructor: null,
         apparatusPreference: [],
+        otherApparatusPreferences: [],
         customApparatus: [],
+        otherCustomApparatus: [],
         motivation: [],
         otherMotivation: [],
         progressTracking: [],
