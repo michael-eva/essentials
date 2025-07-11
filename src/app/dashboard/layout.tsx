@@ -57,16 +57,16 @@ export default function DashboardLayout({
     <div className="pb-6 flex flex-col px-4">
       {/* Mobile-only fixed header for My PT */}
       {isMyPTPage && (
-        <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white">
+        <div className="md:hidden fixed top-0 left-0 right-0 z-40">
           <div className="flex justify-center">
-            <img src="/logo/essentials_logo.png" alt="Essentials Studio Logo" className="w-[300px]" />
+            <img src="/logo/essentials_pt_logo.png" alt="Essentials Studio Logo" className="w-[300px] py-4" />
           </div>
         </div>
       )}
 
       {/* Regular header for all pages (including desktop) */}
       <div className={`flex justify-center ${isMyPTPage ? 'hidden md:flex' : ''}`}>
-        <img src="/logo/essentials_logo.png" alt="Essentials Studio Logo" className="w-[300px] items-center justify-center md:hidden" />
+        <img src="/logo/essentials_pt_logo.png" alt="Essentials Studio Logo" className="w-[300px] items-center justify-center md:hidden py-4" />
       </div>
 
       <DesktopNavbar

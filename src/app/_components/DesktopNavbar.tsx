@@ -18,7 +18,7 @@ export default function DesktopNavbar({ navigationItems, currentTab }: DesktopNa
         <div className="flex items-center justify-between h-16">
           {/* Logo/Brand */}
           <div className="flex items-center">
-            <img src="/logo/essentials_logo.png" alt="Essentials Studio Logo" className="w-[300px] items-center justify-center" />
+            <img src="/logo/essentials_pt_logo.png" alt="Essentials Studio Logo" className="w-[300px] items-center justify-center" />
           </div>
 
           {/* Navigation Items */}
