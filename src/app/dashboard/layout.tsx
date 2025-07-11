@@ -32,11 +32,11 @@ const navigationItems = [
     icon: User,
     href: "/dashboard/mypt",
   },
-  {
-    name: "History",
-    icon: History,
-    href: "/dashboard/history",
-  },
+  // {
+  //   name: "History",
+  //   icon: History,
+  //   href: "/dashboard/history",
+  // },
   {
     name: "Profile",
     icon: Dumbbell,
