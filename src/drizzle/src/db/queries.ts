@@ -257,14 +257,54 @@ export async function getActivePlan(userId: string): Promise<
     .from(workout)
     .where(inArray(workout.id, workoutIds));
 
+  // 1. Get all classIds for class-type workouts
+  const classIds = planWorkouts
+    .filter((w) => w.type === "class" && w.classId)
+    .map((w) => w.classId)
+    .filter((id): id is string => id !== null);
+
+  // 2. Fetch pilates videos for those classIds
+  let pilatesVideos: { id: string; mux_playback_id: string }[] = [];
+  if (classIds.length > 0) {
+    pilatesVideos = (
+      await db
+        .select({
+          id: PilatesVideos.id,
+          mux_playback_id: PilatesVideos.mux_playback_id,
+        })
+        .from(PilatesVideos)
+        .where(inArray(PilatesVideos.id, classIds))
+    ).filter((v) => v.mux_playback_id !== null) as {
+      id: string;
+      mux_playback_id: string;
+    }[];
+  }
+
+  // 3. Create a map for quick lookup
+  const pilatesVideoMap = Object.fromEntries(
+    pilatesVideos.map((v) => [v.id, v.mux_playback_id]),
+  );
+
+  // 4. When building weekWorkouts, attach mux_playback_id if class
   const weeks = Array.from({ length: plan[0].weeks }, (_, i) => {
     const weekNumber = i + 1;
     const weekSchedules = planWeeklySchedules.filter(
       (ws) => ws.weekNumber === weekNumber,
     );
     const weekWorkouts = weekSchedules
-      .map((ws) => planWorkouts.find((w) => w.id === ws.workoutId))
-      .filter((w): w is Workout => w !== undefined);
+      .map((ws) => {
+        const w = planWorkouts.find((w) => w.id === ws.workoutId);
+        if (w && w.type === "class" && w.classId) {
+          return {
+            ...w,
+            mux_playback_id: pilatesVideoMap[w.classId] || null,
+          };
+        }
+        return w;
+      })
+      .filter(
+        (w): w is Workout & { mux_playback_id?: string } => w !== undefined,
+      );
     return {
       weekNumber,
       items: weekWorkouts,

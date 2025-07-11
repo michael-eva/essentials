@@ -44,6 +44,7 @@ export default function WeeklySchedule({
   planData
 }: WeeklyScheduleProps) {
   const router = useRouter()
+  console.log(weeks);
 
   // Calculate current week based on plan start date and paused time
   const getCurrentWeek = () => {
@@ -88,7 +89,6 @@ export default function WeeklySchedule({
       router.push(`/dashboard/workout/${workout.id}`)
     }
   }
-
   return (
     <Accordion type="multiple" className="w-full">
       {weeks.map((week) => (
@@ -145,11 +145,11 @@ export default function WeeklySchedule({
             )}
             <div className="space-y-3">
               {week.items.filter(Boolean).map((item, index) => {
-                const workout = item as Workout;
+                const workout = item as Workout & { mux_playback_id?: string };
                 return (
                   <div
                     key={index}
-                    className={`py-3 px-3 flex flex-col gap-2 border-l-4 rounded border-b relative ${workout.type === 'class'
+                    className={`px-3 pt-3 pb-2 flex flex-col border-l-4 rounded border-b relative min-h-[80px] ${workout.type === 'class'
                       ? 'border-brand-nude bg-brand-nude/10'
                       : 'border-brand-sage bg-brand-sage/10'
                       }`}
@@ -166,33 +166,31 @@ export default function WeeklySchedule({
                         ×
                       </button>
                     )}
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          {workout.type === 'class' ? (
-                            <span className="inline-flex items-center text-xs text-blue-700">
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
-                              Class
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center text-xs text-green-700">
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8" /></svg>
-                              Workout
-                            </span>
-                          )}
-                          <span className="font-semibold text-base">{workout.name}</span>
-                        </div>
-                        <div className="flex gap-1 mb-1">
-                          <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
-                            {workout.level}
-                          </span>
-                          <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
-                            {workout.duration} min
-                          </span>
-                        </div>
-                        <div className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                          {workout.description}
-                        </div>
+                    {workout.type === 'class' && (
+                      <div className="relative w-full h-28 mb-2">
+                        <img
+                          src={`https://image.mux.com/${workout.mux_playback_id}/thumbnail.png?width=400&height=200&fit_mode=smartcrop&time=35`}
+                          alt="class thumbnail"
+                          className="w-full h-full object-cover rounded-t-md"
+                        />
+                        {/* Play icon overlay */}
+                        <svg className="absolute inset-0 m-auto w-8 h-8 text-white opacity-80 pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="9.5,7.5 16.5,12 9.5,16.5" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="flex-1 flex flex-col justify-center">
+                      <span className="font-semibold text-base">{workout.name}</span>
+                      <div className="flex gap-1 mb-1">
+                        <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
+                          {workout.level}
+                        </span>
+                        <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
+                          {workout.duration} min
+                        </span>
+                      </div>
+                      <div className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                        {workout.description}
                       </div>
                       {workout.status === 'completed' && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
