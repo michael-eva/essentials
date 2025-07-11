@@ -35,7 +35,7 @@ const scrollStyles = `
   .scroll-ticker-track {
     display: flex;
     width: max-content;
-    animation: scrollText 16s linear infinite;
+    animation: scrollText 27s linear infinite;
   }
   
   .scroll-ticker {
@@ -45,7 +45,7 @@ const scrollStyles = `
     color: #2952a3; /* blue shade, adjust as needed */
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    margin-right: 2rem;
+    margin-right: 0;
   }
 `;
 
@@ -158,14 +158,9 @@ function SignInForm() {
       {/* Animated gradient background */}
       <div />
 
-      <motion.div className="relative z-10 bg-white/20 backdrop-blur-lg p-4 sm:p-6 md:p-8 rounded-2xl border border-white/30 shadow-2xl w-full max-w-[90vw] sm:max-w-md">
+      <motion.div className="relative z-10 bg-white/80 backdrop-blur-lg p-4 sm:p-6 md:p-8 rounded-2xl border border-white/30 shadow-2xl w-full max-w-[90vw] sm:max-w-md">
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-brand-brown mb-2">
-            {mode === "existing"
-              ? "Welcome Back"
-              : "Join the Movement"
-            }
-          </h1>
+          <img src="/logo/essentials_pt_logo.png" alt="logo" className="rounded-lg" />
           <p className="text-brand-black text-sm sm:text-base">
             {mode === "existing"
               ? "Ready to push your limits?"
@@ -272,7 +267,7 @@ function SignInForm() {
             {mode === "existing" ? "Don't have an account?" : "Already have an account?"}{" "}
             <Button
               onClick={toggleMode}
-              className="bg-background text-brand-white font-semibold hover:bg-accent/90 text-sm sm:text-base"
+              className="bg-background text-brand-cobalt font-semibold hover:bg-accent/90 text-sm sm:text-base"
             >
               {mode === "existing" ? "Sign Up" : "Sign In"}
             </Button>
@@ -283,10 +278,10 @@ function SignInForm() {
           <div className="scroll-container">
             <div className="scroll-ticker-track">
               <span className="scroll-ticker">
-                EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ●
+                EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ●
               </span>
               <span className="scroll-ticker" aria-hidden="true">
-                EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ●
+                EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ● EMPOWER ● MOVE ● ENERGISE ●
               </span>
             </div>
           </div>
