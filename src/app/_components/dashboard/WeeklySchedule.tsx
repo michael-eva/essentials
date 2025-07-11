@@ -167,11 +167,11 @@ export default function WeeklySchedule({
                       </button>
                     )}
                     {workout.type === 'class' && (
-                      <div className="relative w-full h-28 mb-2">
+                      <div className="relative w-full mb-2">
                         <img
-                          src={`https://image.mux.com/${workout.mux_playback_id}/thumbnail.png?width=400&height=200&fit_mode=smartcrop&time=35`}
+                          src={`https://image.mux.com/${workout.mux_playback_id}/thumbnail.png?width=400&height=300&fit_mode=smartcrop&time=35`}
                           alt="class thumbnail"
-                          className="w-full h-full object-cover rounded-t-md"
+                          className="w-full h-full object-cover rounded-md"
                         />
                         {/* Play icon overlay */}
                         <svg className="absolute inset-0 m-auto w-8 h-8 text-white opacity-80 pointer-events-none" viewBox="0 0 24 24" fill="currentColor">

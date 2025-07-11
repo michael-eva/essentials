@@ -29,6 +29,7 @@ export default function PreviousPlans() {
   const { data: previousPlans = [], isLoading: isLoadingPreviousPlans } = api.workoutPlan.getPreviousPlans.useQuery()
   const { data: activePlan } = api.workoutPlan.getActivePlan.useQuery()
   const { data: supplementaryWorkouts = [] } = api.workoutPlan.getSupplementaryWorkouts.useQuery()
+  console.log(previousPlans);
 
   const cancelPlan = api.workoutPlan.cancelWorkoutPlan.useMutation({
     onSuccess: () => {
