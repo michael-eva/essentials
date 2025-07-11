@@ -27,16 +27,16 @@ const navigationItems = [
     icon: Calendar,
     href: "/dashboard/your-plan",
   },
+  // {
+  //   name: "Previous Plans",
+  //   icon: History,
+  //   href: "/dashboard/previous-plans",
+  // },
   {
     name: "My PT",
     icon: User,
     href: "/dashboard/mypt",
   },
-  // {
-  //   name: "History",
-  //   icon: History,
-  //   href: "/dashboard/history",
-  // },
   {
     name: "Profile",
     icon: Dumbbell,
