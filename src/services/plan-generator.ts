@@ -48,7 +48,7 @@ ${JSON.stringify(availableClasses.nonPilates, null, 2)}
 1. **Workout Details**: 
    - For every workout of type 'workout', provide a detailed 'exercises' array with name, sets, reps, and weight if applicable. Do NOT use generic labels like 'Full Body Workout'.
    - For cardio workouts, only use: ${availableClasses.nonPilates}. Specify duration and intensity level.
-   - Only add cardio workouts if the user has selected to include them in the plan.
+   - Only add cardio workouts if the user has selected to include them in the plan. This means that userPrompt explicitly calls for "WORKOUTS"
 
 2. **Unique IDs**: Each workout MUST have a unique 'id' field (UUID format). For class-based workouts:
    - Generate a NEW unique UUID for the workout 'id' field
