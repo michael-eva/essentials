@@ -35,10 +35,10 @@ type OnboardingStep = (typeof STEPS)[number] | 'plan-generation';
 // Define field groups with proper typing - EXPORTED for use in form components
 export const FIELD_GROUPS = {
   basicInfo: ['name', 'age', 'weight', 'gender', 'height'] as const,
-  fitnessBackground: ['fitnessLevel', 'exercises', 'exerciseFrequency', 'sessionLength'] as const,
+  fitnessBackground: ['exercises', 'exerciseFrequency', 'sessionLength'] as const,
   healthConsiderations: ['injuries', 'recentSurgery', 'chronicConditions', 'pregnancy', 'injuriesDetails', 'surgeryDetails', 'otherHealthConditions', 'pregnancyConsultedDoctor', 'pregnancyConsultedDoctorDetails'] as const,
   goals: ['fitnessGoals', 'goalTimeline'] as const,
-  pilates: ['pilatesExperience', 'studioFrequency', 'sessionPreference', 'apparatusPreference', 'pilatesDuration', 'customApparatus'] as const,
+  pilates: ['pilatesExperience', 'fitnessLevel', 'apparatusPreference', 'pilatesDuration', 'customApparatus'] as const,
   motivation: ['motivation', 'progressTracking'] as const,
   workoutTiming: ['preferredWorkoutTimes', 'avoidedWorkoutTimes', 'weekendWorkoutTimes'] as const,
 } as const;

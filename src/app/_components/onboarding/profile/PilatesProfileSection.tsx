@@ -23,6 +23,7 @@ import type { FormData } from "./EditFormDialog";
 
 import { handleNoneMultiSelect } from "@/app/_utils/multiSelectNoneUtils";
 import { CustomOtherInput } from "@/app/_components/onboarding/profile/CustomOtherInput";
+import { FITNESS_LEVEL, type FitnessLevel } from "@/app/_constants/fitness";
 
 type PilatesProfileSectionProps = {
   data: FormData["pilates"];
@@ -36,6 +37,26 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
   return (
     <>
       <div className="space-y-4">
+        <div>
+          <Label className="mb-2">Fitness Level</Label>
+        </div>
+        <div>
+          <Select
+            value={typedData.fitnessLevel ?? ""}
+            onValueChange={(value: FitnessLevel) =>
+              setData({ ...typedData, fitnessLevel: value })
+            }
+          >
+            <SelectTrigger className="min-h-[44px] w-full rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0">
+              <SelectValue placeholder="Select fitness level" />
+            </SelectTrigger>
+            <SelectContent>
+              {FITNESS_LEVEL.map((level) => (
+                <SelectItem key={level} value={level}>{level}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div>
           <Label className="mb-2">Pilates Experience</Label>
           <RadioGroup
@@ -88,7 +109,7 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
             </div>
           )}
         </div>
-        <div>
+        {/* <div>
           <Label htmlFor="studioFrequency" className="mb-2">
             Studio Frequency
           </Label>
@@ -131,7 +152,7 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
         <div className="space-y-2">
           <Label className="mb-2">Type of Pilates</Label>
           <MultiSelectPills
