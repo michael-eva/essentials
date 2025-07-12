@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { motion } from "framer-motion";
-import { FitnessBackgroundProfileSection } from "@/app/_components/onboarding/profile/FitnessBackgroundProfileSection";
+// import { FitnessBackgroundProfileSection } from "@/app/_components/onboarding/profile/FitnessBackgroundProfileSection";
 
 import { type PregnancyOption } from "@/app/_constants/health";
 import { type Gender } from "@/app/_constants/gender";
@@ -48,7 +48,7 @@ import BasicQuestionsProfileSection from "./PersonalInfoProfileSection";
 
 type FormType =
   | "basicQuestion"
-  | "fitnessBg"
+  // | "fitnessBg"
   | "goals"
   | "healthCons"
   | "pilates"
@@ -63,14 +63,14 @@ export interface FormData {
     weight: number | null;
     gender: Gender | null;
   };
-  fitnessBg: {
-    fitnessLevel: FitnessLevel | null;
-    exercises: string[];
-    exerciseFrequency: ExerciseFrequency | null;
-    sessionLength: SessionLength | null;
-    customExercise: string | null;
-    otherExercises: string[];
-  };
+  // fitnessBg: {
+  //   
+  //   exercises: string[];
+  //   exerciseFrequency: ExerciseFrequency | null;
+  //   sessionLength: SessionLength | null;
+  //   customExercise: string | null;
+  //   otherExercises: string[];
+  // };
   goals: {
     fitnessGoals: string[];
     goalTimeline: GoalTimeline | null;
@@ -95,10 +95,11 @@ export interface FormData {
     otherProgressTracking: string[];
   };
   pilates: {
+    fitnessLevel: FitnessLevel | null;
     pilatesExperience: boolean | null;
     pilatesDuration: PilatesDuration | null;
-    studioFrequency: PilatesSessions | null;
-    sessionPreference: PilatesSessionPreference | null;
+    // studioFrequency: PilatesSessions | null;
+    // sessionPreference: PilatesSessionPreference | null;
     apparatusPreference: PilatesApparatus[];
     otherApparatusPreferences: string[],
     customApparatus: CustomPilateApparatus[];
@@ -141,15 +142,15 @@ export default function EditFormDialog({
           weight: null,
           gender: null,
         } as FormData["basicQuestion"];
-      case "fitnessBg":
-        return {
-          fitnessLevel: null,
-          exercises: [],
-          exerciseFrequency: null,
-          sessionLength: null,
-          customExercise: null,
-          otherExercises: [],
-        } as FormData["fitnessBg"];
+      // case "fitnessBg":
+      //   return {
+      //     fitnessLevel: null,
+      //     exercises: [],
+      //     exerciseFrequency: null,
+      //     sessionLength: null,
+      //     customExercise: null,
+      //     otherExercises: [],
+      //   } as FormData["fitnessBg"];
       case "goals":
         return {
           fitnessGoals: [],
@@ -171,10 +172,11 @@ export default function EditFormDialog({
         } as FormData["healthCons"];
       case "pilates":
         return {
+          fitnessLevel: null,
           pilatesExperience: null,
           pilatesDuration: null,
-          studioFrequency: null,
-          sessionPreference: null,
+          // studioFrequency: null,
+          // sessionPreference: null,
           // instructors: [],
           // customInstructor: null,
           apparatusPreference: [],
@@ -228,14 +230,14 @@ export default function EditFormDialog({
           weight: null,
           gender: null,
         },
-        fitnessBg: {
-          fitnessLevel: null,
-          exercises: [],
-          exerciseFrequency: null,
-          sessionLength: null,
-          customExercise: null,
-          otherExercises: [],
-        },
+        // fitnessBg: {
+        //   fitnessLevel: null,
+        //   exercises: [],
+        //   exerciseFrequency: null,
+        //   sessionLength: null,
+        //   customExercise: null,
+        //   otherExercises: [],
+        // },
         goals: {
           fitnessGoals: [],
           goalTimeline: null,
@@ -251,10 +253,11 @@ export default function EditFormDialog({
           otherHealthConditions: [],
         },
         pilates: {
+          fitnessLevel: null,
           pilatesExperience: null,
           pilatesDuration: null,
-          studioFrequency: null,
-          sessionPreference: null,
+          // studioFrequency: null,
+          // sessionPreference: null,
           instructors: [],
           customInstructor: null,
           apparatusPreference: [],
@@ -279,19 +282,19 @@ export default function EditFormDialog({
         );
       }
 
-      case "fitnessBg": {
-        const typedData = safeData as FormData["fitnessBg"];
-        return (
-          <FitnessBackgroundProfileSection
-            typedData={typedData}
-            setData={setData}
-            FITNESS_LEVEL={FITNESS_LEVEL}
-            DEFAULT_EXERCISE_OPTIONS={DEFAULT_EXERCISE_OPTIONS}
-            EXERCISE_FREQUENCY={EXERCISE_FREQUENCY}
-            SESSION_LENGTH={SESSION_LENGTH}
-          />
-        );
-      }
+      // case "fitnessBg": {
+      //   const typedData = safeData as FormData["fitnessBg"];
+      //   return (
+      //     <FitnessBackgroundProfileSection
+      //       typedData={typedData}
+      //       setData={setData}
+      //       FITNESS_LEVEL={FITNESS_LEVEL}
+      //       DEFAULT_EXERCISE_OPTIONS={DEFAULT_EXERCISE_OPTIONS}
+      //       EXERCISE_FREQUENCY={EXERCISE_FREQUENCY}
+      //       SESSION_LENGTH={SESSION_LENGTH}
+      //     />
+      //   );
+      // }
 
       case "goals": {
         const typedData = safeData as FormData["goals"];

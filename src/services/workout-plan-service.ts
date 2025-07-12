@@ -77,9 +77,9 @@ export async function generateAndInsertWorkoutPlan({
         | "cycle"
         | "swim"
         | "walk"
-        | "hike"
-        | "rowing"
-        | "elliptical"
+        // | "hike"
+        // | "rowing"
+        // | "elliptical"
         | null;
       exercises?: Array<{
         id: string;

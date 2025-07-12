@@ -21,14 +21,13 @@ export interface FormData {
     weight: number | null;
     gender: Gender | null;
   };
-  fitnessBg: {
-    fitnessLevel: FitnessLevel | null;
-    exercises: string[];
-    exerciseFrequency: ExerciseFrequency | null;
-    sessionLength: SessionLength | null;
-    customExercise: string | null;
-    otherExercises: string[]
-  };
+  // fitnessBg: {
+  //   exercises: string[];
+  //   exerciseFrequency: ExerciseFrequency | null;
+  //   sessionLength: SessionLength | null;
+  //   customExercise: string | null;
+  //   otherExercises: string[]
+  // };
   goals: {
     fitnessGoals: string[];
     goalTimeline: GoalTimeline | null;
@@ -53,10 +52,11 @@ export interface FormData {
     otherProgressTracking: string[];
   };
   pilates: {
+    fitnessLevel: FitnessLevel | null;
     pilatesExperience: boolean | null;
     pilatesDuration: PilatesDuration | null;
-    studioFrequency: PilatesSessions | null;
-    sessionPreference: PilatesSessionPreference | null;
+    // studioFrequency: PilatesSessions | null;
+    // sessionPreference: PilatesSessionPreference | null;
     apparatusPreference: string[];
     otherApparatusPreferences: string[],
     customApparatus: string[];
@@ -89,14 +89,13 @@ export function useProfileCompletion() {
         weight: onboardingData.weight,
         gender: onboardingData.gender as Gender | null
       },
-      fitnessBg: {
-        fitnessLevel: onboardingData.fitnessLevel as FitnessLevel | null,
-        exercises: onboardingData.exercises ?? [],
-        exerciseFrequency: onboardingData.exerciseFrequency as ExerciseFrequency | null,
-        sessionLength: onboardingData.sessionLength as SessionLength | null,
-        customExercise: onboardingData.otherExercises?.[0] ?? null,
-        otherExercises: onboardingData.otherExercises  ?? []
-      },
+      // fitnessBg: {
+      //   exercises: onboardingData.exercises ?? [],
+      //   exerciseFrequency: onboardingData.exerciseFrequency as ExerciseFrequency | null,
+      //   sessionLength: onboardingData.sessionLength as SessionLength | null,
+      //   customExercise: onboardingData.otherExercises?.[0] ?? null,
+      //   otherExercises: onboardingData.otherExercises ?? []
+      // },
       goals: {
         fitnessGoals: onboardingData.fitnessGoals ?? [],
         goalTimeline: onboardingData.goalTimeline as GoalTimeline | null,
@@ -115,10 +114,11 @@ export function useProfileCompletion() {
         pregnancyConsultedDoctorDetails: onboardingData.pregnancyConsultedDoctorDetails ?? null
       },
       pilates: {
+        fitnessLevel: onboardingData.fitnessLevel as FitnessLevel | null,
         pilatesExperience: onboardingData.pilatesExperience ?? null,
         pilatesDuration: onboardingData.pilatesDuration as PilatesDuration | null,
-        studioFrequency: onboardingData.studioFrequency as PilatesSessions | null,
-        sessionPreference: onboardingData.sessionPreference as PilatesSessionPreference,
+        // studioFrequency: onboardingData.studioFrequency as PilatesSessions | null,
+        // sessionPreference: onboardingData.sessionPreference as PilatesSessionPreference,
         apparatusPreference: onboardingData.apparatusPreference ?? [],
         otherApparatusPreferences: onboardingData.otherApparatusPreferences ?? [],
         customApparatus: onboardingData.customApparatus ?? [],
@@ -154,18 +154,18 @@ export function useProfileCompletion() {
         ].filter(value => value !== null).length
         break
       }
-      case "fitnessBg": {
-        const data = section as FormData["fitnessBg"]
-        totalFields = 4 + (data.exercises.includes("Other") ? 1 : 0)
-        filledFields = [
-          data.fitnessLevel,
-          data.exercises.length > 0,
-          data.exerciseFrequency,
-          data.sessionLength,
-          data.exercises.includes("Other") ? data.customExercise !== null : null
-        ].filter(Boolean).length
-        break
-      }
+      // case "fitnessBg": {
+      //   const data = section as FormData["fitnessBg"]
+      //   totalFields = 4 + (data.exercises.includes("Other") ? 1 : 0)
+      //   filledFields = [
+      //     data.fitnessLevel,
+      //     data.exercises.length > 0,
+      //     data.exerciseFrequency,
+      //     data.sessionLength,
+      //     data.exercises.includes("Other") ? data.customExercise !== null : null
+      //   ].filter(Boolean).length
+      //   break
+      // }
       case "goals": {
         const data = section as FormData["goals"]
         totalFields = 3
@@ -203,12 +203,12 @@ export function useProfileCompletion() {
       }
       case "pilates": {
         const data = section as FormData["pilates"]
-        totalFields = 4 + (data.pilatesExperience ? 1 : 0) + (data.apparatusPreference.includes("Other") ? 1 : 0)
+        totalFields = 2 + (data.pilatesExperience ? 1 : 0) + (data.apparatusPreference.includes("Other") ? 1 : 0)
         filledFields = [
           data.pilatesExperience !== null,
           data.pilatesExperience ? data.pilatesDuration !== null : null,
-          data.studioFrequency !== null,
-          data.sessionPreference !== null,
+          // data.studioFrequency !== null,
+          // data.sessionPreference !== null,
           data.apparatusPreference.length > 0,
           data.apparatusPreference.includes("Other") ? data.customApparatus !== null : null
         ].filter(Boolean).length
@@ -236,14 +236,14 @@ export function useProfileCompletion() {
       completion: calculateCompletion("pilates"),
       color: SECTION_LABELS.PILATES.COLOR
     },
-    {
-      type: "fitnessBg" as FormType,
-      title: SECTION_LABELS.FITNESS_BG.TITLE,
-      description: SECTION_LABELS.FITNESS_BG.DESCRIPTION,
-      icon: <Dumbbell className="w-5 h-5" />,
-      completion: calculateCompletion("fitnessBg"),
-      color: SECTION_LABELS.FITNESS_BG.COLOR
-    },
+    // {
+    //   type: "fitnessBg" as FormType,
+    //   title: SECTION_LABELS.FITNESS_BG.TITLE,
+    //   description: SECTION_LABELS.FITNESS_BG.DESCRIPTION,
+    //   icon: <Dumbbell className="w-5 h-5" />,
+    //   completion: calculateCompletion("fitnessBg"),
+    //   color: SECTION_LABELS.FITNESS_BG.COLOR
+    // },
     {
       type: "healthCons" as FormType,
       title: SECTION_LABELS.HEALTH_CONS.TITLE,
@@ -267,7 +267,7 @@ export function useProfileCompletion() {
       icon: <Sparkles className="w-5 h-5" />,
       completion: calculateCompletion("motivation"),
       color: SECTION_LABELS.MOTIVATION.COLOR
-    }, 
+    },
   ], [calculateCompletion, formData]) as FormSection[]
 
   const totalCompletion = useMemo(() => {

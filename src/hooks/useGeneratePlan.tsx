@@ -4,14 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import MultiStepGeneratePlanDialog from "@/app/_components/dashboard/MultiStepGeneratePlanDialog";
+import type { PlanPreferences } from "@/app/_components/dashboard/GeneratePlanDialog";
 
-interface PlanPreferences {
-  workoutDuration: number;
-  classDuration: number;
-  workoutClassRatio: number;
-  activitiesPerWeek: number;
-  additionalNotes: string;
-}
 
 export default function useGeneratePlan({ redirectToPlan = true } = {}) {
   const router = useRouter();
@@ -42,7 +36,7 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
             <Sparkles className="w-12 h-12 text-primary animate-pulse" />
           </div>
           <h2 className="text-2xl font-semibold text-gray-900">Generating Your Plan</h2>
-          <p className="text-gray-500">Please wait while we create your personalized workout plan...</p>
+          <p className="text-gray-500">Please wait while we create your personalised workout plan...</p>
         </div>
       </div>
     );
@@ -53,22 +47,40 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
   };
 
   const handleConfirmGeneratePlan = (preferences: PlanPreferences) => {
-    const { workoutDuration, classDuration, workoutClassRatio, activitiesPerWeek, additionalNotes } = preferences;
+    const { additionalNotes, shortClassesPerWeek, mediumClassesPerWeek, longClassesPerWeek, additionalCardioWorkouts, isCardioWorkout, cardioType, shortWorkoutsPerWeek, mediumWorkoutsPerWeek, longWorkoutsPerWeek, planLength } = preferences;
+
+    // Calculate total activities per week
+    const totalClassesPerWeek = shortClassesPerWeek + mediumClassesPerWeek + longClassesPerWeek;
+    const totalWorkoutsPerWeek = shortWorkoutsPerWeek + mediumWorkoutsPerWeek + longWorkoutsPerWeek;
+    const cardioWorkoutsPerWeek = isCardioWorkout ? additionalCardioWorkouts.length : 0;
+    const totalActivitiesPerWeek = totalClassesPerWeek + totalWorkoutsPerWeek + cardioWorkoutsPerWeek;
 
     // Build a comprehensive prompt based on user preferences
-    let prompt = `For every workout of type 'workout', set the duration to ${workoutDuration} minutes. For every workout of type 'class', set the duration to ${classDuration} minutes.`;
+    let prompt = `Create a ${planLength}-week personalized workout plan with the following specifications:\n\n`;
 
-    // Add activities per week preference
-    prompt += ` The plan should have approximately ${activitiesPerWeek} activities per week.`;
+    // Add workout specifications (including cardio)
+    if (totalWorkoutsPerWeek > 0 || cardioWorkoutsPerWeek > 0) {
+      const totalWorkouts = totalWorkoutsPerWeek + cardioWorkoutsPerWeek;
+      prompt += `WORKOUTS (${totalWorkouts} per week):\n`;
+      if (shortWorkoutsPerWeek > 0) prompt += `- ${shortWorkoutsPerWeek} short workouts (10-20 minutes each)\n`;
+      if (mediumWorkoutsPerWeek > 0) prompt += `- ${mediumWorkoutsPerWeek} medium workouts (20-30 minutes each)\n`;
+      if (longWorkoutsPerWeek > 0) prompt += `- ${longWorkoutsPerWeek} long workouts (30+ minutes each)\n`;
+      if (cardioWorkoutsPerWeek > 0) prompt += `- ${cardioWorkoutsPerWeek} cardio workouts (types: ${cardioType.join(", ")})\n`;
+    }
 
-    // Add distribution preference
-    const workoutPercentage = workoutClassRatio;
-    const classPercentage = 100 - workoutClassRatio;
-    prompt += ` The plan should have approximately ${workoutPercentage}% workouts and ${classPercentage}% classes.`;
+    // Add class specifications
+    if (totalClassesPerWeek > 0) {
+      prompt += `\nCLASSES (${totalClassesPerWeek} per week):\n`;
+      if (shortClassesPerWeek > 0) prompt += `- ${shortClassesPerWeek} short classes (10-20 minutes each)\n`;
+      if (mediumClassesPerWeek > 0) prompt += `- ${mediumClassesPerWeek} medium classes (20-30 minutes each)\n`;
+      if (longClassesPerWeek > 0) prompt += `- ${longClassesPerWeek} long classes (30+ minutes each)\n`;
+    }
+
+    prompt += `\nTOTAL: ${totalActivitiesPerWeek} activities per week for ${planLength} weeks.`;
 
     // Add additional notes if provided
-    if (additionalNotes.trim()) {
-      prompt += ` Additional preferences: ${additionalNotes}`;
+    if (additionalNotes?.trim()) {
+      prompt += `\n\nADDITIONAL PREFERENCES: ${additionalNotes}`;
     }
 
     generatePlanMutation.mutate({ prompt });

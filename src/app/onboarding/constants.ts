@@ -1,7 +1,7 @@
 export const STEPS = [
   "basic-info",
   "pilates",
-  "fitness-background",
+  // "fitness-background",
   "health-considerations",
   "goals",
   "motivation",

@@ -11,19 +11,18 @@ import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATE
 import { Button } from "@/components/ui/button";
 import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
+import { FITNESS_LEVEL } from "@/app/_constants/fitness";
 
 // Define proper types for the form data
 type PilatesDuration = typeof PILATES_DURATION[number];
-type PilatesSessions = typeof PILATES_SESSIONS[number];
-type PilatesSessionPreference = typeof PILATES_SESSION_PREFERENCE[number];
 type PilatesApparatus = typeof PILATES_APPARATUS[number];
 type CustomPilatesApparatus = typeof CUSTOM_PILATES_APPARATUS[number];
+type PilatesFitnessLevel = typeof FITNESS_LEVEL[number];
 
 interface PilatesSubmitData {
+  fitnessLevel: PilatesFitnessLevel | null;
   pilatesExperience: boolean | null;
   pilatesDuration: PilatesDuration | null;
-  studioFrequency: PilatesSessions | null;
-  sessionPreference: PilatesSessionPreference | null;
   apparatusPreference: PilatesApparatus[];
   customApparatus: CustomPilatesApparatus[];
 }
@@ -54,7 +53,7 @@ export default function PilatesForm({
   // Get pilates missing fields - much simpler!
   const pilatesMissingFields = missingFields?.pilates || [];
   const hasMissingFields = pilatesMissingFields.length > 0;
-
+  console.log(pilatesMissingFields);
   // Create dynamic schema based on missingFields
   const createSchema = () => {
     const schemaFields: Record<string, z.ZodTypeAny> = {};
@@ -63,6 +62,15 @@ export default function PilatesForm({
     const isRequired = (fieldName: string) => {
       return hasMissingFields && pilatesMissingFields.includes(fieldName);
     };
+
+    // Fitness level field
+    if (isRequired('fitnessLevel')) {
+      schemaFields.fitnessLevel = z.enum(FITNESS_LEVEL, {
+        required_error: "Please select your fitness level",
+      });
+    } else {
+      schemaFields.fitnessLevel = z.enum(FITNESS_LEVEL).optional();
+    }
 
     // Pilates experience field
     if (isRequired('pilatesExperience')) {
@@ -76,23 +84,23 @@ export default function PilatesForm({
     // Pilates duration field (optional)
     schemaFields.pilatesDuration = z.enum(PILATES_DURATION).optional();
 
-    // Studio frequency field
-    if (isRequired('studioFrequency')) {
-      schemaFields.studioFrequency = z.enum(PILATES_SESSIONS, {
-        required_error: "Please select your studio frequency",
-      });
-    } else {
-      schemaFields.studioFrequency = z.enum(PILATES_SESSIONS).optional();
-    }
+    // // Studio frequency field
+    // if (isRequired('studioFrequency')) {
+    //   schemaFields.studioFrequency = z.enum(PILATES_SESSIONS, {
+    //     required_error: "Please select your studio frequency",
+    //   });
+    // } else {
+    //   schemaFields.studioFrequency = z.enum(PILATES_SESSIONS).optional();
+    // }
 
-    // Session preference field
-    if (isRequired('sessionPreference')) {
-      schemaFields.sessionPreference = z.enum(PILATES_SESSION_PREFERENCE, {
-        required_error: "Please select your session preference",
-      });
-    } else {
-      schemaFields.sessionPreference = z.enum(PILATES_SESSION_PREFERENCE).optional();
-    }
+    // // Session preference field
+    // if (isRequired('sessionPreference')) {
+    //   schemaFields.sessionPreference = z.enum(PILATES_SESSION_PREFERENCE, {
+    //     required_error: "Please select your session preference",
+    //   });
+    // } else {
+    //   schemaFields.sessionPreference = z.enum(PILATES_SESSION_PREFERENCE).optional();
+    // }
 
     // Apparatus preference field
     if (isRequired('apparatusPreference')) {
@@ -114,10 +122,11 @@ export default function PilatesForm({
     resolver: zodResolver(pilatesSchema),
     mode: "onChange",
     defaultValues: {
+      fitnessLevel: undefined,
       pilatesExperience: undefined,
       pilatesDuration: undefined,
-      studioFrequency: undefined,
-      sessionPreference: undefined,
+      // studioFrequency: undefined,
+      // sessionPreference: undefined,
       apparatusPreference: [],
       customApparatus: [],
     }
@@ -153,12 +162,12 @@ export default function PilatesForm({
     if (data.pilatesDuration !== undefined) {
       submitData.pilatesDuration = data.pilatesDuration as PilatesDuration;
     }
-    if (data.studioFrequency !== undefined) {
-      submitData.studioFrequency = data.studioFrequency as PilatesSessions;
-    }
-    if (data.sessionPreference !== undefined) {
-      submitData.sessionPreference = data.sessionPreference as PilatesSessionPreference;
-    }
+    // if (data.studioFrequency !== undefined) {
+    //   submitData.studioFrequency = data.studioFrequency as PilatesSessions;
+    // }
+    // if (data.sessionPreference !== undefined) {
+    //   submitData.sessionPreference = data.sessionPreference as PilatesSessionPreference;
+    // }
     if (data.apparatusPreference && Array.isArray(data.apparatusPreference) && data.apparatusPreference.length > 0) {
       submitData.apparatusPreference = data.apparatusPreference as PilatesApparatus[];
     }
@@ -170,10 +179,11 @@ export default function PilatesForm({
     if (Object.keys(submitData).length > 0) {
       // Ensure all required fields are present for the API
       const apiData: PilatesSubmitData = {
+        fitnessLevel: submitData.fitnessLevel ?? null,
         pilatesExperience: submitData.pilatesExperience ?? null,
         pilatesDuration: submitData.pilatesDuration ?? null,
-        studioFrequency: submitData.studioFrequency ?? null,
-        sessionPreference: submitData.sessionPreference ?? null,
+        // studioFrequency: submitData.studioFrequency ?? null,
+        // sessionPreference: submitData.sessionPreference ?? null,
         apparatusPreference: submitData.apparatusPreference || [],
         customApparatus: submitData.customApparatus || [],
       };
@@ -232,6 +242,38 @@ export default function PilatesForm({
       </div>
 
       <div className="space-y-4">
+        {pilatesMissingFields.includes('fitnessLevel') && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-4">
+              What is your fitness level?
+            </label>
+            {errors.fitnessLevel && (
+              <p className="mb-2 text-sm text-red-600">{typeof errors.fitnessLevel?.message === 'string' ? errors.fitnessLevel.message : 'Invalid input'}</p>
+            )}
+            <Controller
+              name="fitnessLevel"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={(value: PilatesFitnessLevel) => field.onChange(value)}
+                  value={field.value || ""}
+                  defaultValue={field.value || ""}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select fitness level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FITNESS_LEVEL.map((level) => (
+                      <SelectItem key={level} value={level}>{level}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        )}
+
+
         {pilatesMissingFields.includes('pilatesExperience') && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-4">
@@ -293,7 +335,7 @@ export default function PilatesForm({
           </div>
         )}
 
-        {pilatesMissingFields.includes('studioFrequency') && (
+        {/* {pilatesMissingFields.includes('studioFrequency') && (
           <div>
             <label htmlFor="studio-frequency" className="block text-sm font-medium text-gray-700 mb-2">
               How often do you visit a pilates studio?
@@ -353,7 +395,7 @@ export default function PilatesForm({
               )}
             />
           </div>
-        )}
+        )} */}
 
         {pilatesMissingFields.includes('apparatusPreference') && (
           <div>

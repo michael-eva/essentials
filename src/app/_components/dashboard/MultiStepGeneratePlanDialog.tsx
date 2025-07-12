@@ -17,17 +17,11 @@ import GoalsFormComplete from "../complete-profile/forms/GoalsForm";
 import PilatesFormComplete from "../complete-profile/forms/PilatesForm";
 import MotivationFormComplete from "../complete-profile/forms/MotivationForm";
 import WorkoutTimingFormComplete from "../complete-profile/forms/WorkoutTimingForm";
-import GeneratePlanForm from "./GeneratePlanDialog";
+import GeneratePlanForm, { type PlanPreferences } from "./GeneratePlanDialog";
 import { STEPS } from "@/app/onboarding/constants";
 import FitnessBackgroundForm from "../complete-profile/forms/FitnessBg";
 
-interface PlanPreferences {
-  workoutDuration: number;
-  classDuration: number;
-  workoutClassRatio: number;
-  activitiesPerWeek: number;
-  additionalNotes: string;
-}
+
 
 interface MultiStepGeneratePlanDialogProps {
   open: boolean;
@@ -41,10 +35,10 @@ type OnboardingStep = (typeof STEPS)[number] | 'plan-generation';
 // Define field groups with proper typing - EXPORTED for use in form components
 export const FIELD_GROUPS = {
   basicInfo: ['name', 'age', 'weight', 'gender', 'height'] as const,
-  fitnessBackground: ['fitnessLevel', 'exercises', 'exerciseFrequency', 'sessionLength'] as const,
+  fitnessBackground: ['exercises', 'exerciseFrequency', 'sessionLength'] as const,
   healthConsiderations: ['injuries', 'recentSurgery', 'chronicConditions', 'pregnancy', 'injuriesDetails', 'surgeryDetails', 'otherHealthConditions', 'pregnancyConsultedDoctor', 'pregnancyConsultedDoctorDetails'] as const,
   goals: ['fitnessGoals', 'goalTimeline'] as const,
-  pilates: ['pilatesExperience', 'studioFrequency', 'sessionPreference', 'apparatusPreference', 'pilatesDuration', 'customApparatus'] as const,
+  pilates: ['pilatesExperience', 'fitnessLevel', 'apparatusPreference', 'pilatesDuration', 'customApparatus'] as const,
   motivation: ['motivation', 'progressTracking'] as const,
   workoutTiming: ['preferredWorkoutTimes', 'avoidedWorkoutTimes', 'weekendWorkoutTimes'] as const,
 } as const;
@@ -164,18 +158,18 @@ export default function MultiStepGeneratePlanDialog({
             onPrevious={handlePrevious}
           />
         );
-      case 'fitness-background':
-        return (
-          <FitnessBackgroundForm
-            missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
-              ? onboardingResult.missingFields as MissingFieldsGrouped
-              : undefined
-            }
-            isSubmitting={isSubmittingStep}
-            onNext={() => setCurrentStepIndex(prev => prev + 1)}
-            onPrevious={handlePrevious}
-          />
-        );
+      // case 'fitness-background':
+      //   return (
+      //     <FitnessBackgroundForm
+      //       missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
+      //         ? onboardingResult.missingFields as MissingFieldsGrouped
+      //         : undefined
+      //       }
+      //       isSubmitting={isSubmittingStep}
+      //       onNext={() => setCurrentStepIndex(prev => prev + 1)}
+      //       onPrevious={handlePrevious}
+      //     />
+      //   );
       case 'health-considerations':
         return (
           <HealthConsiderationsForm
@@ -252,15 +246,15 @@ export default function MultiStepGeneratePlanDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-h-[90vh] overflow-hidden flex flex-col justify-center items-center max-w-2xl mx-auto">
+        <DialogHeader className="text-center">
           <DialogTitle className="text-center text-xl">
             Generate Your Workout Plan
           </DialogTitle>
           <div className="text-sm text-gray-500">Before we generate your plan, we just need to ask you a few questions:</div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-1">
+        <div className="flex-1 overflow-y-auto px-2 w-full">
           {renderCurrentStep()}
         </div>
       </DialogContent>
