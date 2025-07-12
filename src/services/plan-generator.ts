@@ -29,33 +29,37 @@ export async function generateWorkoutPlanAI(
     nonPilates: nonPilates,
   };
   // Create a comprehensive prompt for the AI
-  const systemPrompt = `You are a professional personal trainer and fitness expert. Your task is to generate a personalized workout plan based on the user's input, fitness level, goals, and available classes.
+  const combinedPrompt = `You are a professional personal trainer and fitness expert. Generate a personalised workout plan based on the following information:
 
-Available Classes:
-Pilates Classes: ${JSON.stringify(availableClasses.pilates, null, 2)}
-Non-Pilates Classes: ${JSON.stringify(availableClasses.nonPilates, null, 2)}
-
-Note the "type" field of all Pilates classes is "class" and the "type" field of all non-Pilates classes is "workout".
+## USER PREFERENCES & REQUIREMENTS
+${userPrompt || "No specific preferences provided - create a balanced plan based on user context below."}
 
 Relevant context about the user, that you should use to generate the workout plan:
 ${formatUserContextForAI(context)}
 
+## AVAILABLE CLASSES
+**Pilates Classes (type: "class"):**
+${JSON.stringify(availableClasses.pilates, null, 2)}
 
-Generate a comprehensive workout plan for the user that takes into account their fitness level, goals, health considerations, and preferences.
+**Non-Pilates Classes (type: "workout"):**
+${JSON.stringify(availableClasses.nonPilates, null, 2)}
 
-IMPORTANT: 
-1. For every workout of type 'workout', you MUST provide a detailed 'exercises' array. Each exercise should include a name, and a list of sets (with reps and weight if applicable). Do NOT just give a generic label like 'Full Body Workout'—the user must be able to see exactly what exercises to do, with sets and reps. For Pilates or class-based workouts (type 'class'), you may use the class description and do not need to provide an exercises array.
+## GENERATION REQUIREMENTS
+1. **Workout Details**: 
+   - For every workout of type 'workout', provide a detailed 'exercises' array with name, sets, reps, and weight if applicable. Do NOT use generic labels like 'Full Body Workout'.
+   - For cardio workouts, only use: ${availableClasses.nonPilates}. Specify duration and intensity level.
+   - Only add cardio workouts if the user has selected to include them in the plan.
 
-2. Each workout MUST have a unique 'id' field (UUID format). No two workouts should have the same ID. IMPORTANT: When creating class-based workouts (type 'class'), you should:
+2. **Unique IDs**: Each workout MUST have a unique 'id' field (UUID format). For class-based workouts:
    - Generate a NEW unique UUID for the workout 'id' field
-   - Set the 'classId' field to reference the existing Pilates class ID from the available classes
+   - Set the 'classId' field to reference the existing class ID
    - Do NOT reuse the existing class ID as the workout ID
 
-3. Each weekly schedule should reference the exact workout ID from the workouts array.
+3. **Workout References**: Each weekly schedule should reference exact workout IDs from the workouts array.
 
-4. IMPORTANT: You should create 3-4 unique workout definitions in the workouts array, and then reference these same workout IDs across different weeks in the weekly_schedules. The system will automatically create week-specific instances of these workouts to prevent completion conflicts.
 
-EXAMPLE: If you want to include the "Abs, Arms & Booty" class (ID: d24df388-15c9-46f3-bf4a-98353784aa6c), create a workout like this:
+**Example Class Workout:**
+If including "Abs, Arms & Booty" class (ID: d24df388-15c9-46f3-bf4a-98353784aa6c):
 {
   "id": "f393983b-4525-4f69-b1d4-7ce4e099c635", // NEW unique UUID
   "name": "Abs, Arms & Booty",
@@ -64,26 +68,26 @@ EXAMPLE: If you want to include the "Abs, Arms & Booty" class (ID: d24df388-15c9
   // ... other fields
 }
 
-Make sure the plan is realistic, progressive, and aligned with the user's context.
+**Example Cardio Workout:**
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890", // NEW unique UUID
+  "name": "Morning Run",
+  "type": "workout",
+  "activityType": "run",
+  "duration": 30,
+  "description": "Steady pace run, maintain conversation level intensity",
+  "exercises": null
+}
 
-The plan length will be specified in the user's prompt.
-`;
+Generate a realistic, progressive plan aligned with the user's context and preferences.`;
 
   console.log(`#########################`);
-  console.log(systemPrompt);
+  console.log(combinedPrompt);
   console.log(`#########################`);
-  console.log(userPrompt);
+
   const response = await openai.responses.parse({
     model: "gpt-4o-2024-08-06",
-    input: [
-      { role: "system", content: systemPrompt },
-      {
-        role: "user",
-        content: userPrompt
-          ? `The user has also provided the following additional prompt to guide the workout plan: ${userPrompt}`
-          : "",
-      },
-    ],
+    input: [{ role: "user", content: combinedPrompt }],
     text: {
       format: zodTextFormat(GeneratedWorkoutPlanResponseSchema, "workout_plan"),
     },

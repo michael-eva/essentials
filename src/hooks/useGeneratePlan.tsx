@@ -79,7 +79,7 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
     prompt += `\nTOTAL: ${totalActivitiesPerWeek} activities per week for ${planLength} weeks.`;
 
     // Add additional notes if provided
-    if (additionalNotes && additionalNotes.trim()) {
+    if (additionalNotes?.trim()) {
       prompt += `\n\nADDITIONAL PREFERENCES: ${additionalNotes}`;
     }
 

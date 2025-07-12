@@ -158,18 +158,18 @@ export default function MultiStepGeneratePlanDialog({
             onPrevious={handlePrevious}
           />
         );
-      case 'fitness-background':
-        return (
-          <FitnessBackgroundForm
-            missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
-              ? onboardingResult.missingFields as MissingFieldsGrouped
-              : undefined
-            }
-            isSubmitting={isSubmittingStep}
-            onNext={() => setCurrentStepIndex(prev => prev + 1)}
-            onPrevious={handlePrevious}
-          />
-        );
+      // case 'fitness-background':
+      //   return (
+      //     <FitnessBackgroundForm
+      //       missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
+      //         ? onboardingResult.missingFields as MissingFieldsGrouped
+      //         : undefined
+      //       }
+      //       isSubmitting={isSubmittingStep}
+      //       onNext={() => setCurrentStepIndex(prev => prev + 1)}
+      //       onPrevious={handlePrevious}
+      //     />
+      //   );
       case 'health-considerations':
         return (
           <HealthConsiderationsForm
