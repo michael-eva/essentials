@@ -4,9 +4,10 @@ import { TRPCError } from "@trpc/server";
 import {
   getPilatesClassViaWorkout,
   getWorkoutById,
+  getPilatesClasses,
+  getPilatesVideoById,
 } from "@/drizzle/src/db/queries";
 import { deleteWorkout, insertWorkouts } from "@/drizzle/src/db/mutations";
-import { getPilatesClasses } from "@/drizzle/src/db/queries";
 
 export const workoutRouter = createTRPCRouter({
   getWorkout: protectedProcedure
@@ -81,5 +82,20 @@ export const workoutRouter = createTRPCRouter({
   getPilatesVideos: protectedProcedure
     .query(async () => {
       return await getPilatesClasses();
+    }),
+  // endpoint to fetch a single pilates video by id
+  getPilatesVideoById: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      try {
+        const video = await getPilatesVideoById(input.id);
+        if (!video) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Pilates video not found" });
+        }
+        return video;
+      } catch (error) {
+        console.error('Error in getPilatesVideoById endpoint:', error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch pilates video" });
+      }
     }),
 });

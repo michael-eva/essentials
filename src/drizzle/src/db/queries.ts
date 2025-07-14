@@ -849,6 +849,16 @@ export async function getPilatesClassViaWorkout(
   return pilatesClass[0] ?? null;
 }
 
+export async function getPilatesVideoById(
+  id: string,
+): Promise<PilatesVideos | null> {
+  const result = await db
+    .select()
+    .from(PilatesVideos)
+    .where(eq(PilatesVideos.id, id));
+  return result[0] ?? null;
+}
+
 export async function getWorkoutsByWeek(planId: string, weekNumber: number) {
   const result = await db
     .select({
