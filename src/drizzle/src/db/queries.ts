@@ -538,12 +538,7 @@ export async function checkOnboardingCompletion(
     return {
       missingFields: {
         basic: ["name", "age", "weight", "gender", "height"],
-        fitness: [
-          "fitnessLevel",
-          "exercises",
-          "exerciseFrequency",
-          "sessionLength",
-        ],
+        fitness: ["exercises", "exerciseFrequency", "sessionLength"],
         health: [
           "injuries",
           "recentSurgery",
@@ -557,10 +552,10 @@ export async function checkOnboardingCompletion(
         ],
         goals: ["fitnessGoals", "goalTimeline"],
         pilates: [
+          "fitnessLevel",
           "pilatesExperience",
-          "studioFrequency",
-          "sessionPreference",
           "apparatusPreference",
+          "pilatesDuration",
           "customApparatus",
         ],
         motivation: ["motivation", "progressTracking"],
@@ -592,7 +587,7 @@ export async function checkOnboardingCompletion(
   if (data.gender === null) missingFields.basic.push("gender");
 
   // Fitness background
-  if (data.fitnessLevel === null) missingFields.fitness.push("fitnessLevel");
+  // if (data.fitnessLevel === null) missingFields.fitness.push("fitnessLevel");
   if (data.exercises === null || data.exercises.length === 0)
     missingFields.fitness.push("exercises");
   if (data.exerciseFrequency === null)
@@ -613,6 +608,7 @@ export async function checkOnboardingCompletion(
   if (data.goalTimeline === null) missingFields.goals.push("goalTimeline");
 
   // Pilates
+  if (data.fitnessLevel === null) missingFields.pilates.push("fitnessLevel");
   if (data.pilatesExperience === null)
     missingFields.pilates.push("pilatesExperience");
   if (data.pilatesExperience === true && data.pilatesDuration === null)
@@ -625,11 +621,12 @@ export async function checkOnboardingCompletion(
   if (data.customApparatus === null || data.customApparatus.length === 0)
     missingFields.pilates.push("customApparatus");
 
+  // if (data.studioFrequency === null)
+  //   missingFields.pilates.push("studioFrequency");
+  // if (data.sessionPreference === null)
+  //   missingFields.pilates.push("sessionPreference");
+
   // Motivation
-  if (data.studioFrequency === null)
-    missingFields.pilates.push("studioFrequency");
-  if (data.sessionPreference === null)
-    missingFields.pilates.push("sessionPreference");
   if (data.motivation === null) missingFields.motivation.push("motivation");
   if (data.progressTracking === null)
     missingFields.motivation.push("progressTracking");

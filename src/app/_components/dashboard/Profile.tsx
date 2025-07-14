@@ -101,17 +101,17 @@ export default function ProfilePage() {
           })
           break
         }
-        case "fitnessBg": {
-          const fitnessData = data as FormData["fitnessBg"]
-          postFitnessBackground({
-            fitnessLevel: fitnessData.fitnessLevel,
-            exercises: fitnessData.exercises,
-            exerciseFrequency: fitnessData.exerciseFrequency,
-            sessionLength: fitnessData.sessionLength,
-            otherExercises: fitnessData.otherExercises
-          })
-          break
-        }
+        // case "fitnessBg": {
+        //   const fitnessData = data as FormData["fitnessBg"]
+        //   postFitnessBackground({
+        //     fitnessLevel: fitnessData.fitnessLevel,
+        //     exercises: fitnessData.exercises,
+        //     exerciseFrequency: fitnessData.exerciseFrequency,
+        //     sessionLength: fitnessData.sessionLength,
+        //     otherExercises: fitnessData.otherExercises
+        //   })
+        //   break
+        // }
         case "healthCons": {
           const healthData = data as FormData["healthCons"]
 
@@ -141,9 +141,10 @@ export default function ProfilePage() {
         case "pilates": {
           const pilatesData = data as FormData["pilates"]
           postPilatesExperience({
+            fitnessLevel: pilatesData.fitnessLevel,
             pilatesExperience: pilatesData.pilatesExperience,
-            studioFrequency: pilatesData.studioFrequency,
-            sessionPreference: pilatesData.sessionPreference,
+            // studioFrequency: pilatesData.studioFrequency,
+            // sessionPreference: pilatesData.sessionPreference,
             apparatusPreference: pilatesData.apparatusPreference,
             otherApparatusPreferences: pilatesData.otherApparatusPreferences,
             pilatesDuration: pilatesData.pilatesExperience ? pilatesData.pilatesDuration ?? null : null,
