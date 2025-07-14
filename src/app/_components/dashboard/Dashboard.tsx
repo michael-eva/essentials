@@ -30,11 +30,14 @@ import { ProgressSection } from "./ProgressSection";
 import MarkClassMissed from "./MarkClassMissed";
 import { useRouter } from "next/navigation";
 import type { Workout, WorkoutTracking } from "@/drizzle/src/db/queries";
+import PilatesVideoGrid from "@/app/_components/dashboard/PilatesVideoGrid";
 type WorkoutStatus = (typeof workoutStatusEnum.enumValues)[number];
 
 export default function Dashboard() {
   const router = useRouter();
   const utils = api.useUtils();
+  // Fetch pilates videos
+  const { data: pilatesVideos = [], isLoading: isLoadingPilatesVideos } = api.workout.getPilatesVideos.useQuery();
   const { data: upcomingClasses, isLoading: isLoadingUpcomingClasses } =
     api.workoutPlan.getUpcomingActivities.useQuery();
   const { data: pastWorkoutsData = { workouts: [], currentWeek: undefined }, isLoading: isLoadingPastWorkouts } =
@@ -164,6 +167,19 @@ export default function Dashboard() {
     <div className="space-y-6">
       {GeneratePlanDialog}
       <LoadingScreen />
+      <DefaultBox
+        title="Pilates Videos"
+        description="Start a Pilates class anytime"
+        showViewAll={true}
+      >
+        {isLoadingPilatesVideos ? (
+          <div className="py-8 text-center text-gray-500">Loading videos...</div>
+        ) : pilatesVideos.length === 0 ? (
+          <div className="py-8 text-center text-gray-500">No videos available.</div>
+        ) : (
+          <PilatesVideoGrid videos={pilatesVideos.slice(0, 3)} />
+        )}
+      </DefaultBox>
       <DefaultBox
         title="Progress Tracking"
         description="Your progress over the past 30 days"

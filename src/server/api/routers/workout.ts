@@ -6,6 +6,7 @@ import {
   getWorkoutById,
 } from "@/drizzle/src/db/queries";
 import { deleteWorkout, insertWorkouts } from "@/drizzle/src/db/mutations";
+import { getPilatesClasses } from "@/drizzle/src/db/queries";
 
 export const workoutRouter = createTRPCRouter({
   getWorkout: protectedProcedure
@@ -75,5 +76,10 @@ export const workoutRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const pilatesClass = await getPilatesClassViaWorkout(input.workoutId);
       return pilatesClass;
+    }),
+  // endpoint to fetch all pilates videos
+  getPilatesVideos: protectedProcedure
+    .query(async () => {
+      return await getPilatesClasses();
     }),
 });
