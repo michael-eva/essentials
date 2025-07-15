@@ -91,6 +91,7 @@ export const workoutRouter = createTRPCRouter({
       instructor: z.string().optional(),
       minDuration: z.number().optional(),
       maxDuration: z.number().optional(),
+      random: z.boolean().optional(),
     }).optional())
     .query(async ({ input }) => {
       const page = input?.page ?? 1;

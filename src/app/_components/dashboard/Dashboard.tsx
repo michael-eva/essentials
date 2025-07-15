@@ -37,7 +37,8 @@ export default function Dashboard() {
   const router = useRouter();
   const utils = api.useUtils();
   const { data: pilatesVideos, isLoading: isLoadingPilatesVideos } = api.workout.getPilatesVideos.useQuery({
-    limit: 3
+    limit: 3,
+    random: true,
   });
   const { data: upcomingClasses, isLoading: isLoadingUpcomingClasses } =
     api.workoutPlan.getUpcomingActivities.useQuery();
@@ -176,10 +177,10 @@ export default function Dashboard() {
       >
         {isLoadingPilatesVideos ? (
           <div className="py-8 text-center text-gray-500">Loading videos...</div>
-        ) : !pilatesVideos || pilatesVideos.items.length === 0 ? (
+        ) : !pilatesVideos || pilatesVideos?.items.length === 0 ? (
           <div className="py-8 text-center text-gray-500">No videos available.</div>
         ) : (
-          <PilatesVideoGrid videos={pilatesVideos.items.slice(0, 3)} />
+          <PilatesVideoGrid videos={pilatesVideos.items} />
         )}
       </DefaultBox>
       <DefaultBox

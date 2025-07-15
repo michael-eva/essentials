@@ -876,12 +876,19 @@ function buildPilatesVideoFilters(params: PilatesVideosParams) {
   return filters.length > 0 ? and(...filters) : undefined;
 }
 
-export async function getPilatesVideos(params: PilatesVideosParams) {
-  const { limit, offset } = params;
+export async function getPilatesVideos(params: PilatesVideosParams & { random?: boolean }) {
+  const { limit, offset, random } = params;
   const where = buildPilatesVideoFilters(params);
 
+  let itemsPromise;
+  if (random) {
+    itemsPromise = db.select().from(PilatesVideos).where(where).orderBy(sql`RANDOM()`).limit(limit).offset(offset);
+  } else {
+    itemsPromise = db.select().from(PilatesVideos).where(where).limit(limit).offset(offset);
+  }
+
   const [items, countResult] = await Promise.all([
-    db.select().from(PilatesVideos).where(where).limit(limit).offset(offset),
+    itemsPromise,
     db.select({ count: count() }).from(PilatesVideos).where(where),
   ]);
 
