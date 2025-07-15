@@ -91,9 +91,9 @@ export default function PilatesVideoDetailPage({
           video.equipment ? video.equipment.split(",").map((e) => e.trim()) : []
         }
         exerciseSequence={
-          video.exerciseSequence ? JSON.parse(video.exerciseSequence) : []
+          video.exerciseSequence ? JSON.parse(video.exerciseSequence) as string[] : []
         }
-        tags={video.tags ? JSON.parse(video.tags) : []}
+        tags={video.tags ? JSON.parse(video.tags) as string[] : []}
         targetedMuscles={
           video.targetedMuscles
             ? video.targetedMuscles.split(",").map((m) => m.trim())

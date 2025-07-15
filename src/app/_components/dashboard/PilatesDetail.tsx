@@ -6,6 +6,7 @@ import { Clock, Users, Target, ArrowLeft } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 interface PilatesDetailProps {
   title: string;
@@ -68,10 +69,12 @@ const PilatesDetail: React.FC<PilatesDetailProps> = ({
                 poster={posterUrl}
               />
             ) : posterUrl ? (
-              <img
+              <Image
                 src={posterUrl}
                 alt="class thumbnail"
                 className="h-full w-full rounded-md object-cover"
+                width={200}
+                height={150}
               />
             ) : (
               <span className="flex h-full w-full items-center justify-center text-5xl text-gray-300">

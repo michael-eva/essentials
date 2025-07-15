@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 
 import type { PilatesVideo } from "@/types/pilates";
+import Image from "next/image";
 
 const PilatesVideoCard: React.FC<{ video: PilatesVideo }> = ({ video }) => (
   <Link
@@ -10,10 +11,12 @@ const PilatesVideoCard: React.FC<{ video: PilatesVideo }> = ({ video }) => (
   >
     <div className="flex w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-gray-100">
       {video.mux_playback_id ? (
-        <img
+        <Image
           src={`https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=384&height=256&fit_mode=smartcrop&time=35`}
           alt="class thumbnail"
           className="h-full w-full rounded object-cover"
+          width={100}
+          height={100}
         />
       ) : (
         <span className="text-2xl text-gray-300">▶️</span>
