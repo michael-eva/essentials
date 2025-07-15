@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 
 // List of public routes that don't require authentication
-const publicRoutes = ['/auth', '/api/trpc'];
+const publicRoutes = ['/auth', '/api/trpc', '/terms-of-service', '/privacy-policy'];
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
