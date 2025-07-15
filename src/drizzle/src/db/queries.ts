@@ -927,9 +927,7 @@ export async function getPilatesVideoFilterOptions() {
   return {
     difficulty: difficulties.map((row: { difficulty: string }) => row.difficulty),
     equipment: equipments.map((row: { equipment: string }) => row.equipment),
-    instructor: instructors
-      .filter((row: { instructor: string | null }) => row.instructor !== null)
-      .map((row: { instructor: string | null }) => row.instructor as string),
+    instructor: instructors.map((row: { instructor: string | null }) => row.instructor!),
   };
 }
 

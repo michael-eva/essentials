@@ -4,7 +4,7 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { PilatesVideosSkeleton } from "@/app/_components/dashboard/DashboardSkeleton";
 import PilatesVideoLibraryCard from "@/app/_components/dashboard/PilatesVideoLibraryCard";
-import PilatesVideosFilterModal from "./PilatesVideosFilterModal";
+import PilatesVideosFilterModal from "@/app/_components/PilatesVideosFilterModal";
 import type { PilatesVideo } from "@/types/pilates";
 
 const PAGE_SIZE = 5;
