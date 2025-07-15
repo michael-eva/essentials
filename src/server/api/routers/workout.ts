@@ -6,6 +6,7 @@ import {
   getWorkoutById,
   getPilatesClasses,
   getPilatesVideoById,
+  getPilatesVideos,
 } from "@/drizzle/src/db/queries";
 import { deleteWorkout, insertWorkouts } from "@/drizzle/src/db/mutations";
 
@@ -78,11 +79,20 @@ export const workoutRouter = createTRPCRouter({
       const pilatesClass = await getPilatesClassViaWorkout(input.workoutId);
       return pilatesClass;
     }),
+
   // endpoint to fetch all pilates videos
   getPilatesVideos: protectedProcedure
-    .query(async () => {
-      return await getPilatesClasses();
+    .input(z.object({
+      page: z.number().min(1).default(1),
+      limit: z.number().min(1).max(50).default(1),
+    }).optional())
+    .query(async ({ input }) => {
+      const page = input?.page ?? 1;
+      const limit = input?.limit ?? 10;
+      const offset = (page - 1) * limit;
+      return await getPilatesVideos({ limit, offset });
     }),
+
   // endpoint to fetch a single pilates video by id
   getPilatesVideoById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))

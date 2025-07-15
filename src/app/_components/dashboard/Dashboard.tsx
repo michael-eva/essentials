@@ -36,8 +36,9 @@ type WorkoutStatus = (typeof workoutStatusEnum.enumValues)[number];
 export default function Dashboard() {
   const router = useRouter();
   const utils = api.useUtils();
-  // Fetch pilates videos
-  const { data: pilatesVideos = [], isLoading: isLoadingPilatesVideos } = api.workout.getPilatesVideos.useQuery();
+  const { data: pilatesVideos, isLoading: isLoadingPilatesVideos } = api.workout.getPilatesVideos.useQuery({
+    limit: 3
+  });
   const { data: upcomingClasses, isLoading: isLoadingUpcomingClasses } =
     api.workoutPlan.getUpcomingActivities.useQuery();
   const { data: pastWorkoutsData = { workouts: [], currentWeek: undefined }, isLoading: isLoadingPastWorkouts } =
@@ -171,13 +172,14 @@ export default function Dashboard() {
         title="Pilates Videos"
         description="Start a Pilates class anytime"
         showViewAll={true}
+        viewAllHref='pilates-videos'
       >
         {isLoadingPilatesVideos ? (
           <div className="py-8 text-center text-gray-500">Loading videos...</div>
-        ) : pilatesVideos.length === 0 ? (
+        ) : !pilatesVideos || pilatesVideos.items.length === 0 ? (
           <div className="py-8 text-center text-gray-500">No videos available.</div>
         ) : (
-          <PilatesVideoGrid videos={pilatesVideos.slice(0, 3)} />
+          <PilatesVideoGrid videos={pilatesVideos.items.slice(0, 3)} />
         )}
       </DefaultBox>
       <DefaultBox

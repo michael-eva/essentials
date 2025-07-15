@@ -10,6 +10,7 @@ import {
   lte,
   asc,
   isNull,
+  count,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -857,6 +858,15 @@ export async function getPilatesVideoById(
     .from(PilatesVideos)
     .where(eq(PilatesVideos.id, id));
   return result[0] ?? null;
+}
+
+export async function getPilatesVideos({ limit = 10, offset = 0 }: { limit?: number; offset?: number }) {
+  const [items, countResult] = await Promise.all([
+    db.select().from(PilatesVideos).limit(limit).offset(offset),
+    db.select({ count: count() }).from(PilatesVideos),
+  ]);
+  const countValue = countResult[0]?.count ?? 0;
+  return { items, total: Number(countValue) };
 }
 
 export async function getWorkoutsByWeek(planId: string, weekNumber: number) {

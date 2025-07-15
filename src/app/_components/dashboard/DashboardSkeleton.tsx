@@ -143,4 +143,29 @@ export function ProfileSkeleton() {
       </div>
     </div>
   )
+}
+
+export function PilatesVideosSkeleton() {
+  return (
+    <div className="flex flex-col gap-8 mb-8">
+      {[1].map((i) => (
+        <div key={i} className="border rounded-lg overflow-hidden shadow-sm bg-[#f9f7f3] p-0 w-full max-w-full">
+          <div className="relative aspect-video w-full bg-gray-100 flex items-center justify-center" style={{ maxHeight: 190 }}>
+            <div className="h-full w-full bg-gray-200 animate-pulse" />
+            <span className="absolute inset-0 flex items-center justify-center">
+              <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse" />
+            </span>
+          </div>
+          <div className="p-4">
+            <div className="h-5 w-40 bg-gray-200 rounded mb-2 animate-pulse" />
+            <div className="flex gap-4 text-gray-700 text-sm mb-1">
+              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-14 bg-gray-200 rounded animate-pulse" />
+            </div>
+            <div className="h-4 w-56 bg-gray-200 rounded mt-2 animate-pulse" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 } 
