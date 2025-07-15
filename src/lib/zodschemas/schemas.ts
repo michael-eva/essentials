@@ -29,9 +29,7 @@ export const NewWorkoutSchema = z.object({
   isBooked: z.boolean().default(false),
   classId: z.string().uuid().nullable(),
   userId: z.string().uuid(),
-  activityType: z
-    .enum(["run", "cycle", "swim", "walk", "hike", "rowing", "elliptical"])
-    .nullable(),
+  activityType: z.enum(["run", "cycle", "swim", "walk"]).nullable(),
   exercises: z
     .array(
       z.object({
