@@ -57,6 +57,18 @@ export const weekendTimesEnum = pgEnum("weekend_workout_times", [
 
 export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
 
+export const PilatesVideosParamsSchema = z.object({
+  limit: z.number().int().positive().optional().default(5),
+  offset: z.number().int().nonnegative().optional().default(0),
+  difficulty: z.string().optional(),
+  equipment: z.string().optional(),
+  instructor: z.string().optional(),
+  minDuration: z.number().nonnegative().optional(),
+  maxDuration: z.number().nonnegative().optional(),
+});
+
+export type PilatesVideosParams = z.infer<typeof PilatesVideosParamsSchema>;
+
 export const user = pgTable("user", {
   id: uuid("id").primaryKey().unique(),
   email: text("email").notNull().unique(),

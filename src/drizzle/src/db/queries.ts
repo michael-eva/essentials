@@ -26,6 +26,8 @@ import {
   AiChatMessages,
   AiSystemPrompt,
   PilatesVideos,
+  type PilatesVideosParams,
+  PilatesVideosParamsSchema
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -834,6 +836,7 @@ export async function getPilatesClasses(): Promise<Array<PilatesVideos>> {
   const pilatesClasses = await db.select().from(PilatesVideos);
   return pilatesClasses;
 }
+
 export async function getPilatesClassViaWorkout(
   workoutId: string,
 ): Promise<PilatesVideos | null> {
@@ -860,13 +863,33 @@ export async function getPilatesVideoById(
   return result[0] ?? null;
 }
 
-export async function getPilatesVideos({ limit = 10, offset = 0 }: { limit?: number; offset?: number }) {
+
+function buildPilatesVideoFilters(params: PilatesVideosParams) {
+  const { difficulty, equipment, instructor, minDuration, maxDuration } = params;
+
+  const filters = [];
+  if (difficulty) filters.push(eq(PilatesVideos.difficulty, difficulty));
+  if (equipment) filters.push(eq(PilatesVideos.equipment, equipment));
+  if (instructor) filters.push(eq(PilatesVideos.instructor, instructor));
+  if (minDuration !== undefined) filters.push(gte(PilatesVideos.duration, minDuration));
+  if (maxDuration !== undefined) filters.push(lte(PilatesVideos.duration, maxDuration));
+
+  return filters.length > 0 ? and(...filters) : undefined;
+}
+
+export async function getPilatesVideos(params: PilatesVideosParams) {
+  const { limit, offset } = params;
+  const where = buildPilatesVideoFilters(params);
+
   const [items, countResult] = await Promise.all([
-    db.select().from(PilatesVideos).limit(limit).offset(offset),
-    db.select({ count: count() }).from(PilatesVideos),
+    db.select().from(PilatesVideos).where(where).limit(limit).offset(offset),
+    db.select({ count: count() }).from(PilatesVideos).where(where),
   ]);
-  const countValue = countResult[0]?.count ?? 0;
-  return { items, total: Number(countValue) };
+
+  return {
+    items,
+    total: countResult[0]?.count ?? 0,
+  };
 }
 
 export async function getWorkoutsByWeek(planId: string, weekNumber: number) {

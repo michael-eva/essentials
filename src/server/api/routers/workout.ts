@@ -85,12 +85,21 @@ export const workoutRouter = createTRPCRouter({
     .input(z.object({
       page: z.number().min(1).default(1),
       limit: z.number().min(1).max(50).default(1),
+      difficulty: z.string().optional(),
+      equipment: z.string().optional(),
+      instructor: z.string().optional(),
+      minDuration: z.number().optional(),
+      maxDuration: z.number().optional(),
     }).optional())
     .query(async ({ input }) => {
       const page = input?.page ?? 1;
       const limit = input?.limit ?? 10;
       const offset = (page - 1) * limit;
-      return await getPilatesVideos({ limit, offset });
+      return await getPilatesVideos({
+        ...input,
+        limit,
+        offset,
+      });
     }),
 
   // endpoint to fetch a single pilates video by id
