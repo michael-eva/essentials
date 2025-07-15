@@ -5,17 +5,23 @@ import { Button } from "@/components/ui/button";
 import { PilatesVideosSkeleton } from "@/app/_components/dashboard/DashboardSkeleton";
 import PilatesVideoLibraryCard from "@/app/_components/dashboard/PilatesVideoLibraryCard";
 import PilatesVideosFilterModal from "./PilatesVideosFilterModal";
+import type { PilatesVideo } from "@/types/pilates";
 
 const PAGE_SIZE = 5;
 
 type PilatesVideosData = {
-  items: any[];
+  items: PilatesVideo[];
   total: number;
 };
 
-const DIFFICULTY_OPTIONS = ["All", "Beginner", "Intermediate", "Moderate"];
-const EQUIPMENT_OPTIONS = ["All", "None", "Booty band", "Ankle weights", "Optional booty band or ankle weights"];
-const INSTRUCTOR_OPTIONS = ["All", "Sarah Johnson", "Emma Uden"];
+function buildSortedOptions(options?: string[]): string[] {
+  return [
+    "All",
+    ...(options ?? [])
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+  ];
+}
 
 export default function PilatesVideosLibrary() {
   const [page, setPage] = useState(1);
@@ -32,6 +38,11 @@ export default function PilatesVideosLibrary() {
   const [pendingInstructor, setPendingInstructor] = useState(instructor);
   const [pendingMinDuration, setPendingMinDuration] = useState(minDuration);
   const [pendingMaxDuration, setPendingMaxDuration] = useState(maxDuration);
+
+  const { data: filterOptions, isLoading: isLoadingFilters } = api.workout.getPilatesVideoFilterOptions.useQuery();
+  const DIFFICULTY_OPTIONS = buildSortedOptions(filterOptions?.difficulty);
+  const EQUIPMENT_OPTIONS = buildSortedOptions(filterOptions?.equipment);
+  const INSTRUCTOR_OPTIONS = buildSortedOptions(filterOptions?.instructor);
 
   const { data, isLoading, error } = api.workout.getPilatesVideos.useQuery({
     page,
@@ -84,25 +95,25 @@ export default function PilatesVideosLibrary() {
         <h1 className="text-3xl font-bold mb-2">All Pilates Videos</h1>
       </div>
       <p className="mb-6 text-gray-600">Browse our full Pilates video library.</p>
-        <PilatesVideosFilterModal
-          open={isDialogOpen}
-          setOpen={setIsDialogOpen}
-          DIFFICULTY_OPTIONS={DIFFICULTY_OPTIONS}
-          EQUIPMENT_OPTIONS={EQUIPMENT_OPTIONS}
-          INSTRUCTOR_OPTIONS={INSTRUCTOR_OPTIONS}
-          pendingDifficulty={pendingDifficulty}
-          setPendingDifficulty={setPendingDifficulty}
-          pendingEquipment={pendingEquipment}
-          setPendingEquipment={setPendingEquipment}
-          pendingInstructor={pendingInstructor}
-          setPendingInstructor={setPendingInstructor}
-          pendingMinDuration={pendingMinDuration}
-          setPendingMinDuration={setPendingMinDuration}
-          pendingMaxDuration={pendingMaxDuration}
-          setPendingMaxDuration={setPendingMaxDuration}
-          handleClearAll={handleClearAll}
-          handleApplyFilters={handleApplyFilters}
-        />
+      <PilatesVideosFilterModal
+        open={isDialogOpen}
+        setOpen={setIsDialogOpen}
+        DIFFICULTY_OPTIONS={DIFFICULTY_OPTIONS}
+        EQUIPMENT_OPTIONS={EQUIPMENT_OPTIONS}
+        INSTRUCTOR_OPTIONS={INSTRUCTOR_OPTIONS}
+        pendingDifficulty={pendingDifficulty}
+        setPendingDifficulty={setPendingDifficulty}
+        pendingEquipment={pendingEquipment}
+        setPendingEquipment={setPendingEquipment}
+        pendingInstructor={pendingInstructor}
+        setPendingInstructor={setPendingInstructor}
+        pendingMinDuration={pendingMinDuration}
+        setPendingMinDuration={setPendingMinDuration}
+        pendingMaxDuration={pendingMaxDuration}
+        setPendingMaxDuration={setPendingMaxDuration}
+        handleClearAll={handleClearAll}
+        handleApplyFilters={handleApplyFilters}
+      />
       <div className="relative">
         {isLoading ? (
           <div className="flex flex-col gap-8">

@@ -66,7 +66,7 @@ const PilatesVideosFilterModal: React.FC<PilatesVideosFilterModalProps> = ({
               </SelectTrigger>
               <SelectContent>
                 {DIFFICULTY_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                  <SelectItem key={option} value={option} className="[&>span]:capitalize">{option}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -79,7 +79,7 @@ const PilatesVideosFilterModal: React.FC<PilatesVideosFilterModalProps> = ({
               </SelectTrigger>
               <SelectContent>
                 {EQUIPMENT_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                  <SelectItem key={option} value={option} className="[&>span]:capitalize">{option}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -92,7 +92,7 @@ const PilatesVideosFilterModal: React.FC<PilatesVideosFilterModalProps> = ({
               </SelectTrigger>
               <SelectContent>
                 {INSTRUCTOR_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                  <SelectItem key={option} value={option} className="[&>span]:capitalize">{option}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

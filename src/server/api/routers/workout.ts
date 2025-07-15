@@ -7,6 +7,7 @@ import {
   getPilatesClasses,
   getPilatesVideoById,
   getPilatesVideos,
+  getPilatesVideoFilterOptions,
 } from "@/drizzle/src/db/queries";
 import { deleteWorkout, insertWorkouts } from "@/drizzle/src/db/mutations";
 
@@ -100,6 +101,12 @@ export const workoutRouter = createTRPCRouter({
         limit,
         offset,
       });
+    }),
+
+  // endpoint to fetch unique filter options for pilates videos
+  getPilatesVideoFilterOptions: protectedProcedure
+    .query(async () => {
+      return await getPilatesVideoFilterOptions();
     }),
 
   // endpoint to fetch a single pilates video by id

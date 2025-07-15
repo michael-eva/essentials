@@ -11,6 +11,8 @@ import {
   asc,
   isNull,
   count,
+  isNotNull,
+  ne,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -889,6 +891,48 @@ export async function getPilatesVideos(params: PilatesVideosParams) {
   return {
     items,
     total: countResult[0]?.count ?? 0,
+  };
+}
+
+export async function getPilatesVideoFilterOptions() {
+  const [difficulties, equipments, instructors] = await Promise.all([
+    db
+      .selectDistinct({ difficulty: PilatesVideos.difficulty })
+      .from(PilatesVideos)
+      .where(
+        and(
+          isNotNull(PilatesVideos.difficulty),
+          ne(PilatesVideos.difficulty, '')
+        )
+      ),
+
+    db
+      .selectDistinct({ equipment: PilatesVideos.equipment })
+      .from(PilatesVideos)
+      .where(
+        and(
+          isNotNull(PilatesVideos.equipment),
+          ne(PilatesVideos.equipment, '')
+        )
+      ),
+
+    db
+      .selectDistinct({ instructor: PilatesVideos.instructor })
+      .from(PilatesVideos)
+      .where(
+        and(
+          isNotNull(PilatesVideos.instructor),
+          ne(PilatesVideos.instructor, '')
+        )
+      ),
+  ]);
+
+  return {
+    difficulty: difficulties.map((row: { difficulty: string }) => row.difficulty),
+    equipment: equipments.map((row: { equipment: string }) => row.equipment),
+    instructor: instructors
+      .filter((row: { instructor: string | null }) => row.instructor !== null)
+      .map((row: { instructor: string | null }) => row.instructor as string),
   };
 }
 
