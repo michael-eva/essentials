@@ -23,7 +23,7 @@ const PilatesVideoCard: React.FC<{ video: PilatesVideo, link?: string }> = ({ vi
       )}
     </div>
     <div className="flex min-w-0 flex-1 flex-col">
-      <div className="mb-1 line-clamp-2 text-base font-semibold">
+      <div className="mb-1 text-base font-semibold">
         {video.title}
       </div>
       <div className="mb-2 line-clamp-2 text-sm text-gray-500">
