@@ -729,10 +729,10 @@ export const manageWorkoutPlanTool = tool(ManageWorkoutPlan, {
             "cycle",
             "swim",
             "walk",
-            "hike",
-            "rowing",
-            "elliptical",
-            "workout",
+            // "hike",
+            // "rowing",
+            // "elliptical",
+            // "workout",
           ])
           .optional(),
       })

@@ -24,17 +24,6 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "cycle",
   "swim",
   "walk",
-  // "hike",
-  // "rowing",
-  // "elliptical",
-  // "workout",
-  // "weightlift",
-  // "dance",
-  // "team sports",
-  // "pilates",
-  // "bodyweight",
-  // "resistance",
-  // "other",
 ]);
 
 export const workoutTimesEnum = pgEnum("workout_times", [
@@ -215,7 +204,6 @@ export const onboarding = pgTable("onboarding", {
   weight: integer("weight"),
   gender: text("gender"),
 
-  fitnessLevel: text("fitness_level"),
   exercises: text("exercises").array(),
   otherExercises: text("other_exercises").array(),
   exerciseFrequency: text("exercise_frequency"),
@@ -231,19 +219,16 @@ export const onboarding = pgTable("onboarding", {
   pregnancyConsultedDoctor: boolean("pregnancy_consulted_doctor"),
   pregnancyConsultedDoctorDetails: text("pregnancy_consulted_doctor_details"),
 
-  fitnessGoals: text("fitness_goals").array(),
-  otherFitnessGoals: text("other_fitness_goals").array(),
   goalTimeline: text("goal_timeline"),
-  specificGoals: text("specific_goals"),
 
+  fitnessLevel: text("fitness_level"),
   pilatesExperience: boolean("pilates_experience"),
   pilatesDuration: text("pilates_duration"),
-  studioFrequency: text("studio_frequency"),
-  sessionPreference: text("session_preference"),
-  apparatusPreference: text("apparatus_preference").array(),
-  otherApparatusPreferences: text("other_apparatus_preference").array(),
-  customApparatus: text("custom_apparatus").array(),
-  otherCustomApparatus: text("other_custom_apparatus").array(),
+  pilatesStyles: text("pilates_styles").array(),
+  homeEquipment: text("home_equipment").array(),
+  fitnessGoals: text("fitness_goals").array(),
+  otherFitnessGoals: text("other_fitness_goals").array(),
+  specificGoals: text("specific_goals"),
 
   motivation: text("motivation").array(),
   otherMotivation: text("other_motivation").array(),

@@ -14,7 +14,6 @@ import {
   PILATES_SESSIONS,
   PILATES_SESSION_PREFERENCE,
   PILATES_APPARATUS,
-  CUSTOM_PILATES_APPARATUS,
   type PilatesDuration,
   type PilatesSessions,
   type PilatesSessionPreference,
@@ -198,7 +197,7 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
         <div className="space-y-2">
           <Label className="mb-2">Available Equipment</Label>
           <MultiSelectPills
-            options={CUSTOM_PILATES_APPARATUS}
+            options={PILATES_APPARATUS}
             selectedValues={typedData.customApparatus}
             onChange={(value) => {
               const newPreference = handleNoneMultiSelect(

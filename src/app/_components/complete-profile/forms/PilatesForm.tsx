@@ -7,7 +7,7 @@ import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, CUSTOM_PILATES_APPARATUS } from "@/app/_constants/pilates";
+import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, PILATES_APPARATUS } from "@/app/_constants/pilates";
 import { Button } from "@/components/ui/button";
 import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -16,7 +16,7 @@ import { FITNESS_LEVEL } from "@/app/_constants/fitness";
 // Define proper types for the form data
 type PilatesDuration = typeof PILATES_DURATION[number];
 type PilatesApparatus = typeof PILATES_APPARATUS[number];
-type CustomPilatesApparatus = typeof CUSTOM_PILATES_APPARATUS[number];
+type CustomPilatesApparatus = typeof PILATES_APPARATUS[number];
 type PilatesFitnessLevel = typeof FITNESS_LEVEL[number];
 
 interface PilatesSubmitData {
@@ -431,7 +431,7 @@ export default function PilatesForm({
             control={control}
             render={({ field }) => (
               <MultiSelectPills
-                options={CUSTOM_PILATES_APPARATUS}
+                options={PILATES_APPARATUS}
                 selectedValues={field.value || []}
                 onChange={handleCustomApparatusChange}
               />

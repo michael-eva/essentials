@@ -34,8 +34,8 @@ export default function OnboardingPage({ params }: PageProps) {
             //     return <FitnessBgForm isFirstStep={isFirstStep} isLastStep={isLastStep} currentStep={tab} />;
             case "health-considerations":
                 return <HealthConsForm isFirstStep={isFirstStep} isLastStep={isLastStep} currentStep={tab} />;
-            case "goals":
-                return <GoalsForm isFirstStep={isFirstStep} isLastStep={isLastStep} currentStep={tab} />;
+            // case "goals":
+            //     return <GoalsForm isFirstStep={isFirstStep} isLastStep={isLastStep} currentStep={tab} />;
             case "pilates":
                 return <PilatesForm isFirstStep={isFirstStep} isLastStep={isLastStep} currentStep={tab} />;
             case "motivation":

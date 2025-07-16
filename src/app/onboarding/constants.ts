@@ -3,7 +3,7 @@ export const STEPS = [
   "pilates",
   // "fitness-background",
   "health-considerations",
-  "goals",
+  // "goals",
   "motivation",
   // "workout-timing",
 ] as const;

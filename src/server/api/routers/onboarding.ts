@@ -133,12 +133,13 @@ export const onboardingRouter = createTRPCRouter({
         fitnessLevel: z.string().nullable().optional(),
         pilatesExperience: z.boolean().nullable().optional(),
         pilatesDuration: z.string().optional().nullable(),
-        studioFrequency: z.string().nullable().optional(),
-        sessionPreference: z.string().nullable().optional(),
-        apparatusPreference: z.array(z.string()).optional(),
-        otherApparatusPreferences: z.array(z.string()).optional(),
-        customApparatus: z.array(z.string()).optional(),
-        otherCustomApparatus: z.array(z.string()).optional(),
+        pilatesStyles: z.array(z.string()).optional(),
+        homeEquipment: z.array(z.string()).optional(),
+        fitnessGoals: z
+          .array(z.string())
+          .min(1, "Please select at least one goal"),
+        otherFitnessGoals: z.array(z.string()).optional(),
+        specificGoals: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -146,12 +147,11 @@ export const onboardingRouter = createTRPCRouter({
         fitnessLevel,
         pilatesExperience,
         pilatesDuration,
-        studioFrequency,
-        sessionPreference,
-        apparatusPreference,
-        otherApparatusPreferences,
-        customApparatus,
-        otherCustomApparatus,
+        pilatesStyles,
+        homeEquipment,
+        fitnessGoals,
+        otherFitnessGoals,
+        specificGoals,
       } = input;
       const userId = ctx.userId;
 
@@ -160,12 +160,11 @@ export const onboardingRouter = createTRPCRouter({
         fitnessLevel,
         pilatesExperience,
         pilatesDuration,
-        studioFrequency,
-        sessionPreference,
-        apparatusPreference,
-        otherApparatusPreferences,
-        customApparatus,
-        otherCustomApparatus,
+        pilatesStyles,
+        homeEquipment,
+        fitnessGoals,
+        otherFitnessGoals,
+        specificGoals,
         step: "pilates_experience",
       });
     }),
@@ -187,7 +186,7 @@ export const onboardingRouter = createTRPCRouter({
       } = input;
       const userId = ctx.userId;
       // required fields are: name, age, weight, gender, fitnessLevel, exercises, exerciseFrequency, sessionLength, injuries, recentSurgery, chronicConditions, pregnancy, fitnessGoals, goalTimeline, pilatesExperience, studioFrequency, sessionPreference, instructors, apparatusPreference, motivation, progressTracking
-      const isCompleted = await checkOnboardingCompletion(userId);
+      // const isCompleted = await checkOnboardingCompletion(userId);
 
       await insertOnboarding({
         userId,
@@ -197,8 +196,8 @@ export const onboardingRouter = createTRPCRouter({
         otherProgressTracking: progressTracking.includes("Other")
           ? otherProgressTracking
           : null,
-        completedAt: isCompleted ? new Date() : null,
-        step: isCompleted ? "completed" : "motivation",
+        completedAt: new Date(),
+        step: "completed",
       });
     }),
   postWorkoutTiming: protectedProcedure
@@ -260,14 +259,8 @@ export const onboardingRouter = createTRPCRouter({
         specificGoals: null,
         pilatesExperience: null,
         pilatesDuration: null,
-        // studioFrequency: null,
-        // sessionPreference: null,
-        // instructors: [],
-        // customInstructor: null,
-        apparatusPreference: [],
-        otherApparatusPreferences: [],
-        customApparatus: [],
-        otherCustomApparatus: [],
+        pilatesStyles: [],
+        homeEquipment: [],
         motivation: [],
         otherMotivation: [],
         progressTracking: [],
