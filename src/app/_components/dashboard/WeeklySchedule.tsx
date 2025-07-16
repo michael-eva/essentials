@@ -6,6 +6,7 @@ import type { Workout } from "@/drizzle/src/db/queries"
 import { WeekCircularProgress } from "@/components/ui/WeekCircularProgress"
 import { useRouter } from "next/navigation"
 import PilatesVideoCard from "./PilatesVideoCard"
+import WorkoutCard from "./WorkoutCard"
 import type { PilatesVideo } from "@/types/pilates"
 
 interface WeeklyScheduleProps {
@@ -146,7 +147,7 @@ export default function WeeklySchedule({
             <div className="space-y-3">
               {week.items.filter(Boolean).map((item, index) => {
                 const workout = item as Workout & { mux_playback_id?: string };
-
+                console.log("workout", workout)
                 // Convert Workout to PilatesVideo format for class types
                 const convertToPilatesVideo = (workout: Workout & { mux_playback_id?: string }): PilatesVideo => ({
                   id: workout.id,
@@ -154,7 +155,7 @@ export default function WeeklySchedule({
                   summary: workout.description,
                   duration: workout.duration,
                   difficulty: workout.level,
-                  videoUrl: '', // This field is not available in Workout type
+                  videoUrl: '',
                   mux_playback_id: workout.mux_playback_id || null,
                 });
 
@@ -172,7 +173,7 @@ export default function WeeklySchedule({
                           ×
                         </button>
                       )}
-                      <PilatesVideoCard video={convertToPilatesVideo(workout)} link={`/dashboard/class/${workout.id}`} />
+                      <PilatesVideoCard video={convertToPilatesVideo(workout)} link={`/dashboard/class/${workout.id}`} height={130} />
                       {workout.status === 'completed' && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2 mt-2">
                           <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -186,11 +187,7 @@ export default function WeeklySchedule({
                 }
 
                 return (
-                  <div
-                    key={index}
-                    className={`px-3 pt-3 pb-2 flex flex-col border-l-4 rounded border-b relative min-h-[80px] border-brand-sage bg-brand-sage/10`}
-                    onClick={() => handleWorkoutClick(workout)}
-                  >
+                  <div key={index} className="relative">
                     {isEditing && editingWeeks.has(week.weekNumber) && onDeleteClass && (
                       <button
                         onClick={(e) => {
@@ -202,28 +199,11 @@ export default function WeeklySchedule({
                         ×
                       </button>
                     )}
-                    <div className="flex-1 flex flex-col justify-center">
-                      <span className="font-semibold text-base">{workout.name}</span>
-                      <div className="flex gap-1 mb-1">
-                        <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
-                          {workout.level}
-                        </span>
-                        <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
-                          {workout.duration} min
-                        </span>
-                      </div>
-                      <div className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                        {workout.description}
-                      </div>
-                      {workout.status === 'completed' && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
-                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          Completed
-                        </span>
-                      )}
-                    </div>
+                    <WorkoutCard
+                      workout={workout}
+                      link={`/dashboard/workout/${workout.id}`}
+                      height={130}
+                    />
                   </div>
                 );
               })}
