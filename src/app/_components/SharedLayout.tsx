@@ -1,20 +1,37 @@
-import React from "react"
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { Toaster } from "sonner";
 
 interface SharedLayoutProps {
-  title?: string
-  children: React.ReactNode
+  title?: string;
+  children: React.ReactNode;
+}
+
+type ToasterPosition = 'top-center' | 'bottom-right'
+
+function ResponsiveToaster() {
+  const [position, setPosition] = useState<ToasterPosition>("top-center");
+
+  useEffect(() => {
+    function handleResize() {
+      setPosition(window.innerWidth < 768 ? "top-center" : "bottom-right");
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return <Toaster position={position} />;
 }
 
 const SharedLayout = ({ title, children }: SharedLayoutProps) => {
   return (
-    <div className="p-4 flex flex-col justify-center">
-      <div className="flex justify-center">
-        {/* <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 mb-6">{title}</h1> */}
-        <img src="/logo/essentials_pt_logo.png" alt="Essentials Studio Logo" className="w-[300px] items-center justify-center md:hidden" />
-      </div>
+    <div>
       <div>{children}</div>
+      <ResponsiveToaster />
     </div>
-  )
-}
+  );
+};
 
-export default SharedLayout 
+export default SharedLayout;

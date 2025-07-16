@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { login } from "@/services/auth-helpers";
 import { supabase } from "@/lib/supabase/client";
+import Link from 'next/link'
+
 
 type AuthMode = "existing" | "new";
 
@@ -161,7 +163,7 @@ function SignInForm() {
       <motion.div className="relative z-10 bg-white/80 backdrop-blur-lg p-4 sm:p-6 md:p-8 rounded-2xl border border-white/30 shadow-2xl w-full max-w-[90vw] sm:max-w-md">
         <div className="text-center mb-6 sm:mb-8">
           <img src="/logo/essentials_pt_logo.png" alt="logo" className="rounded-lg" />
-          <p className="text-brand-black text-sm sm:text-base">
+          <p className="text-brand-black text-sm sm:text-base mt-2">
             {mode === "existing"
               ? "Ready to push your limits?"
               : "Start your fitness journey today"
@@ -259,6 +261,15 @@ function SignInForm() {
                   ? "Sign In"
                   : "Create Account"}
             </motion.button>
+
+         
+              <p className="text-xs text-center text-gray-500 px-2">
+                By signing up, you agree to our{' '}
+                <Link href="/terms-of-service" className="text-brand-cobalt underline">Terms of Service</Link>
+                {' '}and{' '}
+                <Link href="/privacy-policy" className="text-brand-cobalt underline">Privacy Policy</Link>.
+              </p>
+    
           </form>
         </>
         {/* )} */}

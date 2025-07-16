@@ -5,6 +5,16 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  images: {
+    remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'image.mux.com',
+          // pathname: '/**', // optional, allows all paths
+        },
+      ],
+  },
+};
 
 export default config;

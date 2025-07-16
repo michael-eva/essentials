@@ -5,9 +5,10 @@ import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { ThemeProvider } from "./_components/theme-provider";
-import { Toaster } from 'sonner'
 import { SessionProvider } from '@/contexts/SessionContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import SharedLayout from './_components/SharedLayout';
+
 
 export const metadata: Metadata = {
   title: "Essentials Studio",
@@ -39,10 +40,11 @@ export default function RootLayout({
           <ThemeProvider defaultTheme="light" storageKey="app-theme">
             <SessionProvider>
               <ProtectedRoute>
-                {children}
+                <SharedLayout>
+                  {children}
+                </SharedLayout>
               </ProtectedRoute>
             </SessionProvider>
-            <Toaster />
           </ThemeProvider>
         </TRPCReactProvider>
       </body>

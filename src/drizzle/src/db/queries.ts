@@ -10,6 +10,9 @@ import {
   lte,
   asc,
   isNull,
+  count,
+  isNotNull,
+  ne,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -25,6 +28,8 @@ import {
   AiChatMessages,
   AiSystemPrompt,
   PilatesVideos,
+  type PilatesVideosParams,
+  PilatesVideosParamsSchema
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -830,6 +835,7 @@ export async function getPilatesClasses(): Promise<Array<PilatesVideos>> {
   const pilatesClasses = await db.select().from(PilatesVideos);
   return pilatesClasses;
 }
+
 export async function getPilatesClassViaWorkout(
   workoutId: string,
 ): Promise<PilatesVideos | null> {
@@ -844,6 +850,92 @@ export async function getPilatesClassViaWorkout(
     .from(PilatesVideos)
     .where(eq(PilatesVideos.id, workoutResult[0].classId));
   return pilatesClass[0] ?? null;
+}
+
+export async function getPilatesVideoById(
+  id: string,
+): Promise<PilatesVideos | null> {
+  const result = await db
+    .select()
+    .from(PilatesVideos)
+    .where(eq(PilatesVideos.id, id));
+  return result[0] ?? null;
+}
+
+
+function buildPilatesVideoFilters(params: PilatesVideosParams) {
+  const { difficulty, equipment, instructor, minDuration, maxDuration } = params;
+
+  const filters = [];
+  if (difficulty) filters.push(eq(PilatesVideos.difficulty, difficulty));
+  if (equipment) filters.push(eq(PilatesVideos.equipment, equipment));
+  if (instructor) filters.push(eq(PilatesVideos.instructor, instructor));
+  if (minDuration !== undefined) filters.push(gte(PilatesVideos.duration, minDuration));
+  if (maxDuration !== undefined) filters.push(lte(PilatesVideos.duration, maxDuration));
+
+  return filters.length > 0 ? and(...filters) : undefined;
+}
+
+export async function getPilatesVideos(params: PilatesVideosParams & { random?: boolean }) {
+  const { limit, offset, random } = params;
+  const where = buildPilatesVideoFilters(params);
+
+  let itemsPromise;
+  if (random) {
+    itemsPromise = db.select().from(PilatesVideos).where(where).orderBy(sql`RANDOM()`).limit(limit).offset(offset);
+  } else {
+    itemsPromise = db.select().from(PilatesVideos).where(where).limit(limit).offset(offset);
+  }
+
+  const [items, countResult] = await Promise.all([
+    itemsPromise,
+    db.select({ count: count() }).from(PilatesVideos).where(where),
+  ]);
+
+  return {
+    items,
+    total: countResult[0]?.count ?? 0,
+  };
+}
+
+export async function getPilatesVideoFilterOptions() {
+  const [difficulties, equipments, instructors] = await Promise.all([
+    db
+      .selectDistinct({ difficulty: PilatesVideos.difficulty })
+      .from(PilatesVideos)
+      .where(
+        and(
+          isNotNull(PilatesVideos.difficulty),
+          ne(PilatesVideos.difficulty, '')
+        )
+      ),
+
+    db
+      .selectDistinct({ equipment: PilatesVideos.equipment })
+      .from(PilatesVideos)
+      .where(
+        and(
+          isNotNull(PilatesVideos.equipment),
+          ne(PilatesVideos.equipment, '')
+        )
+      ),
+
+    db
+      .selectDistinct({ instructor: PilatesVideos.instructor })
+      .from(PilatesVideos)
+      .where(
+        and(
+          isNotNull(PilatesVideos.instructor),
+          ne(PilatesVideos.instructor, '')
+        )
+      ),
+  ]);
+
+  return {
+    difficulty: difficulties.map((row: { difficulty: string }) => row.difficulty),
+    equipment: equipments.map((row: { equipment: string }) => row.equipment),
+    instructor: instructors.map((row: { instructor: string | null }) => row.instructor!),
+  };
 }
 
 export async function getWorkoutsByWeek(planId: string, weekNumber: number) {
