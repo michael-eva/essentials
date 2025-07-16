@@ -1,12 +1,12 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Trash2, Edit, Plus } from "lucide-react"
-import Link from "next/link"
+import { Edit, Plus } from "lucide-react"
 import type { Workout } from "@/drizzle/src/db/queries"
-import { useState } from "react"
 import { WeekCircularProgress } from "@/components/ui/WeekCircularProgress"
 import { useRouter } from "next/navigation"
+import PilatesVideoCard from "./PilatesVideoCard"
+import type { PilatesVideo } from "@/types/pilates"
 
 interface WeeklyScheduleProps {
   weeks: Array<{
@@ -146,13 +146,49 @@ export default function WeeklySchedule({
             <div className="space-y-3">
               {week.items.filter(Boolean).map((item, index) => {
                 const workout = item as Workout & { mux_playback_id?: string };
+
+                // Convert Workout to PilatesVideo format for class types
+                const convertToPilatesVideo = (workout: Workout & { mux_playback_id?: string }): PilatesVideo => ({
+                  id: workout.id,
+                  title: workout.name,
+                  summary: workout.description,
+                  duration: workout.duration,
+                  difficulty: workout.level,
+                  videoUrl: '', // This field is not available in Workout type
+                  mux_playback_id: workout.mux_playback_id || null,
+                });
+
+                if (workout.type === 'class') {
+                  return (
+                    <div key={index} className="relative">
+                      {isEditing && editingWeeks.has(week.weekNumber) && onDeleteClass && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteClass(week.weekNumber, index);
+                          }}
+                          className="absolute -top-2 right-0 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-sm font-bold transition-colors z-10"
+                        >
+                          ×
+                        </button>
+                      )}
+                      <PilatesVideoCard video={convertToPilatesVideo(workout)} link={`/dashboard/class/${workout.id}`} />
+                      {workout.status === 'completed' && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2 mt-2">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Completed
+                        </span>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={index}
-                    className={`px-3 pt-3 pb-2 flex flex-col border-l-4 rounded border-b relative min-h-[80px] ${workout.type === 'class'
-                      ? 'border-brand-nude bg-brand-nude/10'
-                      : 'border-brand-sage bg-brand-sage/10'
-                      }`}
+                    className={`px-3 pt-3 pb-2 flex flex-col border-l-4 rounded border-b relative min-h-[80px] border-brand-sage bg-brand-sage/10`}
                     onClick={() => handleWorkoutClick(workout)}
                   >
                     {isEditing && editingWeeks.has(week.weekNumber) && onDeleteClass && (
@@ -165,19 +201,6 @@ export default function WeeklySchedule({
                       >
                         ×
                       </button>
-                    )}
-                    {workout.type === 'class' && (
-                      <div className="relative w-full mb-2">
-                        <img
-                          src={`https://image.mux.com/${workout.mux_playback_id}/thumbnail.png?width=400&height=300&fit_mode=smartcrop&time=35`}
-                          alt="class thumbnail"
-                          className="w-full h-full object-cover rounded-md"
-                        />
-                        {/* Play icon overlay */}
-                        <svg className="absolute inset-0 m-auto w-8 h-8 text-white opacity-80 pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
-                          <polygon points="9.5,7.5 16.5,12 9.5,16.5" />
-                        </svg>
-                      </div>
                     )}
                     <div className="flex-1 flex flex-col justify-center">
                       <span className="font-semibold text-base">{workout.name}</span>

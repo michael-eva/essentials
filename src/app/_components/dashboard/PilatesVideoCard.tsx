@@ -4,10 +4,10 @@ import Link from "next/link";
 import type { PilatesVideo } from "@/types/pilates";
 import Image from "next/image";
 
-const PilatesVideoCard: React.FC<{ video: PilatesVideo }> = ({ video }) => (
+const PilatesVideoCard: React.FC<{ video: PilatesVideo, link?: string }> = ({ video, link }) => (
   <Link
-    href={`/dashboard/pilates-video/${video.id}`}
-    className="flex min-h-[80px] cursor-pointer flex-row items-stretch gap-3 rounded-lg bg-white p-3 shadow transition hover:bg-gray-50 hover:shadow-lg"
+    href={link || `/dashboard/pilates-video/${video.id}`}
+    className="flex h-[120px] cursor-pointer flex-row items-stretch gap-3 rounded-lg bg-white p-3 shadow transition hover:bg-gray-50 hover:shadow-lg"
   >
     <div className="flex w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-gray-100">
       {video.mux_playback_id ? (
