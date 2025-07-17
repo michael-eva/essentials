@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Settings, Sparkles, Info, Activity, Zap } from "lucide-react";
+import { Send, MessageSquare, Settings, Sparkles, Info, Activity, Zap, Play } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import type { AppRouter } from "@/server/api/root";
@@ -13,6 +13,7 @@ import DefaultBox from "../../global/DefaultBox";
 import { motion } from "framer-motion";
 import useGeneratePlan from "@/hooks/useGeneratePlan";
 import { CustomizePTDialog } from "./CustomizePTSection";
+import { useRouter } from "next/navigation";
 
 type Message = {
   id: string;
@@ -73,6 +74,37 @@ function detectPlanGenerationSuggestion(content: string): boolean {
   return hasKeywords && hasButtonPhrases;
 }
 
+// Helper function to detect class recommendations
+function detectClassRecommendation(content: string): { hasRecommendation: boolean, className: string | null, classType: 'class' | null } {
+  const contentLower = content.toLowerCase();
+
+  // Available pilates videos
+  const pilatesVideos = [
+    "FULL BODY",
+    "Booty & Core",
+    "BOOTY BURN",
+    "Abs, Arms & Booty"
+  ];
+
+
+  // Check for pilates videos
+  for (const video of pilatesVideos) {
+    if (contentLower.includes(video.toLowerCase())) {
+      return {
+        hasRecommendation: true,
+        className: video,
+        classType: 'class'
+      };
+    }
+  }
+
+  return {
+    hasRecommendation: false,
+    className: null,
+    classType: null
+  };
+}
+
 export function AIInteractionSection() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -82,6 +114,7 @@ export function AIInteractionSection() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   const desktopScrollRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Get trainer info and status
   const { data: trainerInfo, isLoading: isLoadingInfo } = api.myPt.getTrainerInfo.useQuery();
@@ -93,6 +126,10 @@ export function AIInteractionSection() {
   );
   const isOnboardingComplete = trainerInfo?.isOnboardingComplete === true
 
+  // Get pilates videos for class recommendations
+  const { data: pilatesVideos } = api.workout.getPilatesVideos.useQuery({
+    limit: 50
+  });
 
   // Mutation for sending messages
   const { mutate: sendMessage } = api.myPt.sendMessage.useMutation({
@@ -118,6 +155,12 @@ export function AIInteractionSection() {
 
   const handleGeneratePlan = () => {
     generatePlan();
+  };
+
+  const handleClassRecommendation = (className: string, classType: 'video' | 'class') => {
+    const video = pilatesVideos?.items?.find(v => v.title === className);
+    console.log('🔍 Found pilates video:', video);
+    router.push(`/dashboard/pilates-video/${video?.id}`);
   };
 
   // Debug: Log tool calls for assistant messages
@@ -333,77 +376,96 @@ export function AIInteractionSection() {
               </div>
             ) : (
               <div className="flex flex-col gap-4 pb-4">
-                {messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`rounded-lg px-4 py-2 max-w-[80%] break-words shadow-warm ${message.role === "user"
-                        ? "bg-brand-bright-orange text-brand-white"
-                        : "bg-white border border-brand-brown/20"
-                        }`}
-                      style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-                    >
-                      {/* Tool Calls Display */}
-                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
-                        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                          <div className="text-xs font-semibold text-blue-700 mb-2">🔧 Tool Calls:</div>
-                          {message.toolCalls.map((toolCall, index) => (
-                            <div key={toolCall.id || index} className="text-xs text-blue-600 mb-1">
-                              <span className="font-medium">{toolCall.function?.name || toolCall.name}</span>
-                              <span className="text-blue-500 ml-1">
-                                ({JSON.stringify(toolCall.function?.arguments || toolCall.args)})
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                {messages.map((message) => {
+                  const classRecommendation = message.role === "assistant" ? detectClassRecommendation(message.content) : null;
 
-                      {/* Tool Response Display */}
-                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 &&
-                        message.toolCalls.some(toolCall => toolCall.response) && (
-                          <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
-                            <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
+                  return (
+                    <motion.div
+                      key={message.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`rounded-lg px-4 py-2 max-w-[80%] break-words shadow-warm ${message.role === "user"
+                          ? "bg-brand-bright-orange text-brand-white"
+                          : "bg-white border border-brand-brown/20"
+                          }`}
+                        style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+                      >
+                        {/* Tool Calls Display */}
+                        {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
+                          <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                            <div className="text-xs font-semibold text-blue-700 mb-2">🔧 Tool Calls:</div>
                             {message.toolCalls.map((toolCall, index) => (
-                              toolCall.response && (
-                                <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
-                                  <span className="font-medium">{toolCall.response.name}:</span>
-                                  <span className="text-purple-500 ml-1">
-                                    {toolCall.response.content}
-                                  </span>
-                                </div>
-                              )
+                              <div key={toolCall.id || index} className="text-xs text-blue-600 mb-1">
+                                <span className="font-medium">{toolCall.function?.name || toolCall.name}</span>
+                                <span className="text-blue-500 ml-1">
+                                  ({JSON.stringify(toolCall.function?.arguments || toolCall.args)})
+                                </span>
+                              </div>
                             ))}
                           </div>
                         )}
 
-                      <div className="text-sm">{message.content}</div>
+                        {/* Tool Response Display */}
+                        {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 &&
+                          message.toolCalls.some(toolCall => toolCall.response) && (
+                            <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
+                              <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
+                              {message.toolCalls.map((toolCall, index) => (
+                                toolCall.response && (
+                                  <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
+                                    <span className="font-medium">{toolCall.response.name}:</span>
+                                    <span className="text-purple-500 ml-1">
+                                      {toolCall.response.content}
+                                    </span>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          )}
 
-                      {/* Generate Plan Button - Mobile */}
-                      {message.role === "assistant" && detectPlanGenerationSuggestion(message.content) && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <Button
-                            onClick={handleGeneratePlan}
-                            disabled={isGeneratePlanLoading}
-                            className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
-                            size="sm"
-                          >
-                            <Zap className="h-4 w-4 mr-2" />
-                            {isGeneratePlanLoading ? "Generating..." : "Generate Plan"}
-                          </Button>
+                        <div className="text-sm">{message.content}</div>
+
+                        {/* Generate Plan Button - Mobile */}
+                        {message.role === "assistant" && detectPlanGenerationSuggestion(message.content) && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <Button
+                              onClick={handleGeneratePlan}
+                              disabled={isGeneratePlanLoading}
+                              className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
+                              size="sm"
+                            >
+                              <Zap className="h-4 w-4 mr-2" />
+                              {isGeneratePlanLoading ? "Generating..." : "Generate Plan"}
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Class Recommendation Button - Mobile */}
+                        {classRecommendation?.hasRecommendation && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <Button
+                              onClick={() => handleClassRecommendation(classRecommendation.className!, classRecommendation.classType!)}
+                              disabled={isGeneratePlanLoading}
+                              className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
+                              size="sm"
+                            >
+                              <Play className="h-4 w-4 mr-2" />
+                              {isGeneratePlanLoading ? "Loading..." : `Go to ${classRecommendation.className}`}
+                            </Button>
+                          </div>
+                        )}
+
+                        <div className="text-xs opacity-70 mt-1">
+                          {message.timestamp.toLocaleTimeString()}
                         </div>
-                      )}
-
-                      <div className="text-xs opacity-70 mt-1">
-                        {message.timestamp.toLocaleTimeString()}
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
                 <div ref={bottomRef} />
               </div>
             )}
@@ -477,77 +539,96 @@ export function AIInteractionSection() {
               </div>
             ) : (
               <div className="flex flex-col gap-4 pb-4">
-                {messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`rounded-lg px-4 py-2 max-w-[80%] break-words shadow-warm ${message.role === "user"
-                        ? "bg-brand-bright-orange text-brand-white"
-                        : "bg-white border border-brand-brown/20"
-                        }`}
-                      style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-                    >
-                      {/* Tool Calls Display */}
-                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
-                        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                          <div className="text-xs font-semibold text-blue-700 mb-2">🔧 Tool Calls:</div>
-                          {message.toolCalls.map((toolCall, index) => (
-                            <div key={toolCall.id || index} className="text-xs text-blue-600 mb-1">
-                              <span className="font-medium">{toolCall.function?.name || toolCall.name}</span>
-                              <span className="text-blue-500 ml-1">
-                                ({JSON.stringify(toolCall.function?.arguments || toolCall.args)})
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                {messages.map((message) => {
+                  const classRecommendation = message.role === "assistant" ? detectClassRecommendation(message.content) : null;
 
-                      {/* Tool Response Display */}
-                      {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 &&
-                        message.toolCalls.some(toolCall => toolCall.response) && (
-                          <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
-                            <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
+                  return (
+                    <motion.div
+                      key={message.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`rounded-lg px-4 py-2 max-w-[80%] break-words shadow-warm ${message.role === "user"
+                          ? "bg-brand-bright-orange text-brand-white"
+                          : "bg-white border border-brand-brown/20"
+                          }`}
+                        style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+                      >
+                        {/* Tool Calls Display */}
+                        {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
+                          <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                            <div className="text-xs font-semibold text-blue-700 mb-2">🔧 Tool Calls:</div>
                             {message.toolCalls.map((toolCall, index) => (
-                              toolCall.response && (
-                                <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
-                                  <span className="font-medium">{toolCall.response.name}:</span>
-                                  <span className="text-purple-500 ml-1">
-                                    {toolCall.response.content}
-                                  </span>
-                                </div>
-                              )
+                              <div key={toolCall.id || index} className="text-xs text-blue-600 mb-1">
+                                <span className="font-medium">{toolCall.function?.name || toolCall.name}</span>
+                                <span className="text-blue-500 ml-1">
+                                  ({JSON.stringify(toolCall.function?.arguments || toolCall.args)})
+                                </span>
+                              </div>
                             ))}
                           </div>
                         )}
 
-                      <div className="text-sm">{message.content}</div>
+                        {/* Tool Response Display */}
+                        {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 &&
+                          message.toolCalls.some(toolCall => toolCall.response) && (
+                            <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
+                              <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
+                              {message.toolCalls.map((toolCall, index) => (
+                                toolCall.response && (
+                                  <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
+                                    <span className="font-medium">{toolCall.response.name}:</span>
+                                    <span className="text-purple-500 ml-1">
+                                      {toolCall.response.content}
+                                    </span>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          )}
 
-                      {/* Generate Plan Button - Desktop */}
-                      {message.role === "assistant" && detectPlanGenerationSuggestion(message.content) && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <Button
-                            onClick={handleGeneratePlan}
-                            disabled={isGeneratePlanLoading}
-                            className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
-                            size="sm"
-                          >
-                            <Zap className="h-4 w-4 mr-2" />
-                            {isGeneratePlanLoading ? "Generating..." : "Generate Plan"}
-                          </Button>
+                        <div className="text-sm">{message.content}</div>
+
+                        {/* Generate Plan Button - Desktop */}
+                        {message.role === "assistant" && detectPlanGenerationSuggestion(message.content) && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <Button
+                              onClick={handleGeneratePlan}
+                              disabled={isGeneratePlanLoading}
+                              className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
+                              size="sm"
+                            >
+                              <Zap className="h-4 w-4 mr-2" />
+                              {isGeneratePlanLoading ? "Generating..." : "Generate Plan"}
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Class Recommendation Button - Desktop */}
+                        {classRecommendation?.hasRecommendation && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <Button
+                              onClick={() => handleClassRecommendation(classRecommendation.className!, classRecommendation.classType!)}
+                              disabled={isGeneratePlanLoading}
+                              className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
+                              size="sm"
+                            >
+                              <Play className="h-4 w-4 mr-2" />
+                              {isGeneratePlanLoading ? "Loading..." : `Go to ${classRecommendation.className}`}
+                            </Button>
+                          </div>
+                        )}
+
+                        <div className="text-xs opacity-70 mt-1">
+                          {message.timestamp.toLocaleTimeString()}
                         </div>
-                      )}
-
-                      <div className="text-xs opacity-70 mt-1">
-                        {message.timestamp.toLocaleTimeString()}
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
                 <div ref={bottomRef} />
               </div>
             )}
