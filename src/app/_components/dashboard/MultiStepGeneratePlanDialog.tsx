@@ -61,7 +61,6 @@ export default function MultiStepGeneratePlanDialog({
   const { data: onboardingResult, isLoading: isLoadingOnboarding } = api.onboarding.checkOnboardingCompletion.useQuery(undefined, {
     enabled: open,
   });
-  console.log(onboardingResult);
   // Determine which onboarding steps are needed
   useEffect(() => {
     if (isLoadingOnboarding) return;
