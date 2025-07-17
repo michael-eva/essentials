@@ -354,6 +354,43 @@ export const AiChatMessages = pgTable("ai_chat", {
   >(),
 });
 
+export const notifications = pgTable("notifications", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  scheduledTime: timestamp("scheduled_time"),
+  sent: boolean("sent").default(false),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+});
+
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+});
+
 export const PilatesVideos = pgTable("pilates_videos", {
   id: uuid("id")
     .primaryKey()

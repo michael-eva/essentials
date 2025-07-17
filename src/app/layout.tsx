@@ -9,11 +9,23 @@ import { SessionProvider } from '@/contexts/SessionContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import SharedLayout from './_components/SharedLayout';
 
+import { PWAProvider } from '@/components/pwa/PWAProvider';
 
 export const metadata: Metadata = {
   title: "Essentials Studio",
-  description: "Essentials Studio",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  description: "Your personal fitness companion with AI-powered workout plans and progress tracking",
+  icons: [
+    { rel: "icon", url: "/favicon.ico" },
+    { rel: "apple-touch-icon", url: "/logo/essentials_logo.png" },
+  ],
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Essentials",
+  },
 };
 
 const spaceGrotesk = Space_Grotesk({
@@ -45,6 +57,7 @@ export default function RootLayout({
                 </SharedLayout>
               </ProtectedRoute>
             </SessionProvider>
+            <PWAProvider />
           </ThemeProvider>
         </TRPCReactProvider>
       </body>

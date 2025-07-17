@@ -28,6 +28,8 @@ import {
   AiChatMessages,
   AiSystemPrompt,
   PilatesVideos,
+  notifications,
+  pushSubscriptions,
   type PilatesVideosParams,
   PilatesVideosParamsSchema
 } from "./schema";
@@ -42,6 +44,8 @@ export type ProgressTracking = InferSelectModel<typeof progressTracking>;
 export type AiChatMessages = InferSelectModel<typeof AiChatMessages>;
 export type AiSystemPrompt = InferSelectModel<typeof AiSystemPrompt>;
 export type PilatesVideos = InferSelectModel<typeof PilatesVideos>;
+export type Notification = InferSelectModel<typeof notifications>;
+export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -50,6 +54,9 @@ export type NewWeeklySchedule = InferInsertModel<typeof weeklySchedule>;
 export type NewOnboarding = InferInsertModel<typeof onboarding>;
 export type NewAiChatMessages = InferInsertModel<typeof AiChatMessages>;
 export type NewAiSystemPrompt = InferInsertModel<typeof AiSystemPrompt>;
+export type NewNotification = InferInsertModel<typeof notifications>;
+export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
+
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;
 export type PersonalTrainerInteraction = InferSelectModel<
@@ -958,5 +965,94 @@ export async function getWeeklySchedulesByPlan(planId: string) {
     .select()
     .from(weeklySchedule)
     .where(eq(weeklySchedule.planId, planId));
+  return result;
+}
+
+// Notification queries
+export async function getNotifications(
+  userId: string,
+  limit = 10,
+  offset = 0,
+): Promise<Notification[]> {
+  const result = await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit)
+    .offset(offset);
+  return result;
+}
+
+export async function getNotificationById(
+  id: string,
+): Promise<Notification | null> {
+  const result = await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.id, id))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function getPendingNotifications(): Promise<Notification[]> {
+  const result = await db
+    .select()
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.sent, false),
+        isNotNull(notifications.scheduledTime),
+        lte(notifications.scheduledTime, new Date()),
+      ),
+    )
+    .orderBy(asc(notifications.scheduledTime));
+  return result;
+}
+
+export async function getNotificationsCount(userId: string): Promise<number> {
+  const result = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(notifications)
+    .where(eq(notifications.userId, userId));
+  return result[0]?.count ?? 0;
+}
+
+// Push subscription queries
+export async function getPushSubscriptions(
+  userId: string,
+): Promise<PushSubscription[]> {
+  const result = await db
+    .select()
+    .from(pushSubscriptions)
+    .where(eq(pushSubscriptions.userId, userId))
+    .orderBy(desc(pushSubscriptions.createdAt));
+  return result;
+}
+
+export async function getPushSubscriptionByEndpoint(
+  endpoint: string,
+): Promise<PushSubscription | null> {
+  const result = await db
+    .select()
+    .from(pushSubscriptions)
+    .where(eq(pushSubscriptions.endpoint, endpoint))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function getPushSubscriptionById(
+  id: string,
+): Promise<PushSubscription | null> {
+  const result = await db
+    .select()
+    .from(pushSubscriptions)
+    .where(eq(pushSubscriptions.id, id))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function getAllPushSubscriptions(): Promise<PushSubscription[]> {
+  const result = await db.select().from(pushSubscriptions);
   return result;
 }
