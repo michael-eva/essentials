@@ -4,7 +4,6 @@ import { insertAiChatMessages } from "@/drizzle/src/db/mutations";
 import { ChatOpenAI } from "@langchain/openai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import {
-  createWorkoutPlanTool,
   manageWorkoutPlanTool,
   // editWorkoutPlanTool
 } from "./ai-chat-tools";
@@ -23,7 +22,6 @@ const model = new ChatOpenAI({
 const agent = createReactAgent({
   llm: model,
   tools: [
-    createWorkoutPlanTool,
     manageWorkoutPlanTool,
     // editWorkoutPlanTool
   ],
@@ -157,6 +155,8 @@ function buildSystemContext(
   
 Here is how the user would like you to behave:
 ${basePrompt}
+
+IMPORTANT: You cannot directly create workout plans. When a user asks you to create or generate a workout plan, you should respond with a brief, encouraging message affirming that it's great they want to generate a plan. Tell them they'll just need to fill in some relevant workout info and you'll generate a custom workout plan for them. Mention that they'll see a "Generate Plan" button to proceed. Keep it concise - no long explanations.
 
 WORKOUT PLAN SCHEMA RELATIONSHIPS:
 Understanding the database structure is crucial for managing workout plans correctly:

@@ -77,20 +77,3 @@ PROGRESS & CHALLENGES:
   }
 `;
 }
-
-/**
- * Creates a concise user context summary for AI prompts
- * This is useful when you need a shorter version of the context
- */
-export function formatUserContextSummary(context: UserContext): string {
-  const { pilates, motivationInfo, health } = context.profile;
-  const { recentActivity } = context;
-
-  return `
-Fitness Level: ${pilates.fitnessLevel ?? "Unknown"}
-Pilates Experience: ${pilates.pilatesExperience ? "Yes" : "No"}
-Health: ${health.injuries ? "Has injuries" : "No injuries"}${health.pregnancy ? ", Pregnant" : ""}
-Recent Activity: ${recentActivity.recentWorkouts.length} workouts in last 30 days, ${recentActivity.consistency.streak} day streak
-Motivation: ${motivationInfo.motivation?.slice(0, 2).join(", ") ?? "Not specified"}
-`;
-}

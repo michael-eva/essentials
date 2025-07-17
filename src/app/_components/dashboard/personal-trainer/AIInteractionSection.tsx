@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Settings, Sparkles, Info, Activity } from "lucide-react";
+import { Send, MessageSquare, Settings, Sparkles, Info, Activity, Zap } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import type { AppRouter } from "@/server/api/root";
@@ -35,6 +35,43 @@ type Message = {
     };
   }>;
 };
+
+// Helper function to detect if a message suggests plan generation
+function detectPlanGenerationSuggestion(content: string): boolean {
+  const keywords = [
+    "generate plan",
+    "create plan",
+    "workout plan",
+    "fitness plan",
+    "training plan",
+    "generate a plan",
+    "create a plan",
+    "new plan",
+    "plan for you",
+    "custom plan",
+    "personalized plan",
+    "generate workout",
+    "create workout plan"
+  ];
+
+  const buttonPhrases = [
+    "generate plan button",
+    "generate button",
+    "button to proceed",
+    "button to generate",
+    "click to generate",
+    "button will appear",
+    "see a button"
+  ];
+
+  const contentLower = content.toLowerCase();
+
+  // Check for plan-related keywords AND button-related phrases
+  const hasKeywords = keywords.some(keyword => contentLower.includes(keyword));
+  const hasButtonPhrases = buttonPhrases.some(phrase => contentLower.includes(phrase));
+
+  return hasKeywords && hasButtonPhrases;
+}
 
 export function AIInteractionSection() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -345,6 +382,22 @@ export function AIInteractionSection() {
                         )}
 
                       <div className="text-sm">{message.content}</div>
+
+                      {/* Generate Plan Button - Mobile */}
+                      {message.role === "assistant" && detectPlanGenerationSuggestion(message.content) && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <Button
+                            onClick={handleGeneratePlan}
+                            disabled={isGeneratePlanLoading}
+                            className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
+                            size="sm"
+                          >
+                            <Zap className="h-4 w-4 mr-2" />
+                            {isGeneratePlanLoading ? "Generating..." : "Generate Plan"}
+                          </Button>
+                        </div>
+                      )}
+
                       <div className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString()}
                       </div>
@@ -473,6 +526,22 @@ export function AIInteractionSection() {
                         )}
 
                       <div className="text-sm">{message.content}</div>
+
+                      {/* Generate Plan Button - Desktop */}
+                      {message.role === "assistant" && detectPlanGenerationSuggestion(message.content) && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <Button
+                            onClick={handleGeneratePlan}
+                            disabled={isGeneratePlanLoading}
+                            className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
+                            size="sm"
+                          >
+                            <Zap className="h-4 w-4 mr-2" />
+                            {isGeneratePlanLoading ? "Generating..." : "Generate Plan"}
+                          </Button>
+                        </div>
+                      )}
+
                       <div className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString()}
                       </div>
