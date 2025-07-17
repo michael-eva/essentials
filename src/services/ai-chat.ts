@@ -13,6 +13,8 @@ import {
   SystemMessage,
 } from "@langchain/core/messages";
 import { formatUserContextForAI } from "./context-formatter";
+import { getPilatesClasses } from "@/drizzle/src/db/queries";
+import { nonPilates } from "@/data";
 
 const model = new ChatOpenAI({
   model: "gpt-4o",
@@ -42,7 +44,7 @@ export async function generateAiChatResponse(
   const chatHistory = await getMessages(userId);
 
   // Build the full system context including user context
-  const fullSystemContext = buildSystemContext(
+  const fullSystemContext = await buildSystemContext(
     systemPrompt?.prompt ?? "",
     systemPrompt?.name ?? "",
     userContext,
@@ -138,18 +140,32 @@ export async function generateAiChatResponse(
 /**
  * Builds the full system context including user context and system prompt
  */
-function buildSystemContext(
+async function buildSystemContext(
   systemPrompt: string,
   trainerName: string,
   userContext: UserContext,
-): string {
+): Promise<string> {
   const defaultPrompt =
     "You are a helpful personal trainer AI assistant. Provide personalized fitness advice and support based on the user's profile and goals.";
 
   const userContextText = formatUserContextForAI(userContext);
-  const name = trainerName ?? "AI Trainer";
+  const name = trainerName ?? "Emma";
 
   const basePrompt = systemPrompt ?? defaultPrompt;
+
+  // Fetch available classes dynamically
+  const pilatesClasses = await getPilatesClasses();
+  const availableClasses = {
+    pilates: pilatesClasses,
+    nonPilates: nonPilates,
+  };
+
+  // Build available workout types section dynamically
+  const availableWorkoutTypes = `AVAILABLE WORKOUT TYPES: When suggesting additional workouts or classes, you can ONLY suggest from these available types:
+- **Cardio Activities**: ${availableClasses.nonPilates.join(", ")}
+- **Pilates Classes**: The user has access to various pilates classes: ${availableClasses.pilates.map((c) => c.title).join(", ")}
+
+DO NOT suggest workout types that are not in this list (e.g., "resistance training", "weightlifting", "boxing", etc.). Always stay within the available activity types: ${availableClasses.nonPilates.join(", ")}, and pilates classes.`;
 
   return `You are ${name}, a personal trainer AI assistant. 
   
@@ -157,6 +173,10 @@ Here is how the user would like you to behave:
 ${basePrompt}
 
 IMPORTANT: You cannot directly create workout plans. When a user asks you to create or generate a workout plan, you should respond with a brief, encouraging message affirming that it's great they want to generate a plan. Tell them they'll just need to fill in some relevant workout info and you'll generate a custom workout plan for them. Mention that they'll see a "Generate Plan" button to proceed. Keep it concise - no long explanations.
+
+WORKOUT MODIFICATION CONFIRMATION: When a user wants to update, change, or modify a workout, ALWAYS confirm which specific week they want to make changes to before proceeding. Ask clearly: "Which week would you like to modify?" or "What week number should I update?" This prevents mistakes and ensures you're making changes to the correct week in their plan.
+
+${availableWorkoutTypes}
 
 WORKOUT PLAN SCHEMA RELATIONSHIPS:
 Understanding the database structure is crucial for managing workout plans correctly:
