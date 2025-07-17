@@ -1,27 +1,11 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
-import { CheckCircle, Circle } from "lucide-react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { DEFAULT_EXERCISE_OPTIONS, EXERCISE_FREQUENCY, FITNESS_LEVEL, SESSION_LENGTH } from "@/app/_constants/fitness";
-import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
-import BasicQuestionsForm from "../complete-profile/forms/BasicQuestions";
 import HealthConsiderationsForm from "../complete-profile/forms/HealthConsiderationsForm";
-import GoalsFormComplete from "../complete-profile/forms/GoalsForm";
 import PilatesFormComplete from "../complete-profile/forms/PilatesForm";
 import MotivationFormComplete from "../complete-profile/forms/MotivationForm";
-// import WorkoutTimingFormComplete from "../complete-profile/forms/WorkoutTimingForm";
 import GeneratePlanForm, { type PlanPreferences } from "./GeneratePlanDialog";
 import { STEPS } from "@/app/onboarding/constants";
-import FitnessBackgroundForm from "../complete-profile/forms/FitnessBg";
-
-
 
 interface MultiStepGeneratePlanDialogProps {
   open: boolean;

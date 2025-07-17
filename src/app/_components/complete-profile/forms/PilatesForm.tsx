@@ -167,19 +167,19 @@ export default function PilatesForm({
   const pilatesExperience = watch("pilatesExperience");
 
   const handleHomeEquipmentChange = (equipment: string) => {
-    const currentEquipment = watch("homeEquipment") ?? [];
+    const currentEquipment = (watch("homeEquipment") ?? []) as string[];
     const newEquipment = handleNoneMultiSelect(currentEquipment, equipment);
     setValue("homeEquipment", newEquipment);
   };
 
   const handlePilatesStylesChange = (style: string) => {
-    const currentStyles = watch("pilatesStyles") ?? [];
+    const currentStyles = (watch("pilatesStyles") ?? []) as string[];
     const newStyles = handleNoneMultiSelect(currentStyles, style);
     setValue("pilatesStyles", newStyles);
   };
 
   const handleFitnessGoalsChange = (goal: string) => {
-    const currentGoals = watch("fitnessGoals");
+    const currentGoals = (watch("fitnessGoals") ?? []) as string[];
     const newGoals = currentGoals.includes(goal)
       ? currentGoals.filter((g: string) => g !== goal)
       : [...currentGoals, goal];
@@ -463,7 +463,7 @@ export default function PilatesForm({
                 )}
               />
             </div>}
-            {watch("fitnessGoals")?.includes("Other") && (
+            {((watch("fitnessGoals") ?? []) as string[])?.includes("Other") && (
               <div className="mt-4 flex flex-col gap-2">
                 <div className="flex gap-2">
                   <Input

@@ -59,5 +59,6 @@ export type PilatesDuration = (typeof PILATES_DURATION)[number];
 export type PilatesSessions = (typeof PILATES_SESSIONS)[number];
 export type PilatesApparatus = (typeof PILATES_APPARATUS)[number];
 export type CustomPilateApparatus = (typeof PILATES_APPARATUS)[number];
+export type PilatesStyles = (typeof PILATES_STYLES)[number];
 export type PilatesSessionPreference =
   (typeof PILATES_SESSION_PREFERENCE)[number];

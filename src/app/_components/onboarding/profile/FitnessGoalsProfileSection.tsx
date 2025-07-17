@@ -10,12 +10,19 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { GoalTimeline } from "@/app/_constants/goals";
 import { AnimatedField } from "./AnimatedField";
-import type { FormData } from "@/app/_components/onboarding/profile/EditFormDialog";
+import type { FormData } from "@/hooks/useProfileCompletion";
 import { CustomOtherInput } from "@/app/_components/onboarding/profile/CustomOtherInput";
 
+interface FitnessGoalsData {
+  fitnessGoals: string[];
+  otherFitnessGoals: string[];
+  specificGoals: string | null;
+  goalTimeline?: GoalTimeline | null;
+}
+
 interface FitnessGoalsProfileSectionProps {
-  typedData: FormData["goals"];
-  setData: (data: FormData["goals"]) => void;
+  typedData: FitnessGoalsData;
+  setData: (data: FitnessGoalsData) => void;
   GOALS: string[];
   GOAL_TIMELINE: readonly GoalTimeline[];
 }

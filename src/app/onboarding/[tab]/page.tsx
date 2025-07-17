@@ -1,6 +1,6 @@
 'use client'
-import BasicQuestionForm from "@/app/_components/onboarding/BasicQuestionForm";
-import FitnessBgForm from "@/app/_components/onboarding/FitnessBgForm";
+// import BasicQuestionForm from "@/app/_components/onboarding/BasicQuestionForm";
+// import FitnessBgForm from "@/app/_components/onboarding/FitnessBgForm";
 import HealthConsForm from "@/app/_components/onboarding/HealthConsForm";
 import GoalsForm from "@/app/_components/onboarding/GoalsForm";
 import { use } from "react";
