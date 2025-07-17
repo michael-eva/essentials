@@ -1,11 +1,12 @@
 export const GOALS = [
   "Lose weight",
-  "Gain muscle",
+  "Increase strength",
   "Improve flexibility",
-  "Improve balance",
-  "Improve posture",
+  "Get toned",
   "Improve sleep",
   "Reduce stress",
+  "Increase endurance",
+  "Prenatal/postnatal fitness",
   "Other",
 ];
 

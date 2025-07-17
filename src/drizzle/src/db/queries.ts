@@ -29,7 +29,7 @@ import {
   AiSystemPrompt,
   PilatesVideos,
   type PilatesVideosParams,
-  PilatesVideosParamsSchema
+  PilatesVideosParamsSchema,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -542,28 +542,36 @@ export async function checkOnboardingCompletion(
   if (onboardingData.length === 0) {
     return {
       missingFields: {
-        basic: ["name", "age", "weight", "gender", "height"],
-        fitness: ["exercises", "exerciseFrequency", "sessionLength"],
+        // basic: ["name", "age", "weight", "gender", "height"],
+        // fitness: ["exercises", "exerciseFrequency", "sessionLength"],
         health: [
           "injuries",
-          "recentSurgery",
-          "chronicConditions",
-          "pregnancy",
           "injuriesDetails",
+          "recentSurgery",
+          "surgeryDetails",
+          "chronicConditions",
           "otherHealthConditions",
+          "pregnancy",
           "pregnancyConsultedDoctor",
           "pregnancyConsultedDoctorDetails",
-          "surgeryDetails",
         ],
-        goals: ["fitnessGoals", "goalTimeline"],
+        // goals: ["fitnessGoals", "goalTimeline"],
         pilates: [
           "fitnessLevel",
           "pilatesExperience",
-          "apparatusPreference",
           "pilatesDuration",
-          "customApparatus",
+          "pilatesStyles",
+          "homeEquipment",
+          "fitnessGoals",
+          "otherFitnessGoals",
+          "specificGoals",
         ],
-        motivation: ["motivation", "progressTracking"],
+        motivation: [
+          "motivation",
+          "otherMotivation",
+          "progressTracking",
+          "otherProgressTracking",
+        ],
         // timing: [
         //   "preferredWorkoutTimes",
         //   "avoidedWorkoutTimes",
@@ -575,42 +583,41 @@ export async function checkOnboardingCompletion(
 
   const data = onboardingData[0]!;
   const missingFields = {
-    basic: [] as string[],
-    fitness: [] as string[],
+    // basic: [] as string[],
+    // fitness: [] as string[],
     health: [] as string[],
-    goals: [] as string[],
+    // goals: [] as string[],
     pilates: [] as string[],
     motivation: [] as string[],
-    timing: [] as string[],
+    // timing: [] as string[],
   };
 
   // Basic info
-  if (data.name === null) missingFields.basic.push("name");
-  if (data.age === null) missingFields.basic.push("age");
-  if (data.weight === null) missingFields.basic.push("weight");
-  if (data.height === null) missingFields.basic.push("height");
-  if (data.gender === null) missingFields.basic.push("gender");
+  // if (data.name === null) missingFields.basic.push("name");
+  // if (data.age === null) missingFields.basic.push("age");
+  // if (data.weight === null) missingFields.basic.push("weight");
+  // if (data.height === null) missingFields.basic.push("height");
+  // if (data.gender === null) missingFields.basic.push("gender");
 
   // Fitness background
   // if (data.fitnessLevel === null) missingFields.fitness.push("fitnessLevel");
-  if (data.exercises === null || data.exercises.length === 0)
-    missingFields.fitness.push("exercises");
-  if (data.exerciseFrequency === null)
-    missingFields.fitness.push("exerciseFrequency");
-  if (data.sessionLength === null) missingFields.fitness.push("sessionLength");
+  // if (data.exercises === null || data.exercises.length === 0)
+  //   missingFields.fitness.push("exercises");
+  // if (data.exerciseFrequency === null)
+  //   missingFields.fitness.push("exerciseFrequency");
+  // if (data.sessionLength === null) missingFields.fitness.push("sessionLength");
 
   // Health considerations
   if (data.injuries === null) missingFields.health.push("injuries");
   if (data.recentSurgery === null) missingFields.health.push("recentSurgery");
   if (data.chronicConditions === null || data.chronicConditions.length === 0)
     missingFields.health.push("chronicConditions");
-  if (data.pregnancy === null && data.gender !== "Male")
-    missingFields.health.push("pregnancy");
+  if (data.pregnancy === null) missingFields.health.push("pregnancy");
 
   // Goals
-  if (data.fitnessGoals === null || data.fitnessGoals.length === 0)
-    missingFields.goals.push("fitnessGoals");
-  if (data.goalTimeline === null) missingFields.goals.push("goalTimeline");
+  // if (data.fitnessGoals === null || data.fitnessGoals.length === 0)
+  //   missingFields.goals.push("fitnessGoals");
+  // if (data.goalTimeline === null) missingFields.goals.push("goalTimeline");
 
   // Pilates
   if (data.fitnessLevel === null) missingFields.pilates.push("fitnessLevel");
@@ -618,21 +625,29 @@ export async function checkOnboardingCompletion(
     missingFields.pilates.push("pilatesExperience");
   if (data.pilatesExperience === true && data.pilatesDuration === null)
     missingFields.pilates.push("pilatesDuration");
-  if (
-    data.apparatusPreference === null ||
-    data.apparatusPreference.length === 0
-  )
-    missingFields.pilates.push("apparatusPreference");
-  if (data.customApparatus === null || data.customApparatus.length === 0)
-    missingFields.pilates.push("customApparatus");
+  if (data.pilatesStyles === null || data.pilatesStyles.length === 0)
+    missingFields.pilates.push("pilatesStyles");
+  if (data.homeEquipment === null || data.homeEquipment.length === 0)
+    missingFields.pilates.push("homeEquipment");
+  if (data.fitnessGoals === null || data.fitnessGoals.length === 0)
+    missingFields.pilates.push("fitnessGoals");
+  if (data.otherFitnessGoals === null || data.otherFitnessGoals.length === 0)
+    if (data.motivation === null)
+      // if (
+      //   data.apparatusPreference === null ||
+      //   data.apparatusPreference.length === 0
+      // )
+      //   missingFields.pilates.push("apparatusPreference");
+      // if (data.customApparatus === null || data.customApparatus.length === 0)
+      //   missingFields.pilates.push("customApparatus");
 
-  // if (data.studioFrequency === null)
-  //   missingFields.pilates.push("studioFrequency");
-  // if (data.sessionPreference === null)
-  //   missingFields.pilates.push("sessionPreference");
+      // if (data.studioFrequency === null)
+      //   missingFields.pilates.push("studioFrequency");
+      // if (data.sessionPreference === null)
+      //   missingFields.pilates.push("sessionPreference");
 
-  // Motivation
-  if (data.motivation === null) missingFields.motivation.push("motivation");
+      // Motivation
+      missingFields.motivation.push("motivation");
   if (data.progressTracking === null)
     missingFields.motivation.push("progressTracking");
   // if (data.preferredWorkoutTimes === null)
@@ -862,29 +877,44 @@ export async function getPilatesVideoById(
   return result[0] ?? null;
 }
 
-
 function buildPilatesVideoFilters(params: PilatesVideosParams) {
-  const { difficulty, equipment, instructor, minDuration, maxDuration } = params;
+  const { difficulty, equipment, instructor, minDuration, maxDuration } =
+    params;
 
   const filters = [];
   if (difficulty) filters.push(eq(PilatesVideos.difficulty, difficulty));
   if (equipment) filters.push(eq(PilatesVideos.equipment, equipment));
   if (instructor) filters.push(eq(PilatesVideos.instructor, instructor));
-  if (minDuration !== undefined) filters.push(gte(PilatesVideos.duration, minDuration));
-  if (maxDuration !== undefined) filters.push(lte(PilatesVideos.duration, maxDuration));
+  if (minDuration !== undefined)
+    filters.push(gte(PilatesVideos.duration, minDuration));
+  if (maxDuration !== undefined)
+    filters.push(lte(PilatesVideos.duration, maxDuration));
 
   return filters.length > 0 ? and(...filters) : undefined;
 }
 
-export async function getPilatesVideos(params: PilatesVideosParams & { random?: boolean }) {
+export async function getPilatesVideos(
+  params: PilatesVideosParams & { random?: boolean },
+) {
   const { limit, offset, random } = params;
   const where = buildPilatesVideoFilters(params);
 
   let itemsPromise;
   if (random) {
-    itemsPromise = db.select().from(PilatesVideos).where(where).orderBy(sql`RANDOM()`).limit(limit).offset(offset);
+    itemsPromise = db
+      .select()
+      .from(PilatesVideos)
+      .where(where)
+      .orderBy(sql`RANDOM()`)
+      .limit(limit)
+      .offset(offset);
   } else {
-    itemsPromise = db.select().from(PilatesVideos).where(where).limit(limit).offset(offset);
+    itemsPromise = db
+      .select()
+      .from(PilatesVideos)
+      .where(where)
+      .limit(limit)
+      .offset(offset);
   }
 
   const [items, countResult] = await Promise.all([
@@ -906,8 +936,8 @@ export async function getPilatesVideoFilterOptions() {
       .where(
         and(
           isNotNull(PilatesVideos.difficulty),
-          ne(PilatesVideos.difficulty, '')
-        )
+          ne(PilatesVideos.difficulty, ""),
+        ),
       ),
 
     db
@@ -916,8 +946,8 @@ export async function getPilatesVideoFilterOptions() {
       .where(
         and(
           isNotNull(PilatesVideos.equipment),
-          ne(PilatesVideos.equipment, '')
-        )
+          ne(PilatesVideos.equipment, ""),
+        ),
       ),
 
     db
@@ -926,15 +956,19 @@ export async function getPilatesVideoFilterOptions() {
       .where(
         and(
           isNotNull(PilatesVideos.instructor),
-          ne(PilatesVideos.instructor, '')
-        )
+          ne(PilatesVideos.instructor, ""),
+        ),
       ),
   ]);
 
   return {
-    difficulty: difficulties.map((row: { difficulty: string }) => row.difficulty),
+    difficulty: difficulties.map(
+      (row: { difficulty: string }) => row.difficulty,
+    ),
     equipment: equipments.map((row: { equipment: string }) => row.equipment),
-    instructor: instructors.map((row: { instructor: string | null }) => row.instructor!),
+    instructor: instructors.map(
+      (row: { instructor: string | null }) => row.instructor!,
+    ),
   };
 }
 

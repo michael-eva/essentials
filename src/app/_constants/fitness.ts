@@ -12,7 +12,12 @@ export const DEFAULT_EXERCISE_OPTIONS = [
   "Other",
 ];
 
-export const FITNESS_LEVEL = ["Beginner", "Intermediate", "Advanced"] as const;
+export const FITNESS_LEVEL = [
+  "I'm completely new and want to start my fitness journey",
+  "I've worked out before but want to get back into it",
+  "I workout regularly and want to maintain my fitness",
+  "I've been working out for years and want to challenge myself",
+] as const;
 export const EXERCISE_FREQUENCY = ["0", "1-2", "3-4", "5+"] as const;
 export const SESSION_LENGTH = [
   "Less than 15 minutes",

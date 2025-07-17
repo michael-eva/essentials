@@ -26,9 +26,6 @@ interface GoalsFormProps {
 
 export const formSchema = z.object({
   fitnessGoals: z.array(z.string()).min(1, "Please select at least one goal"),
-  goalTimeline: z.enum(GOAL_TIMELINE, {
-    required_error: "Please select your goal timeline",
-  }),
   otherFitnessGoals: z.array(z.string()).optional(),
   specificGoals: z.string().optional(),
 }).refine(
@@ -61,8 +58,7 @@ export default function GoalsForm({
     mode: "onChange",
     defaultValues: {
       fitnessGoals: isDeveloper() ? ["Lose weight"] : [],
-      goalTimeline: isDeveloper() ? "3-6 months" : undefined,
-      specificGoals: isDeveloper() ? "Developer testing" : "",
+      specificGoals: "",
     },
   });
   const { mutate: postFitnessGoals } =
@@ -150,11 +146,10 @@ export default function GoalsForm({
                     onChange={(e) => setCustomGoalInput(e.target.value)}
                     type="text"
                     placeholder="Add custom goal"
-                    className={`flex-1 rounded-md text-sm shadow-sm focus:ring-indigo-500 ${
-                      errors.otherFitnessGoals
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-gray-300 focus:border-indigo-500"
-                    }`}
+                    className={`flex-1 rounded-md text-sm shadow-sm focus:ring-indigo-500 ${errors.otherFitnessGoals
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:border-indigo-500"
+                      }`}
                   />
                   <button
                     type="button"
@@ -187,42 +182,6 @@ export default function GoalsForm({
 
           <div>
             <label
-              htmlFor="goal-timeline"
-              className="mb-4 block text-base font-medium text-gray-700"
-            >
-              What is your timeline for achieving these goals?
-            </label>
-            {errors.goalTimeline && (
-              <p className="mb-2 text-sm text-red-600">
-                {errors.goalTimeline.message}
-              </p>
-            )}
-            <Controller
-              name="goalTimeline"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select timeline" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {GOAL_TIMELINE.map((timeline) => (
-                      <SelectItem key={timeline} value={timeline}>
-                        {timeline}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-
-          <div>
-            <label
               htmlFor="specific-goals"
               className="block text-base font-medium text-gray-700"
             >
@@ -241,11 +200,10 @@ export default function GoalsForm({
                   {...field}
                   id="specific-goals"
                   rows={3}
-                  className={`mt-1 block w-full rounded-md text-sm shadow-sm focus:ring-indigo-500 ${
-                    errors.specificGoals
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:border-indigo-500"
-                  }`}
+                  className={`mt-1 block w-full rounded-md text-sm shadow-sm focus:ring-indigo-500 ${errors.specificGoals
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:border-indigo-500"
+                    }`}
                   placeholder="E.g., Run 5k, Lose 10kg, etc."
                 />
               )}

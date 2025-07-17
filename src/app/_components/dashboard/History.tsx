@@ -21,10 +21,10 @@ const activityTypeIcons: Record<string, React.ReactNode> = {
   cycle: <Bike className="h-5 w-5 text-brand-light-nude" />,
   swim: <Waves className="h-5 w-5 text-brand-light-nude" />,
   walk: <Footprints className="h-5 w-5 text-brand-light-nude" />,
-  hike: <Mountain className="h-5 w-5 text-brand-light-nude" />,
-  rowing: <Activity className="h-5 w-5 text-brand-light-nude" />,
-  elliptical: <Activity className="h-5 w-5 text-brand-light-nude" />,
-  workout: <Dumbbell className="h-5 w-5 text-brand-light-nude" />,
+  // hike: <Mountain className="h-5 w-5 text-brand-light-nude" />,
+  // rowing: <Activity className="h-5 w-5 text-brand-light-nude" />,
+  // elliptical: <Activity className="h-5 w-5 text-brand-light-nude" />,
+  // workout: <Dumbbell className="h-5 w-5 text-brand-light-nude" />,
 }
 
 export default function WorkoutHistory() {

@@ -1,9 +1,9 @@
 export const STEPS = [
-  "basic-info",
+  // "basic-info",
   "pilates",
   // "fitness-background",
   "health-considerations",
-  "goals",
+  // "goals",
   "motivation",
   // "workout-timing",
 ] as const;

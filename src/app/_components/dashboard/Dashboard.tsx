@@ -184,13 +184,6 @@ export default function Dashboard() {
         )}
       </DefaultBox>
       <DefaultBox
-        title="Progress Tracking"
-        description="Your progress over the past 30 days"
-        showViewAll={false}
-      >
-        <ProgressSection />
-      </DefaultBox>
-      <DefaultBox
         title="Upcoming Workouts"
         description={
           hasWorkouts
@@ -282,8 +275,16 @@ export default function Dashboard() {
           ))
         )}
       </DefaultBox>
-
       <DefaultBox
+        title="Progress Tracking"
+        description="Your progress over the past 30 days"
+        showViewAll={false}
+      >
+        <ProgressSection />
+      </DefaultBox>
+
+
+      {/* <DefaultBox
         title="Workout Logging"
         description={`${pastWorkoutsData.workouts.length > 0 ? "Record your workouts" : "No past workouts logged yet"}`}
         showViewAll={false}
@@ -386,7 +387,7 @@ export default function Dashboard() {
             )}
           </>
         )}
-      </DefaultBox>
+      </DefaultBox> */}
 
       <DefaultBox
         title="Activity History"

@@ -19,7 +19,7 @@ export function MultiSelectPills({
     singleSelect = false,
 }: MultiSelectPillsProps) {
     return (
-        <div className={cn("flex flex-wrap gap-2", className)}>
+        <div className={cn("flex flex-wrap gap-2 w-full", className)}>
             {options.map((option) => (
                 <button
                     key={option}
@@ -34,7 +34,7 @@ export function MultiSelectPills({
                         }
                     }}
                     className={cn(
-                        "px-4 py-2 text-sm rounded-full border transition-colors capitalize",
+                        "px-4 py-2 text-sm rounded-full border transition-colors capitalize max-w-[120px] truncate",
                         selectedValues.includes(option)
                         && "bg-brand-light-nude border-brand-brown text-primary-foreground"
                     )}

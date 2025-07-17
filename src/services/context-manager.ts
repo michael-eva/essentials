@@ -17,13 +17,13 @@ export type completedWorkout = {
 
 export type UserContext = {
   profile: {
-    basicInfo: {
-      name: string | null;
-      age: number | null;
-      height: number | null;
-      weight: number | null;
-      gender: string | null;
-    };
+    // basicInfo: {
+    //   name: string | null;
+    //   age: number | null;
+    //   height: number | null;
+    //   weight: number | null;
+    //   gender: string | null;
+    // };
 
     // exercises: string[] | null;
     // otherExercises: string[] | null;
@@ -39,10 +39,11 @@ export type UserContext = {
       fitnessLevel: string | null;
       pilatesExperience: boolean | null;
       pilatesDuration: string | null;
-      // studioFrequency: string | null;
-      // sessionPreference: string | null;
-      apparatusPreference: string[] | null;
-      customApparatus: string[] | null;
+      pilatesStyles: string[] | null;
+      homeEquipment: string[] | null;
+      fitnessGoals: string[] | null;
+      otherFitnessGoals: string[] | null;
+      specificGoals: string | null;
     };
     motivationInfo: {
       motivation: string[] | null;
@@ -127,13 +128,13 @@ export async function buildUserContext(
 
   return {
     profile: {
-      basicInfo: {
-        name: onboardingData?.name ?? null,
-        age: onboardingData?.age ?? null,
-        height: onboardingData?.height ?? null,
-        weight: onboardingData?.weight ?? null,
-        gender: onboardingData?.gender ?? null,
-      },
+      // basicInfo: {
+      //   name: onboardingData?.name ?? null,
+      //   age: onboardingData?.age ?? null,
+      //   height: onboardingData?.height ?? null,
+      //   weight: onboardingData?.weight ?? null,
+      //   gender: onboardingData?.gender ?? null,
+      // },
       // exercises: onboardingData?.exercises ?? null,
       // otherExercises: onboardingData?.otherExercises ?? null,
       // exerciseFrequency: onboardingData?.exerciseFrequency ?? null,
@@ -147,10 +148,11 @@ export async function buildUserContext(
         fitnessLevel: onboardingData?.fitnessLevel ?? null,
         pilatesExperience: onboardingData?.pilatesExperience ?? null,
         pilatesDuration: onboardingData?.pilatesDuration ?? null,
-        // studioFrequency: onboardingData?.studioFrequency ?? null,
-        // sessionPreference: onboardingData?.sessionPreference ?? null,
-        apparatusPreference: onboardingData?.apparatusPreference ?? null,
-        customApparatus: onboardingData?.customApparatus ?? null,
+        pilatesStyles: onboardingData?.pilatesStyles ?? null,
+        homeEquipment: onboardingData?.homeEquipment ?? null,
+        fitnessGoals: onboardingData?.fitnessGoals ?? null,
+        otherFitnessGoals: onboardingData?.otherFitnessGoals ?? null,
+        specificGoals: onboardingData?.specificGoals ?? null,
       },
 
       motivationInfo: {

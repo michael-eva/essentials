@@ -5,21 +5,15 @@ import type { UserContext } from "./context-manager";
  * This is a shared utility used across different AI services
  */
 export function formatUserContextForAI(context: UserContext): string {
-  const { basicInfo, pilates, motivationInfo, health } = context.profile;
+  const { pilates, motivationInfo, health } = context.profile;
   const { recentActivity, progress, workoutPlan } = context;
 
   return `
 PROFILE:
-- Name: ${basicInfo.name ?? "Not specified"}
-- Age: ${basicInfo.age ?? "Not specified"}
-- Height: ${basicInfo.height ?? "Not specified"} cm
-- Weight: ${basicInfo.weight ?? "Not specified"} kg
-- Gender: ${basicInfo.gender ?? "Not specified"}
 - Fitness Level: ${pilates.fitnessLevel ?? "Not specified"}
 - Pilates Experience: ${pilates.pilatesExperience ? "Yes" : "No"}
 - Pilates Duration: ${pilates.pilatesDuration ?? "Not specified"}
-- Pilates Equipment Preference: ${pilates.apparatusPreference?.join(", ") ?? "Not specified"}
-- Pilates Equipment the user has at home: ${pilates.customApparatus?.join(", ") ?? "Not specified"}
+- Pilates Equipment the user has at home: ${pilates.homeEquipment?.join(", ") ?? "Not specified"}
 
 MOTIVATION & GOALS:
 - Motivation Factors: ${motivationInfo.motivation?.join(", ") ?? "Not specified"}
@@ -89,11 +83,10 @@ PROGRESS & CHALLENGES:
  * This is useful when you need a shorter version of the context
  */
 export function formatUserContextSummary(context: UserContext): string {
-  const { basicInfo, pilates, motivationInfo, health } = context.profile;
+  const { pilates, motivationInfo, health } = context.profile;
   const { recentActivity } = context;
 
   return `
-User Profile: ${basicInfo.name ?? "Unknown"} (${basicInfo.age ?? "Unknown"} years, ${basicInfo.gender ?? "Unknown"})
 Fitness Level: ${pilates.fitnessLevel ?? "Unknown"}
 Pilates Experience: ${pilates.pilatesExperience ? "Yes" : "No"}
 Health: ${health.injuries ? "Has injuries" : "No injuries"}${health.pregnancy ? ", Pregnant" : ""}
