@@ -55,10 +55,10 @@ export const onboardingRouter = createTRPCRouter({
       await insertOnboarding({
         userId,
         fitnessLevel,
-        exercises,
-        otherExercises,
-        exerciseFrequency,
-        sessionLength,
+        // exercises,
+        // otherExercises,
+        // exerciseFrequency,
+        // sessionLength,
         step: "fitness_background",
       });
     }),
@@ -121,7 +121,7 @@ export const onboardingRouter = createTRPCRouter({
       await insertOnboarding({
         userId,
         fitnessGoals,
-        goalTimeline,
+        // goalTimeline,
         specificGoals,
         otherFitnessGoals,
         step: "fitness_goals",
@@ -200,29 +200,29 @@ export const onboardingRouter = createTRPCRouter({
         step: "completed",
       });
     }),
-  postWorkoutTiming: protectedProcedure
-    .input(
-      z.object({
-        preferredWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
-        avoidedWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
-        weekendWorkoutTimes: z.enum(weekendTimesEnum.enumValues),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const {
-        preferredWorkoutTimes,
-        avoidedWorkoutTimes,
-        weekendWorkoutTimes,
-      } = input;
-      const userId = ctx.userId;
-      await insertOnboarding({
-        userId,
-        preferredWorkoutTimes,
-        avoidedWorkoutTimes,
-        weekendWorkoutTimes,
-        step: "workout_timing",
-      });
-    }),
+  // postWorkoutTiming: protectedProcedure
+  //   .input(
+  //     z.object({
+  //       preferredWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
+  //       avoidedWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
+  //       weekendWorkoutTimes: z.enum(weekendTimesEnum.enumValues),
+  //     }),
+  //   )
+  //   .mutation(async ({ ctx, input }) => {
+  //     const {
+  //       preferredWorkoutTimes,
+  //       avoidedWorkoutTimes,
+  //       weekendWorkoutTimes,
+  //     } = input;
+  //     const userId = ctx.userId;
+  //     await insertOnboarding({
+  //       userId,
+  //       preferredWorkoutTimes,
+  //       avoidedWorkoutTimes,
+  //       weekendWorkoutTimes,
+  //       step: "workout_timing",
+  //     });
+  //   }),
   checkOnboardingCompletion: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
     const result = await checkOnboardingCompletion(userId);

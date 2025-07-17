@@ -7,11 +7,15 @@ import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { PILATES_APPARATUS, PILATES_DURATION, PILATES_SESSION_PREFERENCE, PILATES_SESSIONS, PILATES_APPARATUS } from "@/app/_constants/pilates";
+import { PILATES_APPARATUS, PILATES_DURATION, PILATES_STYLES } from "@/app/_constants/pilates";
 import { Button } from "@/components/ui/button";
 import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
 import { FITNESS_LEVEL } from "@/app/_constants/fitness";
+import { handleNoneMultiSelect } from "@/app/_utils/multiSelectNoneUtils";
+import { Textarea } from "@/components/ui/textarea";
+import { GOALS } from "@/app/_constants/goals";
+import Input from "@/app/_components/global/Input";
 
 // Define proper types for the form data
 type PilatesDuration = typeof PILATES_DURATION[number];
@@ -23,6 +27,11 @@ interface PilatesSubmitData {
   fitnessLevel: PilatesFitnessLevel | null;
   pilatesExperience: boolean | null;
   pilatesDuration: PilatesDuration | null;
+  pilatesStyles: string[];
+  homeEquipment: string[];
+  fitnessGoals: string[];
+  otherFitnessGoals: string[];
+  specificGoals: string | null;
   apparatusPreference: PilatesApparatus[];
   customApparatus: CustomPilatesApparatus[];
 }
@@ -39,6 +48,9 @@ export default function PilatesForm({
   onPrevious: () => void;
 }) {
   const utils = api.useUtils();
+  const [customGoalInput, setCustomGoalInput] = useState("");
+  const [customGoals, setCustomGoals] = useState<string[]>([]);
+
   const { mutate: postPilatesExperience } = api.onboarding.postPilatesExperience.useMutation({
     onSuccess: () => {
       toast.success("Pilates experience saved successfully");
@@ -54,6 +66,7 @@ export default function PilatesForm({
   const pilatesMissingFields = missingFields?.pilates || [];
   const hasMissingFields = pilatesMissingFields.length > 0;
   console.log(pilatesMissingFields);
+
   // Create dynamic schema based on missingFields
   const createSchema = () => {
     const schemaFields: Record<string, z.ZodTypeAny> = {};
@@ -66,7 +79,7 @@ export default function PilatesForm({
     // Fitness level field
     if (isRequired('fitnessLevel')) {
       schemaFields.fitnessLevel = z.enum(FITNESS_LEVEL, {
-        required_error: "Please select your fitness level",
+        required_error: "Fitness level is required",
       });
     } else {
       schemaFields.fitnessLevel = z.enum(FITNESS_LEVEL).optional();
@@ -75,7 +88,7 @@ export default function PilatesForm({
     // Pilates experience field
     if (isRequired('pilatesExperience')) {
       schemaFields.pilatesExperience = z.boolean({
-        required_error: "Please select whether you have pilates experience",
+        required_error: "Please indicate if you have Pilates experience",
       });
     } else {
       schemaFields.pilatesExperience = z.boolean().optional();
@@ -84,33 +97,24 @@ export default function PilatesForm({
     // Pilates duration field (optional)
     schemaFields.pilatesDuration = z.enum(PILATES_DURATION).optional();
 
-    // // Studio frequency field
-    // if (isRequired('studioFrequency')) {
-    //   schemaFields.studioFrequency = z.enum(PILATES_SESSIONS, {
-    //     required_error: "Please select your studio frequency",
-    //   });
-    // } else {
-    //   schemaFields.studioFrequency = z.enum(PILATES_SESSIONS).optional();
-    // }
+    // Pilates styles field (optional)
+    schemaFields.pilatesStyles = z.array(z.string()).optional();
 
-    // // Session preference field
-    // if (isRequired('sessionPreference')) {
-    //   schemaFields.sessionPreference = z.enum(PILATES_SESSION_PREFERENCE, {
-    //     required_error: "Please select your session preference",
-    //   });
-    // } else {
-    //   schemaFields.sessionPreference = z.enum(PILATES_SESSION_PREFERENCE).optional();
-    // }
+    // Home equipment field (optional)
+    schemaFields.homeEquipment = z.array(z.string()).optional();
 
-    // Apparatus preference field
-    if (isRequired('apparatusPreference')) {
-      schemaFields.apparatusPreference = z.array(z.string()).min(1, "Please select at least one apparatus preference");
+    // Fitness goals field (required)
+    if (isRequired('fitnessGoals')) {
+      schemaFields.fitnessGoals = z.array(z.string()).min(1, "Please select at least one goal");
     } else {
-      schemaFields.apparatusPreference = z.array(z.string()).optional();
+      schemaFields.fitnessGoals = z.array(z.string()).optional();
     }
 
-    // Custom apparatus field (optional)
-    schemaFields.customApparatus = z.array(z.string()).optional();
+    // Other fitness goals field (optional)
+    schemaFields.otherFitnessGoals = z.array(z.string()).optional();
+
+    // Specific goals field (optional)
+    schemaFields.specificGoals = z.string().optional();
 
     return z.object(schemaFields);
   };
@@ -125,12 +129,52 @@ export default function PilatesForm({
       fitnessLevel: undefined,
       pilatesExperience: undefined,
       pilatesDuration: undefined,
-      // studioFrequency: undefined,
-      // sessionPreference: undefined,
+      pilatesStyles: [],
+      homeEquipment: [],
+      fitnessGoals: [],
+      otherFitnessGoals: [],
+      specificGoals: undefined,
       apparatusPreference: [],
       customApparatus: [],
     }
   });
+
+  const pilatesExperience = watch("pilatesExperience");
+
+  const handleHomeEquipmentChange = (equipment: string) => {
+    const currentEquipment = watch("homeEquipment") ?? [];
+    const newEquipment = handleNoneMultiSelect(currentEquipment, equipment);
+    setValue("homeEquipment", newEquipment);
+  };
+
+  const handlePilatesStylesChange = (style: string) => {
+    const currentStyles = watch("pilatesStyles") ?? [];
+    const newStyles = handleNoneMultiSelect(currentStyles, style);
+    setValue("pilatesStyles", newStyles);
+  };
+
+  const handleFitnessGoalsChange = (goal: string) => {
+    const currentGoals = watch("fitnessGoals");
+    const newGoals = currentGoals.includes(goal)
+      ? currentGoals.filter((g: string) => g !== goal)
+      : [...currentGoals, goal];
+    setValue("fitnessGoals", newGoals);
+  };
+
+  const handleCustomGoal = () => {
+    if (customGoalInput.trim()) {
+      const updated = [...customGoals, customGoalInput];
+      setCustomGoals(updated);
+      setValue("otherFitnessGoals", updated);
+      setCustomGoalInput("");
+    }
+  };
+
+  const removeCustomGoal = (goal: string) => {
+    const updated = customGoals.filter((g) => g !== goal);
+    setCustomGoals(updated);
+    setValue("otherFitnessGoals", updated);
+  };
 
   const handleApparatusChange = (apparatus: string) => {
     const currentApparatus = watch("apparatusPreference") || [];
@@ -162,12 +206,21 @@ export default function PilatesForm({
     if (data.pilatesDuration !== undefined) {
       submitData.pilatesDuration = data.pilatesDuration as PilatesDuration;
     }
-    // if (data.studioFrequency !== undefined) {
-    //   submitData.studioFrequency = data.studioFrequency as PilatesSessions;
-    // }
-    // if (data.sessionPreference !== undefined) {
-    //   submitData.sessionPreference = data.sessionPreference as PilatesSessionPreference;
-    // }
+    if (data.pilatesStyles && Array.isArray(data.pilatesStyles) && data.pilatesStyles.length > 0) {
+      submitData.pilatesStyles = data.pilatesStyles;
+    }
+    if (data.homeEquipment && Array.isArray(data.homeEquipment) && data.homeEquipment.length > 0) {
+      submitData.homeEquipment = data.homeEquipment;
+    }
+    if (data.fitnessGoals && Array.isArray(data.fitnessGoals) && data.fitnessGoals.length > 0) {
+      submitData.fitnessGoals = data.fitnessGoals;
+    }
+    if (data.otherFitnessGoals && Array.isArray(data.otherFitnessGoals) && data.otherFitnessGoals.length > 0) {
+      submitData.otherFitnessGoals = data.otherFitnessGoals;
+    }
+    if (data.specificGoals !== undefined) {
+      submitData.specificGoals = data.specificGoals;
+    }
     if (data.apparatusPreference && Array.isArray(data.apparatusPreference) && data.apparatusPreference.length > 0) {
       submitData.apparatusPreference = data.apparatusPreference as PilatesApparatus[];
     }
@@ -178,12 +231,15 @@ export default function PilatesForm({
     // Only submit if there's actual data
     if (Object.keys(submitData).length > 0) {
       // Ensure all required fields are present for the API
-      const apiData: PilatesSubmitData = {
+      const apiData = {
         fitnessLevel: submitData.fitnessLevel ?? null,
         pilatesExperience: submitData.pilatesExperience ?? null,
         pilatesDuration: submitData.pilatesDuration ?? null,
-        // studioFrequency: submitData.studioFrequency ?? null,
-        // sessionPreference: submitData.sessionPreference ?? null,
+        pilatesStyles: submitData.pilatesStyles || [],
+        homeEquipment: submitData.homeEquipment || [],
+        fitnessGoals: submitData.fitnessGoals || [],
+        otherFitnessGoals: submitData.otherFitnessGoals || [],
+        specificGoals: submitData.specificGoals ?? undefined,
         apparatusPreference: submitData.apparatusPreference || [],
         customApparatus: submitData.customApparatus || [],
       };
@@ -237,18 +293,21 @@ export default function PilatesForm({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">Pilates Experience</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Pilates Preferences</h3>
         <p className="text-sm text-gray-500">Tell us about your pilates experience and preferences</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-8">
         {pilatesMissingFields.includes('fitnessLevel') && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-4">
-              What is your fitness level?
+            <label
+              htmlFor="fitness-level"
+              className="mb-2 block text-base font-medium text-gray-700"
+            >
+              How would you rate your current fitness level?
             </label>
             {errors.fitnessLevel && (
-              <p className="mb-2 text-sm text-red-600">{typeof errors.fitnessLevel?.message === 'string' ? errors.fitnessLevel.message : 'Invalid input'}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.fitnessLevel?.message === 'string' ? errors.fitnessLevel.message : 'Invalid input'}</p>
             )}
             <Controller
               name="fitnessLevel"
@@ -260,9 +319,9 @@ export default function PilatesForm({
                   defaultValue={field.value || ""}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select fitness level" />
+                    <SelectValue placeholder="Select level" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-w-[80%]">
                     {FITNESS_LEVEL.map((level) => (
                       <SelectItem key={level} value={level}>{level}</SelectItem>
                     ))}
@@ -273,14 +332,13 @@ export default function PilatesForm({
           </div>
         )}
 
-
         {pilatesMissingFields.includes('pilatesExperience') && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-4">
-              Do you have any pilates experience?
+            <label className="block text-sm font-medium text-gray-700">
+              Have you practiced Pilates before?
             </label>
             {errors.pilatesExperience && (
-              <p className="mb-2 text-sm text-red-600">{typeof errors.pilatesExperience?.message === 'string' ? errors.pilatesExperience.message : 'Invalid input'}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.pilatesExperience?.message === 'string' ? errors.pilatesExperience.message : 'Invalid input'}</p>
             )}
             <Controller
               name="pilatesExperience"
@@ -289,14 +347,15 @@ export default function PilatesForm({
                 <RadioGroup
                   onValueChange={(value) => field.onChange(value === "true")}
                   value={field.value !== null && field.value !== undefined ? String(field.value) : ""}
+                  className="flex space-x-4 mt-2"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="true" id="pilates-yes" />
-                    <label htmlFor="pilates-yes" className="text-sm font-medium text-gray-700">Yes</label>
+                    <label htmlFor="pilates-yes" className="text-sm">Yes</label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="false" id="pilates-no" />
-                    <label htmlFor="pilates-no" className="text-sm font-medium text-gray-700">No</label>
+                    <label htmlFor="pilates-no" className="text-sm">No</label>
                   </div>
                 </RadioGroup>
               )}
@@ -304,13 +363,13 @@ export default function PilatesForm({
           </div>
         )}
 
-        {watch("pilatesExperience") && (
+        {pilatesExperience && (
           <div>
             <label htmlFor="pilates-duration" className="block text-sm font-medium text-gray-700 mb-2">
-              How long have you been practicing pilates?
+              How long have you been practicing Pilates?
             </label>
             {errors.pilatesDuration && (
-              <p className="mb-2 text-sm text-red-600">{typeof errors.pilatesDuration?.message === 'string' ? errors.pilatesDuration.message : 'Invalid input'}</p>
+              <p className="mt-1 text-sm text-red-600">{typeof errors.pilatesDuration?.message === 'string' ? errors.pilatesDuration.message : 'Invalid input'}</p>
             )}
             <Controller
               name="pilatesDuration"
@@ -335,69 +394,139 @@ export default function PilatesForm({
           </div>
         )}
 
-        {/* {pilatesMissingFields.includes('studioFrequency') && (
-          <div>
-            <label htmlFor="studio-frequency" className="block text-sm font-medium text-gray-700 mb-2">
-              How often do you visit a pilates studio?
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-4">
+            What styles do you enjoy? (Select multiple)
+          </label>
+          {errors.pilatesStyles && (
+            <p className="mb-2 text-sm text-red-600">{typeof errors.pilatesStyles?.message === 'string' ? errors.pilatesStyles.message : 'Invalid input'}</p>
+          )}
+          <Controller
+            name="pilatesStyles"
+            control={control}
+            render={({ field }) => (
+              <MultiSelectPills
+                options={[...PILATES_STYLES]}
+                selectedValues={field.value || []}
+                onChange={handlePilatesStylesChange}
+              />
+            )}
+          />
+
+          <div className="mt-8">
+            <label className="block text-sm font-medium text-gray-700 mb-4">
+              What equipment do you have access to? (Select multiple)
             </label>
-            {errors.studioFrequency && (
-              <p className="mb-2 text-sm text-red-600">{typeof errors.studioFrequency?.message === 'string' ? errors.studioFrequency.message : 'Invalid input'}</p>
+            {errors.homeEquipment && (
+              <p className="mb-2 text-sm text-red-600">{typeof errors.homeEquipment?.message === 'string' ? errors.homeEquipment.message : 'Invalid input'}</p>
             )}
             <Controller
-              name="studioFrequency"
+              name="homeEquipment"
               control={control}
               render={({ field }) => (
-                <Select
-                  onValueChange={(value: PilatesSessions) => field.onChange(value)}
-                  value={field.value || ""}
-                  defaultValue={field.value || ""}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PILATES_SESSIONS.map((session) => (
-                      <SelectItem key={session} value={session}>{session}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <MultiSelectPills
+                  options={[...PILATES_APPARATUS]}
+                  selectedValues={field.value || []}
+                  onChange={handleHomeEquipmentChange}
+                />
               )}
             />
           </div>
-        )}
 
-        {pilatesMissingFields.includes('sessionPreference') && (
-          <div>
-            <label htmlFor="session-preference" className="block text-sm font-medium text-gray-700 mb-2">
-              What type of pilates sessions do you prefer?
+          <div className="mt-8">
+            <label className="mb-4 block text-base font-medium text-gray-700">
+              What are your primary fitness goals? (Select all that apply)
             </label>
-            {errors.sessionPreference && (
-              <p className="mb-2 text-sm text-red-600">{typeof errors.sessionPreference?.message === 'string' ? errors.sessionPreference.message : 'Invalid input'}</p>
+            {errors.fitnessGoals && (
+              <p className="mb-2 text-sm text-red-600">
+                {typeof errors.fitnessGoals.message === 'string' ? errors.fitnessGoals.message : 'Invalid input'}
+              </p>
             )}
             <Controller
-              name="sessionPreference"
+              name="fitnessGoals"
               control={control}
               render={({ field }) => (
-                <Select
-                  onValueChange={(value: PilatesSessionPreference) => field.onChange(value)}
-                  value={field.value || ""}
-                  defaultValue={field.value || ""}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select preference" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PILATES_SESSION_PREFERENCE.map((preference) => (
-                      <SelectItem key={preference} value={preference}>{preference}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <MultiSelectPills
+                  options={GOALS}
+                  selectedValues={field.value}
+                  onChange={handleFitnessGoalsChange}
+                />
+              )}
+            />
+            {watch("fitnessGoals")?.includes("Other") && (
+              <div className="mt-4 flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={customGoalInput}
+                    onChange={(e) => setCustomGoalInput(e.target.value)}
+                    type="text"
+                    placeholder="Add custom goal"
+                    className={`flex-1 rounded-md text-sm shadow-sm focus:ring-indigo-500 ${errors.otherFitnessGoals
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:border-indigo-500"
+                      }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCustomGoal}
+                    className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm leading-4 font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                  >
+                    Add
+                  </button>
+                </div>
+                {errors.otherFitnessGoals && (
+                  <p className="mt-2 text-sm text-red-600">{typeof errors.otherFitnessGoals.message === 'string' ? errors.otherFitnessGoals.message : 'Invalid input'}</p>
+                )}
+                <div className="mt-3 space-y-2">
+                  {customGoals.map((goal) => (
+                    <div key={goal} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                      <span className="text-sm text-gray-700">{goal}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeCustomGoal(goal)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8">
+            <label
+              htmlFor="specific-goals"
+              className="block text-base font-medium text-gray-700"
+            >
+              Do you have any specific goals or milestones?
+            </label>
+            {errors.specificGoals && (
+              <p className="mt-1 text-sm text-red-600">
+                {typeof errors.specificGoals.message === 'string' ? errors.specificGoals.message : 'Invalid input'}
+              </p>
+            )}
+            <Controller
+              name="specificGoals"
+              control={control}
+              render={({ field }) => (
+                <Textarea
+                  {...field}
+                  id="specific-goals"
+                  rows={3}
+                  className={`mt-1 block w-full rounded-md text-sm shadow-sm focus:ring-indigo-500 ${errors.specificGoals
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:border-indigo-500"
+                    }`}
+                  placeholder="E.g., Run 5k, Lose 10kg, etc."
+                />
               )}
             />
           </div>
-        )} */}
+        </div>
 
-        {pilatesMissingFields.includes('apparatusPreference') && (
+        {/* {pilatesMissingFields.includes('apparatusPreference') && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-4">
               What pilates apparatus do you prefer?
@@ -410,16 +539,16 @@ export default function PilatesForm({
               control={control}
               render={({ field }) => (
                 <MultiSelectPills
-                  options={PILATES_APPARATUS}
+                  options={[...PILATES_APPARATUS]}
                   selectedValues={field.value || []}
                   onChange={handleApparatusChange}
                 />
               )}
             />
           </div>
-        )}
+        )} */}
 
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-4">
             Custom pilates apparatus (optional)
           </label>
@@ -431,13 +560,13 @@ export default function PilatesForm({
             control={control}
             render={({ field }) => (
               <MultiSelectPills
-                options={PILATES_APPARATUS}
+                options={[...PILATES_APPARATUS]}
                 selectedValues={field.value || []}
                 onChange={handleCustomApparatusChange}
               />
             )}
           />
-        </div>
+        </div> */}
       </div>
 
       <DialogFooter className="gap-2 sm:justify-center">

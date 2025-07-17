@@ -19,3 +19,7 @@
 TODO:
 
 - Middleware is not currently protecting routes
+
+Next:
+
+- submitting forms in complete-profile to make sure its submitting into the database
