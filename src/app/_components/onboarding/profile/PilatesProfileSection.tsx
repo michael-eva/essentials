@@ -33,7 +33,7 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
   setData,
 }) => {
   return (
-    <div className="space-y-6 w-full max-w-full overflow-hidden">
+    <div className="space-y-6 w-full max-w-full overflow-hidden px-1">
       <div>
         <Label className="mb-2">Fitness Level</Label>
         <Select
@@ -45,7 +45,7 @@ const PilatesProfileSection: React.FC<PilatesProfileSectionProps> = ({
           <SelectTrigger className="min-h-[44px] w-full rounded-xl border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-offset-0">
             <SelectValue placeholder="Select fitness level" className="truncate" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-w-[90vw]">
             {FITNESS_LEVEL.map((level) => (
               <SelectItem key={level} value={level}>{level}</SelectItem>
             ))}

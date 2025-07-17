@@ -173,44 +173,68 @@ export default function EditFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
-      <DialogContent className="overflow-hidden rounded-2xl border-0 p-0 shadow-xl sm:max-w-[425px]">
-        <div className="p-6">
-          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
-            <DialogTitle
-              className="text-xl font-semibold"
-              style={{
-                color:
-                  formSections.find((section) => section.type === formType)
-                    ?.color ?? "#007AFF",
-              }}
-            >
-              {formSections.find((section) => section.type === formType)?.title}
-            </DialogTitle>
+      <DialogContent className="overflow-hidden rounded-2xl border-0 p-0 shadow-xl sm:max-w-[480px] max-h-[90vh] flex flex-col">
+        {/* Header - Fixed */}
+        <div className="flex-shrink-0 px-6 py-4 border-b border-gray-100 rounded-t-2xl">
+          <DialogHeader className="flex flex-row items-center justify-between space-y-0">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                style={{
+                  backgroundColor: formSections.find((section) => section.type === formType)?.color ?? "#007AFF",
+                }}
+              >
+                {formSections.find((section) => section.type === formType)?.icon}
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-semibold text-gray-900">
+                  {formSections.find((section) => section.type === formType)?.title}
+                </DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  {formSections.find((section) => section.type === formType)?.description}
+                </p>
+              </div>
+            </div>
           </DialogHeader>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="bg-white rounded-xl px-4">
             <motion.div
-              initial={{ opacity: 0, y: 5 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="space-y-6"
             >
               {renderFormFields()}
             </motion.div>
+          </div>
+        </div>
 
-            <DialogFooter className="pt-4">
+        {/* Footer - Fixed */}
+        <div className="flex-shrink-0 px-6 py-4 border-t border-gray-100 bg-white rounded-b-2xl">
+          <form onSubmit={handleSubmit}>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChangeAction(false)}
+                className="flex-1 h-11 rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50 transition-all"
+              >
+                Cancel
+              </Button>
               <Button
                 type="submit"
-                className="h-11 w-full rounded-xl text-white transition-all"
+                className="flex-1 h-11 rounded-xl text-white transition-all hover:opacity-90"
                 style={{
-                  backgroundColor:
-                    formSections.find((section) => section.type === formType)
-                      ?.color ?? "#007AFF",
-                  boxShadow: `0 2px 10px ${formSections.find((section) => section.type === formType)?.color ?? "#007AFF"}40`,
+                  backgroundColor: formSections.find((section) => section.type === formType)?.color ?? "#007AFF",
+                  boxShadow: `0 2px 12px ${formSections.find((section) => section.type === formType)?.color ?? "#007AFF"}30`,
                 }}
               >
                 Save Changes
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </div>
       </DialogContent>
