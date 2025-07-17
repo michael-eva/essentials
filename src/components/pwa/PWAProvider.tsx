@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { PushNotificationManager } from './PushNotificationManager'
 import { InstallPrompt } from './InstallPrompt'
 
 export function PWAProvider() {
@@ -11,17 +10,16 @@ export function PWAProvider() {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('SW registered: ', registration)
+          console.log('SW registered successfully:', registration)
         })
         .catch((registrationError) => {
-          console.log('SW registration failed: ', registrationError)
+          console.error('SW registration failed:', registrationError)
         })
     }
   }, [])
 
   return (
     <>
-      <PushNotificationManager />
       <InstallPrompt />
     </>
   )

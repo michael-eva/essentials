@@ -8,7 +8,7 @@ const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
 
 if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails(
-    'mailto:admin@essentials.com', // Replace with your actual email
+    'mailto:michael@extensa.studio', // Replace with your actual email
     vapidPublicKey,
     vapidPrivateKey
   )

@@ -1,107 +1,119 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { toast } from "sonner"
-import { api } from "@/trpc/react"
-import EditFormDialog from "@/app/_components/onboarding/profile/EditFormDialog"
-import { useProfileCompletion, type FormData, type FormType } from "@/hooks/useProfileCompletion"
-import { ProfileSkeleton } from "./DashboardSkeleton"
-import DefaultBox from "../global/DefaultBox"
-import { motion } from "framer-motion"
-import { PushNotificationManager } from "@/components/pwa/PushNotificationManager"
-import { PWATest } from "@/components/pwa/PWATest"
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
+import { api } from "@/trpc/react";
+import EditFormDialog from "@/app/_components/onboarding/profile/EditFormDialog";
+import {
+  useProfileCompletion,
+  type FormData,
+  type FormType,
+} from "@/hooks/useProfileCompletion";
+import { ProfileSkeleton } from "./DashboardSkeleton";
+import DefaultBox from "../global/DefaultBox";
+import { motion } from "framer-motion";
+import { PushNotificationManager } from "@/components/pwa/PushNotificationManager";
+import { PWATest } from "@/components/pwa/PWATest";
 
 export default function ProfilePage() {
-  const [selectedForm, setSelectedForm] = useState<FormType | null>(null)
-  const { isLoading, formData, formSections } = useProfileCompletion()
-  const utils = api.useUtils()
-  const { mutate: postBasicQuestions } = api.onboarding.postBasicQuestions.useMutation({
-    onSuccess: () => {
-      toast.success("Your profile has been updated successfully.")
-      setSelectedForm(null)
-      utils.onboarding.getOnboardingData.invalidate()
-    },
-    onError: (error) => {
-      console.error("Error updating form data:", error)
-      toast.error("Failed to update your profile. Please try again.")
-    }
-  })
+  const [selectedForm, setSelectedForm] = useState<FormType | null>(null);
+  const { isLoading, formData, formSections } = useProfileCompletion();
+  const utils = api.useUtils();
+  const { mutate: postBasicQuestions } =
+    api.onboarding.postBasicQuestions.useMutation({
+      onSuccess: () => {
+        toast.success("Your profile has been updated successfully.");
+        setSelectedForm(null);
+        utils.onboarding.getOnboardingData.invalidate();
+      },
+      onError: (error) => {
+        console.error("Error updating form data:", error);
+        toast.error("Failed to update your profile. Please try again.");
+      },
+    });
 
-  const { mutate: postFitnessBackground } = api.onboarding.postFitnessBackground.useMutation({
-    onSuccess: () => {
-      toast.success("Your profile has been updated successfully.")
-      setSelectedForm(null)
-      utils.onboarding.getOnboardingData.invalidate()
-    },
-    onError: (error) => {
-      console.error("Error updating form data:", error)
-      toast.error("Failed to update your profile. Please try again.")
-    }
-  })
+  const { mutate: postFitnessBackground } =
+    api.onboarding.postFitnessBackground.useMutation({
+      onSuccess: () => {
+        toast.success("Your profile has been updated successfully.");
+        setSelectedForm(null);
+        utils.onboarding.getOnboardingData.invalidate();
+      },
+      onError: (error) => {
+        console.error("Error updating form data:", error);
+        toast.error("Failed to update your profile. Please try again.");
+      },
+    });
 
-  const { mutate: postHealthConsiderations } = api.onboarding.postHealthConsiderations.useMutation({
-    onSuccess: () => {
-      toast.success("Your profile has been updated successfully.")
-      setSelectedForm(null)
-      utils.onboarding.getOnboardingData.invalidate()
-    },
-    onError: (error) => {
-      console.error("Error updating form data:", error)
-      toast.error("Failed to update your profile. Please try again.")
-    }
-  })
+  const { mutate: postHealthConsiderations } =
+    api.onboarding.postHealthConsiderations.useMutation({
+      onSuccess: () => {
+        toast.success("Your profile has been updated successfully.");
+        setSelectedForm(null);
+        utils.onboarding.getOnboardingData.invalidate();
+      },
+      onError: (error) => {
+        console.error("Error updating form data:", error);
+        toast.error("Failed to update your profile. Please try again.");
+      },
+    });
 
-  const { mutate: postFitnessGoals } = api.onboarding.postFitnessGoals.useMutation({
-    onSuccess: () => {
-      toast.success("Your profile has been updated successfully.")
-      setSelectedForm(null)
-      utils.onboarding.getOnboardingData.invalidate()
-    },
-    onError: (error) => {
-      console.error("Error updating form data:", error)
-      toast.error("Failed to update your profile. Please try again.")
-    }
-  })
+  const { mutate: postFitnessGoals } =
+    api.onboarding.postFitnessGoals.useMutation({
+      onSuccess: () => {
+        toast.success("Your profile has been updated successfully.");
+        setSelectedForm(null);
+        utils.onboarding.getOnboardingData.invalidate();
+      },
+      onError: (error) => {
+        console.error("Error updating form data:", error);
+        toast.error("Failed to update your profile. Please try again.");
+      },
+    });
 
-  const { mutate: postPilatesExperience } = api.onboarding.postPilatesExperience.useMutation({
-    onSuccess: () => {
-      toast.success("Your profile has been updated successfully.")
-      setSelectedForm(null)
-      utils.onboarding.getOnboardingData.invalidate()
-    },
-    onError: (error) => {
-      console.error("Error updating form data:", error)
-      toast.error("Failed to update your profile. Please try again.")
-    }
-  })
+  const { mutate: postPilatesExperience } =
+    api.onboarding.postPilatesExperience.useMutation({
+      onSuccess: () => {
+        toast.success("Your profile has been updated successfully.");
+        setSelectedForm(null);
+        utils.onboarding.getOnboardingData.invalidate();
+      },
+      onError: (error) => {
+        console.error("Error updating form data:", error);
+        toast.error("Failed to update your profile. Please try again.");
+      },
+    });
 
   const { mutate: postMotivation } = api.onboarding.postMotivation.useMutation({
     onSuccess: () => {
-      toast.success("Your profile has been updated successfully.")
-      setSelectedForm(null)
-      utils.onboarding.getOnboardingData.invalidate()
+      toast.success("Your profile has been updated successfully.");
+      setSelectedForm(null);
+      utils.onboarding.getOnboardingData.invalidate();
     },
     onError: (error) => {
-      console.error("Error updating form data:", error)
-      toast.error("Failed to update your profile. Please try again.")
-    }
-  })
+      console.error("Error updating form data:", error);
+      toast.error("Failed to update your profile. Please try again.");
+    },
+  });
 
-  const handleFormSubmit = async (formType: FormType, data: FormData[FormType]) => {
+  const handleFormSubmit = async (
+    formType: FormType,
+    data: FormData[FormType],
+  ) => {
     try {
       switch (formType) {
         case "basicQuestion": {
-          const basicData = data as FormData["basicQuestion"]
+          const basicData = data as FormData["basicQuestion"];
           postBasicQuestions({
             name: basicData.name,
             age: basicData.age,
             height: basicData.height,
             weight: basicData.weight,
-            gender: basicData.gender
-          })
-          break
+            gender: basicData.gender,
+          });
+          break;
         }
         // case "fitnessBg": {
         //   const fitnessData = data as FormData["fitnessBg"]
@@ -115,33 +127,43 @@ export default function ProfilePage() {
         //   break
         // }
         case "healthCons": {
-          const healthData = data as FormData["healthCons"]
+          const healthData = data as FormData["healthCons"];
 
           postHealthConsiderations({
             injuries: healthData.injuries ?? false,
-            injuriesDetails: healthData.injuries ? healthData.injuriesDetails ?? null : null,
+            injuriesDetails: healthData.injuries
+              ? (healthData.injuriesDetails ?? null)
+              : null,
             recentSurgery: healthData.recentSurgery ?? false,
-            surgeryDetails: healthData.recentSurgery ? healthData.surgeryDetails ?? null : null,
+            surgeryDetails: healthData.recentSurgery
+              ? (healthData.surgeryDetails ?? null)
+              : null,
             chronicConditions: healthData.chronicConditions,
-            otherHealthConditions: healthData.chronicConditions.includes("Other") ? healthData.otherHealthConditions ?? null : null,
+            otherHealthConditions: healthData.chronicConditions.includes(
+              "Other",
+            )
+              ? (healthData.otherHealthConditions ?? null)
+              : null,
             pregnancy: healthData.pregnancy ?? "Not applicable",
-            pregnancyConsultedDoctor: healthData.pregnancyConsultedDoctor ?? false,
-            pregnancyConsultedDoctorDetails: healthData.pregnancyConsultedDoctorDetails ?? null
-          })
-          break
+            pregnancyConsultedDoctor:
+              healthData.pregnancyConsultedDoctor ?? false,
+            pregnancyConsultedDoctorDetails:
+              healthData.pregnancyConsultedDoctorDetails ?? null,
+          });
+          break;
         }
         case "goals": {
-          const goalsData = data as FormData["goals"]
+          const goalsData = data as FormData["goals"];
           postFitnessGoals({
             fitnessGoals: goalsData.fitnessGoals,
             goalTimeline: goalsData.goalTimeline,
             specificGoals: goalsData.specificGoals ?? undefined,
-            otherFitnessGoals: goalsData.otherFitnessGoals
-          })
-          break
+            otherFitnessGoals: goalsData.otherFitnessGoals,
+          });
+          break;
         }
         case "pilates": {
-          const pilatesData = data as FormData["pilates"]
+          const pilatesData = data as FormData["pilates"];
           postPilatesExperience({
             fitnessLevel: pilatesData.fitnessLevel,
             pilatesExperience: pilatesData.pilatesExperience,
@@ -149,36 +171,37 @@ export default function ProfilePage() {
             // sessionPreference: pilatesData.sessionPreference,
             apparatusPreference: pilatesData.apparatusPreference,
             otherApparatusPreferences: pilatesData.otherApparatusPreferences,
-            pilatesDuration: pilatesData.pilatesExperience ? pilatesData.pilatesDuration ?? null : null,
+            pilatesDuration: pilatesData.pilatesExperience
+              ? (pilatesData.pilatesDuration ?? null)
+              : null,
             customApparatus: pilatesData.customApparatus ?? undefined,
-            otherCustomApparatus: pilatesData.otherCustomApparatus
-
-          })
-          break
+            otherCustomApparatus: pilatesData.otherCustomApparatus,
+          });
+          break;
         }
         case "motivation": {
-          const motivationData = data as FormData["motivation"]
+          const motivationData = data as FormData["motivation"];
           postMotivation({
             motivation: motivationData.motivation,
             progressTracking: motivationData.progressTracking,
             otherMotivation: motivationData.otherMotivation,
-            otherProgressTracking: motivationData.otherProgressTracking
-          })
-          break
+            otherProgressTracking: motivationData.otherProgressTracking,
+          });
+          break;
         }
       }
     } catch (error) {
-      console.error("Error updating form data:", error)
-      toast.error("Failed to update your profile. Please try again.")
+      console.error("Error updating form data:", error);
+      toast.error("Failed to update your profile. Please try again.");
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="space-y-6">
         <ProfileSkeleton />
       </div>
-    )
+    );
   }
 
   return (
@@ -188,7 +211,7 @@ export default function ProfilePage() {
         description="Manage your personal information and preferences"
         showViewAll={false}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {formSections.map((section, index) => (
             <motion.div
               key={section.type}
@@ -197,22 +220,26 @@ export default function ProfilePage() {
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
               <Card
-                className="p-4 rounded-xl cursor-pointer hover:shadow-md transition-all border border-gray-200 bg-white hover:border-brand-brown"
+                className="hover:border-brand-brown cursor-pointer rounded-xl border border-gray-200 bg-white p-4 transition-all hover:shadow-md"
                 onClick={() => setSelectedForm(section.type)}
               >
                 <div className="flex items-start space-x-4">
                   <div
-                    className="p-2 rounded-lg"
+                    className="rounded-lg p-2"
                     style={{ backgroundColor: `${section.color}20` }}
                   >
                     <div style={{ color: section.color }}>{section.icon}</div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900">{section.title}</h3>
-                    <p className="text-sm text-gray-500">{section.description}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-gray-900">
+                      {section.title}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {section.description}
+                    </p>
                     <div className="mt-2">
                       <Progress value={section.completion} className="h-2" />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="mt-1 text-xs text-gray-500">
                         {section.completion}% Complete
                       </p>
                     </div>
@@ -246,5 +273,5 @@ export default function ProfilePage() {
         </div>
       </DefaultBox>
     </div>
-  )
-} 
+  );
+}

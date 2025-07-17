@@ -21,7 +21,7 @@ const config = {
         source: "/(.*)",
         headers: [
           {
-            key: "X-C{ontent-Type-Options",
+            key: "X-Content-Type-Options",
             value: "nosniff",
           },
           {
