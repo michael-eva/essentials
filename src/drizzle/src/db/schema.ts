@@ -198,17 +198,18 @@ export const onboarding = pgTable("onboarding", {
     .notNull()
     .default(sql`now()`),
 
-  name: text("name"),
-  age: integer("age"),
-  height: integer("height"),
-  weight: integer("weight"),
-  gender: text("gender"),
+  // name: text("name"),
+  // age: integer("age"),
+  // height: integer("height"),
+  // weight: integer("weight"),
+  // gender: text("gender"),
 
   // exercises: text("exercises").array(),
   // otherExercises: text("other_exercises").array(),
   // exerciseFrequency: text("exercise_frequency"),
   // sessionLength: text("session_length"),
 
+  //health considerations
   injuries: boolean("injuries"),
   injuriesDetails: text("injuries_details"),
   recentSurgery: boolean("recent_surgery"),
@@ -221,6 +222,7 @@ export const onboarding = pgTable("onboarding", {
 
   // goalTimeline: text("goal_timeline"),
 
+  //pilates
   fitnessLevel: text("fitness_level"),
   pilatesExperience: boolean("pilates_experience"),
   pilatesDuration: text("pilates_duration"),

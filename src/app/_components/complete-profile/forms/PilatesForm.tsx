@@ -32,8 +32,6 @@ interface PilatesSubmitData {
   fitnessGoals: string[];
   otherFitnessGoals: string[];
   specificGoals: string | null;
-  apparatusPreference: PilatesApparatus[];
-  customApparatus: CustomPilatesApparatus[];
 }
 
 export default function PilatesForm({
@@ -66,6 +64,7 @@ export default function PilatesForm({
   const pilatesMissingFields = missingFields?.pilates || [];
   const hasMissingFields = pilatesMissingFields.length > 0;
   console.log(pilatesMissingFields);
+  console.log(hasMissingFields);
 
   // Create dynamic schema based on missingFields
   const createSchema = () => {
@@ -95,13 +94,29 @@ export default function PilatesForm({
     }
 
     // Pilates duration field (optional)
-    schemaFields.pilatesDuration = z.enum(PILATES_DURATION).optional();
+    if (isRequired('pilatesDuration')) {
+      schemaFields.pilatesDuration = z.enum(PILATES_DURATION).optional();
+    } else {
+      schemaFields.pilatesDuration = z.enum(PILATES_DURATION).optional();
+    }
 
     // Pilates styles field (optional)
-    schemaFields.pilatesStyles = z.array(z.string()).optional();
+    if (isRequired('pilatesStyles')) {
+      schemaFields.pilatesStyles = z.array(z.string(), {
+        required_error: "Pilates styles are required",
+      });
+    } else {
+      schemaFields.pilatesStyles = z.array(z.string()).optional();
+    }
 
     // Home equipment field (optional)
-    schemaFields.homeEquipment = z.array(z.string()).optional();
+    if (isRequired('homeEquipment')) {
+      schemaFields.homeEquipment = z.array(z.string(), {
+        required_error: "Home equipment is required",
+      });
+    } else {
+      schemaFields.homeEquipment = z.array(z.string()).optional();
+    }
 
     // Fitness goals field (required)
     if (isRequired('fitnessGoals')) {
@@ -111,10 +126,22 @@ export default function PilatesForm({
     }
 
     // Other fitness goals field (optional)
-    schemaFields.otherFitnessGoals = z.array(z.string()).optional();
+    if (isRequired('otherFitnessGoals')) {
+      schemaFields.otherFitnessGoals = z.array(z.string(), {
+        required_error: "Other fitness goals are required",
+      });
+    } else {
+      schemaFields.otherFitnessGoals = z.array(z.string()).optional();
+    }
 
     // Specific goals field (optional)
-    schemaFields.specificGoals = z.string().optional();
+    if (isRequired('specificGoals')) {
+      schemaFields.specificGoals = z.string({
+        required_error: "Specific goals are required",
+      });
+    } else {
+      schemaFields.specificGoals = z.string().optional();
+    }
 
     return z.object(schemaFields);
   };
@@ -134,8 +161,6 @@ export default function PilatesForm({
       fitnessGoals: [],
       otherFitnessGoals: [],
       specificGoals: undefined,
-      apparatusPreference: [],
-      customApparatus: [],
     }
   });
 
@@ -176,74 +201,54 @@ export default function PilatesForm({
     setValue("otherFitnessGoals", updated);
   };
 
-  const handleApparatusChange = (apparatus: string) => {
-    const currentApparatus = watch("apparatusPreference") || [];
-    if (Array.isArray(currentApparatus)) {
-      const newApparatus = currentApparatus.includes(apparatus)
-        ? currentApparatus.filter((a: string) => a !== apparatus)
-        : [...currentApparatus, apparatus];
-      setValue("apparatusPreference", newApparatus);
-    }
-  };
-
-  const handleCustomApparatusChange = (apparatus: string) => {
-    const currentApparatus = watch("customApparatus") || [];
-    if (Array.isArray(currentApparatus)) {
-      const newApparatus = currentApparatus.includes(apparatus)
-        ? currentApparatus.filter((a: string) => a !== apparatus)
-        : [...currentApparatus, apparatus];
-      setValue("customApparatus", newApparatus);
-    }
-  };
 
   const onSubmit = async (data: PilatesFormData) => {
-    // Build submit data with proper types, only including fields that have values
+    console.log("data", data);
+    // Build submit data with proper types, only including fields that are in missingFields
     const submitData: Partial<PilatesSubmitData> = {};
 
-    if (data.pilatesExperience !== undefined) {
+    // Only include fields that are actually being collected (in missingFields)
+    if (pilatesMissingFields.includes('fitnessLevel') && data.fitnessLevel !== undefined) {
+      submitData.fitnessLevel = data.fitnessLevel;
+    }
+    if (pilatesMissingFields.includes('pilatesExperience') && data.pilatesExperience !== undefined) {
       submitData.pilatesExperience = data.pilatesExperience;
     }
-    if (data.pilatesDuration !== undefined) {
+    if (pilatesMissingFields.includes('pilatesDuration') && data.pilatesExperience === true && data.pilatesDuration !== undefined) {
       submitData.pilatesDuration = data.pilatesDuration as PilatesDuration;
     }
-    if (data.pilatesStyles && Array.isArray(data.pilatesStyles) && data.pilatesStyles.length > 0) {
+    if (pilatesMissingFields.includes('pilatesStyles') && data.pilatesStyles && Array.isArray(data.pilatesStyles) && data.pilatesStyles.length > 0) {
       submitData.pilatesStyles = data.pilatesStyles;
     }
-    if (data.homeEquipment && Array.isArray(data.homeEquipment) && data.homeEquipment.length > 0) {
+    if (pilatesMissingFields.includes('homeEquipment') && data.homeEquipment && Array.isArray(data.homeEquipment) && data.homeEquipment.length > 0) {
       submitData.homeEquipment = data.homeEquipment;
     }
-    if (data.fitnessGoals && Array.isArray(data.fitnessGoals) && data.fitnessGoals.length > 0) {
+    if (pilatesMissingFields.includes('fitnessGoals') && data.fitnessGoals && Array.isArray(data.fitnessGoals) && data.fitnessGoals.length > 0) {
       submitData.fitnessGoals = data.fitnessGoals;
     }
-    if (data.otherFitnessGoals && Array.isArray(data.otherFitnessGoals) && data.otherFitnessGoals.length > 0) {
+    if (pilatesMissingFields.includes('otherFitnessGoals') && data.otherFitnessGoals && Array.isArray(data.otherFitnessGoals) && data.otherFitnessGoals.length > 0) {
       submitData.otherFitnessGoals = data.otherFitnessGoals;
     }
-    if (data.specificGoals !== undefined) {
+    if (pilatesMissingFields.includes('specificGoals') && data.specificGoals !== undefined) {
       submitData.specificGoals = data.specificGoals;
     }
-    if (data.apparatusPreference && Array.isArray(data.apparatusPreference) && data.apparatusPreference.length > 0) {
-      submitData.apparatusPreference = data.apparatusPreference as PilatesApparatus[];
-    }
-    if (data.customApparatus && Array.isArray(data.customApparatus) && data.customApparatus.length > 0) {
-      submitData.customApparatus = data.customApparatus as CustomPilatesApparatus[];
-    }
-
-    // Only submit if there's actual data
+    console.log("submitData", submitData);
+    // Only submit if theresactual data
     if (Object.keys(submitData).length > 0) {
-      // Ensure all required fields are present for the API
-      const apiData = {
-        fitnessLevel: submitData.fitnessLevel ?? null,
-        pilatesExperience: submitData.pilatesExperience ?? null,
-        pilatesDuration: submitData.pilatesDuration ?? null,
-        pilatesStyles: submitData.pilatesStyles || [],
-        homeEquipment: submitData.homeEquipment || [],
-        fitnessGoals: submitData.fitnessGoals || [],
-        otherFitnessGoals: submitData.otherFitnessGoals || [],
-        specificGoals: submitData.specificGoals ?? undefined,
-        apparatusPreference: submitData.apparatusPreference || [],
-        customApparatus: submitData.customApparatus || [],
+      console.log("submitData", submitData);
+      // Create a properly typed payload with only the fields were updating
+      const apiPayload = {
+        ...submitData,
+        // Ensure array fields are never undefined
+        ...(submitData.fitnessGoals && { fitnessGoals: submitData.fitnessGoals }),
+        ...(submitData.pilatesStyles && { pilatesStyles: submitData.pilatesStyles }),
+        ...(submitData.homeEquipment && { homeEquipment: submitData.homeEquipment }),
+        ...(submitData.otherFitnessGoals && { otherFitnessGoals: submitData.otherFitnessGoals }),
+        // Convert null to undefined for specificGoals
+        ...(submitData.specificGoals !== undefined && submitData.specificGoals !== null && { specificGoals: submitData.specificGoals }),
       };
-      postPilatesExperience(apiData);
+      console.log("apiPayload", apiPayload);
+      postPilatesExperience(apiPayload as Parameters<typeof postPilatesExperience>[0]);
     } else {
       // If no data to submit, just proceed to next step
       onNext();
@@ -251,6 +256,7 @@ export default function PilatesForm({
   };
 
   const handleNext = async () => {
+    console.log("handleNext");
     handleSubmit(onSubmit)();
   };
 
@@ -395,25 +401,27 @@ export default function PilatesForm({
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-4">
-            What styles do you enjoy? (Select multiple)
-          </label>
-          {errors.pilatesStyles && (
-            <p className="mb-2 text-sm text-red-600">{typeof errors.pilatesStyles?.message === 'string' ? errors.pilatesStyles.message : 'Invalid input'}</p>
-          )}
-          <Controller
-            name="pilatesStyles"
-            control={control}
-            render={({ field }) => (
-              <MultiSelectPills
-                options={[...PILATES_STYLES]}
-                selectedValues={field.value || []}
-                onChange={handlePilatesStylesChange}
-              />
+          {pilatesMissingFields.includes('pilatesStyles') && <div>
+            <label className="block text-sm font-medium text-gray-700 mb-4">
+              What styles do you enjoy? (Select multiple)
+            </label>
+            {errors.pilatesStyles && (
+              <p className="mb-2 text-sm text-red-600">{typeof errors.pilatesStyles?.message === 'string' ? errors.pilatesStyles.message : 'Invalid input'}</p>
             )}
-          />
+            <Controller
+              name="pilatesStyles"
+              control={control}
+              render={({ field }) => (
+                <MultiSelectPills
+                  options={[...PILATES_STYLES]}
+                  selectedValues={field.value || []}
+                  onChange={handlePilatesStylesChange}
+                />
+              )}
+            />
+          </div>}
 
-          <div className="mt-8">
+          {pilatesMissingFields.includes('homeEquipment') && <div className="mt-8">
             <label className="block text-sm font-medium text-gray-700 mb-4">
               What equipment do you have access to? (Select multiple)
             </label>
@@ -431,28 +439,30 @@ export default function PilatesForm({
                 />
               )}
             />
-          </div>
+          </div>}
 
           <div className="mt-8">
-            <label className="mb-4 block text-base font-medium text-gray-700">
-              What are your primary fitness goals? (Select all that apply)
-            </label>
-            {errors.fitnessGoals && (
-              <p className="mb-2 text-sm text-red-600">
-                {typeof errors.fitnessGoals.message === 'string' ? errors.fitnessGoals.message : 'Invalid input'}
-              </p>
-            )}
-            <Controller
-              name="fitnessGoals"
-              control={control}
-              render={({ field }) => (
-                <MultiSelectPills
-                  options={GOALS}
-                  selectedValues={field.value}
-                  onChange={handleFitnessGoalsChange}
-                />
+            {pilatesMissingFields.includes('fitnessGoals') && <div>
+              <label className="mb-4 block text-base font-medium text-gray-700">
+                What are your primary fitness goals? (Select all that apply)
+              </label>
+              {errors.fitnessGoals && (
+                <p className="mb-2 text-sm text-red-600">
+                  {typeof errors.fitnessGoals.message === 'string' ? errors.fitnessGoals.message : 'Invalid input'}
+                </p>
               )}
-            />
+              <Controller
+                name="fitnessGoals"
+                control={control}
+                render={({ field }) => (
+                  <MultiSelectPills
+                    options={GOALS}
+                    selectedValues={field.value}
+                    onChange={handleFitnessGoalsChange}
+                  />
+                )}
+              />
+            </div>}
             {watch("fitnessGoals")?.includes("Other") && (
               <div className="mt-4 flex flex-col gap-2">
                 <div className="flex gap-2">
@@ -495,7 +505,7 @@ export default function PilatesForm({
             )}
           </div>
 
-          <div className="mt-8">
+          {pilatesMissingFields.includes('specificGoals') && <div className="mt-8">
             <label
               htmlFor="specific-goals"
               className="block text-base font-medium text-gray-700"
@@ -523,50 +533,9 @@ export default function PilatesForm({
                 />
               )}
             />
-          </div>
+          </div>}
         </div>
 
-        {/* {pilatesMissingFields.includes('apparatusPreference') && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-4">
-              What pilates apparatus do you prefer?
-            </label>
-            {errors.apparatusPreference && (
-              <p className="mb-2 text-sm text-red-600">{typeof errors.apparatusPreference?.message === 'string' ? errors.apparatusPreference.message : 'Invalid input'}</p>
-            )}
-            <Controller
-              name="apparatusPreference"
-              control={control}
-              render={({ field }) => (
-                <MultiSelectPills
-                  options={[...PILATES_APPARATUS]}
-                  selectedValues={field.value || []}
-                  onChange={handleApparatusChange}
-                />
-              )}
-            />
-          </div>
-        )} */}
-
-        {/* <div>
-          <label className="block text-sm font-medium text-gray-700 mb-4">
-            Custom pilates apparatus (optional)
-          </label>
-          {errors.customApparatus && (
-            <p className="mb-2 text-sm text-red-600">{typeof errors.customApparatus?.message === 'string' ? errors.customApparatus.message : 'Invalid input'}</p>
-          )}
-          <Controller
-            name="customApparatus"
-            control={control}
-            render={({ field }) => (
-              <MultiSelectPills
-                options={[...PILATES_APPARATUS]}
-                selectedValues={field.value || []}
-                onChange={handleCustomApparatusChange}
-              />
-            )}
-          />
-        </div> */}
       </div>
 
       <DialogFooter className="gap-2 sm:justify-center">

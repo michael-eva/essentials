@@ -8,30 +8,30 @@ import {
 import { workoutTimesEnum, weekendTimesEnum } from "@/drizzle/src/db/schema";
 
 export const onboardingRouter = createTRPCRouter({
-  postBasicQuestions: protectedProcedure
-    .input(
-      z.object({
-        name: z.string().nullable().optional(),
-        age: z.number().nullable().optional(),
-        height: z.number().nullable().optional(),
-        weight: z.number().nullable().optional(),
-        gender: z.string().nullable().optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { name, age, height, weight, gender } = input;
-      const userId = ctx.userId;
+  // postBasicQuestions: protectedProcedure
+  //   .input(
+  //     z.object({
+  //       name: z.string().nullable().optional(),
+  //       age: z.number().nullable().optional(),
+  //       height: z.number().nullable().optional(),
+  //       weight: z.number().nullable().optional(),
+  //       gender: z.string().nullable().optional(),
+  //     }),
+  //   )
+  //   .mutation(async ({ ctx, input }) => {
+  //     const { name, age, height, weight, gender } = input;
+  //     const userId = ctx.userId;
 
-      await insertOnboarding({
-        userId,
-        name,
-        age,
-        height,
-        weight,
-        gender,
-        step: "basic_questions",
-      });
-    }),
+  //     await insertOnboarding({
+  //       userId,
+  //       name,
+  //       age,
+  //       height,
+  //       weight,
+  //       gender,
+  //       step: "basic_questions",
+  //     });
+  //   }),
   postFitnessBackground: protectedProcedure
     .input(
       z.object({
@@ -135,9 +135,7 @@ export const onboardingRouter = createTRPCRouter({
         pilatesDuration: z.string().optional().nullable(),
         pilatesStyles: z.array(z.string()).optional(),
         homeEquipment: z.array(z.string()).optional(),
-        fitnessGoals: z
-          .array(z.string())
-          .min(1, "Please select at least one goal"),
+        fitnessGoals: z.array(z.string()).optional(),
         otherFitnessGoals: z.array(z.string()).optional(),
         specificGoals: z.string().optional(),
       }),

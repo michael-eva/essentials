@@ -7,7 +7,7 @@ import { use } from "react";
 import MotivationForm from "@/app/_components/onboarding/MotivationForm";
 import PilatesForm from "@/app/_components/onboarding/PilatesForm";
 import { STEPS } from "../constants";
-import WorkoutTimingForm from "@/app/_components/onboarding/WorkoutTimingForm";
+// import WorkoutTimingForm from "@/app/_components/onboarding/WorkoutTimingForm";
 type PageProps = {
     params: Promise<{
         tab: string;
@@ -22,14 +22,14 @@ export default function OnboardingPage({ params }: PageProps) {
         const isLastStep = currentStepIndex === STEPS.length - 1;
 
         switch (tab) {
-            case "basic-info":
-                return (
-                    <BasicQuestionForm
-                        isFirstStep={isFirstStep}
-                        isLastStep={isLastStep}
-                        currentStep={tab}
-                    />
-                );
+            // case "basic-info":
+            //     return (
+            //         <BasicQuestionForm
+            //             isFirstStep={isFirstStep}
+            //             isLastStep={isLastStep}
+            //             currentStep={tab}
+            //         />
+            //     );
             // case "fitness-background":
             //     return <FitnessBgForm isFirstStep={isFirstStep} isLastStep={isLastStep} currentStep={tab} />;
             case "health-considerations":
