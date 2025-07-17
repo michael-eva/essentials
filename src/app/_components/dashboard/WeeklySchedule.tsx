@@ -1,12 +1,13 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Trash2, Edit, Plus } from "lucide-react"
-import Link from "next/link"
+import { Edit, Plus } from "lucide-react"
 import type { Workout } from "@/drizzle/src/db/queries"
-import { useState } from "react"
 import { WeekCircularProgress } from "@/components/ui/WeekCircularProgress"
 import { useRouter } from "next/navigation"
+import PilatesVideoCard from "./PilatesVideoCard"
+import WorkoutCard from "./WorkoutCard"
+import type { PilatesVideo } from "@/types/pilates"
 
 interface WeeklyScheduleProps {
   weeks: Array<{
@@ -44,6 +45,7 @@ export default function WeeklySchedule({
   planData
 }: WeeklyScheduleProps) {
   const router = useRouter()
+  console.log(weeks);
 
   // Calculate current week based on plan start date and paused time
   const getCurrentWeek = () => {
@@ -88,7 +90,6 @@ export default function WeeklySchedule({
       router.push(`/dashboard/workout/${workout.id}`)
     }
   }
-
   return (
     <Accordion type="multiple" className="w-full">
       {weeks.map((week) => (
@@ -145,16 +146,48 @@ export default function WeeklySchedule({
             )}
             <div className="space-y-3">
               {week.items.filter(Boolean).map((item, index) => {
-                const workout = item as Workout;
+                const workout = item as Workout & { mux_playback_id?: string };
+                console.log("workout", workout)
+                // Convert Workout to PilatesVideo format for class types
+                const convertToPilatesVideo = (workout: Workout & { mux_playback_id?: string }): PilatesVideo => ({
+                  id: workout.id,
+                  title: workout.name,
+                  summary: workout.description,
+                  duration: workout.duration,
+                  difficulty: workout.level,
+                  videoUrl: '',
+                  mux_playback_id: workout.mux_playback_id || null,
+                });
+
+                if (workout.type === 'class') {
+                  return (
+                    <div key={index} className="relative">
+                      {isEditing && editingWeeks.has(week.weekNumber) && onDeleteClass && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteClass(week.weekNumber, index);
+                          }}
+                          className="absolute -top-2 right-0 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-sm font-bold transition-colors z-10"
+                        >
+                          ×
+                        </button>
+                      )}
+                      <PilatesVideoCard video={convertToPilatesVideo(workout)} link={`/dashboard/class/${workout.id}`} height={130} />
+                      {workout.status === 'completed' && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2 mt-2">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Completed
+                        </span>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
-                  <div
-                    key={index}
-                    className={`py-3 px-3 flex flex-col gap-2 border-l-4 rounded border-b relative ${workout.type === 'class'
-                      ? 'border-brand-nude bg-brand-nude/10'
-                      : 'border-brand-sage bg-brand-sage/10'
-                      }`}
-                    onClick={() => handleWorkoutClick(workout)}
-                  >
+                  <div key={index} className="relative">
                     {isEditing && editingWeeks.has(week.weekNumber) && onDeleteClass && (
                       <button
                         onClick={(e) => {
@@ -166,43 +199,11 @@ export default function WeeklySchedule({
                         ×
                       </button>
                     )}
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          {workout.type === 'class' ? (
-                            <span className="inline-flex items-center text-xs text-blue-700">
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
-                              Class
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center text-xs text-green-700">
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8" /></svg>
-                              Workout
-                            </span>
-                          )}
-                          <span className="font-semibold text-base">{workout.name}</span>
-                        </div>
-                        <div className="flex gap-1 mb-1">
-                          <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
-                            {workout.level}
-                          </span>
-                          <span className="text-xs rounded bg-[var(--secondary)]/10 text-[var(--secondary)] px-2 py-0.5">
-                            {workout.duration} min
-                          </span>
-                        </div>
-                        <div className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                          {workout.description}
-                        </div>
-                      </div>
-                      {workout.status === 'completed' && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
-                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          Completed
-                        </span>
-                      )}
-                    </div>
+                    <WorkoutCard
+                      workout={workout}
+                      link={`/dashboard/workout/${workout.id}`}
+                      height={130}
+                    />
                   </div>
                 );
               })}

@@ -1,8 +1,6 @@
 'use client'
 import { use } from "react";
-import MuxPlayer from '@mux/mux-player-react';
-import { Badge } from "@/components/ui/badge";
-import { Clock, Target, Users, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +10,7 @@ import { toast } from "sonner";
 import MarkClassComplete from "@/app/_components/dashboard/MarkClassComplete";
 import MarkClassMissed from "@/app/_components/dashboard/MarkClassMissed";
 import type { WorkoutFormValues } from "@/app/_components/dashboard/MarkClassComplete";
+import PilatesDetail from "@/app/_components/dashboard/PilatesDetail";
 
 type PageProps = {
   params: Promise<{
@@ -159,10 +158,11 @@ export default function Page({ params }: PageProps) {
     return <ClassPageSkeleton />;
   }
 
-  const parsedTags = JSON.parse(pilatesClass?.tags) as string[];
-  const equipmentList = pilatesClass?.equipment?.split(',').map(e => e.trim());
-  const parsedExerciseSequence = JSON.parse(pilatesClass?.exerciseSequence) as string[];
-  const targetedMuscles = pilatesClass?.targetedMuscles?.split(',').map(m => m.trim());
+  const parsedTags = pilatesClass?.tags ? JSON.parse(pilatesClass.tags) as string[] : [];
+  const equipmentList = pilatesClass?.equipment?.split(',').map(e => e.trim()) ?? [];
+  
+  const parsedExerciseSequence = pilatesClass?.exerciseSequence ? JSON.parse(pilatesClass.exerciseSequence) as string[] : [];
+  const targetedMuscles = pilatesClass?.targetedMuscles?.split(',').map(m => m.trim()) ?? [];
 
   const handleMarkMissed = () => {
     updateWorkoutStatus.mutate({
@@ -192,110 +192,19 @@ export default function Page({ params }: PageProps) {
 
   return (
     <>
-      <div>
-        <Button
-          variant="ghost"
-          onClick={() => window.history.back()}
-          className="flex items-center gap-2 text-brand-brown hover:text-brand-brown/80 mb-2"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Back</span>
-        </Button>
-      </div>
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm border border-brand-brown overflow-hidden md:p-8 p-0">
-        {/* Back Button */}
-        {/* Responsive flex row for desktop, stacked on mobile */}
-        <div className="flex flex-col md:flex-row md:gap-8">
-          {/* Video Player */}
-          <div className="aspect-video bg-black w-full md:w-1/2 md:min-w-[340px] md:max-w-[420px] md:rounded-lg overflow-hidden">
-            <MuxPlayer
-              playbackId={pilatesClass?.mux_playback_id}
-              metadata={{ title: pilatesClass?.title }}
-              className="w-full h-full"
-            />
-          </div>
-
-          {/* Info Section */}
-          <div className="p-5 md:p-0 flex-1 flex flex-col justify-center">
-            {/* Title and Summary */}
-            <div className="mb-2">
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-semibold leading-tight text-gray-900">{pilatesClass?.title}</h1>
-              <p className="text-sm md:text-base text-muted-foreground">with {pilatesClass?.instructor}</p>
-            </div>
-
-            {/* Key Info Row */}
-            <div className="flex flex-wrap items-center gap-4 text-sm md:text-base text-gray-700 mb-2">
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {pilatesClass?.duration} min
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                {pilatesClass?.difficulty}
-              </div>
-              <div className="flex items-center gap-1">
-                <Target className="w-4 h-4" />
-                {pilatesClass?.focusArea}
-              </div>
-            </div>
-
-            {/* Targeted Muscles */}
-            <div className="flex flex-wrap gap-2 mb-2">
-              {targetedMuscles.map((muscle, i) => (
-                <Badge key={i} variant="outline" className="text-brand-brown border-brand-brown/30 px-2 py-0.5 text-xs md:text-sm font-medium">
-                  {muscle}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <hr className="my-4 border-gray-100" />
-
-        {/* About Section */}
-        <div className="px-5 md:px-0 mb-4">
-          <h2 className="font-semibold text-base md:text-lg mb-1">About This Workout</h2>
-          <p className="text-sm md:text-base text-gray-700 leading-relaxed">{pilatesClass?.description}</p>
-        </div>
-
-        {/* Equipment Needed */}
-        <div className="px-5 md:px-0 mb-4">
-          <h3 className="font-semibold text-sm md:text-base mb-1">Equipment Needed</h3>
-          <div className="flex flex-wrap gap-2">
-            {equipmentList.map((eq, i) => (
-              <Badge key={i} variant="outline" className="text-gray-700 border-gray-200 px-2 py-0.5 text-xs md:text-sm font-medium">
-                {eq}
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* Exercise Sequence */}
-        <div className="px-5 md:px-0 mb-2">
-          <h3 className="font-semibold text-sm md:text-base mb-2">Exercise Sequence</h3>
-          <ol className="space-y-2">
-            {parsedExerciseSequence.map((step: string, i: number) => (
-              <li key={i} className="flex items-center gap-3">
-                <span className="w-7 h-7 rounded-full bg-brand-brown text-white flex items-center justify-center font-bold text-sm md:text-base">
-                  {i + 1}
-                </span>
-                <span className="text-gray-800 text-sm md:text-base">{step}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        {/* Tags (now beneath exercise sequence) */}
-        <div className="px-5 pt-2 md:px-0 mb-6">
-          <div className="flex flex-wrap gap-2">
-            {parsedTags.map((tag: string, i: number) => (
-              <Badge key={i} variant="outline" className="text-gray-700 border-gray-200 px-2 py-0.5 text-xs md:text-sm font-medium">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        </div>
-
+      <PilatesDetail
+        title={pilatesClass?.title ?? ""}
+        instructor={pilatesClass?.instructor}
+        duration={pilatesClass?.duration}
+        difficulty={pilatesClass?.difficulty}
+        focusArea={pilatesClass?.focusArea}
+        description={pilatesClass?.description}
+        equipmentList={equipmentList}
+        exerciseSequence={parsedExerciseSequence}
+        tags={parsedTags}
+        targetedMuscles={targetedMuscles}
+        mux_playback_id={pilatesClass?.mux_playback_id ?? undefined}
+      >
         {/* Quick Actions */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -325,8 +234,7 @@ export default function Page({ params }: PageProps) {
             </Button>
           </div>
         </motion.div>
-      </div>
-
+      </PilatesDetail>
       {/* Dialogs */}
       <MarkClassComplete
         isDialogOpen={isDialogOpen}

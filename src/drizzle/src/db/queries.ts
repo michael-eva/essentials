@@ -10,6 +10,9 @@ import {
   lte,
   asc,
   isNull,
+  count,
+  isNotNull,
+  ne,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -25,6 +28,8 @@ import {
   AiChatMessages,
   AiSystemPrompt,
   PilatesVideos,
+  type PilatesVideosParams,
+  PilatesVideosParamsSchema
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -186,7 +191,10 @@ export async function getSupplementaryWorkouts(
 
 export async function getPreviousPlans(userId: string): Promise<
   (WorkoutPlan & {
-    weeklySchedules: { weekNumber: number; items: Workout[] }[];
+    weeklySchedules: {
+      weekNumber: number;
+      items: (Workout & { mux_playback_id?: string })[];
+    }[];
   })[]
 > {
   const plans = await db
@@ -208,14 +216,54 @@ export async function getPreviousPlans(userId: string): Promise<
         .from(workout)
         .where(inArray(workout.id, workoutIds));
 
+      // 1. Get all classIds for class-type workouts
+      const classIds = planWorkouts
+        .filter((w) => w.type === "class" && w.classId)
+        .map((w) => w.classId)
+        .filter((id): id is string => id !== null);
+
+      // 2. Fetch pilates videos for those classIds
+      let pilatesVideos: { id: string; mux_playback_id: string }[] = [];
+      if (classIds.length > 0) {
+        pilatesVideos = (
+          await db
+            .select({
+              id: PilatesVideos.id,
+              mux_playback_id: PilatesVideos.mux_playback_id,
+            })
+            .from(PilatesVideos)
+            .where(inArray(PilatesVideos.id, classIds))
+        ).filter((v) => v.mux_playback_id !== null) as {
+          id: string;
+          mux_playback_id: string;
+        }[];
+      }
+
+      // 3. Create a map for quick lookup
+      const pilatesVideoMap = Object.fromEntries(
+        pilatesVideos.map((v) => [v.id, v.mux_playback_id]),
+      );
+
+      // 4. When building weekWorkouts, attach mux_playback_id if class
       const weeks = Array.from({ length: plan.weeks }, (_, i) => {
         const weekNumber = i + 1;
         const weekSchedules = planWeeklySchedules.filter(
           (ws) => ws.weekNumber === weekNumber,
         );
         const weekWorkouts = weekSchedules
-          .map((ws) => planWorkouts.find((w) => w.id === ws.workoutId))
-          .filter((w): w is Workout => w !== undefined);
+          .map((ws) => {
+            const w = planWorkouts.find((w) => w.id === ws.workoutId);
+            if (w && w.type === "class" && w.classId) {
+              return {
+                ...w,
+                mux_playback_id: pilatesVideoMap[w.classId] || null,
+              };
+            }
+            return w;
+          })
+          .filter(
+            (w): w is Workout & { mux_playback_id?: string } => w !== undefined,
+          );
         return {
           weekNumber,
           items: weekWorkouts,
@@ -257,14 +305,54 @@ export async function getActivePlan(userId: string): Promise<
     .from(workout)
     .where(inArray(workout.id, workoutIds));
 
+  // 1. Get all classIds for class-type workouts
+  const classIds = planWorkouts
+    .filter((w) => w.type === "class" && w.classId)
+    .map((w) => w.classId)
+    .filter((id): id is string => id !== null);
+
+  // 2. Fetch pilates videos for those classIds
+  let pilatesVideos: { id: string; mux_playback_id: string }[] = [];
+  if (classIds.length > 0) {
+    pilatesVideos = (
+      await db
+        .select({
+          id: PilatesVideos.id,
+          mux_playback_id: PilatesVideos.mux_playback_id,
+        })
+        .from(PilatesVideos)
+        .where(inArray(PilatesVideos.id, classIds))
+    ).filter((v) => v.mux_playback_id !== null) as {
+      id: string;
+      mux_playback_id: string;
+    }[];
+  }
+
+  // 3. Create a map for quick lookup
+  const pilatesVideoMap = Object.fromEntries(
+    pilatesVideos.map((v) => [v.id, v.mux_playback_id]),
+  );
+
+  // 4. When building weekWorkouts, attach mux_playback_id if class
   const weeks = Array.from({ length: plan[0].weeks }, (_, i) => {
     const weekNumber = i + 1;
     const weekSchedules = planWeeklySchedules.filter(
       (ws) => ws.weekNumber === weekNumber,
     );
     const weekWorkouts = weekSchedules
-      .map((ws) => planWorkouts.find((w) => w.id === ws.workoutId))
-      .filter((w): w is Workout => w !== undefined);
+      .map((ws) => {
+        const w = planWorkouts.find((w) => w.id === ws.workoutId);
+        if (w && w.type === "class" && w.classId) {
+          return {
+            ...w,
+            mux_playback_id: pilatesVideoMap[w.classId] || null,
+          };
+        }
+        return w;
+      })
+      .filter(
+        (w): w is Workout & { mux_playback_id?: string } => w !== undefined,
+      );
     return {
       weekNumber,
       items: weekWorkouts,
@@ -455,12 +543,7 @@ export async function checkOnboardingCompletion(
     return {
       missingFields: {
         basic: ["name", "age", "weight", "gender", "height"],
-        fitness: [
-          "fitnessLevel",
-          "exercises",
-          "exerciseFrequency",
-          "sessionLength",
-        ],
+        fitness: ["exercises", "exerciseFrequency", "sessionLength"],
         health: [
           "injuries",
           "recentSurgery",
@@ -474,10 +557,10 @@ export async function checkOnboardingCompletion(
         ],
         goals: ["fitnessGoals", "goalTimeline"],
         pilates: [
+          "fitnessLevel",
           "pilatesExperience",
-          "studioFrequency",
-          "sessionPreference",
           "apparatusPreference",
+          "pilatesDuration",
           "customApparatus",
         ],
         motivation: ["motivation", "progressTracking"],
@@ -509,7 +592,7 @@ export async function checkOnboardingCompletion(
   if (data.gender === null) missingFields.basic.push("gender");
 
   // Fitness background
-  if (data.fitnessLevel === null) missingFields.fitness.push("fitnessLevel");
+  // if (data.fitnessLevel === null) missingFields.fitness.push("fitnessLevel");
   if (data.exercises === null || data.exercises.length === 0)
     missingFields.fitness.push("exercises");
   if (data.exerciseFrequency === null)
@@ -530,6 +613,7 @@ export async function checkOnboardingCompletion(
   if (data.goalTimeline === null) missingFields.goals.push("goalTimeline");
 
   // Pilates
+  if (data.fitnessLevel === null) missingFields.pilates.push("fitnessLevel");
   if (data.pilatesExperience === null)
     missingFields.pilates.push("pilatesExperience");
   if (data.pilatesExperience === true && data.pilatesDuration === null)
@@ -542,11 +626,12 @@ export async function checkOnboardingCompletion(
   if (data.customApparatus === null || data.customApparatus.length === 0)
     missingFields.pilates.push("customApparatus");
 
+  // if (data.studioFrequency === null)
+  //   missingFields.pilates.push("studioFrequency");
+  // if (data.sessionPreference === null)
+  //   missingFields.pilates.push("sessionPreference");
+
   // Motivation
-  if (data.studioFrequency === null)
-    missingFields.pilates.push("studioFrequency");
-  if (data.sessionPreference === null)
-    missingFields.pilates.push("sessionPreference");
   if (data.motivation === null) missingFields.motivation.push("motivation");
   if (data.progressTracking === null)
     missingFields.motivation.push("progressTracking");
@@ -750,6 +835,7 @@ export async function getPilatesClasses(): Promise<Array<PilatesVideos>> {
   const pilatesClasses = await db.select().from(PilatesVideos);
   return pilatesClasses;
 }
+
 export async function getPilatesClassViaWorkout(
   workoutId: string,
 ): Promise<PilatesVideos | null> {
@@ -764,6 +850,92 @@ export async function getPilatesClassViaWorkout(
     .from(PilatesVideos)
     .where(eq(PilatesVideos.id, workoutResult[0].classId));
   return pilatesClass[0] ?? null;
+}
+
+export async function getPilatesVideoById(
+  id: string,
+): Promise<PilatesVideos | null> {
+  const result = await db
+    .select()
+    .from(PilatesVideos)
+    .where(eq(PilatesVideos.id, id));
+  return result[0] ?? null;
+}
+
+
+function buildPilatesVideoFilters(params: PilatesVideosParams) {
+  const { difficulty, equipment, instructor, minDuration, maxDuration } = params;
+
+  const filters = [];
+  if (difficulty) filters.push(eq(PilatesVideos.difficulty, difficulty));
+  if (equipment) filters.push(eq(PilatesVideos.equipment, equipment));
+  if (instructor) filters.push(eq(PilatesVideos.instructor, instructor));
+  if (minDuration !== undefined) filters.push(gte(PilatesVideos.duration, minDuration));
+  if (maxDuration !== undefined) filters.push(lte(PilatesVideos.duration, maxDuration));
+
+  return filters.length > 0 ? and(...filters) : undefined;
+}
+
+export async function getPilatesVideos(params: PilatesVideosParams & { random?: boolean }) {
+  const { limit, offset, random } = params;
+  const where = buildPilatesVideoFilters(params);
+
+  let itemsPromise;
+  if (random) {
+    itemsPromise = db.select().from(PilatesVideos).where(where).orderBy(sql`RANDOM()`).limit(limit).offset(offset);
+  } else {
+    itemsPromise = db.select().from(PilatesVideos).where(where).limit(limit).offset(offset);
+  }
+
+  const [items, countResult] = await Promise.all([
+    itemsPromise,
+    db.select({ count: count() }).from(PilatesVideos).where(where),
+  ]);
+
+  return {
+    items,
+    total: countResult[0]?.count ?? 0,
+  };
+}
+
+export async function getPilatesVideoFilterOptions() {
+  const [difficulties, equipments, instructors] = await Promise.all([
+    db
+      .selectDistinct({ difficulty: PilatesVideos.difficulty })
+      .from(PilatesVideos)
+      .where(
+        and(
+          isNotNull(PilatesVideos.difficulty),
+          ne(PilatesVideos.difficulty, '')
+        )
+      ),
+
+    db
+      .selectDistinct({ equipment: PilatesVideos.equipment })
+      .from(PilatesVideos)
+      .where(
+        and(
+          isNotNull(PilatesVideos.equipment),
+          ne(PilatesVideos.equipment, '')
+        )
+      ),
+
+    db
+      .selectDistinct({ instructor: PilatesVideos.instructor })
+      .from(PilatesVideos)
+      .where(
+        and(
+          isNotNull(PilatesVideos.instructor),
+          ne(PilatesVideos.instructor, '')
+        )
+      ),
+  ]);
+
+  return {
+    difficulty: difficulties.map((row: { difficulty: string }) => row.difficulty),
+    equipment: equipments.map((row: { equipment: string }) => row.equipment),
+    instructor: instructors.map((row: { instructor: string | null }) => row.instructor!),
+  };
 }
 
 export async function getWorkoutsByWeek(planId: string, weekNumber: number) {

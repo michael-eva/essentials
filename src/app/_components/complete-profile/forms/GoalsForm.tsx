@@ -1,7 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
@@ -11,14 +10,13 @@ import { GOAL_TIMELINE, GOALS } from "@/app/_constants/goals";
 import { Button } from "@/components/ui/button";
 import type { MissingFieldsGrouped } from "../../dashboard/MultiStepGeneratePlanDialog";
 import { DialogFooter } from "@/components/ui/dialog";
-
-// Define proper types for the form data
-type GoalTimeline = typeof GOAL_TIMELINE[number];
+import type { GoalTimeline } from "@/app/_constants/goals";
 
 interface GoalsSubmitData {
   fitnessGoals: string[];
   goalTimeline: GoalTimeline | null;
   specificGoals: string | undefined;
+  otherFitnessGoals: string[]
 }
 
 export default function GoalsForm({
@@ -126,6 +124,7 @@ export default function GoalsForm({
         fitnessGoals: submitData.fitnessGoals || [],
         goalTimeline: submitData.goalTimeline || null,
         specificGoals: submitData.specificGoals || undefined,
+        otherFitnessGoals: submitData.otherFitnessGoals || []
       };
       postFitnessGoals(apiData);
     } else {

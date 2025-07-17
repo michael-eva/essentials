@@ -1,0 +1,1 @@
+ALTER TABLE "onboarding" ADD COLUMN "other_fitness_goals" text[];

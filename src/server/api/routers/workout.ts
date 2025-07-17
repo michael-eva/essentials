@@ -4,6 +4,10 @@ import { TRPCError } from "@trpc/server";
 import {
   getPilatesClassViaWorkout,
   getWorkoutById,
+  getPilatesClasses,
+  getPilatesVideoById,
+  getPilatesVideos,
+  getPilatesVideoFilterOptions,
 } from "@/drizzle/src/db/queries";
 import { deleteWorkout, insertWorkouts } from "@/drizzle/src/db/mutations";
 
@@ -75,5 +79,50 @@ export const workoutRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const pilatesClass = await getPilatesClassViaWorkout(input.workoutId);
       return pilatesClass;
+    }),
+
+  // endpoint to fetch all pilates videos
+  getPilatesVideos: protectedProcedure
+    .input(z.object({
+      page: z.number().min(1).default(1),
+      limit: z.number().min(1).max(50).default(1),
+      difficulty: z.string().optional(),
+      equipment: z.string().optional(),
+      instructor: z.string().optional(),
+      minDuration: z.number().optional(),
+      maxDuration: z.number().optional(),
+      random: z.boolean().optional(),
+    }).optional())
+    .query(async ({ input }) => {
+      const page = input?.page ?? 1;
+      const limit = input?.limit ?? 10;
+      const offset = (page - 1) * limit;
+      return await getPilatesVideos({
+        ...input,
+        limit,
+        offset,
+      });
+    }),
+
+  // endpoint to fetch unique filter options for pilates videos
+  getPilatesVideoFilterOptions: protectedProcedure
+    .query(async () => {
+      return await getPilatesVideoFilterOptions();
+    }),
+
+  // endpoint to fetch a single pilates video by id
+  getPilatesVideoById: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      try {
+        const video = await getPilatesVideoById(input.id);
+        if (!video) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Pilates video not found" });
+        }
+        return video;
+      } catch (error) {
+        console.error('Error in getPilatesVideoById endpoint:', error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch pilates video" });
+      }
     }),
 });

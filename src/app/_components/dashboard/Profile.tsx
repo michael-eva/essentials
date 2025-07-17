@@ -103,27 +103,30 @@ export default function ProfilePage() {
           })
           break
         }
-        case "fitnessBg": {
-          const fitnessData = data as FormData["fitnessBg"]
-          postFitnessBackground({
-            fitnessLevel: fitnessData.fitnessLevel,
-            exercises: fitnessData.exercises,
-            exerciseFrequency: fitnessData.exerciseFrequency,
-            sessionLength: fitnessData.sessionLength,
-            otherExercises: fitnessData.exercises.includes("Other") ? [fitnessData.customExercise ?? ""] : null
-          })
-          break
-        }
+        // case "fitnessBg": {
+        //   const fitnessData = data as FormData["fitnessBg"]
+        //   postFitnessBackground({
+        //     fitnessLevel: fitnessData.fitnessLevel,
+        //     exercises: fitnessData.exercises,
+        //     exerciseFrequency: fitnessData.exerciseFrequency,
+        //     sessionLength: fitnessData.sessionLength,
+        //     otherExercises: fitnessData.otherExercises
+        //   })
+        //   break
+        // }
         case "healthCons": {
           const healthData = data as FormData["healthCons"]
+
           postHealthConsiderations({
             injuries: healthData.injuries ?? false,
-            recentSurgery: healthData.recentSurgery ?? false,
-            chronicConditions: healthData.chronicConditions,
-            pregnancy: healthData.pregnancy ?? "Not applicable",
             injuriesDetails: healthData.injuries ? healthData.injuriesDetails ?? null : null,
+            recentSurgery: healthData.recentSurgery ?? false,
             surgeryDetails: healthData.recentSurgery ? healthData.surgeryDetails ?? null : null,
-            otherHealthConditions: healthData.chronicConditions.includes("Other") ? healthData.otherHealthConditions ?? null : null
+            chronicConditions: healthData.chronicConditions,
+            otherHealthConditions: healthData.chronicConditions.includes("Other") ? healthData.otherHealthConditions ?? null : null,
+            pregnancy: healthData.pregnancy ?? "Not applicable",
+            pregnancyConsultedDoctor: healthData.pregnancyConsultedDoctor ?? false,
+            pregnancyConsultedDoctorDetails: healthData.pregnancyConsultedDoctorDetails ?? null
           })
           break
         }
@@ -132,19 +135,24 @@ export default function ProfilePage() {
           postFitnessGoals({
             fitnessGoals: goalsData.fitnessGoals,
             goalTimeline: goalsData.goalTimeline,
-            specificGoals: goalsData.specificGoals ?? undefined
+            specificGoals: goalsData.specificGoals ?? undefined,
+            otherFitnessGoals: goalsData.otherFitnessGoals
           })
           break
         }
         case "pilates": {
           const pilatesData = data as FormData["pilates"]
           postPilatesExperience({
+            fitnessLevel: pilatesData.fitnessLevel,
             pilatesExperience: pilatesData.pilatesExperience,
-            studioFrequency: pilatesData.studioFrequency,
-            sessionPreference: pilatesData.sessionPreference,
+            // studioFrequency: pilatesData.studioFrequency,
+            // sessionPreference: pilatesData.sessionPreference,
             apparatusPreference: pilatesData.apparatusPreference,
+            otherApparatusPreferences: pilatesData.otherApparatusPreferences,
             pilatesDuration: pilatesData.pilatesExperience ? pilatesData.pilatesDuration ?? null : null,
-            customApparatus: pilatesData.customApparatus ?? undefined
+            customApparatus: pilatesData.customApparatus ?? undefined,
+            otherCustomApparatus: pilatesData.otherCustomApparatus
+
           })
           break
         }
@@ -219,10 +227,10 @@ export default function ProfilePage() {
       {selectedForm && formData && (
         <EditFormDialog
           open={!!selectedForm}
-          onOpenChange={(open) => !open && setSelectedForm(null)}
+          onOpenChangeAction={(open: boolean) => !open && setSelectedForm(null)}
           formType={selectedForm}
           formData={formData[selectedForm]}
-          onSubmit={(data) => handleFormSubmit(selectedForm, data)}
+          onSubmitAction={(data) => handleFormSubmit(selectedForm, data)}
           formSections={formSections}
         />
       )}

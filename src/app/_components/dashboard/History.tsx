@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
-import { Activity, BarChart3, CalendarDays, Clock, Bike, Footprints, Mountain, Waves, Plus, MapPin, Dumbbell, ChevronDown, ChevronUp } from "lucide-react"
+import { Activity, BarChart3, CalendarDays, Clock, Bike, Footprints, Mountain, Waves, Plus, MapPin, Dumbbell, ChevronDown, ChevronUp, ArrowLeft } from "lucide-react"
 import { api } from "@/trpc/react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
@@ -13,6 +13,7 @@ import RecordManualActivity, { type ActivityFormValues } from "./RecordManualAct
 import { toast } from "sonner"
 import { HistorySkeleton } from "./DashboardSkeleton"
 import DefaultBox from "../global/DefaultBox"
+import { useRouter } from "next/navigation"
 
 // Map activity types to icons
 const activityTypeIcons: Record<string, React.ReactNode> = {
@@ -27,6 +28,7 @@ const activityTypeIcons: Record<string, React.ReactNode> = {
 }
 
 export default function WorkoutHistory() {
+  const router = useRouter()
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [page, setPage] = useState(1)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -148,6 +150,14 @@ export default function WorkoutHistory() {
 
   return (
     <div className="space-y-6">
+      <Button
+        variant="ghost"
+        onClick={() => router.back()}
+        className="flex items-center gap-2 text-brand-brown hover:text-brand-brown/80"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span>Back</span>
+      </Button>
       <DefaultBox
         title="Activity History"
         description="Your recent workouts and progress"

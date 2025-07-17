@@ -266,9 +266,9 @@ export function AIInteractionSection() {
       {GeneratePlanDialog}
       <LoadingScreen />
       {/* Mobile: Fixed chat interface */}
-      <div className="md:hidden fixed inset-0 top-20 flex flex-col bg-white">
+      <div className="md:hidden fixed inset-0 top-[62px] flex flex-col">
         {/* Personal Trainer Header Section - Mobile */}
-        <div className="flex-shrink-0 px-4 pt-4">
+        <div className="flex-shrink-0 px-4">
           <DefaultBox
             title="Coach Emma"
             description="Your fitness companion"

@@ -24,17 +24,17 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "cycle",
   "swim",
   "walk",
-  "hike",
-  "rowing",
-  "elliptical",
-  "workout",
-  "weightlift",
-  "dance",
-  "team sports",
-  "pilates",
-  "bodyweight",
-  "resistance",
-  "other",
+  // "hike",
+  // "rowing",
+  // "elliptical",
+  // "workout",
+  // "weightlift",
+  // "dance",
+  // "team sports",
+  // "pilates",
+  // "bodyweight",
+  // "resistance",
+  // "other",
 ]);
 
 export const workoutTimesEnum = pgEnum("workout_times", [
@@ -56,6 +56,18 @@ export const weekendTimesEnum = pgEnum("weekend_workout_times", [
 ]);
 
 export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
+
+export const PilatesVideosParamsSchema = z.object({
+  limit: z.number().int().positive().optional().default(5),
+  offset: z.number().int().nonnegative().optional().default(0),
+  difficulty: z.string().optional(),
+  equipment: z.string().optional(),
+  instructor: z.string().optional(),
+  minDuration: z.number().nonnegative().optional(),
+  maxDuration: z.number().nonnegative().optional(),
+});
+
+export type PilatesVideosParams = z.infer<typeof PilatesVideosParamsSchema>;
 
 export const user = pgTable("user", {
   id: uuid("id").primaryKey().unique(),
@@ -220,6 +232,7 @@ export const onboarding = pgTable("onboarding", {
   pregnancyConsultedDoctorDetails: text("pregnancy_consulted_doctor_details"),
 
   fitnessGoals: text("fitness_goals").array(),
+  otherFitnessGoals: text("other_fitness_goals").array(),
   goalTimeline: text("goal_timeline"),
   specificGoals: text("specific_goals"),
 
@@ -228,7 +241,9 @@ export const onboarding = pgTable("onboarding", {
   studioFrequency: text("studio_frequency"),
   sessionPreference: text("session_preference"),
   apparatusPreference: text("apparatus_preference").array(),
+  otherApparatusPreferences: text("other_apparatus_preference").array(),
   customApparatus: text("custom_apparatus").array(),
+  otherCustomApparatus: text("other_custom_apparatus").array(),
 
   motivation: text("motivation").array(),
   otherMotivation: text("other_motivation").array(),

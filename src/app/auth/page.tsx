@@ -27,8 +27,8 @@ export default function AuthPage() {
       >
         <source src="/hero-video.mp4" type="video/mp4" />
       </video>
-      <div className="absolute bottom-0 left-0 right-0 pb-8 px-2 bg-gradient-to-t from-black/50 to-transparent w-full">
-        <div className="container flex justify-between md:justify-center gap-4 md:gap-24">
+      <div className="absolute bottom-0 left-0 right-0 pb-8 px-2 bg-gradient-to-t from-black/50 to-transparent">
+        <div className="w-full pb-10 flex justify-between md:justify-center gap-4 md:gap-24">
           <Button
             size="lg"
             className="bg-white text-black hover:bg-white/90 rounded-full h-12 flex-1"
