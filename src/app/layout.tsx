@@ -20,11 +20,16 @@ export const metadata: Metadata = {
   ],
   manifest: "/manifest.json",
   themeColor: "#000000",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Essentials",
+  },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "Essentials",
   },
 };
 

@@ -2,12 +2,10 @@
 
 const CACHE_NAME = 'essentials-v1'
 const urlsToCache = [
-  '/',
-  '/dashboard',
-  '/onboarding',
   '/manifest.json',
   '/logo/essentials_logo.png',
-  '/logo/essentials_studio_logo.png'
+  '/logo/essentials_studio_logo.png',
+  '/offline.html'
 ]
 
 // Install event - cache resources
@@ -23,11 +21,35 @@ self.addEventListener('install', (event) => {
 
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
+  // Handle navigation requests (pages)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          // Return offline page when navigation fails
+          return caches.match('/offline.html')
+        })
+    )
+    return
+  }
+
+  // Only cache static assets, not pages that might redirect
+  if (event.request.destination === 'document') {
+    return
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
         // Return cached version or fetch from network
         return response || fetch(event.request)
+          .catch(() => {
+            // Return a simple offline response for failed requests
+            if (event.request.destination === 'image') {
+              return new Response('', { status: 404 })
+            }
+            return new Response('Offline', { status: 503 })
+          })
       })
   )
 })

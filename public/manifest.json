@@ -2,7 +2,7 @@
   "name": "Essentials - Personal Fitness",
   "short_name": "Essentials",
   "description": "Your personal fitness companion with AI-powered workout plans and progress tracking",
-  "start_url": "/",
+  "start_url": "/dashboard/overview",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
