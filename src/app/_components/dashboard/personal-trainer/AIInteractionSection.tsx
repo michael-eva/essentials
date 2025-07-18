@@ -420,13 +420,14 @@ export function AIInteractionSection() {
                 </PopoverContent>
               </Popover>
             }
+            showChildren={false}
           >
             <CustomizePTDialog open={showCustomize} onOpenChange={setShowCustomize} />
           </DefaultBox>
         </div>
 
         {/* Messages Area - Mobile */}
-        <div className="flex-1 overflow-hidden px-4 py-2">
+        <div className="flex-1 overflow-hidden px-4 py-2 pt-5">
           <div ref={mobileScrollRef} className="h-full overflow-y-auto px-4 py-4 border border-brand-brown/20 rounded-lg bg-brand-light-nude">
             {isLoadingHistory && messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
