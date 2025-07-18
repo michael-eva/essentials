@@ -347,3 +347,10 @@ export async function insertWeeklySchedule(data: {
   const result = await db.insert(weeklySchedule).values(data).returning();
   return result[0];
 }
+
+export async function deletePersonalTrainerInteraction(userId: string) {
+  const result = await db
+    .delete(AiChatMessages)
+    .where(eq(AiChatMessages.userId, userId));
+  return result;
+}

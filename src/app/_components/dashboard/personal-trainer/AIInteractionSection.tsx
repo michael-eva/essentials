@@ -2,18 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Settings, Sparkles, Info, Activity, Zap, Play } from "lucide-react";
+import { Send, MessageSquare, Settings, Sparkles, Info, Activity, Zap, Play, Trash2 } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import type { AppRouter } from "@/server/api/root";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogFooter } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import DefaultBox from "../../global/DefaultBox";
 import { motion } from "framer-motion";
 import useGeneratePlan from "@/hooks/useGeneratePlan";
 import { CustomizePTDialog } from "./CustomizePTSection";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { utils } from "prettier/doc.js";
 
 type Message = {
   id: string;
@@ -111,10 +114,12 @@ export function AIInteractionSection() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCustomize, setShowCustomize] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   const desktopScrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const utils = api.useUtils();
 
   // Get trainer info and status
   const { data: trainerInfo, isLoading: isLoadingInfo } = api.myPt.getTrainerInfo.useQuery();
@@ -129,6 +134,14 @@ export function AIInteractionSection() {
   // Get pilates videos for class recommendations
   const { data: pilatesVideos } = api.workout.getPilatesVideos.useQuery({
     limit: 50
+  });
+
+
+  const { mutate: deleteChat } = api.personalTrainer.deleteChat.useMutation({
+    onSuccess: () => {
+      toast.success("Chat history cleared");
+      utils.myPt.getChatHistory.invalidate();
+    },
   });
 
   // Mutation for sending messages
@@ -157,20 +170,16 @@ export function AIInteractionSection() {
     generatePlan();
   };
 
-  const handleClassRecommendation = (className: string, classType: 'video' | 'class') => {
+  const handleClassRecommendation = (className: string) => {
     const video = pilatesVideos?.items?.find(v => v.title === className);
     console.log('🔍 Found pilates video:', video);
     router.push(`/dashboard/pilates-video/${video?.id}`);
   };
 
-  // Debug: Log tool calls for assistant messages
-  useEffect(() => {
-    messages.forEach(message => {
-      if (message.role === "assistant" && message.toolCalls) {
-        console.log("🔍 Tool calls for message:", message.id, message.toolCalls);
-      }
-    });
-  }, [messages]);
+  const handleDeleteConfirmation = () => {
+    setShowDeleteDialog(false);
+    deleteChat();
+  };
 
   // Load chat history into messages when it's fetched
   useEffect(() => {
@@ -182,13 +191,6 @@ export function AIInteractionSection() {
         timestamp: new Date(msg.createdAt),
         toolCalls: msg.toolCalls || undefined,
       }));
-
-      // Debug: Log timestamps to see the order
-      console.log("📅 Message timestamps:", formattedMessages.map(m => ({
-        id: m.id,
-        timestamp: m.timestamp.toISOString(),
-        role: m.role
-      })));
 
       setMessages(formattedMessages);
 
@@ -345,6 +347,38 @@ export function AIInteractionSection() {
     <>
       {GeneratePlanDialog}
       <LoadingScreen />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" />
+              Clear Chat
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to clear your chat history? This action cannot be undone and will remove all chat history.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirmation}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear Chat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Mobile: Fixed chat interface */}
       <div className="md:hidden fixed inset-0 top-[62px] flex flex-col">
         {/* Personal Trainer Header Section - Mobile */}
@@ -353,8 +387,39 @@ export function AIInteractionSection() {
             title="Coach Emma"
             description="Your fitness companion"
             showViewAll={false}
-            icon={<Settings />}
-            iconClick={() => setShowCustomize(true)}
+            icon={
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="sm" className="p-2">
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-0">
+                  <div className="flex flex-col">
+                    <Button
+                      variant="ghost"
+                      className="justify-start px-4 py-2 text-sm"
+                      onClick={() => {
+                        setShowCustomize(true);
+                      }}
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Meet your trainer
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => {
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Clear Chat
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            }
           >
             <CustomizePTDialog open={showCustomize} onOpenChange={setShowCustomize} />
           </DefaultBox>
@@ -448,7 +513,7 @@ export function AIInteractionSection() {
                         {classRecommendation?.hasRecommendation && (
                           <div className="mt-3 pt-3 border-t border-gray-200">
                             <Button
-                              onClick={() => handleClassRecommendation(classRecommendation.className!, classRecommendation.classType!)}
+                              onClick={() => handleClassRecommendation(classRecommendation.className!)}
                               disabled={isGeneratePlanLoading}
                               className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
                               size="sm"
@@ -519,8 +584,39 @@ export function AIInteractionSection() {
           title="Coach Emma"
           description="Your fitness companion"
           showViewAll={false}
-          icon={<Settings />}
-          iconClick={() => setShowCustomize(true)}
+          icon={
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-2">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-0">
+                <div className="flex flex-col">
+                  <Button
+                    variant="ghost"
+                    className="justify-start px-4 py-2 text-sm"
+                    onClick={() => {
+                      setShowCustomize(true);
+                    }}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Meet your trainer
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => {
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          }
         >
           <CustomizePTDialog open={showCustomize} onOpenChange={setShowCustomize} />
 
@@ -611,7 +707,7 @@ export function AIInteractionSection() {
                         {classRecommendation?.hasRecommendation && (
                           <div className="mt-3 pt-3 border-t border-gray-200">
                             <Button
-                              onClick={() => handleClassRecommendation(classRecommendation.className!, classRecommendation.classType!)}
+                              onClick={() => handleClassRecommendation(classRecommendation.className!)}
                               disabled={isGeneratePlanLoading}
                               className="w-full bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 text-sm"
                               size="sm"

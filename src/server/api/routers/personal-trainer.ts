@@ -5,7 +5,10 @@ import {
   getPersonalTrainerInteractions,
   getPersonalTrainerInteraction,
 } from "@/drizzle/src/db/queries";
-import { insertPersonalTrainerInteraction } from "@/drizzle/src/db/mutations";
+import {
+  deletePersonalTrainerInteraction,
+  insertPersonalTrainerInteraction,
+} from "@/drizzle/src/db/mutations";
 import {
   buildUserContext,
   updateContextWithWorkout,
@@ -176,6 +179,19 @@ export const personalTrainerRouter = createTRPCRouter({
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch latest progress",
+      });
+    }
+  }),
+
+  // Delete chat
+  deleteChat: protectedProcedure.mutation(async ({ ctx }) => {
+    try {
+      return await deletePersonalTrainerInteraction(ctx.userId);
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to delete chat",
       });
     }
   }),
