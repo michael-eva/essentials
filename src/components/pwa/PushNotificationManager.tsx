@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { subscribeUser, unsubscribeUser } from '@/app/actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useSession } from '@/contexts/SessionContext'
 
 // Utility function to convert base64 URL to Uint8Array
 const base64UrlToUint8Array = (base64UrlData: string) => {
@@ -44,6 +45,7 @@ export function PushNotificationManager() {
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false)
+  const { user } = useSession()
 
   useEffect(() => {
     // Check if we're in a browser environment and service workers are supported
@@ -91,6 +93,12 @@ export function PushNotificationManager() {
   }
 
   const subscribeToNotifications = async () => {
+    // Check if user is authenticated
+    if (!user?.id) {
+      alert('Please log in to subscribe to notifications')
+      return
+    }
+
     // Check if we're in a browser environment
     if (typeof window === 'undefined' || !navigator.serviceWorker) {
       alert('Push notifications are not supported in this environment')
@@ -124,8 +132,12 @@ export function PushNotificationManager() {
       // Convert subscription to a serializable object
       const raw = subscription.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
       // Send subscription to server
-      await subscribeUser(raw)
-      setIsSubscribed(true)
+      if (user?.id) {
+        await subscribeUser(raw, user.id)
+        setIsSubscribed(true)
+      } else {
+        throw new Error('User not authenticated')
+      }
     } catch (error) {
       console.error('Error subscribing to notifications:', error)
       alert('Failed to subscribe to notifications')
@@ -152,7 +164,7 @@ export function PushNotificationManager() {
       
       if (subscription) {
         await unsubscribeFromPushMessages(subscription)
-        await unsubscribeUser()
+        await unsubscribeUser(subscription.endpoint)
         setIsSubscribed(false)
       }
     } catch (error) {

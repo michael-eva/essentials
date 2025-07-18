@@ -1,6 +1,8 @@
 'use server'
 
 import webpush from 'web-push'
+import { getAllPushSubscriptions } from '@/drizzle/src/db/queries'
+import { deletePushSubscriptionByEndpoint } from '@/drizzle/src/db/mutations'
 
 // Configure VAPID details for push notifications (only if keys are available)
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
@@ -14,9 +16,7 @@ if (vapidPublicKey && vapidPrivateKey) {
   )
 }
 
-// In a production environment, you would store subscriptions in a database
-// For now, we'll use a simple in-memory store
-// We'll use the browser's PushSubscription type, but only store serializable data
+// Interface for serializable push subscription
 interface SerializablePushSubscription {
   endpoint: string
   keys: {
@@ -25,33 +25,79 @@ interface SerializablePushSubscription {
   }
 }
 
-let subscriptions: SerializablePushSubscription[] = []
+// Return type definitions
+interface SubscribeResult {
+  success: boolean
+  action?: string
+  error?: string
+}
 
-export async function subscribeUser(sub: SerializablePushSubscription) {
+interface UnsubscribeResult {
+  success: boolean
+  error?: string
+}
+
+interface SendNotificationResult {
+  success: boolean
+  sent?: number
+  failed?: number
+  total?: number
+  error?: string
+}
+
+interface SendToUserResult {
+  success: boolean
+  sent?: number
+  error?: string
+}
+
+export async function subscribeUser(sub: SerializablePushSubscription, userId: string): Promise<SubscribeResult> {
   try {
-    // Check if subscription already exists
-    const exists = subscriptions.some(
-      (existing) => existing.endpoint === sub.endpoint
-    )
+    // Call the API endpoint to save subscription to database
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/subscribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        endpoint: sub.endpoint,
+        p256dh: sub.keys.p256dh,
+        auth: sub.keys.auth,
+        userId: userId,
+      }),
+    })
+
+    const result = await response.json() as { success: boolean; action?: string; error?: string }
     
-    if (!exists) {
-      subscriptions.push(sub)
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to subscribe user')
     }
     
-    // In production, save to database:
-    // await db.subscriptions.create({ data: { endpoint: sub.endpoint, ... } })
-    
-    return { success: true }
+    return { success: true, action: result.action }
   } catch (error) {
     console.error('Error subscribing user:', error)
     return { success: false, error: 'Failed to subscribe user' }
   }
 }
 
-export async function unsubscribeUser() {
+export async function unsubscribeUser(endpoint: string): Promise<UnsubscribeResult> {
   try {
-    // In production, remove from database:
-    // await db.subscriptions.delete({ where: { userId: userId } })
+    // Call the API endpoint to remove subscription from database
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/unsubscribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        endpoint: endpoint,
+      }),
+    })
+
+    const result = await response.json() as { success: boolean; error?: string }
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to unsubscribe user')
+    }
     
     return { success: true }
   } catch (error) {
@@ -60,11 +106,14 @@ export async function unsubscribeUser() {
   }
 }
 
-export async function sendNotification(message: string, title = 'Essentials') {
+export async function sendNotification(message: string, title = 'Essentials'): Promise<SendNotificationResult> {
   if (!vapidPublicKey || !vapidPrivateKey) {
     return { success: false, error: 'VAPID keys not configured' }
   }
 
+  // Get all subscriptions from database
+  const subscriptions = await getAllPushSubscriptions()
+  
   if (subscriptions.length === 0) {
     return { success: false, error: 'No subscriptions available' }
   }
@@ -83,7 +132,13 @@ export async function sendNotification(message: string, title = 'Essentials') {
   const results = await Promise.allSettled(
     subscriptions.map((subscription) =>
       webpush.sendNotification(
-        subscription,
+        {
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: subscription.p256dh,
+            auth: subscription.auth,
+          },
+        },
         JSON.stringify(notificationPayload)
       )
     )
@@ -97,15 +152,18 @@ export async function sendNotification(message: string, title = 'Essentials') {
     (result) => result.status === 'rejected'
   ).length
 
-  // Remove failed subscriptions
+  // Remove failed subscriptions from database
   if (failed > 0) {
     const failedSubscriptions = results
       .map((result, index) => ({ result, index }))
       .filter(({ result }) => result.status === 'rejected')
       .map(({ index }) => subscriptions[index])
 
-    subscriptions = subscriptions.filter(
-      (sub) => !failedSubscriptions.includes(sub)
+    // Delete failed subscriptions from database
+    await Promise.allSettled(
+      failedSubscriptions.map((sub) => 
+        sub ? deletePushSubscriptionByEndpoint(sub.endpoint) : Promise.resolve()
+      )
     )
   }
 
@@ -117,18 +175,66 @@ export async function sendNotification(message: string, title = 'Essentials') {
   }
 }
 
+// Helper function to send notification to specific user
+export async function sendNotificationToUser(userId: string, message: string, title = 'Essentials'): Promise<SendToUserResult> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/send-to-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        title,
+        message,
+      }),
+    });
+
+    const result = await response.json() as { success: boolean; sent?: number; error?: string };
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send notification to user');
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error sending notification to user:', error);
+    return { success: false, error: 'Failed to send notification to user' };
+  }
+}
+
 // Example function to send workout reminders
-export async function sendWorkoutReminder(userId: string, workoutName: string) {
-  return sendNotification(
+export async function sendWorkoutReminder(userId: string, workoutName: string): Promise<SendToUserResult> {
+  return sendNotificationToUser(
+    userId,
     `Time for your ${workoutName} workout! 💪`,
     'Workout Reminder'
-  )
+  );
 }
 
 // Example function to send progress updates
-export async function sendProgressUpdate(userId: string, milestone: string) {
-  return sendNotification(
+export async function sendProgressUpdate(userId: string, milestone: string): Promise<SendToUserResult> {
+  return sendNotificationToUser(
+    userId,
     `Congratulations! You've reached: ${milestone} 🎉`,
     'Progress Update'
-  )
+  );
+}
+
+// Example function to send workout completion notifications
+export async function sendWorkoutCompleted(userId: string, workoutName: string): Promise<SendToUserResult> {
+  return sendNotificationToUser(
+    userId,
+    `Great job completing your ${workoutName} workout! 🎉`,
+    'Workout Completed'
+  );
+}
+
+// Example function to send weekly progress summaries
+export async function sendWeeklyProgress(userId: string, completedWorkouts: number): Promise<SendToUserResult> {
+  return sendNotificationToUser(
+    userId,
+    `You completed ${completedWorkouts} workouts this week! Keep up the amazing work! 💪`,
+    'Weekly Progress'
+  );
 } 
