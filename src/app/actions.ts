@@ -3,8 +3,8 @@
 import webpush from 'web-push'
 
 // Configure VAPID details for push notifications (only if keys are available)
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY!
 
 if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails(
