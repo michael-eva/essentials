@@ -1,27 +1,11 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
-import { CheckCircle, Circle } from "lucide-react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { DEFAULT_EXERCISE_OPTIONS, EXERCISE_FREQUENCY, FITNESS_LEVEL, SESSION_LENGTH } from "@/app/_constants/fitness";
-import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
-import BasicQuestionsForm from "../complete-profile/forms/BasicQuestions";
 import HealthConsiderationsForm from "../complete-profile/forms/HealthConsiderationsForm";
-import GoalsFormComplete from "../complete-profile/forms/GoalsForm";
 import PilatesFormComplete from "../complete-profile/forms/PilatesForm";
 import MotivationFormComplete from "../complete-profile/forms/MotivationForm";
-import WorkoutTimingFormComplete from "../complete-profile/forms/WorkoutTimingForm";
 import GeneratePlanForm, { type PlanPreferences } from "./GeneratePlanDialog";
 import { STEPS } from "@/app/onboarding/constants";
-import FitnessBackgroundForm from "../complete-profile/forms/FitnessBg";
-
-
 
 interface MultiStepGeneratePlanDialogProps {
   open: boolean;
@@ -34,7 +18,7 @@ type OnboardingStep = (typeof STEPS)[number] | 'plan-generation';
 
 // Define field groups with proper typing - EXPORTED for use in form components
 export const FIELD_GROUPS = {
-  basicInfo: ['name', 'age', 'weight', 'gender', 'height'] as const,
+  // basicInfo: ['name', 'age', 'weight', 'gender', 'height'] as const,
   fitnessBackground: ['exercises', 'exerciseFrequency', 'sessionLength'] as const,
   healthConsiderations: ['injuries', 'recentSurgery', 'chronicConditions', 'pregnancy', 'injuriesDetails', 'surgeryDetails', 'otherHealthConditions', 'pregnancyConsultedDoctor', 'pregnancyConsultedDoctorDetails'] as const,
   goals: ['fitnessGoals', 'goalTimeline'] as const,
@@ -55,7 +39,7 @@ export type MissingFieldsGrouped = {
 };
 
 // Export types for use in form components
-export type BasicInfoField = typeof FIELD_GROUPS.basicInfo[number];
+// export type BasicInfoField = typeof FIELD_GROUPS.basicInfo[number];
 export type FitnessBackgroundField = typeof FIELD_GROUPS.fitnessBackground[number];
 export type HealthConsiderationsField = typeof FIELD_GROUPS.healthConsiderations[number];
 export type GoalsField = typeof FIELD_GROUPS.goals[number];
@@ -77,7 +61,6 @@ export default function MultiStepGeneratePlanDialog({
   const { data: onboardingResult, isLoading: isLoadingOnboarding } = api.onboarding.checkOnboardingCompletion.useQuery(undefined, {
     enabled: open,
   });
-
   // Determine which onboarding steps are needed
   useEffect(() => {
     if (isLoadingOnboarding) return;
@@ -95,13 +78,13 @@ export default function MultiStepGeneratePlanDialog({
       // Dynamically add steps in the order defined in onboarding constants
       STEPS.forEach(step => {
         const stepFieldMap = {
-          'basic-info': missingFields.basic,
-          'fitness-background': missingFields.fitness,
+          // 'basic-info': missingFields.basic,
+          // 'fitness-background': missingFields.fitness,
           'health-considerations': missingFields.health,
-          'goals': missingFields.goals,
+          // 'goals': missingFields.goals,
           'pilates': missingFields.pilates,
           'motivation': missingFields.motivation,
-          'workout-timing': missingFields.timing,
+          // 'workout-timing': missingFields.timing,
         };
 
         const stepFields = stepFieldMap[step];
@@ -119,9 +102,7 @@ export default function MultiStepGeneratePlanDialog({
   }, [onboardingResult, isLoadingOnboarding]);
 
   const currentStep = onboardingSteps[currentStepIndex];
-  const isPlanGenerationStep = currentStep === 'plan-generation';
-  const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === onboardingSteps.length - 1;
+
 
   const handleNext = () => {
     setCurrentStepIndex(prev => prev + 1);
@@ -146,18 +127,18 @@ export default function MultiStepGeneratePlanDialog({
     }
 
     switch (currentStep) {
-      case 'basic-info':
-        return (
-          <BasicQuestionsForm
-            missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
-              ? onboardingResult.missingFields as MissingFieldsGrouped
-              : undefined
-            }
-            isSubmitting={isSubmittingStep}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-          />
-        );
+      // case 'basic-info':
+      //   return (
+      //     <BasicQuestionsForm
+      //       missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
+      //         ? onboardingResult.missingFields as MissingFieldsGrouped
+      //         : undefined
+      //       }
+      //       isSubmitting={isSubmittingStep}
+      //       onNext={handleNext}
+      //       onPrevious={handlePrevious}
+      //     />
+      // );
       // case 'fitness-background':
       //   return (
       //     <FitnessBackgroundForm
@@ -182,18 +163,18 @@ export default function MultiStepGeneratePlanDialog({
             onPrevious={handlePrevious}
           />
         );
-      case 'goals':
-        return (
-          <GoalsFormComplete
-            missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
-              ? onboardingResult.missingFields as MissingFieldsGrouped
-              : undefined
-            }
-            isSubmitting={isSubmittingStep}
-            onNext={() => setCurrentStepIndex(prev => prev + 1)}
-            onPrevious={handlePrevious}
-          />
-        );
+      // case 'goals':
+      //   return (
+      //     <GoalsFormComplete
+      //       missingFields={onboardingResult && typeof onboardingResult === 'object' && 'missingFields' in onboardingResult
+      //         ? onboardingResult.missingFields as MissingFieldsGrouped
+      //         : undefined
+      //       }
+      //       isSubmitting={isSubmittingStep}
+      //       onNext={() => setCurrentStepIndex(prev => prev + 1)}
+      //       onPrevious={handlePrevious}
+      //     />
+      //   );
       case 'pilates':
         return (
           <PilatesFormComplete

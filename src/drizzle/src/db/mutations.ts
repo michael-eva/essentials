@@ -354,6 +354,13 @@ export async function insertWeeklySchedule(data: {
   return result[0];
 }
 
+export async function deletePersonalTrainerInteraction(userId: string) {
+  const result = await db
+    .delete(AiChatMessages)
+    .where(eq(AiChatMessages.userId, userId));
+  return result;
+}
+
 // Notification mutations
 export async function insertNotification(data: NewNotification): Promise<Notification> {
   const result = await db.insert(notifications).values(data).returning();

@@ -18,34 +18,10 @@ import { PushNotificationManager } from "@/components/pwa/PushNotificationManage
 import { PWATest } from "@/components/pwa/PWATest";
 
 export default function ProfilePage() {
-  const [selectedForm, setSelectedForm] = useState<FormType | null>(null);
-  const { isLoading, formData, formSections } = useProfileCompletion();
-  const utils = api.useUtils();
-  const { mutate: postBasicQuestions } =
-    api.onboarding.postBasicQuestions.useMutation({
-      onSuccess: () => {
-        toast.success("Your profile has been updated successfully.");
-        setSelectedForm(null);
-        utils.onboarding.getOnboardingData.invalidate();
-      },
-      onError: (error) => {
-        console.error("Error updating form data:", error);
-        toast.error("Failed to update your profile. Please try again.");
-      },
-    });
+  const [selectedForm, setSelectedForm] = useState<FormType | null>(null)
+  const { isLoading, formData, formSections } = useProfileCompletion()
+  const utils = api.useUtils()
 
-  const { mutate: postFitnessBackground } =
-    api.onboarding.postFitnessBackground.useMutation({
-      onSuccess: () => {
-        toast.success("Your profile has been updated successfully.");
-        setSelectedForm(null);
-        utils.onboarding.getOnboardingData.invalidate();
-      },
-      onError: (error) => {
-        console.error("Error updating form data:", error);
-        toast.error("Failed to update your profile. Please try again.");
-      },
-    });
 
   const { mutate: postHealthConsiderations } =
     api.onboarding.postHealthConsiderations.useMutation({
@@ -60,18 +36,6 @@ export default function ProfilePage() {
       },
     });
 
-  const { mutate: postFitnessGoals } =
-    api.onboarding.postFitnessGoals.useMutation({
-      onSuccess: () => {
-        toast.success("Your profile has been updated successfully.");
-        setSelectedForm(null);
-        utils.onboarding.getOnboardingData.invalidate();
-      },
-      onError: (error) => {
-        console.error("Error updating form data:", error);
-        toast.error("Failed to update your profile. Please try again.");
-      },
-    });
 
   const { mutate: postPilatesExperience } =
     api.onboarding.postPilatesExperience.useMutation({
@@ -104,28 +68,6 @@ export default function ProfilePage() {
   ) => {
     try {
       switch (formType) {
-        case "basicQuestion": {
-          const basicData = data as FormData["basicQuestion"];
-          postBasicQuestions({
-            name: basicData.name,
-            age: basicData.age,
-            height: basicData.height,
-            weight: basicData.weight,
-            gender: basicData.gender,
-          });
-          break;
-        }
-        // case "fitnessBg": {
-        //   const fitnessData = data as FormData["fitnessBg"]
-        //   postFitnessBackground({
-        //     fitnessLevel: fitnessData.fitnessLevel,
-        //     exercises: fitnessData.exercises,
-        //     exerciseFrequency: fitnessData.exerciseFrequency,
-        //     sessionLength: fitnessData.sessionLength,
-        //     otherExercises: fitnessData.otherExercises
-        //   })
-        //   break
-        // }
         case "healthCons": {
           const healthData = data as FormData["healthCons"];
 
@@ -152,32 +94,20 @@ export default function ProfilePage() {
           });
           break;
         }
-        case "goals": {
-          const goalsData = data as FormData["goals"];
-          postFitnessGoals({
-            fitnessGoals: goalsData.fitnessGoals,
-            goalTimeline: goalsData.goalTimeline,
-            specificGoals: goalsData.specificGoals ?? undefined,
-            otherFitnessGoals: goalsData.otherFitnessGoals,
-          });
-          break;
-        }
+
         case "pilates": {
           const pilatesData = data as FormData["pilates"];
           postPilatesExperience({
             fitnessLevel: pilatesData.fitnessLevel,
             pilatesExperience: pilatesData.pilatesExperience,
-            // studioFrequency: pilatesData.studioFrequency,
-            // sessionPreference: pilatesData.sessionPreference,
-            apparatusPreference: pilatesData.apparatusPreference,
-            otherApparatusPreferences: pilatesData.otherApparatusPreferences,
-            pilatesDuration: pilatesData.pilatesExperience
-              ? (pilatesData.pilatesDuration ?? null)
-              : null,
-            customApparatus: pilatesData.customApparatus ?? undefined,
-            otherCustomApparatus: pilatesData.otherCustomApparatus,
-          });
-          break;
+            pilatesDuration: pilatesData.pilatesExperience ? pilatesData.pilatesDuration ?? null : null,
+            pilatesStyles: pilatesData.pilatesStyles,
+            homeEquipment: pilatesData.homeEquipment,
+            fitnessGoals: pilatesData.fitnessGoals,
+            otherFitnessGoals: pilatesData.otherFitnessGoals,
+            specificGoals: pilatesData.specificGoals ?? undefined
+          })
+          break
         }
         case "motivation": {
           const motivationData = data as FormData["motivation"];

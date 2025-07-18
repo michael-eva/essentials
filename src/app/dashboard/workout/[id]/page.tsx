@@ -123,11 +123,11 @@ export default function WorkoutPage({ params }: PageProps) {
         return <Activity className="h-6 w-6 text-brand-cobalt" />;
       case "walk":
         return <Activity className="h-6 w-6 text-brand-bright-orange" />;
-      case "hike":
-        return <Activity className="h-6 w-6 text-brand-brown" />;
-      case "rowing":
-        return <Activity className="h-6 w-6 text-brand-cobalt" />;
-      case "elliptical":
+        // case "hike":
+        //   return <Activity className="h-6 w-6 text-brand-brown" />;
+        // case "rowing":
+        //   return <Activity className="h-6 w-6 text-brand-cobalt" />;
+        // case "elliptical":
         return <Activity className="h-6 w-6 text-brand-bright-orange" />;
       default:
         return <Activity className="h-6 w-6 text-brand-brown" />;

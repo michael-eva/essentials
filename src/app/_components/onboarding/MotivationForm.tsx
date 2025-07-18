@@ -8,7 +8,6 @@ import { MultiSelectPills } from "@/app/_components/global/multi-select-pills";
 import Input from "../global/Input";
 import FormLayout from "./FormLayout";
 import { api } from "@/trpc/react";
-import { useRouter } from "next/navigation";
 import { isDeveloper } from "@/app/_utils/user-role";
 import { MOTIVATION_FACTORS, PROGRESS_TRACKING_METHODS } from "@/app/_constants/motivation";
 
@@ -49,17 +48,16 @@ export default function MotivationForm({ isFirstStep, isLastStep, currentStep }:
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [customMotivationInput, setCustomMotivationInput] = useState("");
     const [customProgressTrackingInput, setCustomProgressTrackingInput] = useState("");
-    const { register, handleSubmit, formState: { errors, isValid }, control, watch, setValue } = useForm({
+    const { handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
-            motivation: isDeveloper() ? ["Health benefits", "Other"] : [],
-            otherMotivation: isDeveloper() ? ["Developer testing"] : [],
-            progressTracking: isDeveloper() ? ["Body measurements", "Other"] : [],
-            otherProgressTracking: isDeveloper() ? ["Developer testing"] : [],
+            motivation: isDeveloper() ? ["Health benefits"] : [],
+            otherMotivation: [],
+            progressTracking: isDeveloper() ? ["Body measurements"] : [],
+            otherProgressTracking: [],
         }
     });
-    const router = useRouter();
     const { mutate: postMotivation } = api.onboarding.postMotivation.useMutation()
     const handleMotivationChange = (motivation: string) => {
         const currentMotivations = watch("motivation");

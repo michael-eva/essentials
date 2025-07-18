@@ -15,28 +15,28 @@ export const PILATES_SESSIONS = [
   "1 - 2 times per month",
 ] as const;
 
+// export const PILATES_APPARATUS = [
+//   "None",
+//   "Mat",
+//   "Barre",
+//   "Reformer",
+//   "Hot Mat",
+//   "Classical",
+//   "Clinical",
+//   "Other",
+// ];
+
 export const PILATES_APPARATUS = [
   "None",
-  "Mat",
-  "Barre",
-  "Reformer",
-  "Hot Mat",
-  "Classical",
-  "Clinical",
-  "Other",
-];
-
-export const CUSTOM_PILATES_APPARATUS = [
-  "None",
-  "Pilates Mat",
-  "Resistance Bands",
-  "Pilates Mini Ball",
+  "Ankle weights",
+  "Ball",
+  "Weights",
+  "Sliders",
+  "Resistance bands",
+  "Chair",
   "Foam Roller",
-  "Pilates Ring",
-  "Light Weights",
-  "Reformer",
-  "Other",
-];
+  "Blocks",
+] as const;
 
 export const PILATES_SESSION_PREFERENCE = [
   "Online",
@@ -46,9 +46,19 @@ export const PILATES_SESSION_PREFERENCE = [
   "No preference",
 ] as const;
 
+export const PILATES_STYLES = [
+  "Pilates",
+  "Barre",
+  "Strength",
+  "HIIT",
+  "Yoga",
+  "Stretching",
+] as const;
+
 export type PilatesDuration = (typeof PILATES_DURATION)[number];
 export type PilatesSessions = (typeof PILATES_SESSIONS)[number];
 export type PilatesApparatus = (typeof PILATES_APPARATUS)[number];
-export type CustomPilateApparatus = (typeof CUSTOM_PILATES_APPARATUS)[number];
+export type CustomPilateApparatus = (typeof PILATES_APPARATUS)[number];
+export type PilatesStyles = (typeof PILATES_STYLES)[number];
 export type PilatesSessionPreference =
   (typeof PILATES_SESSION_PREFERENCE)[number];

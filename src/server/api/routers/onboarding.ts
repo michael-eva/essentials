@@ -8,30 +8,30 @@ import {
 import { workoutTimesEnum, weekendTimesEnum } from "@/drizzle/src/db/schema";
 
 export const onboardingRouter = createTRPCRouter({
-  postBasicQuestions: protectedProcedure
-    .input(
-      z.object({
-        name: z.string().nullable().optional(),
-        age: z.number().nullable().optional(),
-        height: z.number().nullable().optional(),
-        weight: z.number().nullable().optional(),
-        gender: z.string().nullable().optional(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { name, age, height, weight, gender } = input;
-      const userId = ctx.userId;
+  // postBasicQuestions: protectedProcedure
+  //   .input(
+  //     z.object({
+  //       name: z.string().nullable().optional(),
+  //       age: z.number().nullable().optional(),
+  //       height: z.number().nullable().optional(),
+  //       weight: z.number().nullable().optional(),
+  //       gender: z.string().nullable().optional(),
+  //     }),
+  //   )
+  //   .mutation(async ({ ctx, input }) => {
+  //     const { name, age, height, weight, gender } = input;
+  //     const userId = ctx.userId;
 
-      await insertOnboarding({
-        userId,
-        name,
-        age,
-        height,
-        weight,
-        gender,
-        step: "basic_questions",
-      });
-    }),
+  //     await insertOnboarding({
+  //       userId,
+  //       name,
+  //       age,
+  //       height,
+  //       weight,
+  //       gender,
+  //       step: "basic_questions",
+  //     });
+  //   }),
   postFitnessBackground: protectedProcedure
     .input(
       z.object({
@@ -55,10 +55,10 @@ export const onboardingRouter = createTRPCRouter({
       await insertOnboarding({
         userId,
         fitnessLevel,
-        exercises,
-        otherExercises,
-        exerciseFrequency,
-        sessionLength,
+        // exercises,
+        // otherExercises,
+        // exerciseFrequency,
+        // sessionLength,
         step: "fitness_background",
       });
     }),
@@ -121,7 +121,7 @@ export const onboardingRouter = createTRPCRouter({
       await insertOnboarding({
         userId,
         fitnessGoals,
-        goalTimeline,
+        // goalTimeline,
         specificGoals,
         otherFitnessGoals,
         step: "fitness_goals",
@@ -133,12 +133,11 @@ export const onboardingRouter = createTRPCRouter({
         fitnessLevel: z.string().nullable().optional(),
         pilatesExperience: z.boolean().nullable().optional(),
         pilatesDuration: z.string().optional().nullable(),
-        studioFrequency: z.string().nullable().optional(),
-        sessionPreference: z.string().nullable().optional(),
-        apparatusPreference: z.array(z.string()).optional(),
-        otherApparatusPreferences: z.array(z.string()).optional(),
-        customApparatus: z.array(z.string()).optional(),
-        otherCustomApparatus: z.array(z.string()).optional(),
+        pilatesStyles: z.array(z.string()).optional(),
+        homeEquipment: z.array(z.string()).optional(),
+        fitnessGoals: z.array(z.string()).optional(),
+        otherFitnessGoals: z.array(z.string()).optional(),
+        specificGoals: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -146,12 +145,11 @@ export const onboardingRouter = createTRPCRouter({
         fitnessLevel,
         pilatesExperience,
         pilatesDuration,
-        studioFrequency,
-        sessionPreference,
-        apparatusPreference,
-        otherApparatusPreferences,
-        customApparatus,
-        otherCustomApparatus,
+        pilatesStyles,
+        homeEquipment,
+        fitnessGoals,
+        otherFitnessGoals,
+        specificGoals,
       } = input;
       const userId = ctx.userId;
 
@@ -160,12 +158,11 @@ export const onboardingRouter = createTRPCRouter({
         fitnessLevel,
         pilatesExperience,
         pilatesDuration,
-        studioFrequency,
-        sessionPreference,
-        apparatusPreference,
-        otherApparatusPreferences,
-        customApparatus,
-        otherCustomApparatus,
+        pilatesStyles,
+        homeEquipment,
+        fitnessGoals,
+        otherFitnessGoals,
+        specificGoals,
         step: "pilates_experience",
       });
     }),
@@ -187,7 +184,7 @@ export const onboardingRouter = createTRPCRouter({
       } = input;
       const userId = ctx.userId;
       // required fields are: name, age, weight, gender, fitnessLevel, exercises, exerciseFrequency, sessionLength, injuries, recentSurgery, chronicConditions, pregnancy, fitnessGoals, goalTimeline, pilatesExperience, studioFrequency, sessionPreference, instructors, apparatusPreference, motivation, progressTracking
-      const isCompleted = await checkOnboardingCompletion(userId);
+      // const isCompleted = await checkOnboardingCompletion(userId);
 
       await insertOnboarding({
         userId,
@@ -197,33 +194,33 @@ export const onboardingRouter = createTRPCRouter({
         otherProgressTracking: progressTracking.includes("Other")
           ? otherProgressTracking
           : null,
-        completedAt: isCompleted ? new Date() : null,
-        step: isCompleted ? "completed" : "motivation",
+        completedAt: new Date(),
+        step: "completed",
       });
     }),
-  postWorkoutTiming: protectedProcedure
-    .input(
-      z.object({
-        preferredWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
-        avoidedWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
-        weekendWorkoutTimes: z.enum(weekendTimesEnum.enumValues),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const {
-        preferredWorkoutTimes,
-        avoidedWorkoutTimes,
-        weekendWorkoutTimes,
-      } = input;
-      const userId = ctx.userId;
-      await insertOnboarding({
-        userId,
-        preferredWorkoutTimes,
-        avoidedWorkoutTimes,
-        weekendWorkoutTimes,
-        step: "workout_timing",
-      });
-    }),
+  // postWorkoutTiming: protectedProcedure
+  //   .input(
+  //     z.object({
+  //       preferredWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
+  //       avoidedWorkoutTimes: z.array(z.enum(workoutTimesEnum.enumValues)),
+  //       weekendWorkoutTimes: z.enum(weekendTimesEnum.enumValues),
+  //     }),
+  //   )
+  //   .mutation(async ({ ctx, input }) => {
+  //     const {
+  //       preferredWorkoutTimes,
+  //       avoidedWorkoutTimes,
+  //       weekendWorkoutTimes,
+  //     } = input;
+  //     const userId = ctx.userId;
+  //     await insertOnboarding({
+  //       userId,
+  //       preferredWorkoutTimes,
+  //       avoidedWorkoutTimes,
+  //       weekendWorkoutTimes,
+  //       step: "workout_timing",
+  //     });
+  //   }),
   checkOnboardingCompletion: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
     const result = await checkOnboardingCompletion(userId);
@@ -260,14 +257,8 @@ export const onboardingRouter = createTRPCRouter({
         specificGoals: null,
         pilatesExperience: null,
         pilatesDuration: null,
-        // studioFrequency: null,
-        // sessionPreference: null,
-        // instructors: [],
-        // customInstructor: null,
-        apparatusPreference: [],
-        otherApparatusPreferences: [],
-        customApparatus: [],
-        otherCustomApparatus: [],
+        pilatesStyles: [],
+        homeEquipment: [],
         motivation: [],
         otherMotivation: [],
         progressTracking: [],

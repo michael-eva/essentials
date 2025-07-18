@@ -13,7 +13,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-import type { FormData } from "@/app/_components/onboarding/profile/EditFormDialog";
+import type { FormData } from "@/hooks/useProfileCompletion";
 import {
   booleanToRadioValue,
   radioValueToBoolean,

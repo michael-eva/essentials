@@ -5,7 +5,7 @@ import {
   MOTIVATION_FACTORS,
   PROGRESS_TRACKING_METHODS,
 } from "@/app/_constants/motivation";
-import type { FormData } from "@/app/_components/onboarding/profile/EditFormDialog";
+import type { FormData } from "@/hooks/useProfileCompletion";
 import { CustomOtherInput } from "@/app/_components/onboarding/profile/CustomOtherInput"
 
 type MotivationProfileSectionProps = {
