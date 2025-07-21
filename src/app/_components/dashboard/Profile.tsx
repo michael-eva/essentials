@@ -20,8 +20,8 @@ export default function ProfilePage() {
   const [selectedForm, setSelectedForm] = useState<FormType | null>(null)
   const { isLoading, formData, formSections } = useProfileCompletion()
   const utils = api.useUtils()
-
-
+  const { data: notificationSubscriptionStatus } = api.notifications.getNotificationSubscriptionStatus.useQuery()
+  console.log(notificationSubscriptionStatus)
   const { mutate: postHealthConsiderations } =
     api.onboarding.postHealthConsiderations.useMutation({
       onSuccess: () => {

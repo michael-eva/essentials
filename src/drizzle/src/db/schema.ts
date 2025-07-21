@@ -369,6 +369,7 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   auth: text("auth").notNull(),
   userId: uuid("user_id")
     .notNull()
+    .unique()
     .references(() => user.id, {
       onDelete: "cascade",
       onUpdate: "cascade",

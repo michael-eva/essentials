@@ -449,11 +449,11 @@ export async function upsertPushSubscription(
     .insert(pushSubscriptions)
     .values(data)
     .onConflictDoUpdate({
-      target: pushSubscriptions.endpoint,
+      target: pushSubscriptions.userId,
       set: {
+        endpoint: data.endpoint,
         p256dh: data.p256dh,
         auth: data.auth,
-        userId: data.userId,
         createdAt: new Date(),
       },
     })

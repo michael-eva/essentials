@@ -1098,7 +1098,9 @@ export async function getAllUsers(): Promise<User[]> {
 }
 
 // Check if user has upcoming notifications (not sent and scheduled for future)
-export async function getUpcomingNotifications(userId: string): Promise<Notification[]> {
+export async function getUpcomingNotifications(
+  userId: string,
+): Promise<Notification[]> {
   const result = await db
     .select()
     .from(notifications)

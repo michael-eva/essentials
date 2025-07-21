@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { upsertPushSubscription } from "@/drizzle/src/db/mutations";
-import { getPushSubscriptionByEndpoint } from "@/drizzle/src/db/queries";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,40 +34,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if subscription already exists
-    const existingSubscription = await getPushSubscriptionByEndpoint(endpoint);
-    
-    if (existingSubscription) {
-      // Update existing subscription
-      const updatedSubscription = await upsertPushSubscription({
-        endpoint,
-        p256dh,
-        auth,
-        userId,
-      });
-      
-      return NextResponse.json({ 
-        success: true, 
-        subscription: updatedSubscription,
-        action: "updated"
-      });
-    } else {
-      // Create new subscription
-      const newSubscription = await upsertPushSubscription({
-        endpoint,
-        p256dh,
-        auth,
-        userId,
-      });
-      
-      return NextResponse.json({ 
-        success: true, 
-        subscription: newSubscription,
-        action: "created"
-      });
-    }
+    // Upsert subscription (will update if user_id exists, create if new)
+    const subscription = await upsertPushSubscription({
+      endpoint,
+      p256dh,
+      auth,
+      userId,
+    });
+
+    return NextResponse.json({
+      success: true,
+      subscription,
+      message: "Push subscription saved successfully",
+    });
   } catch (error) {
-    console.error('Error subscribing to notifications:', error);
+    console.error("Error subscribing to notifications:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 },
