@@ -187,6 +187,18 @@ export async function insertUser(data: User) {
   return result;
 }
 
+export async function updateUser(
+  userId: string,
+  data: Partial<Pick<User, "name" | "email">>,
+) {
+  const result = await db
+    .update(user)
+    .set(data)
+    .where(eq(user.id, userId))
+    .returning();
+  return result[0] ?? null;
+}
+
 export async function insertPersonalTrainerInteraction(
   data: NewPersonalTrainerInteraction,
 ) {
