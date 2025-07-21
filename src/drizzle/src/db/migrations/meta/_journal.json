@@ -15,6 +15,13 @@
       "when": 1753080000000,
       "tag": "0001_add_missing_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753084300272,
+      "tag": "0002_lowly_living_mummy",
+      "breakpoints": true
     }
   ]
 }

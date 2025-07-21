@@ -362,7 +362,9 @@ export async function deletePersonalTrainerInteraction(userId: string) {
 }
 
 // Notification mutations
-export async function insertNotification(data: NewNotification): Promise<Notification> {
+export async function insertNotification(
+  data: NewNotification,
+): Promise<Notification> {
   const result = await db.insert(notifications).values(data).returning();
   return result[0]!;
 }
@@ -379,7 +381,9 @@ export async function updateNotification(
   return result[0] ?? null;
 }
 
-export async function markNotificationAsSent(id: string): Promise<Notification | null> {
+export async function markNotificationAsSent(
+  id: string,
+): Promise<Notification | null> {
   const result = await db
     .update(notifications)
     .set({ sent: true })
@@ -392,12 +396,16 @@ export async function deleteNotification(id: string): Promise<void> {
   await db.delete(notifications).where(eq(notifications.id, id));
 }
 
-export async function deleteNotificationsByUserId(userId: string): Promise<void> {
+export async function deleteNotificationsByUserId(
+  userId: string,
+): Promise<void> {
   await db.delete(notifications).where(eq(notifications.userId, userId));
 }
 
 // Push subscription mutations
-export async function insertPushSubscription(data: NewPushSubscription): Promise<PushSubscription> {
+export async function insertPushSubscription(
+  data: NewPushSubscription,
+): Promise<PushSubscription> {
   const result = await db.insert(pushSubscriptions).values(data).returning();
   return result[0]!;
 }
@@ -418,15 +426,25 @@ export async function deletePushSubscription(id: string): Promise<void> {
   await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, id));
 }
 
-export async function deletePushSubscriptionByEndpoint(endpoint: string): Promise<void> {
-  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+export async function deletePushSubscriptionByEndpoint(
+  endpoint: string,
+): Promise<void> {
+  await db
+    .delete(pushSubscriptions)
+    .where(eq(pushSubscriptions.endpoint, endpoint));
 }
 
-export async function deletePushSubscriptionsByUserId(userId: string): Promise<void> {
-  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+export async function deletePushSubscriptionsByUserId(
+  userId: string,
+): Promise<void> {
+  await db
+    .delete(pushSubscriptions)
+    .where(eq(pushSubscriptions.userId, userId));
 }
 
-export async function upsertPushSubscription(data: NewPushSubscription): Promise<PushSubscription> {
+export async function upsertPushSubscription(
+  data: NewPushSubscription,
+): Promise<PushSubscription> {
   const result = await db
     .insert(pushSubscriptions)
     .values(data)

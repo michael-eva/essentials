@@ -25,32 +25,32 @@ if (vapidPublicKey && vapidPrivateKey) {
 export async function POST(request: NextRequest) {
   try {
     // Check API key authentication
-    const apiKey = request.headers.get('apiKey');
+    const apiKey = request.headers.get("apiKey");
     if (!apiKey || apiKey !== env.WEBHOOK_API_KEY) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
-    const body = await request.json() as NotificationRequest;
-    
+    const body = (await request.json()) as NotificationRequest;
+
     // Validate required fields
-    if (!body.userId || typeof body.userId !== 'string') {
+    if (!body.userId || typeof body.userId !== "string") {
       return NextResponse.json(
         { success: false, error: "Invalid userId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
-    if (!body.message || typeof body.message !== 'string') {
+
+    if (!body.message || typeof body.message !== "string") {
       return NextResponse.json(
         { success: false, error: "Invalid message" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
-    const title = typeof body.title === 'string' ? body.title : 'Essentials';
+
+    const title = typeof body.title === "string" ? body.title : "Essentials";
 
     const result = await sendNotification(body.userId, body.message, title);
 
