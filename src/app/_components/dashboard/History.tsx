@@ -80,9 +80,9 @@ export default function WorkoutHistory() {
     const diffTime = Math.abs(now.getTime() - workoutDate.getTime())
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
-    if (diffDays === 0) return `Today, ${workoutDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
-    if (diffDays === 1) return `Yesterday, ${workoutDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
-    return workoutDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+    if (diffDays === 0) return `Today, ${workoutDate.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })}`
+    if (diffDays === 1) return `Yesterday, ${workoutDate.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })}`
+    return workoutDate.toLocaleDateString('en-AU', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
   }
 
   // Accordion for exercises
@@ -293,7 +293,7 @@ export default function WorkoutHistory() {
                 <div className="w-full mt-6">
                   <h3 className="font-medium text-gray-900 mb-3 px-1">
                     {date
-                      ? date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+                      ? date.toLocaleDateString("en-AU", { month: "long", day: "numeric", year: "numeric" })
                       : "Select a date"}
                   </h3>
 
@@ -311,7 +311,7 @@ export default function WorkoutHistory() {
                                 <div className="min-w-0">
                                   <p className="font-medium text-gray-900 truncate">{item.tracking.name}</p>
                                   <p className="text-sm text-gray-500">
-                                    {new Date(item.tracking.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} • {formatDuration(item.tracking.durationHours, item.tracking.durationMinutes)}
+                                    {new Date(item.tracking.date).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })} • {formatDuration(item.tracking.durationHours, item.tracking.durationMinutes)}
                                   </p>
                                 </div>
                                 <Badge

@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
-const DEFAULT_PROMPT = `You are a helpful and encouraging personal trainer AI assistant. You provide personalized fitness advice, workout suggestions, and motivation based on the user's profile, goals, and fitness level. 
+const DEFAULT_PROMPT = `You are a helpful and encouraging personal trainer AI assistant. You provide personalised fitness advice, workout suggestions, and motivation based on the user's profile, goals, and fitness level. 
 
 Keep your responses:
 - Encouraging and positive
@@ -39,13 +39,13 @@ export function CustomizePTSection() {
   // Save system prompt mutation
   const { mutate: savePrompt, isPending: isSaving } = api.myPt.saveSystemPrompt.useMutation({
     onSuccess: (data) => {
-      toast.success("Your AI trainer has been customized!");
+      toast.success("Your AI trainer has been customised!");
       setHasChanges(false);
       refetchPrompt();
     },
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
       console.error("Failed to save system prompt:", error);
-      toast.error(error.message || "Failed to save customization");
+      toast.error(error.message || "Failed to save customisation");
     },
   });
 
@@ -109,7 +109,7 @@ export function CustomizePTSection() {
             <Alert>
               <Sparkles className="h-4 w-4" />
               <AlertDescription>
-                Customize how your AI personal trainer behaves and responds to you.
+                Customise how your AI personal trainer behaves and responds to you.
                 Give them a name and personality that motivates you!
               </AlertDescription>
             </Alert>
@@ -167,7 +167,7 @@ export function CustomizePTSection() {
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  You haven&apos;t customized your AI trainer yet. The default settings will be used until you save your preferences.
+                  You haven&apos;t customised your AI trainer yet. The default settings will be used until you save your preferences.
                 </AlertDescription>
               </Alert>
             )}

@@ -30,7 +30,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-6">
             <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
               <Trophy className="w-8 h-8 text-primary mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-900">Personalized Goals</p>
+              <p className="text-sm font-medium text-gray-900">Personalised Goals</p>
             </div>
             <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
               <Heart className="w-8 h-8 text-primary mx-auto mb-2" />
@@ -38,12 +38,12 @@ export default function LandingPage() {
             </div>
             <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
               <Zap className="w-8 h-8 text-primary mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-900">Optimized Workouts</p>
+              <p className="text-sm font-medium text-gray-900">Optimised Workouts</p>
             </div>
           </div>
 
           <p className="text-lg text-gray-600">
-            Ready to transform your fitness journey? Your personalized plan is just one click away.
+            Ready to transform your fitness journey? Your personalised plan is just one click away.
           </p>
         </div>
 
