@@ -3,7 +3,11 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import z from "zod";
 import { TRPCError } from "@trpc/server";
 import SendEmail from "@/services/resend";
-import { insertUser, updateUser } from "@/drizzle/src/db/mutations";
+import {
+  insertUser,
+  updateUser,
+  clearAllUserData,
+} from "@/drizzle/src/db/mutations";
 import { getUser } from "@/drizzle/src/db/queries";
 
 export const authRouter = createTRPCRouter({
@@ -194,6 +198,59 @@ export const authRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to update user profile",
+        });
+      }
+    }),
+
+  clearAllUserData: protectedProcedure
+    .input(
+      z.object({
+        confirmText: z
+          .string()
+          .refine(
+            (text) => text === "DELETE ALL MY DATA",
+            "You must type 'DELETE ALL MY DATA' to confirm",
+          ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        console.log(`User ${ctx.userId} is requesting to clear all their data`);
+
+        // Double check confirmation text
+        if (input.confirmText !== "DELETE ALL MY DATA") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid confirmation text",
+          });
+        }
+
+        // Clear all user data
+        const result = await clearAllUserData(ctx.userId);
+
+        console.log(
+          `Successfully cleared all data for user ${ctx.userId}:`,
+          result.deletedCounts,
+        );
+
+        return {
+          success: true,
+          message: `All your data has been cleared successfully. ${Object.values(
+            result.deletedCounts,
+          ).reduce((a, b) => a + b, 0)} records were deleted.`,
+          deletedCounts: result.deletedCounts,
+        };
+      } catch (error) {
+        console.error("Error clearing user data:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to clear user data",
         });
       }
     }),
