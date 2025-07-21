@@ -15,7 +15,6 @@ import { ProfileSkeleton } from "./DashboardSkeleton";
 import DefaultBox from "../global/DefaultBox";
 import { motion } from "framer-motion";
 import { PushNotificationManager } from "@/components/pwa/PushNotificationManager";
-import { PWATest } from "@/components/pwa/PWATest";
 
 export default function ProfilePage() {
   const [selectedForm, setSelectedForm] = useState<FormType | null>(null)
@@ -199,7 +198,6 @@ export default function ProfilePage() {
       >
         <div className="space-y-6">
           <PushNotificationManager />
-          <PWATest />
         </div>
       </DefaultBox>
     </div>

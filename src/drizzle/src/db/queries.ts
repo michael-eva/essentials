@@ -1075,18 +1075,41 @@ export async function getPushSubscriptionByEndpoint(
   return result[0] ?? null;
 }
 
-export async function getPushSubscriptionById(
+export async function getPushSubscriptionByUserId(
   id: string,
 ): Promise<PushSubscription | null> {
   const result = await db
     .select()
     .from(pushSubscriptions)
-    .where(eq(pushSubscriptions.id, id))
+    .where(eq(pushSubscriptions.userId, id))
     .limit(1);
   return result[0] ?? null;
 }
 
 export async function getAllPushSubscriptions(): Promise<PushSubscription[]> {
   const result = await db.select().from(pushSubscriptions);
+  return result;
+}
+
+// Get all users
+export async function getAllUsers(): Promise<User[]> {
+  const result = await db.select().from(user);
+  return result;
+}
+
+// Check if user has upcoming notifications (not sent and scheduled for future)
+export async function getUpcomingNotifications(userId: string): Promise<Notification[]> {
+  const result = await db
+    .select()
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        eq(notifications.sent, false),
+        isNotNull(notifications.scheduledTime),
+        gt(notifications.scheduledTime, new Date()),
+      ),
+    )
+    .orderBy(asc(notifications.scheduledTime));
   return result;
 }

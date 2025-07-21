@@ -1,8 +1,12 @@
 import type { UserContext } from "./context-manager";
 import { getAiSystemPrompt } from "@/drizzle/src/db/queries";
-import { insertAiChatMessages } from "@/drizzle/src/db/mutations";
+import {
+  insertNotification,
+} from "@/drizzle/src/db/mutations";
 import OpenAI from "openai";
 import { formatUserContextForAI } from "./context-formatter";
+import { zodTextFormat } from "openai/helpers/zod.mjs";
+import { z } from "zod";
 
 const openai = new OpenAI();
 
@@ -24,26 +28,33 @@ export async function generateAiNotification(
   );
 
   try {
-    const response = await openai.responses.create({
+    const response = await openai.responses.parse({
       model: "gpt-4.1-2025-04-14",
-      instructions: fullSystemContext,
-      input: [], // No input needed as this is a notification
+      input: fullSystemContext, // Provide the full system context as the prompt
       max_output_tokens: 300, // Shorter than chat responses
+      text: {
+        format: zodTextFormat(
+          z.object({
+            title: z.string().describe("The title of the notification"),
+            message: z.string().describe("The message of the notification"),
+            scheduledTime: z.string().describe("The time the notification should be sent (ISO string format)"),
+          }),
+          "notification",
+        ),
+      },
     });
 
-    const notification =
-      response.output_text ??
-      "Keep up the great work! Remember your fitness goals and stay consistent.";
+    const notification = response.output_parsed;
 
-    // Save the notification as an assistant message
-    await insertAiChatMessages({
-      userId,
-      message: notification,
-      content: notification,
-      role: "assistant",
+    // Save the notification to the database
+    await insertNotification({
+      title: notification?.title ?? "",
+      body: notification?.message ?? "",
+      userId: userId,
+      scheduledTime: notification?.scheduledTime ? new Date(notification.scheduledTime) : new Date(),
     });
 
-    return notification;
+    return notification?.message ?? "";
   } catch (error) {
     console.error("Error generating AI notification:", error);
     throw new Error("Failed to generate AI notification");
@@ -80,9 +91,13 @@ Create a short, motivational notification that:
 3. Holds them accountable to their goals
 4. Reminds them of their upcoming planned workouts
 5. Reinforces their fitness goals
+6. Is done at the right time of day. Motivation should be high in the morning and afternoon.
+
+
+Current date and time: ${new Date().toISOString()}
 
 The notification should be:
-- Brief and impactful (4-5 sentences maximum)
+- Brief and impactful (1-2 sentences maximum)
 - Personal and specific to their context
 - Positive and encouraging
 - Action-oriented
