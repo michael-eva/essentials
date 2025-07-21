@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Trash2, RotateCcw, Edit, Play, Pause, X, Plus } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Trash2, RotateCcw, Edit, Play, Pause, X, Plus, MoreHorizontal } from "lucide-react"
 import { api } from "@/trpc/react"
 import { ConfirmationDialog } from "./ConfirmationDialog"
 import WeeklySchedule from "./WeeklySchedule"
@@ -117,9 +118,9 @@ export default function ClassRecommendations() {
   const handleStartPlan = () => {
     setConfirmationDialog({
       open: true,
-      title: activePlan?.pausedAt ? "Resume Plan" : "Start Plan",
+      title: activePlan?.pausedAt ? "Continue Plan" : "Start Plan",
       description: activePlan?.pausedAt
-        ? "Are you sure you want to resume this plan?"
+        ? "Are you sure you want to continue this plan?"
         : "Are you sure you want to start this plan? This will become your active workout plan.",
       onConfirm: () => {
         if (activePlan?.pausedAt) {
@@ -160,8 +161,8 @@ export default function ClassRecommendations() {
   const handlePausePlan = () => {
     setConfirmationDialog({
       open: true,
-      title: "Pause Plan",
-      description: "Are you sure you want to pause this plan? You can resume it later.",
+      title: "Take a Break",
+      description: "Are you sure you want to take a break from this plan? You can continue it later.",
       onConfirm: () => {
         setConfirmationDialog({ ...confirmationDialog, open: false })
         pausePlan.mutate({
@@ -174,8 +175,8 @@ export default function ClassRecommendations() {
   const handleRestartPlan = () => {
     setConfirmationDialog({
       open: true,
-      title: "Reset Plan",
-      description: "Are you sure you want to reset this plan? This will reset all progress and start from the beginning.",
+      title: "Start Over",
+      description: "Are you sure you want to start over? This will reset all progress and begin from week 1.",
       onConfirm: () => {
         if (activePlan?.id) {
           restartPlan.mutate(
@@ -194,8 +195,8 @@ export default function ClassRecommendations() {
   const handleCancelPlan = () => {
     setConfirmationDialog({
       open: true,
-      title: "Cancel Plan",
-      description: "Are you sure you want to cancel this plan? This action cannot be undone.",
+      title: "End Plan",
+      description: "Are you sure you want to end this plan? This action cannot be undone.",
       onConfirm: () => {
         setConfirmationDialog({ ...confirmationDialog, open: false })
         if (activePlan?.id) {
@@ -375,7 +376,7 @@ export default function ClassRecommendations() {
               className="text-brand-white border-none bg-brand-bright-orange transition-colors"
             >
               <Pause className="w-4 h-4 mr-2" />
-              Pause
+              Take a Break
             </Button>
           ) : (
             <Button
@@ -384,27 +385,34 @@ export default function ClassRecommendations() {
               className="border-none text-brand-white bg-brand-bright-orange hover:bg-gray-50 transition-colors"
             >
               <Play className="w-4 h-4 mr-2" />
-              Resume
+              Continue Plan
             </Button>
           )}
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={handleRestartPlan}
-              className="border-brand-brown text-brand-black hover:bg-gray-50 transition-colors"
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleCancelPlan}
-              className="bg-[#FF3B30] text-white hover:bg-[#FF3B30]/90 transition-colors"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Cancel
-            </Button>
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+                <MoreHorizontal className="h-3.5 w-3.5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-48">
+              <div className="space-y-1">
+                <button
+                  onClick={handleRestartPlan}
+                  className="flex w-full items-center px-3 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Start Over
+                </button>
+                <button
+                  onClick={handleCancelPlan}
+                  className="flex w-full items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  End Plan
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </motion.div>
       )}
 

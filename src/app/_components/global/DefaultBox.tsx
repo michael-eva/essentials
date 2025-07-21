@@ -14,6 +14,7 @@ interface DashboardCardLayoutProps {
   color?: string
   icon?: ReactNode
   iconClick?: any
+  showChildren?: boolean
 }
 
 export default function DashboardCardLayout({
@@ -24,7 +25,8 @@ export default function DashboardCardLayout({
   viewAllText = "View All Classes",
   viewAllHref = "#",
   icon,
-  iconClick
+  iconClick,
+  showChildren = true
 }: DashboardCardLayoutProps) {
   return (
     <motion.div
@@ -32,7 +34,7 @@ export default function DashboardCardLayout({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="rounded-xl shadow-xl border-brand-brown">
+      <Card className="rounded-xl shadow-xl border-brand-brown py-4 ">
         <CardHeader className="px-6">
           <div className="flex justify-between items-center ">
             <CardTitle className="text-3xl sm:text-4xl font-extrabold text-brand-brown">{title}</CardTitle>
@@ -42,7 +44,7 @@ export default function DashboardCardLayout({
           </div>
           <CardDescription className="text-brand-black">{description}</CardDescription>
         </CardHeader>
-        <CardContent>
+        {showChildren && <CardContent>
           <div className="space-y-4">
             {children}
             {showViewAll && (
@@ -59,7 +61,7 @@ export default function DashboardCardLayout({
               </div>
             )}
           </div>
-        </CardContent>
+        </CardContent>}
       </Card>
     </motion.div>
   )

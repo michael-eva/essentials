@@ -1,1 +1,0 @@
-ALTER TABLE "workout_tracking" ADD COLUMN "would_do_again" boolean;

@@ -1,1 +1,0 @@
-ALTER TABLE "workout" ADD COLUMN "exercises" jsonb;
