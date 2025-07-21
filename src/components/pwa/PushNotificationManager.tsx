@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { subscribeUser, unsubscribeUser } from '@/app/actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useSession } from '@/contexts/SessionContext'
+import { api } from '@/trpc/react'
 
 // Utility function to convert base64 URL to Uint8Array
 const base64UrlToUint8Array = (base64UrlData: string) => {
@@ -16,7 +17,7 @@ const base64UrlToUint8Array = (base64UrlData: string) => {
   const rawData = atob(base64);
   const buffer = new Uint8Array(rawData.length);
 
-  for(let i = 0; i < rawData.length; ++i) {
+  for (let i = 0; i < rawData.length; ++i) {
     buffer[i] = rawData.charCodeAt(i);
   }
 
@@ -42,10 +43,10 @@ const getPushSubscription = async (registration: ServiceWorkerRegistration) => {
 };
 
 export function PushNotificationManager() {
-  const [isSubscribed, setIsSubscribed] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false)
   const { user } = useSession()
+  const { data: notificationSubscriptionStatus } = api.notifications.getNotificationSubscriptionStatus.useQuery()
 
   useEffect(() => {
     // Check if we're in a browser environment and service workers are supported
@@ -66,31 +67,20 @@ export function PushNotificationManager() {
       const registration = await navigator.serviceWorker.getRegistration()
       if (registration) {
         setServiceWorkerReady(true)
-        // Check if user is already subscribed
-        checkSubscription(registration)
       } else {
         // Try to register service worker
         const newRegistration = await navigator.serviceWorker.register('/sw.js')
         setServiceWorkerReady(true)
-        checkSubscription(newRegistration)
       }
     } catch (error) {
       console.error('Error with service worker:', error)
-              // Don't show alert for development or unsupported environments
-        if (process.env.NODE_ENV === 'production') {
-          alert('Error with service worker: ' + String(error))
-        }
+      // Don't show alert for development or unsupported environments
+      if (process.env.NODE_ENV === 'production') {
+        alert('Error with service worker: ' + String(error))
+      }
     }
   }
 
-  const checkSubscription = async (registration: ServiceWorkerRegistration) => {
-    try {
-      const subscription = await getPushSubscription(registration)
-      setIsSubscribed(!!subscription)
-    } catch (error) {
-      console.error('Error checking subscription:', error)
-    }
-  }
 
   const subscribeToNotifications = async () => {
     // Check if user is authenticated
@@ -118,7 +108,7 @@ export function PushNotificationManager() {
       if (!registration) {
         throw new Error('Service worker not registered')
       }
-      
+
       // Request notification permission
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') {
@@ -134,7 +124,6 @@ export function PushNotificationManager() {
       // Send subscription to server
       if (user?.id) {
         await subscribeUser(raw, user.id)
-        setIsSubscribed(true)
       } else {
         throw new Error('User not authenticated')
       }
@@ -159,13 +148,12 @@ export function PushNotificationManager() {
       if (!registration) {
         throw new Error('Service worker not registered')
       }
-      
+
       const subscription = await getPushSubscription(registration)
-      
+
       if (subscription) {
         await unsubscribeFromPushMessages(subscription)
         await unsubscribeUser(subscription.endpoint)
-        setIsSubscribed(false)
       }
     } catch (error) {
       console.error('Error unsubscribing from notifications:', error)
@@ -230,7 +218,7 @@ export function PushNotificationManager() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isSubscribed ? (
+        {notificationSubscriptionStatus?.hasSubscription ? (
           <Button
             onClick={unsubscribeFromNotifications}
             disabled={isLoading}
