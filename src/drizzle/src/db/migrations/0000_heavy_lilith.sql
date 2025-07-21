@@ -1,8 +1,32 @@
-CREATE TYPE "public"."activity_type" AS ENUM('run', 'cycle', 'swim', 'walk');--> statement-breakpoint
-CREATE TYPE "public"."role" AS ENUM('developer', 'user', 'assistant');--> statement-breakpoint
-CREATE TYPE "public"."workout_status" AS ENUM('completed', 'not_completed', 'not_recorded');--> statement-breakpoint
-CREATE TYPE "public"."workout_type" AS ENUM('class', 'workout');--> statement-breakpoint
-CREATE TABLE "ai_chat" (
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'activity_type') THEN
+        CREATE TYPE "public"."activity_type" AS ENUM('run', 'cycle', 'swim', 'walk');
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'role') THEN
+        CREATE TYPE "public"."role" AS ENUM('developer', 'user', 'assistant');
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'workout_status') THEN
+        CREATE TYPE "public"."workout_status" AS ENUM('completed', 'not_completed', 'not_recorded');
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'workout_type') THEN
+        CREATE TYPE "public"."workout_type" AS ENUM('class', 'workout');
+    END IF;
+END $$;
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "ai_chat" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"message" text NOT NULL,
@@ -12,7 +36,7 @@ CREATE TABLE "ai_chat" (
 	"tool_calls" jsonb
 );
 --> statement-breakpoint
-CREATE TABLE "ai_system_prompt" (
+CREATE TABLE IF NOT EXISTS "ai_system_prompt" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"name" text NOT NULL,
@@ -20,7 +44,7 @@ CREATE TABLE "ai_system_prompt" (
 	"created_at" timestamp NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "pilates_videos" (
+CREATE TABLE IF NOT EXISTS "pilates_videos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" text NOT NULL,
 	"summary" text NOT NULL,
@@ -45,7 +69,7 @@ CREATE TABLE "pilates_videos" (
 	"instructor" text
 );
 --> statement-breakpoint
-CREATE TABLE "onboarding" (
+CREATE TABLE IF NOT EXISTS "onboarding" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"step" text NOT NULL,
@@ -76,7 +100,7 @@ CREATE TABLE "onboarding" (
 	CONSTRAINT "onboarding_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
-CREATE TABLE "personal_trainer_interactions" (
+CREATE TABLE IF NOT EXISTS "personal_trainer_interactions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -87,7 +111,7 @@ CREATE TABLE "personal_trainer_interactions" (
 	"metadata" jsonb
 );
 --> statement-breakpoint
-CREATE TABLE "progress_tracking" (
+CREATE TABLE IF NOT EXISTS "progress_tracking" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"workout_tracking_id" uuid,
@@ -101,7 +125,7 @@ CREATE TABLE "progress_tracking" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "user" (
+CREATE TABLE IF NOT EXISTS "user" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
 	"name" text,
@@ -109,14 +133,14 @@ CREATE TABLE "user" (
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-CREATE TABLE "weekly_schedule" (
+CREATE TABLE IF NOT EXISTS "weekly_schedule" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"plan_id" uuid NOT NULL,
 	"week_number" integer NOT NULL,
 	"workout_id" uuid NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "workout" (
+CREATE TABLE IF NOT EXISTS "workout" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
 	"instructor" text NOT NULL,
@@ -133,7 +157,7 @@ CREATE TABLE "workout" (
 	"exercises" jsonb
 );
 --> statement-breakpoint
-CREATE TABLE "workout_plan" (
+CREATE TABLE IF NOT EXISTS "workout_plan" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"plan_name" text NOT NULL,
@@ -150,7 +174,7 @@ CREATE TABLE "workout_plan" (
 	"ai_explanation" text
 );
 --> statement-breakpoint
-CREATE TABLE "workout_tracking" (
+CREATE TABLE IF NOT EXISTS "workout_tracking" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"workout_id" uuid,
@@ -167,15 +191,86 @@ CREATE TABLE "workout_tracking" (
 	"exercises" jsonb
 );
 --> statement-breakpoint
-ALTER TABLE "ai_chat" ADD CONSTRAINT "ai_chat_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "ai_system_prompt" ADD CONSTRAINT "ai_system_prompt_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "onboarding" ADD CONSTRAINT "onboarding_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "personal_trainer_interactions" ADD CONSTRAINT "personal_trainer_interactions_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "progress_tracking" ADD CONSTRAINT "progress_tracking_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "progress_tracking" ADD CONSTRAINT "progress_tracking_workout_tracking_id_workout_tracking_id_fk" FOREIGN KEY ("workout_tracking_id") REFERENCES "public"."workout_tracking"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "weekly_schedule" ADD CONSTRAINT "weekly_schedule_plan_id_workout_plan_id_fk" FOREIGN KEY ("plan_id") REFERENCES "public"."workout_plan"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "weekly_schedule" ADD CONSTRAINT "weekly_schedule_workout_id_workout_id_fk" FOREIGN KEY ("workout_id") REFERENCES "public"."workout"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "workout" ADD CONSTRAINT "workout_class_id_pilates_videos_id_fk" FOREIGN KEY ("class_id") REFERENCES "public"."pilates_videos"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "workout" ADD CONSTRAINT "workout_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "workout_plan" ADD CONSTRAINT "workout_plan_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "workout_tracking" ADD CONSTRAINT "workout_tracking_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'ai_chat_user_id_user_id_fk') THEN
+        ALTER TABLE "ai_chat" ADD CONSTRAINT "ai_chat_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'ai_system_prompt_user_id_user_id_fk') THEN
+        ALTER TABLE "ai_system_prompt" ADD CONSTRAINT "ai_system_prompt_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'onboarding_user_id_user_id_fk') THEN
+        ALTER TABLE "onboarding" ADD CONSTRAINT "onboarding_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'personal_trainer_interactions_user_id_user_id_fk') THEN
+        ALTER TABLE "personal_trainer_interactions" ADD CONSTRAINT "personal_trainer_interactions_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'progress_tracking_user_id_user_id_fk') THEN
+        ALTER TABLE "progress_tracking" ADD CONSTRAINT "progress_tracking_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'progress_tracking_workout_tracking_id_workout_tracking_id_fk') THEN
+        ALTER TABLE "progress_tracking" ADD CONSTRAINT "progress_tracking_workout_tracking_id_workout_tracking_id_fk" FOREIGN KEY ("workout_tracking_id") REFERENCES "public"."workout_tracking"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'weekly_schedule_plan_id_workout_plan_id_fk') THEN
+        ALTER TABLE "weekly_schedule" ADD CONSTRAINT "weekly_schedule_plan_id_workout_plan_id_fk" FOREIGN KEY ("plan_id") REFERENCES "public"."workout_plan"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'weekly_schedule_workout_id_workout_id_fk') THEN
+        ALTER TABLE "weekly_schedule" ADD CONSTRAINT "weekly_schedule_workout_id_workout_id_fk" FOREIGN KEY ("workout_id") REFERENCES "public"."workout"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'workout_class_id_pilates_videos_id_fk') THEN
+        ALTER TABLE "workout" ADD CONSTRAINT "workout_class_id_pilates_videos_id_fk" FOREIGN KEY ("class_id") REFERENCES "public"."pilates_videos"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'workout_user_id_user_id_fk') THEN
+        ALTER TABLE "workout" ADD CONSTRAINT "workout_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'workout_plan_user_id_user_id_fk') THEN
+        ALTER TABLE "workout_plan" ADD CONSTRAINT "workout_plan_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;
+--> statement-breakpoint
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'workout_tracking_user_id_user_id_fk') THEN
+        ALTER TABLE "workout_tracking" ADD CONSTRAINT "workout_tracking_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE cascade;
+    END IF;
+END $$;

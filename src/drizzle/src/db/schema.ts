@@ -409,6 +409,12 @@ export const PilatesVideos = pgTable("pilates_videos", {
   instructor: text("instructor"),
 });
 
+export const appConfig = pgTable("app_config", {
+  key: text("key").notNull().primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`),
+});
+
 // Custom Zod schemas for complex types
 export const workoutTrackingInputSchema = z.object({
   userId: z.string().uuid(),
@@ -464,3 +470,6 @@ export const selectOnboardingSchema = createSelectSchema(onboarding);
 export const insertPersonalTrainerInteractionsSchema = createInsertSchema(
   personalTrainerInteractions,
 );
+
+export const insertAppConfigSchema = createInsertSchema(appConfig);
+export const selectAppConfigSchema = createSelectSchema(appConfig);
