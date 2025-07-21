@@ -1,1 +1,0 @@
-ALTER TABLE "workout_tracking" ADD CONSTRAINT "workout_tracking_workout_id_workout_id_fk" FOREIGN KEY ("workout_id") REFERENCES "public"."workout"("id") ON DELETE cascade ON UPDATE cascade;

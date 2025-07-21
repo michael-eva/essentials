@@ -1,1 +1,0 @@
-ALTER TABLE "workout_tracking" ALTER COLUMN "workout_id" DROP NOT NULL;

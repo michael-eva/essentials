@@ -1,1 +1,0 @@
-ALTER TABLE "pilates_videos" ADD COLUMN "instructor" text;

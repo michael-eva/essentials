@@ -26,23 +26,23 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "walk",
 ]);
 
-export const workoutTimesEnum = pgEnum("workout_times", [
-  "early morning",
-  "mid morning",
-  "lunchtime",
-  "afternoon",
-  "evening",
-  "other",
-]);
+// export const workoutTimesEnum = pgEnum("workout_times", [
+//   "early morning",
+//   "mid morning",
+//   "lunchtime",
+//   "afternoon",
+//   "evening",
+//   "other",
+// ]);
 
-export const weekendTimesEnum = pgEnum("weekend_workout_times", [
-  "no",
-  "sometimes",
-  "saturday",
-  "sunday",
-  "both",
-  "other",
-]);
+// export const weekendTimesEnum = pgEnum("weekend_workout_times", [
+//   "no",
+//   "sometimes",
+//   "saturday",
+//   "sunday",
+//   "both",
+//   "other",
+// ]);
 
 export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
 

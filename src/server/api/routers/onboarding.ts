@@ -5,7 +5,7 @@ import {
   checkOnboardingCompletion,
   getOnboardingData,
 } from "@/drizzle/src/db/queries";
-import { workoutTimesEnum, weekendTimesEnum } from "@/drizzle/src/db/schema";
+// import { workoutTimesEnum, weekendTimesEnum } from "@/drizzle/src/db/schema";
 
 export const onboardingRouter = createTRPCRouter({
   // postBasicQuestions: protectedProcedure

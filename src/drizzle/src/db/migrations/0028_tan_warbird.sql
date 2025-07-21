@@ -1,1 +1,0 @@
-ALTER TABLE "pilates_videos" ADD COLUMN "mux_asset_id" text NOT NULL;

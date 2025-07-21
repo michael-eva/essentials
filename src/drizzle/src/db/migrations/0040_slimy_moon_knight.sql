@@ -1,1 +1,0 @@
-ALTER TABLE "weekly_schedule" ADD CONSTRAINT "weekly_schedule_workout_id_unique" UNIQUE("workout_id");
