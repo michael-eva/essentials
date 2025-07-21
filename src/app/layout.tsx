@@ -1,6 +1,6 @@
 import "@/styles/globals.css";
 
-import { type Metadata } from "next";
+import { type Metadata, type Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
@@ -19,8 +19,6 @@ export const metadata: Metadata = {
     { rel: "apple-touch-icon", url: "/logo/essentials_logo.png" },
   ],
   manifest: "/manifest.json",
-  themeColor: "#000000",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -31,6 +29,14 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-status-bar-style": "default",
     "apple-mobile-web-app-title": "Essentials",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#000000",
 };
 
 const spaceGrotesk = Space_Grotesk({

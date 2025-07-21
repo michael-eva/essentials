@@ -13,11 +13,16 @@ export function PWAProvider() {
           registration.unregister()
         }
       }).then(() => {
+        // Clear all caches
+        return caches.keys().then((names) => {
+          return Promise.all(names.map(name => caches.delete(name)))
+        })
+      }).then(() => {
         // Register the new service worker
         return navigator.serviceWorker.register('/sw.js')
       }).then((registration) => {
         console.log('SW registered successfully:', registration)
-        
+
         // Handle service worker updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing

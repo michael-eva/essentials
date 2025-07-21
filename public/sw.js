@@ -1,6 +1,6 @@
 // Service Worker for Essentials PWA
 
-const CACHE_NAME = 'essentials-v1'
+const CACHE_NAME = 'essentials-v2'
 const urlsToCache = [
   '/manifest.json',
   '/logo/essentials_logo.png',
@@ -21,6 +21,11 @@ self.addEventListener('install', (event) => {
 
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
+  // Skip all external requests including Google Fonts
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return
+  }
+
   // Handle navigation requests (pages)
   if (event.request.mode === 'navigate') {
     event.respondWith(
