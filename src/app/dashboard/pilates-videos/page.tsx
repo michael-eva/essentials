@@ -114,7 +114,7 @@ export default function PilatesVideosLibrary() {
             onClick={() => setIsHelpModalOpen(true)}
             className="text-sm"
           >
-            Don't know where to start?
+            Don&apos;t know where to start?
           </Button>
         </div>
         <PilatesVideosFilterModal
