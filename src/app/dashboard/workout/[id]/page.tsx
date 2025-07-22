@@ -11,6 +11,7 @@ import DefaultBox from '@/app/_components/global/DefaultBox';
 import { motion } from 'framer-motion';
 import RecordManualActivity, { type ActivityFormValues } from '@/app/_components/dashboard/RecordManualActivity';
 import type { Exercise } from '@/app/_components/dashboard/ExerciseList';
+import AchievementsCard from '@/app/_components/dashboard/AchievementsCard';
 
 type PageProps = {
   params: Promise<{
@@ -28,6 +29,7 @@ export default function WorkoutPage({ params }: PageProps) {
   const updateWorkoutStatus = api.workoutPlan.updateWorkoutStatus.useMutation({
     onSuccess: () => {
       void utils.workout.getWorkout.invalidate({ id });
+      void utils.workout.getAchievementForWorkout.invalidate({ workoutId: id }); // Invalidate achievements query
       toast.success("Workout status updated successfully");
     },
     onError: (error) => {
@@ -39,9 +41,13 @@ export default function WorkoutPage({ params }: PageProps) {
     onSuccess: () => {
       void utils.workout.getWorkout.invalidate({ id });
       void utils.workoutPlan.getActivePlan.invalidate();
+      void utils.workout.getAchievementForWorkout.invalidate({ workoutId: id }); // Invalidate achievements query
       toast.success("Activity recorded successfully");
     },
   });
+
+  // Fetch achievements for this workout
+  const { data: achievements, isLoading: isAchievementsLoading } = api.workout.getAchievementForWorkout.useQuery({ workoutId: id });
 
   if (isLoading) {
     return (
@@ -186,6 +192,10 @@ export default function WorkoutPage({ params }: PageProps) {
         </Badge>
       </div>
 
+       {/* Achievements Card at the top */}
+      {workout.status === 'completed' && (
+        <AchievementsCard achievements={achievements ?? []} loading={isAchievementsLoading} />
+      )}
       {/* Workout Details */}
       <DefaultBox
         title={workout.name}

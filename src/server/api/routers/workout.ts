@@ -8,6 +8,7 @@ import {
   getPilatesVideoById,
   getPilatesVideos,
   getPilatesVideoFilterOptions,
+  getAchievementForWorkout,
 } from "@/drizzle/src/db/queries";
 import { deleteWorkout, insertWorkouts } from "@/drizzle/src/db/mutations";
 
@@ -123,6 +124,21 @@ export const workoutRouter = createTRPCRouter({
       } catch (error) {
         console.error('Error in getPilatesVideoById endpoint:', error);
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch pilates video" });
+      }
+    }),
+
+  getAchievementForWorkout: protectedProcedure
+    .input(z.object({ workoutId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const achievements = await getAchievementForWorkout(ctx.userId, input.workoutId);
+        return achievements;
+      } catch (error) {
+        console.error("Error fetching achievements for workout:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch achievements for workout",
+        });
       }
     }),
 });
