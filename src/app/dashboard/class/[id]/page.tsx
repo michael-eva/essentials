@@ -11,6 +11,9 @@ import MarkClassComplete from "@/app/_components/dashboard/MarkClassComplete";
 import MarkClassMissed from "@/app/_components/dashboard/MarkClassMissed";
 import type { WorkoutFormValues } from "@/app/_components/dashboard/MarkClassComplete";
 import PilatesDetail from "@/app/_components/dashboard/PilatesDetail";
+import AchievementsCard from '@/app/_components/dashboard/AchievementsCard';
+import { useRouter } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
 
 type PageProps = {
   params: Promise<{
@@ -122,9 +125,13 @@ function ClassPageSkeleton() {
 
 export default function Page({ params }: PageProps) {
   const { id } = use(params);
+  const router = useRouter();
   const { data: pilatesClass, isLoading } = api.workout.getPilatesClassViaWorkout.useQuery({ workoutId: id });
   const { data: workout } = api.workout.getWorkout.useQuery({ id });
   const utils = api.useUtils();
+
+  // Fetch achievements for this class
+  const { data: achievements, isLoading: isAchievementsLoading } = api.workout.getAchievementForWorkout.useQuery({ workoutId: id });
 
   // State for dialogs
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -147,12 +154,51 @@ export default function Page({ params }: PageProps) {
       void utils.workout.getWorkout.invalidate({ id });
       void utils.workout.getPilatesClassViaWorkout.invalidate({ workoutId: id });
       void utils.workoutPlan.getActivePlan.invalidate();
+      void utils.workout.getAchievementForWorkout.invalidate({ workoutId: id }); // Invalidate achievements query for this class
       toast.success("Class completed successfully");
     },
     onError: (error) => {
       toast.error(error.message || "Failed to complete class");
     },
   });
+
+  // Helper functions for status icon and color
+  const getStatusIcon = (status: string | null) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      case "not_completed":
+        return <XCircle className="h-5 w-5 text-red-500" />;
+      case "not_recorded":
+        return <XCircle className="h-5 w-5 text-orange-500" />;
+      default:
+        return <XCircle className="h-5 w-5 text-gray-400" />;
+    }
+  };
+  const getStatusColor = (status: string | null) => {
+    switch (status) {
+      case "completed":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "not_completed":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "not_recorded":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+  const getStatusLabel = (status: string | null) => {
+    switch (status) {
+      case "completed":
+        return "Completed";
+      case "not_completed":
+        return "Not Completed";
+      case "not_recorded":
+        return "Not Recorded";
+      default:
+        return "Unknown";
+    }
+  };
 
   if (isLoading || !pilatesClass?.mux_playback_id) {
     return <ClassPageSkeleton />;
@@ -192,6 +238,29 @@ export default function Page({ params }: PageProps) {
 
   return (
     <>
+      <div className="flex items-center gap-4 p-2">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <Badge
+          variant="outline"
+          className={`${getStatusColor(workout?.status ?? null)} border`}
+        >
+          <div className="flex items-center gap-1">
+            {getStatusIcon(workout?.status ?? null)}
+            <span className="capitalize">{workout?.status?.replace('_', ' ') || 'Unknown'}</span>
+          </div>
+        </Badge>
+      </div>
+      {/* Show AchievementsCard if class is completed */}
+      {workout?.status === 'completed' && (
+        <AchievementsCard achievements={achievements ?? []} loading={isAchievementsLoading} />
+      )}
       <PilatesDetail
         title={pilatesClass?.title ?? ""}
         instructor={pilatesClass?.instructor}
