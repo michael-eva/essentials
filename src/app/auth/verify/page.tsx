@@ -49,6 +49,7 @@ function VerifyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
+  const name = searchParams.get("name") ?? "";
   const mode = searchParams.get("mode") ?? "existing";
   const redirectedFrom = searchParams.get("redirectedFrom") ?? "/welcome";
 
@@ -95,6 +96,7 @@ function VerifyForm() {
       await generateOtp({
         email,
         password: "",
+        name
       });
       toast.success("New code sent to your email!");
     } catch (error) {
@@ -206,3 +208,4 @@ export default function VerifyPage() {
     </Suspense>
   );
 }
+
