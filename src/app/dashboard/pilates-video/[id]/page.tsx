@@ -76,6 +76,16 @@ export default function PilatesVideoDetailPage({
 
   return (
     <div className="bg-background min-h-screen">
+      <div className="p-2">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
       <PilatesDetail
         title={video.title}
         summary={video.summary}

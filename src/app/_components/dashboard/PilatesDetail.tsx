@@ -51,16 +51,7 @@ const PilatesDetail: React.FC<PilatesDetailProps> = ({
 
   return (
     <div className="bg-background min-h-screen">
-      <div className="p-2">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-      </div>
+
 
       <div className="border-brand-brown mx-auto max-w-3xl overflow-hidden rounded-lg border bg-white p-0 shadow-sm md:p-8">
         <div className="flex flex-col md:flex-row md:gap-8">
