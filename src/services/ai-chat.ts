@@ -146,7 +146,7 @@ async function buildSystemContext(
   userContext: UserContext,
 ): Promise<string> {
   const defaultPrompt =
-    "You are a helpful personal trainer AI assistant. Provide personalized fitness advice and support based on the user's profile and goals.";
+    "You are a helpful personal trainer AI assistant. Provide personalised fitness advice and support based on the user's profile and goals. Always use Australian English spelling and grammar in all responses.";
 
   const userContextText = formatUserContextForAI(userContext);
   const name = trainerName ?? "Emma";
@@ -212,9 +212,9 @@ KEY RELATIONSHIPS:
 USER CONTEXT:
 ${userContextText}
 
-Please use this context to provide personalized and relevant responses to the user's questions and requests. Remember to embody the personality and approach described in your system prompt while staying true to your role as ${name}.
+Please use this context to provide personalised and relevant responses to the user's questions and requests. Remember to embody the personality and approach described in your system prompt while staying true to your role as ${name}.
 
-Your answers should not be very long, they should be about 5 sentences maximum. They should be concise and the length of a normal text message.`;
+Your answers should not be very long, they should be about 5 sentences maximum. They should be concise and the length of a normal text message. Always use Australian English spelling and grammar in all responses.`;
 }
 
 /**

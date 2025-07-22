@@ -53,7 +53,7 @@ function detectPlanGenerationSuggestion(content: string): boolean {
     "new plan",
     "plan for you",
     "custom plan",
-    "personalized plan",
+    "personalised plan",
     "generate workout",
     "create workout plan"
   ];

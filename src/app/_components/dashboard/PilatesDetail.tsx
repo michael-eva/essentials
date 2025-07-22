@@ -26,6 +26,11 @@ interface PilatesDetailProps {
   children?: React.ReactNode;
 }
 
+const formatLabel = (label: string) => {
+  if (!label) return "";
+  return label.replace(/_/g, " ");
+};
+
 const PilatesDetail: React.FC<PilatesDetailProps> = ({
   title,
   instructor,
@@ -131,7 +136,7 @@ const PilatesDetail: React.FC<PilatesDetailProps> = ({
                     variant="outline"
                     className="text-brand-brown border-brand-brown/30 px-2 py-0.5 text-xs font-medium md:text-sm"
                   >
-                    {muscle}
+                    {formatLabel(muscle)}
                   </Badge>
                 ))}
               </div>
@@ -164,9 +169,9 @@ const PilatesDetail: React.FC<PilatesDetailProps> = ({
                 <Badge
                   key={i}
                   variant="outline"
-                  className="border-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 md:text-sm"
+                  className="border-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 md:text-sm capitalize"
                 >
-                  {eq}
+                  {formatLabel(eq)}
                 </Badge>
               ))}
             </div>
@@ -185,8 +190,8 @@ const PilatesDetail: React.FC<PilatesDetailProps> = ({
                   <span className="bg-brand-brown flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold text-white md:text-base">
                     {i + 1}
                   </span>
-                  <span className="text-sm text-gray-800 md:text-base">
-                    {step}
+                  <span className="text-sm text-gray-800 md:text-base capitalize">
+                    {formatLabel(step)}
                   </span>
                 </li>
               ))}
@@ -204,7 +209,7 @@ const PilatesDetail: React.FC<PilatesDetailProps> = ({
                   variant="outline"
                   className="border-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 md:text-sm"
                 >
-                  {tag}
+                  {formatLabel(tag)}
                 </Badge>
               ))}
             </div>
