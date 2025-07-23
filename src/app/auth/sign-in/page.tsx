@@ -54,6 +54,7 @@ const scrollStyles = `
 function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const router = useRouter();
@@ -97,8 +98,9 @@ function SignInForm() {
       await generateOtp({
         email,
         password,
+        name,
       });
-      router.push(`/auth/verify?email=${encodeURIComponent(email)}&mode=${mode}`);
+      router.push(`/auth/verify?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&mode=${mode}`);
     } catch (error) {
       console.error('Unexpected Error:', error);
     } finally {
@@ -226,6 +228,18 @@ function SignInForm() {
           </div> */}
 
           <form onSubmit={handleEmailSubmit} className="space-y-4 sm:space-y-6">
+            {mode === "new" && (
+              <div>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Name"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-brand-light-yellow rounded-lg text-brand-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
+                  required
+                />
+              </div>
+            )}
             <div>
               <input
                 type="email"
