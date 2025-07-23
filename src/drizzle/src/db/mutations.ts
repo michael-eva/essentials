@@ -187,6 +187,117 @@ export async function insertUser(data: User) {
   return result;
 }
 
+export async function updateUser(
+  userId: string,
+  data: Partial<Pick<User, "name" | "email">>,
+) {
+  const result = await db
+    .update(user)
+    .set(data)
+    .where(eq(user.id, userId))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function clearAllUserData(userId: string) {
+  try {
+    console.log(`Starting to clear all data for user: ${userId}`);
+
+    // Delete in order to respect foreign key constraints
+    // Note: Most of these have cascade delete, but we'll be explicit for safety
+
+    // 1. Clear weekly schedules (references workoutPlan and workout)
+    const deletedWeeklySchedules = await db
+      .delete(weeklySchedule)
+      .where(
+        inArray(
+          weeklySchedule.planId,
+          db
+            .select({ id: workoutPlan.id })
+            .from(workoutPlan)
+            .where(eq(workoutPlan.userId, userId)),
+        ),
+      )
+      .returning();
+
+    // 2. Clear progress tracking (references workoutTracking)
+    const deletedProgressTracking = await db
+      .delete(progressTracking)
+      .where(eq(progressTracking.userId, userId))
+      .returning();
+
+    // 3. Clear workout tracking
+    const deletedWorkoutTracking = await db
+      .delete(workoutTracking)
+      .where(eq(workoutTracking.userId, userId))
+      .returning();
+
+    // 4. Clear workouts
+    const deletedWorkouts = await db
+      .delete(workout)
+      .where(eq(workout.userId, userId))
+      .returning();
+
+    // 5. Clear workout plans
+    const deletedWorkoutPlans = await db
+      .delete(workoutPlan)
+      .where(eq(workoutPlan.userId, userId))
+      .returning();
+
+    // 6. Clear onboarding data
+    const deletedOnboarding = await db
+      .delete(onboarding)
+      .where(eq(onboarding.userId, userId))
+      .returning();
+
+    // 7. Clear personal trainer interactions
+    const deletedPTInteractions = await db
+      .delete(personalTrainerInteractions)
+      .where(eq(personalTrainerInteractions.userId, userId))
+      .returning();
+
+    // 8. Clear AI system prompts
+    const deletedAiSystemPrompts = await db
+      .delete(AiSystemPrompt)
+      .where(eq(AiSystemPrompt.userId, userId))
+      .returning();
+
+    // 9. Clear AI chat messages
+    const deletedAiChatMessages = await db
+      .delete(AiChatMessages)
+      .where(eq(AiChatMessages.userId, userId))
+      .returning();
+
+    const deletionSummary = {
+      weeklySchedules: deletedWeeklySchedules.length,
+      progressTracking: deletedProgressTracking.length,
+      workoutTracking: deletedWorkoutTracking.length,
+      workouts: deletedWorkouts.length,
+      workoutPlans: deletedWorkoutPlans.length,
+      onboarding: deletedOnboarding.length,
+      personalTrainerInteractions: deletedPTInteractions.length,
+      aiSystemPrompts: deletedAiSystemPrompts.length,
+      aiChatMessages: deletedAiChatMessages.length,
+    };
+
+    console.log(
+      `Successfully cleared all data for user: ${userId}`,
+      deletionSummary,
+    );
+
+    return {
+      success: true,
+      message: "All user data cleared successfully",
+      deletedCounts: deletionSummary,
+    };
+  } catch (error) {
+    console.error(`Error clearing user data for ${userId}:`, error);
+    throw new Error(
+      `Failed to clear user data: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
+}
+
 export async function insertPersonalTrainerInteraction(
   data: NewPersonalTrainerInteraction,
 ) {
