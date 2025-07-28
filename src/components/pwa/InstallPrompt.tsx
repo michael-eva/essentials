@@ -71,7 +71,7 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
     }
 
     // Check navigator.standalone for iOS
-    if ('standalone' in window.navigator && (window.navigator as any).standalone) {
+    if ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone) {
       return true
     }
 
@@ -109,7 +109,7 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
 
     // Check if running on macOS Safari (not Chrome/Edge on Mac)
     const isMacOSDevice = /Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.platform) &&
-      /Safari/.test(userAgentString) &&
+      userAgentString.includes('Safari') &&
       !/Chrome|CriOS|EdgiOS|Edg/.test(userAgentString)
     setIsMacOS(isMacOSDevice)
 
@@ -321,9 +321,9 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
                 To install Essentials on your Mac:
               </p>
               <ol className="text-sm space-y-2 list-decimal list-inside">
-                <li>Click <strong>File</strong> in Safari's menu bar</li>
-                <li>Select <strong>"Add to Dock"</strong></li>
-                <li>Or click the Share button and choose <strong>"Add to Dock"</strong></li>
+                <li>Click <strong>File</strong> in Safari&apos;s menu bar</li>
+                <li>Select <strong>&quot;Add to Dock&quot;</strong></li>
+                <li>Or click the Share button and choose <strong>&quot;Add to Dock&quot;</strong></li>
               </ol>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Smartphone className="h-4 w-4" />
@@ -338,7 +338,7 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
           ) : showFallbackPrompt || (forceShow && !isIOS && !isMacOS && !deferredPrompt) ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Your browser doesn't fully support app installation, but you can still bookmark Essentials for quick access!
+                Your browser doesn&apos;t fully support app installation, but you can still bookmark Essentials for quick access!
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
