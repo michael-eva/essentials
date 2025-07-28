@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Smartphone, Download, Share } from 'lucide-react'
@@ -28,6 +29,7 @@ interface InstallPromptProps {
 }
 
 export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps = {}) {
+  const pathname = usePathname()
   const [showInstallPrompt, setShowInstallPrompt] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isIOS, setIsIOS] = useState(false)
@@ -36,6 +38,9 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
   const [showMacOSPrompt, setShowMacOSPrompt] = useState(false)
   const [showFallbackPrompt, setShowFallbackPrompt] = useState(false)
   const [pwaSupported, setPwaSupported] = useState<boolean | null>(null)
+
+  // Don't show install prompts during auth or onboarding
+  const shouldHidePrompt = pathname?.includes('/auth') || pathname?.includes('/onboarding')
 
   // Enhanced PWA support detection
   const checkPWASupport = () => {
@@ -112,16 +117,16 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
     const support = checkPWASupport()
     setPwaSupported(support.isFullySupported)
 
-    // Show iOS prompt after delay (only if not dismissed recently)
-    if (isIOSDevice && shouldShowPrompt(DISMISSAL_KEYS.IOS)) {
+    // Show iOS prompt after delay (only if not dismissed recently and not in auth/onboarding)
+    if (isIOSDevice && !shouldHidePrompt && shouldShowPrompt(DISMISSAL_KEYS.IOS)) {
       const timer = setTimeout(() => {
         setShowIOSPrompt(true)
       }, 2000)
       return () => clearTimeout(timer)
     }
 
-    // Show macOS prompt after delay (if PWA is supported and not dismissed recently)
-    if (isMacOSDevice && shouldShowPrompt(DISMISSAL_KEYS.MACOS)) {
+    // Show macOS prompt after delay (if PWA is supported, not dismissed recently, and not in auth/onboarding)
+    if (isMacOSDevice && !shouldHidePrompt && shouldShowPrompt(DISMISSAL_KEYS.MACOS)) {
       const timer = setTimeout(() => {
         if (support.isFullySupported) {
           setShowMacOSPrompt(true)
@@ -135,19 +140,24 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
       return () => clearTimeout(timer)
     }
 
-    // For other browsers, show fallback if PWA isn't fully supported (and not dismissed recently)
-    if (!isIOSDevice && !isMacOSDevice && !support.hasBeforeInstallPrompt && shouldShowPrompt(DISMISSAL_KEYS.FALLBACK)) {
+    // For other browsers, show fallback if PWA isn't fully supported (and not dismissed recently and not in auth/onboarding)
+    if (!isIOSDevice && !isMacOSDevice && !shouldHidePrompt && !support.hasBeforeInstallPrompt && shouldShowPrompt(DISMISSAL_KEYS.FALLBACK)) {
       const timer = setTimeout(() => {
         setShowFallbackPrompt(true)
       }, 3000) // Longer delay to see if beforeinstallprompt fires
       return () => clearTimeout(timer)
     }
-  }, [])
+  }, [shouldHidePrompt])
 
   // Listen for beforeinstallprompt and appinstalled events
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
+
+      // Don't show during auth or onboarding
+      if (window.location.pathname.includes('/auth') || window.location.pathname.includes('/onboarding')) {
+        return
+      }
 
       // Only show if not dismissed recently
       if (!shouldShowPrompt(DISMISSAL_KEYS.NATIVE)) {
@@ -266,14 +276,14 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
     }
   }
 
-  // Don't render anything if no prompts should be shown
-  if (!forceShow && !showInstallPrompt && !showIOSPrompt && !showMacOSPrompt && !showFallbackPrompt) {
+  // Don't render anything during auth/onboarding or if no prompts should be shown
+  if (shouldHidePrompt || (!forceShow && !showInstallPrompt && !showIOSPrompt && !showMacOSPrompt && !showFallbackPrompt)) {
     return null
   }
 
   return (
     <Dialog
-      open={forceShow || showInstallPrompt || showIOSPrompt || showMacOSPrompt || showFallbackPrompt}
+      open={!shouldHidePrompt && (forceShow || showInstallPrompt || showIOSPrompt || showMacOSPrompt || showFallbackPrompt)}
       onOpenChange={handleOpenChange}
     >
       <DialogContent className="sm:max-w-md">
