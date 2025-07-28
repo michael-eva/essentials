@@ -34,7 +34,7 @@ export function MultiSelectPills({
                         }
                     }}
                     className={cn(
-                        "px-4 py-2 text-sm rounded-full border transition-colors capitalize max-w-[120px] truncate",
+                        "px-4 py-2 text-sm rounded-full border transition-colors capitalize",
                         selectedValues.includes(option)
                         && "bg-brand-light-nude border-brand-brown text-primary-foreground"
                     )}
