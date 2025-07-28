@@ -14,6 +14,8 @@ import {
   activityTypeEnum,
   AiChatMessages,
   AiSystemPrompt,
+  notifications,
+  pushSubscriptions,
 } from "./schema";
 import type {
   NewWorkout,
@@ -26,6 +28,10 @@ import type {
   User,
   NewAiChatMessages,
   NewAiSystemPrompt,
+  NewNotification,
+  NewPushSubscription,
+  Notification,
+  PushSubscription,
 } from "./queries";
 import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
@@ -464,4 +470,104 @@ export async function deletePersonalTrainerInteraction(userId: string) {
     .delete(AiChatMessages)
     .where(eq(AiChatMessages.userId, userId));
   return result;
+}
+
+// Notification mutations
+export async function insertNotification(
+  data: NewNotification,
+): Promise<Notification> {
+  const result = await db.insert(notifications).values(data).returning();
+  return result[0]!;
+}
+
+export async function updateNotification(
+  id: string,
+  data: Partial<NewNotification>,
+): Promise<Notification | null> {
+  const result = await db
+    .update(notifications)
+    .set(data)
+    .where(eq(notifications.id, id))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function markNotificationAsSent(
+  id: string,
+): Promise<Notification | null> {
+  const result = await db
+    .update(notifications)
+    .set({ sent: true })
+    .where(eq(notifications.id, id))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function deleteNotification(id: string): Promise<void> {
+  await db.delete(notifications).where(eq(notifications.id, id));
+}
+
+export async function deleteNotificationsByUserId(
+  userId: string,
+): Promise<void> {
+  await db.delete(notifications).where(eq(notifications.userId, userId));
+}
+
+// Push subscription mutations
+export async function insertPushSubscription(
+  data: NewPushSubscription,
+): Promise<PushSubscription> {
+  const result = await db.insert(pushSubscriptions).values(data).returning();
+  return result[0]!;
+}
+
+export async function updatePushSubscription(
+  id: string,
+  data: Partial<NewPushSubscription>,
+): Promise<PushSubscription | null> {
+  const result = await db
+    .update(pushSubscriptions)
+    .set(data)
+    .where(eq(pushSubscriptions.id, id))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function deletePushSubscription(id: string): Promise<void> {
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, id));
+}
+
+export async function deletePushSubscriptionByEndpoint(
+  endpoint: string,
+): Promise<void> {
+  await db
+    .delete(pushSubscriptions)
+    .where(eq(pushSubscriptions.endpoint, endpoint));
+}
+
+export async function deletePushSubscriptionsByUserId(
+  userId: string,
+): Promise<void> {
+  await db
+    .delete(pushSubscriptions)
+    .where(eq(pushSubscriptions.userId, userId));
+}
+
+export async function upsertPushSubscription(
+  data: NewPushSubscription,
+): Promise<PushSubscription> {
+  const result = await db
+    .insert(pushSubscriptions)
+    .values(data)
+    .onConflictDoUpdate({
+      target: pushSubscriptions.userId,
+      set: {
+        endpoint: data.endpoint,
+        p256dh: data.p256dh,
+        auth: data.auth,
+        createdAt: new Date(),
+      },
+    })
+    .returning();
+  return result[0]!;
 }

@@ -15,6 +15,7 @@ export const env = createEnv({
     RESEND_API_KEY: z.string(),
     OPENAI_API_KEY: z.string(),
     WEBHOOK_API_KEY: z.string(),
+    VAPID_PRIVATE_KEY: z.string(),
   },
 
   /**
@@ -27,6 +28,7 @@ export const env = createEnv({
     NEXT_PUBLIC_USER_ROLE: z.enum(["DEVELOPER", "USER"]).default("USER"),
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string(),
   },
 
   /**
@@ -44,6 +46,8 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     WEBHOOK_API_KEY: process.env.WEBHOOK_API_KEY,
+    VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
