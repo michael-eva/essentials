@@ -6,6 +6,8 @@ import { subscribeUser, unsubscribeUser } from '@/app/actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useSession } from '@/contexts/SessionContext'
 import { api } from '@/trpc/react'
+import { Download } from 'lucide-react'
+import { InstallPrompt } from './InstallPrompt'
 
 // Utility function to convert base64 URL to Uint8Array
 const base64UrlToUint8Array = (base64UrlData: string) => {
@@ -45,13 +47,38 @@ const getPushSubscription = async (registration: ServiceWorkerRegistration) => {
 export function PushNotificationManager() {
   const [isLoading, setIsLoading] = useState(false)
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false)
+  const [isPWAInstalled, setIsPWAInstalled] = useState(false)
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false)
   const { user } = useSession()
   const { data: notificationSubscriptionStatus } = api.notifications.getNotificationSubscriptionStatus.useQuery()
   const utils = api.useUtils()
 
+  // Check if PWA is already installed
+  const checkPWAInstallation = () => {
+    // Check if running in standalone mode (installed PWA)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      return true
+    }
+
+    // Check if running in fullscreen mode (some PWAs)
+    if (window.matchMedia('(display-mode: fullscreen)').matches) {
+      return true
+    }
+
+    // Check navigator.standalone for iOS
+    if ('standalone' in window.navigator && (window.navigator as any).standalone) {
+      return true
+    }
+
+    return false
+  }
+
   useEffect(() => {
     // Check if we're in a browser environment and service workers are supported
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+      // Check PWA installation status
+      setIsPWAInstalled(checkPWAInstallation())
+
       // Try to get service worker ready
       checkServiceWorker()
     }
@@ -80,6 +107,10 @@ export function PushNotificationManager() {
         alert('Error with service worker: ' + String(error))
       }
     }
+  }
+
+  const handleInstallClick = () => {
+    setShowInstallPrompt(true)
   }
 
 
@@ -269,33 +300,64 @@ export function PushNotificationManager() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Push Notifications</CardTitle>
-        <CardDescription>
-          Get notified about your workouts, progress updates, and fitness tips.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {notificationSubscriptionStatus?.hasSubscription ? (
-          <Button
-            onClick={unsubscribeFromNotifications}
-            disabled={isLoading}
-            variant="outline"
-            size="sm"
-          >
-            {isLoading ? 'Unsubscribing...' : 'Unsubscribe from Notifications'}
-          </Button>
-        ) : (
-          <Button
-            onClick={subscribeToNotifications}
-            disabled={isLoading}
-            size="sm"
-          >
-            {isLoading ? 'Subscribing...' : 'Subscribe to Notifications'}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Push Notifications</CardTitle>
+          <CardDescription>
+            Get notified about your workouts, progress updates, and fitness tips.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {/* Install App Button - Show if PWA is not installed */}
+            {!isPWAInstalled && (
+              <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">Install Essentials App</p>
+                    <p className="text-xs text-blue-700">Get faster access and offline features</p>
+                  </div>
+                  <Button
+                    onClick={handleInstallClick}
+                    size="sm"
+                    variant="outline"
+                    className="bg-white hover:bg-blue-50"
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    Install
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Notification Subscription Button */}
+            {notificationSubscriptionStatus?.hasSubscription ? (
+              <Button
+                onClick={unsubscribeFromNotifications}
+                disabled={isLoading}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                {isLoading ? 'Unsubscribing...' : 'Unsubscribe from Notifications'}
+              </Button>
+            ) : (
+              <Button
+                onClick={subscribeToNotifications}
+                disabled={isLoading}
+                size="sm"
+                className="w-full"
+              >
+                {isLoading ? 'Subscribing...' : 'Subscribe to Notifications'}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Conditionally render InstallPrompt */}
+      {showInstallPrompt && <InstallPrompt />}
+    </>
   )
 } 
