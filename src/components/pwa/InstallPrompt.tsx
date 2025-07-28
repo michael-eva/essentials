@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Smartphone, Download, Share } from 'lucide-react'
+import { toast } from 'sonner'
 
 // Define the BeforeInstallPromptEvent interface
 interface BeforeInstallPromptEvent extends Event {
@@ -143,7 +144,7 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
     }
   }, [])
 
-  // Listen for beforeinstallprompt event
+  // Listen for beforeinstallprompt and appinstalled events
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
@@ -159,10 +160,54 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
       setShowFallbackPrompt(false)
     }
 
+    const handleAppInstalled = (e: Event) => {
+      console.log('PWA was installed successfully')
+
+      // Try to automatically open the PWA after installation
+      setTimeout(() => {
+        try {
+          // Get the current origin for the PWA URL
+          const pwaUrl = window.location.origin
+
+          // Try to open the PWA - this will open in standalone mode if installed
+          const pwaWindow = window.open(pwaUrl, '_blank', 'noopener,noreferrer')
+
+          // If window.open was blocked, user will need to manually open from home screen
+          if (!pwaWindow) {
+            console.log('Auto-open blocked by browser - user will need to manually open the PWA from their home screen')
+
+            // Show helpful toast notification
+            toast.success('🎉 Essentials installed successfully!', {
+              description: 'Find the app on your home screen to get started.',
+              duration: 5000,
+            })
+          } else {
+            console.log('PWA opened automatically after installation')
+
+            // Show success toast
+            toast.success('🎉 Essentials installed and opened!', {
+              description: 'Welcome to your new fitness companion.',
+              duration: 3000,
+            })
+          }
+        } catch (error) {
+          console.error('Failed to auto-open PWA:', error)
+
+          // Show fallback toast
+          toast.success('🎉 Essentials installed successfully!', {
+            description: 'Find the app on your home screen to get started.',
+            duration: 5000,
+          })
+        }
+      }, 1000) // Wait 1 second for installation to complete
+    }
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
 
@@ -173,7 +218,7 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
     const { outcome } = await deferredPrompt.userChoice
 
     if (outcome === 'accepted') {
-      console.log('User accepted the install prompt')
+      console.log('User accepted the install prompt - PWA will auto-open when installation completes')
     } else {
       console.log('User dismissed the install prompt')
       // Save dismissal if user rejected the install
