@@ -15,8 +15,11 @@ export const metadata: Metadata = {
   title: "Essentials Studio",
   description: "Your personal fitness companion with AI-powered workout plans and progress tracking",
   icons: [
-    { rel: "icon", url: "/favicon.ico" },
-    { rel: "apple-touch-icon", url: "/logo/essentials_logo.png" },
+    { rel: "icon", type: "image/x-icon", url: "/favicon.ico" },
+    { rel: "icon", type: "image/png", sizes: "16x16", url: "/favicon-16x16.png" },
+    { rel: "icon", type: "image/png", sizes: "32x32", url: "/favicon-32x32.png" },
+    { rel: "icon", type: "image/png", sizes: "48x48", url: "/favicon-48x48.png" },
+    { rel: "apple-touch-icon", sizes: "192x192", url: "/icons/icon-192x192.png" },
   ],
   manifest: "/manifest.json",
   appleWebApp: {
