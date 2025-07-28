@@ -2,7 +2,11 @@
 
 import webpush from "web-push";
 import { getPushSubscriptionByUserId } from "@/drizzle/src/db/queries";
-import { deletePushSubscriptionByEndpoint } from "@/drizzle/src/db/mutations";
+import {
+  deletePushSubscriptionByEndpoint,
+  deletePushSubscriptionsByUserId,
+  upsertPushSubscription,
+} from "@/drizzle/src/db/mutations";
 
 // Configure VAPID details for push notifications (only if keys are available)
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
@@ -53,71 +57,63 @@ export async function subscribeUser(
   userId: string,
 ): Promise<SubscribeResult> {
   try {
-    // Call the API endpoint to save subscription to database
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/subscribe`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          endpoint: sub.endpoint,
-          p256dh: sub.keys.p256dh,
-          auth: sub.keys.auth,
-          userId: userId,
-        }),
-      },
-    );
-
-    const result = (await response.json()) as {
-      success: boolean;
-      action?: string;
-      error?: string;
-    };
-
-    if (!result.success) {
-      throw new Error(result.error || "Failed to subscribe user");
+    // Validate required fields
+    if (!sub.endpoint || typeof sub.endpoint !== "string") {
+      throw new Error("Invalid endpoint");
     }
 
-    return { success: true, action: result.action };
+    if (!sub.keys.p256dh || typeof sub.keys.p256dh !== "string") {
+      throw new Error("Invalid p256dh key");
+    }
+
+    if (!sub.keys.auth || typeof sub.keys.auth !== "string") {
+      throw new Error("Invalid auth key");
+    }
+
+    if (!userId || typeof userId !== "string") {
+      throw new Error("Invalid userId");
+    }
+
+    // Upsert subscription directly in the database
+    const subscription = await upsertPushSubscription({
+      endpoint: sub.endpoint,
+      p256dh: sub.keys.p256dh,
+      auth: sub.keys.auth,
+      userId,
+    });
+
+    return {
+      success: true,
+      action: subscription ? "updated" : "created",
+    };
   } catch (error) {
     console.error("Error subscribing user:", error);
-    return { success: false, error: "Failed to subscribe user" };
+    return { success: false, error: String(error) };
   }
 }
 
 export async function unsubscribeUser(
   endpoint: string,
+  userId?: string,
 ): Promise<UnsubscribeResult> {
   try {
-    // Call the API endpoint to remove subscription from database
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/unsubscribe`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          endpoint: endpoint,
-        }),
-      },
-    );
-
-    const result = (await response.json()) as {
-      success: boolean;
-      error?: string;
-    };
-
-    if (!result.success) {
-      throw new Error(result.error || "Failed to unsubscribe user");
+    // If we have an endpoint, use it to delete the specific subscription
+    if (endpoint && typeof endpoint === "string" && endpoint.trim() !== "") {
+      await deletePushSubscriptionByEndpoint(endpoint);
+      return { success: true };
     }
 
-    return { success: true };
+    // If no valid endpoint but we have a userId, delete all subscriptions for the user
+    if (userId && typeof userId === "string") {
+      await deletePushSubscriptionsByUserId(userId);
+      return { success: true };
+    }
+
+    // If neither endpoint nor userId is provided, we can't proceed
+    throw new Error("Either endpoint or userId must be provided");
   } catch (error) {
     console.error("Error unsubscribing user:", error);
-    return { success: false, error: "Failed to unsubscribe user" };
+    return { success: false, error: String(error) };
   }
 }
 

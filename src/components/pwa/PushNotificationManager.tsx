@@ -47,6 +47,7 @@ export function PushNotificationManager() {
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false)
   const { user } = useSession()
   const { data: notificationSubscriptionStatus } = api.notifications.getNotificationSubscriptionStatus.useQuery()
+  const utils = api.useUtils()
 
   useEffect(() => {
     // Check if we're in a browser environment and service workers are supported
@@ -123,13 +124,19 @@ export function PushNotificationManager() {
       const raw = subscription.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
       // Send subscription to server
       if (user?.id) {
-        await subscribeUser(raw, user.id)
+        const result = await subscribeUser(raw, user.id)
+        if (result.success) {
+          // Invalidate and refetch the subscription status
+          await utils.notifications.getNotificationSubscriptionStatus.invalidate()
+        } else {
+          throw new Error(result.error || 'Failed to subscribe')
+        }
       } else {
         throw new Error('User not authenticated')
       }
     } catch (error) {
       console.error('Error subscribing to notifications:', error)
-      alert('Failed to subscribe to notifications')
+      alert('Failed to subscribe to notifications: ' + String(error))
     } finally {
       setIsLoading(false)
     }
@@ -144,20 +151,72 @@ export function PushNotificationManager() {
 
     setIsLoading(true)
     try {
-      const registration = await navigator.serviceWorker.getRegistration()
-      if (!registration) {
-        throw new Error('Service worker not registered')
+      let browserUnsubscribed = false
+      let databaseUnsubscribed = false
+      let subscriptionEndpoint: string | null = null
+
+      // Try to get browser subscription and unsubscribe
+      try {
+        const registration = await navigator.serviceWorker.getRegistration()
+        if (registration) {
+          const subscription = await getPushSubscription(registration)
+          if (subscription) {
+            subscriptionEndpoint = subscription.endpoint
+            await unsubscribeFromPushMessages(subscription)
+            browserUnsubscribed = true
+            console.log('Successfully unsubscribed from browser push notifications')
+          } else {
+            console.log('No browser subscription found')
+          }
+        } else {
+          console.log('No service worker registration found')
+        }
+      } catch (browserError) {
+        console.warn('Error unsubscribing from browser:', browserError)
+        // Continue to database cleanup even if browser unsubscribe fails
       }
 
-      const subscription = await getPushSubscription(registration)
-
-      if (subscription) {
-        await unsubscribeFromPushMessages(subscription)
-        await unsubscribeUser(subscription.endpoint)
+      // Try to remove from database - we'll try with the endpoint if we have it,
+      // otherwise the server action should handle cleanup based on user ID
+      try {
+        if (subscriptionEndpoint) {
+          const result = await unsubscribeUser(subscriptionEndpoint, user?.id)
+          if (result.success) {
+            databaseUnsubscribed = true
+            console.log('Successfully removed subscription from database')
+          } else {
+            throw new Error(result.error || 'Failed to remove from database')
+          }
+        } else {
+          // If we don't have an endpoint, we can still clean up using user ID
+          console.log('No endpoint available, attempting database cleanup by user ID...')
+          if (user?.id) {
+            const result = await unsubscribeUser('', user.id)
+            if (result.success) {
+              databaseUnsubscribed = true
+              console.log('Database cleanup by user ID successful')
+            }
+          } else {
+            console.warn('No user ID available for database cleanup')
+          }
+        }
+      } catch (databaseError) {
+        console.warn('Error removing from database:', databaseError)
+        // If we successfully unsubscribed from browser but failed database cleanup,
+        // still consider it a partial success
       }
+
+      // If either operation succeeded, invalidate the query
+      if (browserUnsubscribed || databaseUnsubscribed) {
+        await utils.notifications.getNotificationSubscriptionStatus.invalidate()
+        console.log('Query cache invalidated, UI should update')
+      } else {
+        throw new Error('Failed to unsubscribe from both browser and database')
+      }
+
     } catch (error) {
       console.error('Error unsubscribing from notifications:', error)
-      alert('Failed to unsubscribe from notifications')
+      alert('Failed to unsubscribe from notifications: ' + String(error))
     } finally {
       setIsLoading(false)
     }
