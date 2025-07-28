@@ -16,6 +16,8 @@ import useGeneratePlan from "@/hooks/useGeneratePlan";
 import { CustomizePTDialog } from "./CustomizePTSection";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ConnectionAwareLoading } from "@/components/ui/connection-aware-loading";
+import { useConnectionFeedback } from "@/hooks/useConnectionFeedback";
 import { utils } from "prettier/doc.js";
 
 type Message = {
@@ -121,6 +123,13 @@ export function AIInteractionSection() {
   const router = useRouter();
   const utils = api.useUtils();
 
+  // Connection feedback for better error handling
+  const connectionFeedback = useConnectionFeedback({
+    maxRetries: 2,
+    retryDelay: 2000,
+    timeoutMs: 25000
+  });
+
   // Get trainer info and status
   const { data: trainerInfo, isLoading: isLoadingInfo } = api.myPt.getTrainerInfo.useQuery();
 
@@ -144,6 +153,9 @@ export function AIInteractionSection() {
     },
   });
 
+  // Store retry function for connection feedback
+  const [retryMessageFn, setRetryMessageFn] = useState<(() => void) | null>(null);
+
   // Mutation for sending messages
   const { mutate: sendMessage } = api.myPt.sendMessage.useMutation({
     onSuccess: (data) => {
@@ -155,10 +167,18 @@ export function AIInteractionSection() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
       setError(null);
+      connectionFeedback.resetRetries(); // Reset retry count on success
     },
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
       console.error("Failed to send message:", error);
-      setError(error.message);
+
+      // Use connection feedback for retry logic
+      connectionFeedback.handleError(error, retryMessageFn || undefined);
+
+      // Only set error for non-retryable errors or after max retries
+      if (connectionFeedback.retryCount >= connectionFeedback.maxRetries) {
+        setError(error.message);
+      }
     },
     onSettled: () => {
       setIsLoading(false);
@@ -245,9 +265,10 @@ export function AIInteractionSection() {
   const handleSend = () => {
     if (!input.trim()) return;
 
+    const currentMessage = input.trim();
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: input,
+      content: currentMessage,
       role: "user",
       timestamp: new Date(),
     };
@@ -256,6 +277,14 @@ export function AIInteractionSection() {
     setInput("");
     setIsLoading(true);
     setError(null);
+
+    // Create retry function for connection feedback
+    const retryFn = () => {
+      setIsLoading(true);
+      setError(null);
+      sendMessage({ message: currentMessage });
+    };
+    setRetryMessageFn(() => retryFn);
 
     // Scroll to bottom immediately after sending
     setTimeout(() => {
@@ -267,49 +296,24 @@ export function AIInteractionSection() {
       }
     }, 50);
 
-    sendMessage({ message: input });
+    sendMessage({ message: currentMessage });
   };
 
   // Show loading state while fetching trainer info OR chat history
   if (isLoadingInfo || isLoadingHistory) {
     return (
-      <>
-        {/* Mobile: Loading state */}
-        <div className="md:hidden fixed inset-0 top-20 flex flex-col bg-white">
-          <div className="flex-shrink-0 px-4 pt-4 pb-2">
-            <DefaultBox
-              title="Personal Trainer"
-              description="Your fitness companion"
-              showViewAll={false}
-            >
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center text-muted-foreground">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Loading your personal trainer...</p>
-                </div>
-              </div>
-            </DefaultBox>
-          </div>
-        </div>
-
-        {/* Desktop: Loading state */}
-        <div className="hidden md:block space-y-6">
-          <DefaultBox
-            title="Personal Trainer"
-            description="Your fitness companion"
-            showViewAll={false}
-          >
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center text-muted-foreground">
-                <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Loading your personal trainer...</p>
-              </div>
-            </div>
-          </DefaultBox>
-        </div>
-      </>
+      <ConnectionAwareLoading
+        isLoading={true}
+        onTimeout={() => {
+          toast.error("Loading is taking longer than expected. Please check your connection.");
+        }}
+      >
+        {/* This content won't show while loading */}
+      </ConnectionAwareLoading>
     );
   }
+
+
 
   // Show onboarding required message if not completed
   if (!isOnboardingComplete) {
@@ -542,9 +546,20 @@ export function AIInteractionSection() {
                 className="flex justify-start"
               >
                 <div className="bg-white border border-brand-brown/20 rounded-lg px-4 py-2 shadow-warm">
-                  <div className="flex items-center gap-2">
-                    <div className="animate-pulse text-sm text-muted-foreground">Thinking...</div>
-                  </div>
+                  <ConnectionAwareLoading
+                    isLoading={true}
+                    className="p-0"
+                    slowWarningMs={8000}
+                    timeoutMs={20000}
+                    onTimeout={() => {
+                      if (connectionFeedback.isRetrying) return; // Don't show if already handling retry
+                      toast.error("AI response is taking longer than expected. This might be a connection issue.");
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="animate-pulse text-sm text-muted-foreground">Thinking...</div>
+                    </div>
+                  </ConnectionAwareLoading>
                 </div>
               </motion.div>
             )}
@@ -736,9 +751,20 @@ export function AIInteractionSection() {
                 className="flex justify-start"
               >
                 <div className="bg-white border border-brand-brown/20 rounded-lg px-4 py-2 shadow-warm">
-                  <div className="flex items-center gap-2">
-                    <div className="animate-pulse text-sm text-muted-foreground">Thinking...</div>
-                  </div>
+                  <ConnectionAwareLoading
+                    isLoading={true}
+                    className="p-0"
+                    slowWarningMs={8000}
+                    timeoutMs={20000}
+                    onTimeout={() => {
+                      if (connectionFeedback.isRetrying) return; // Don't show if already handling retry
+                      toast.error("AI response is taking longer than expected. This might be a connection issue.");
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="animate-pulse text-sm text-muted-foreground">Thinking...</div>
+                    </div>
+                  </ConnectionAwareLoading>
                 </div>
               </motion.div>
             )}
