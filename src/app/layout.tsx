@@ -60,16 +60,16 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <TRPCReactProvider>
-          <ThemeProvider defaultTheme="light" storageKey="app-theme">
-            <SessionProvider>
+          <SessionProvider>
+            <ThemeProvider defaultTheme="light" storageKey="app-theme">
               <ProtectedRoute>
                 <SharedLayout>
                   {children}
                 </SharedLayout>
               </ProtectedRoute>
-            </SessionProvider>
-            <PWAProvider />
-          </ThemeProvider>
+              <PWAProvider />
+            </ThemeProvider>
+          </SessionProvider>
         </TRPCReactProvider>
       </body>
     </html>
