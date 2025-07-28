@@ -22,10 +22,11 @@ export function useConnectionFeedback(options: UseConnectionFeedbackOptions = {}
   const [retryCount, setRetryCount] = useState(0)
   const [isRetrying, setIsRetrying] = useState(false)
 
-  const isNetworkError = useCallback((error: any): RetryableError => {
+  const isNetworkError = useCallback((error: unknown): RetryableError => {
     // Handle tRPC errors
-    if (error?.data?.code) {
-      const code = error.data.code
+    if (error && typeof error === 'object' && 'data' in error) {
+      const tRPCError = error as { data?: { code?: string } }
+      const code = tRPCError.data?.code
       if (code === 'TIMEOUT' || code === 'INTERNAL_SERVER_ERROR') {
         return {
           isRetryable: true,
@@ -36,8 +37,9 @@ export function useConnectionFeedback(options: UseConnectionFeedbackOptions = {}
     }
 
     // Handle fetch/network errors
-    if (error?.message) {
-      const message = error.message.toLowerCase()
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorWithMessage = error as { message: string }
+      const message = errorWithMessage.message.toLowerCase()
       if (
         message.includes('fetch') ||
         message.includes('network') ||
@@ -62,15 +64,24 @@ export function useConnectionFeedback(options: UseConnectionFeedbackOptions = {}
       }
     }
 
+    // Extract error message safely
+    let errorMessage = 'An unexpected error occurred'
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorWithMessage = error as { message: string }
+      errorMessage = errorWithMessage.message
+    } else if (typeof error === 'string') {
+      errorMessage = error
+    }
+
     return {
       isRetryable: false,
-      message: error?.message || 'An unexpected error occurred',
+      message: errorMessage,
       isTimeout: false
     }
   }, [])
 
   const handleError = useCallback((
-    error: TRPCClientErrorLike<AppRouter> | Error,
+    error: unknown,
     retryFn?: () => void
   ) => {
     const errorInfo = isNetworkError(error)
