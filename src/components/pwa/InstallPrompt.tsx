@@ -21,7 +21,12 @@ const DISMISSAL_KEYS = {
 
 const DISMISSAL_DURATION = 3 * 24 * 60 * 60 * 1000 // 3 days in milliseconds
 
-export function InstallPrompt() {
+interface InstallPromptProps {
+  forceShow?: boolean
+  onClose?: () => void
+}
+
+export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps = {}) {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isIOS, setIsIOS] = useState(false)
@@ -202,7 +207,9 @@ export function InstallPrompt() {
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       // User clicked the "X" button or pressed Escape
-      if (isIOS && showIOSPrompt) {
+      if (forceShow && onClose) {
+        onClose()
+      } else if (isIOS && showIOSPrompt) {
         handleIOSClose()
       } else if (isMacOS && showMacOSPrompt) {
         handleMacOSClose()
@@ -215,13 +222,13 @@ export function InstallPrompt() {
   }
 
   // Don't render anything if no prompts should be shown
-  if (!showInstallPrompt && !showIOSPrompt && !showMacOSPrompt && !showFallbackPrompt) {
+  if (!forceShow && !showInstallPrompt && !showIOSPrompt && !showMacOSPrompt && !showFallbackPrompt) {
     return null
   }
 
   return (
     <Dialog
-      open={showInstallPrompt || showIOSPrompt || showMacOSPrompt || showFallbackPrompt}
+      open={forceShow || showInstallPrompt || showIOSPrompt || showMacOSPrompt || showFallbackPrompt}
       onOpenChange={handleOpenChange}
     >
       <DialogContent className="sm:max-w-md">
@@ -233,7 +240,7 @@ export function InstallPrompt() {
         </DialogHeader>
 
         <div className="space-y-4">
-          {isIOS && showIOSPrompt ? (
+          {(isIOS && showIOSPrompt) || (forceShow && isIOS) ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 To install Essentials on your iPhone or iPad:
@@ -248,12 +255,12 @@ export function InstallPrompt() {
                 <span>You can then access Essentials from your home screen</span>
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleIOSClose} variant="outline" size="sm">
+                <Button onClick={forceShow && onClose ? onClose : handleIOSClose} variant="outline" size="sm">
                   Got it
                 </Button>
               </div>
             </div>
-          ) : isMacOS && showMacOSPrompt ? (
+          ) : (isMacOS && showMacOSPrompt) || (forceShow && isMacOS) ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 To install Essentials on your Mac:
@@ -268,12 +275,12 @@ export function InstallPrompt() {
                 <span>Essentials will appear as a separate app in your Dock</span>
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleMacOSClose} variant="outline" size="sm">
+                <Button onClick={forceShow && onClose ? onClose : handleMacOSClose} variant="outline" size="sm">
                   Got it
                 </Button>
               </div>
             </div>
-          ) : showFallbackPrompt ? (
+          ) : showFallbackPrompt || (forceShow && !isIOS && !isMacOS && !deferredPrompt) ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 Your browser doesn't fully support app installation, but you can still bookmark Essentials for quick access!
@@ -292,7 +299,7 @@ export function InstallPrompt() {
                 >
                   Learn More
                 </Button>
-                <Button onClick={handleFallbackClose} variant="outline" size="sm">
+                <Button onClick={forceShow && onClose ? onClose : handleFallbackClose} variant="outline" size="sm">
                   Got it
                 </Button>
               </div>
@@ -303,10 +310,14 @@ export function InstallPrompt() {
                 Install Essentials for a better experience with quick access and offline features.
               </p>
               <div className="flex gap-2">
-                <Button onClick={handleInstallClick} className="flex-1">
-                  Install App
+                <Button
+                  onClick={deferredPrompt ? handleInstallClick : (forceShow && onClose ? onClose : handleClose)}
+                  className="flex-1"
+                  disabled={!deferredPrompt && !forceShow}
+                >
+                  {deferredPrompt ? 'Install App' : 'Install Not Available'}
                 </Button>
-                <Button onClick={handleClose} variant="outline">
+                <Button onClick={forceShow && onClose ? onClose : handleClose} variant="outline">
                   Not Now
                 </Button>
               </div>

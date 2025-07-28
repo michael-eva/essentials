@@ -113,6 +113,10 @@ export function PushNotificationManager() {
     setShowInstallPrompt(true)
   }
 
+  const handleInstallPromptClose = () => {
+    setShowInstallPrompt(false)
+  }
+
 
   const subscribeToNotifications = async () => {
     // Check if user is authenticated
@@ -357,7 +361,7 @@ export function PushNotificationManager() {
       </Card>
 
       {/* Conditionally render InstallPrompt */}
-      {showInstallPrompt && <InstallPrompt />}
+      {showInstallPrompt && <InstallPrompt forceShow={true} onClose={handleInstallPromptClose} />}
     </>
   )
 } 

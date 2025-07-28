@@ -1,22 +1,69 @@
-// Service Worker for Essentials PWA
+// ==========================================
+// ESSENTIALS PWA SERVICE WORKER V5.0
+// COMPLETE REWRITE FOR SAFARI COMPATIBILITY  
+// ==========================================
 
-const CACHE_NAME = 'essentials-v2'
-const urlsToCache = [
+const CACHE_NAME = 'essentials-safari-v5.0-finalss'
+const STATIC_CACHE = 'essentials-static-v5'
+const DYNAMIC_CACHE = 'essentials-dynamic-v5'
+const DEBUG_MODE = true
+const SW_VERSION = '5.0.0'
+
+// Completely new cache strategy
+const STATIC_ASSETS = [
   '/manifest.json',
-  '/logo/essentials_logo.png',
+  '/logo/essentials_logo.png', 
   '/logo/essentials_studio_logo.png',
   '/offline.html'
 ]
 
-// Install event - cache resources
+console.log('🚀🚀🚀 BRAND NEW SERVICE WORKER V5.0 LOADING 🚀🚀🚀')
+console.log('📦 Cache Names:', { CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE })
+console.log('🔥 SW Version:', SW_VERSION)
+console.log('🐛 Debug Mode Active:', DEBUG_MODE)
+console.log('📱 User Agent:', navigator.userAgent)
+
+// Enhanced install event with new logic
 self.addEventListener('install', (event) => {
+  console.log('🔧 NEW SERVICE WORKER V5.0 INSTALLING...')
+  
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache')
-        return cache.addAll(urlsToCache)
+    Promise.all([
+      caches.open(STATIC_CACHE).then(cache => {
+        console.log('📦 Static cache opened:', STATIC_CACHE)
+        return cache.addAll(STATIC_ASSETS)
+      }),
+      caches.open(DYNAMIC_CACHE).then(cache => {
+        console.log('📦 Dynamic cache opened:', DYNAMIC_CACHE)
+        return cache
       })
+    ]).then(() => {
+      console.log('✅ V5.0 SERVICE WORKER INSTALLED SUCCESSFULLY')
+      console.log('⚡ Forcing immediate activation...')
+      return self.skipWaiting()
+    }).catch(error => {
+      console.error('❌ Installation failed:', error)
+      throw error
+    })
   )
+})
+
+// Enhanced message handling
+self.addEventListener('message', (event) => {
+  console.log('📨 V5.0 Service Worker received message:', event.data)
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('⚡ SKIP_WAITING command received - activating V5.0 immediately')
+    self.skipWaiting().then(() => {
+      console.log('✅ V5.0 Service Worker activated successfully')
+    }).catch(error => {
+      console.error('❌ Skip waiting failed:', error)
+    })
+  }
+  
+  if (event.data && event.data.type === 'GET_VERSION') {
+    event.ports[0].postMessage({ version: SW_VERSION })
+  }
 })
 
 // Fetch event - serve from cache when offline
@@ -149,6 +196,9 @@ self.addEventListener('activate', (event) => {
           }
         })
       )
+    }).then(() => {
+      // Take control of all clients immediately
+      return self.clients.claim()
     })
   )
 }) 
