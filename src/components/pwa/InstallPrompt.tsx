@@ -11,6 +11,16 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
+// Constants for localStorage and timing
+const DISMISSAL_KEYS = {
+  NATIVE: 'pwa_install_dismissed_native',
+  IOS: 'pwa_install_dismissed_ios',
+  MACOS: 'pwa_install_dismissed_macos',
+  FALLBACK: 'pwa_install_dismissed_fallback'
+} as const
+
+const DISMISSAL_DURATION = 3 * 24 * 60 * 60 * 1000 // 3 days in milliseconds
+
 export function InstallPrompt() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
@@ -37,6 +47,48 @@ export function InstallPrompt() {
     }
   }
 
+  // Check if PWA is already installed
+  const isPWAInstalled = () => {
+    // Check if running in standalone mode (installed PWA)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      return true
+    }
+
+    // Check if running in fullscreen mode (some PWAs)
+    if (window.matchMedia('(display-mode: fullscreen)').matches) {
+      return true
+    }
+
+    // Check navigator.standalone for iOS
+    if ('standalone' in window.navigator && (window.navigator as any).standalone) {
+      return true
+    }
+
+    return false
+  }
+
+  // Check if dismissal period has passed
+  const shouldShowPrompt = (dismissalKey: string) => {
+    if (isPWAInstalled()) {
+      return false // Don't show if already installed
+    }
+
+    const dismissedAt = localStorage.getItem(dismissalKey)
+    if (!dismissedAt) {
+      return true // Never dismissed before
+    }
+
+    const dismissedTime = parseInt(dismissedAt, 10)
+    const now = Date.now()
+
+    return (now - dismissedTime) > DISMISSAL_DURATION
+  }
+
+  // Save dismissal timestamp
+  const saveDismissal = (dismissalKey: string) => {
+    localStorage.setItem(dismissalKey, Date.now().toString())
+  }
+
   useEffect(() => {
     const userAgentString = window.navigator.userAgent
 
@@ -54,29 +106,31 @@ export function InstallPrompt() {
     const support = checkPWASupport()
     setPwaSupported(support.isFullySupported)
 
-    // Show iOS prompt after delay
-    if (isIOSDevice) {
+    // Show iOS prompt after delay (only if not dismissed recently)
+    if (isIOSDevice && shouldShowPrompt(DISMISSAL_KEYS.IOS)) {
       const timer = setTimeout(() => {
         setShowIOSPrompt(true)
       }, 2000)
       return () => clearTimeout(timer)
     }
 
-    // Show macOS prompt after delay (if PWA is supported)
-    if (isMacOSDevice) {
+    // Show macOS prompt after delay (if PWA is supported and not dismissed recently)
+    if (isMacOSDevice && shouldShowPrompt(DISMISSAL_KEYS.MACOS)) {
       const timer = setTimeout(() => {
         if (support.isFullySupported) {
           setShowMacOSPrompt(true)
         } else {
-          // Show fallback for unsupported macOS Safari
-          setShowFallbackPrompt(true)
+          // Show fallback for unsupported macOS Safari (only if not dismissed recently)
+          if (shouldShowPrompt(DISMISSAL_KEYS.FALLBACK)) {
+            setShowFallbackPrompt(true)
+          }
         }
       }, 2000)
       return () => clearTimeout(timer)
     }
 
-    // For other browsers, show fallback if PWA isn't fully supported
-    if (!isIOSDevice && !isMacOSDevice && !support.hasBeforeInstallPrompt) {
+    // For other browsers, show fallback if PWA isn't fully supported (and not dismissed recently)
+    if (!isIOSDevice && !isMacOSDevice && !support.hasBeforeInstallPrompt && shouldShowPrompt(DISMISSAL_KEYS.FALLBACK)) {
       const timer = setTimeout(() => {
         setShowFallbackPrompt(true)
       }, 3000) // Longer delay to see if beforeinstallprompt fires
@@ -88,6 +142,12 @@ export function InstallPrompt() {
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
+
+      // Only show if not dismissed recently
+      if (!shouldShowPrompt(DISMISSAL_KEYS.NATIVE)) {
+        return
+      }
+
       setDeferredPrompt(e as BeforeInstallPromptEvent)
       setShowInstallPrompt(true)
       // Cancel fallback prompt since we have native support
@@ -111,6 +171,8 @@ export function InstallPrompt() {
       console.log('User accepted the install prompt')
     } else {
       console.log('User dismissed the install prompt')
+      // Save dismissal if user rejected the install
+      saveDismissal(DISMISSAL_KEYS.NATIVE)
     }
 
     setDeferredPrompt(null)
@@ -118,30 +180,37 @@ export function InstallPrompt() {
   }
 
   const handleClose = () => {
+    saveDismissal(DISMISSAL_KEYS.NATIVE)
     setShowInstallPrompt(false)
   }
 
   const handleIOSClose = () => {
+    saveDismissal(DISMISSAL_KEYS.IOS)
     setShowIOSPrompt(false)
   }
 
   const handleMacOSClose = () => {
+    saveDismissal(DISMISSAL_KEYS.MACOS)
     setShowMacOSPrompt(false)
   }
 
   const handleFallbackClose = () => {
+    saveDismissal(DISMISSAL_KEYS.FALLBACK)
     setShowFallbackPrompt(false)
   }
 
   const handleOpenChange = (open: boolean) => {
-    if (isIOS) {
-      setShowIOSPrompt(open)
-    } else if (isMacOS) {
-      setShowMacOSPrompt(open)
-    } else if (showFallbackPrompt) {
-      setShowFallbackPrompt(open)
-    } else {
-      setShowInstallPrompt(open)
+    if (!open) {
+      // User clicked the "X" button or pressed Escape
+      if (isIOS && showIOSPrompt) {
+        handleIOSClose()
+      } else if (isMacOS && showMacOSPrompt) {
+        handleMacOSClose()
+      } else if (showFallbackPrompt) {
+        handleFallbackClose()
+      } else if (showInstallPrompt) {
+        handleClose()
+      }
     }
   }
 
