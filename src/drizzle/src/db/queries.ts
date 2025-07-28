@@ -1114,8 +1114,12 @@ export async function getUpcomingNotifications(
     )
     .orderBy(asc(notifications.scheduledTime));
   return result;
-  
-export async function getAchievementForWorkout(userId: string, workoutId: string): Promise<string[]> {
+}
+
+export async function getAchievementForWorkout(
+  userId: string,
+  workoutId: string,
+): Promise<string[]> {
   // 1. Find the workoutTracking entry for this workoutId and user
   const tracking = await db
     .select()
@@ -1123,8 +1127,8 @@ export async function getAchievementForWorkout(userId: string, workoutId: string
     .where(
       and(
         eq(workoutTracking.userId, userId),
-        eq(workoutTracking.workoutId, workoutId)
-      )
+        eq(workoutTracking.workoutId, workoutId),
+      ),
     )
     .orderBy(desc(workoutTracking.date))
     .limit(1);

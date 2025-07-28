@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { PushNotificationManager } from "@/components/pwa/PushNotificationManager"
 
 export default function ProfilePage() {
   const [selectedForm, setSelectedForm] = useState<FormType | null>(null)
