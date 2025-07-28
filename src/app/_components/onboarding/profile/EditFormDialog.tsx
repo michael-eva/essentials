@@ -173,7 +173,18 @@ export default function EditFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
-      <DialogContent className="overflow-hidden rounded-2xl border-0 p-0 shadow-xl sm:max-w-[480px] max-h-[90vh] flex flex-col">
+      <DialogContent 
+        className="overflow-hidden rounded-2xl border-0 p-0 shadow-xl sm:max-w-[480px] max-h-[90vh] flex flex-col"
+        onInteractOutside={(e) => {
+          // Prevent dialog from closing when clicking on Select dropdown elements
+          const target = e.target as Element;
+          if (target?.closest('[data-radix-select-content]') || 
+              target?.closest('[data-radix-select-viewport]') ||
+              target?.closest('[data-radix-popper-content-wrapper]')) {
+            e.preventDefault();
+          }
+        }}
+      >
         {/* Header - Fixed */}
         <div className="flex-shrink-0 px-6 py-4 border-b border-gray-100 rounded-t-2xl">
           <DialogHeader className="flex flex-row items-center justify-between space-y-0">
