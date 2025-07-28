@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { ConnectionAwareLoading } from "@/components/ui/connection-aware-loading";
 import { useConnectionFeedback } from "@/hooks/useConnectionFeedback";
 import { utils } from "prettier/doc.js";
+import React from "react";
 
 type Message = {
   id: string;
@@ -108,6 +109,19 @@ function detectClassRecommendation(content: string): { hasRecommendation: boolea
     className: null,
     classType: null
   };
+}
+
+// Utility function to render markdown bold text
+function renderMarkdownContent(content: string): React.ReactNode {
+  const parts = content.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const boldText = part.slice(2, -2);
+      return <strong key={index}>{boldText}</strong>;
+    }
+    return part;
+  });
 }
 
 export function AIInteractionSection() {
@@ -497,7 +511,7 @@ export function AIInteractionSection() {
                             </div>
                           )}
 
-                        <div className="text-sm">{message.content}</div>
+                        <div className="text-sm">{renderMarkdownContent(message.content)}</div>
 
                         {/* Generate Plan Button - Mobile */}
                         {message.role === "assistant" && detectPlanGenerationSuggestion(message.content) && (
@@ -702,7 +716,7 @@ export function AIInteractionSection() {
                             </div>
                           )}
 
-                        <div className="text-sm">{message.content}</div>
+                        <div className="text-sm">{renderMarkdownContent(message.content)}</div>
 
                         {/* Generate Plan Button - Desktop */}
                         {message.role === "assistant" && detectPlanGenerationSuggestion(message.content) && (
