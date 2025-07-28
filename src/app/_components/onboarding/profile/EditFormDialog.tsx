@@ -173,15 +173,38 @@ export default function EditFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
-      <DialogContent 
+      <DialogContent
         className="overflow-hidden rounded-2xl border-0 p-0 shadow-xl sm:max-w-[480px] max-h-[90vh] flex flex-col"
         onInteractOutside={(e) => {
           // Prevent dialog from closing when clicking on Select dropdown elements
           const target = e.target as Element;
-          if (target?.closest('[data-radix-select-content]') || 
-              target?.closest('[data-radix-select-viewport]') ||
-              target?.closest('[data-radix-popper-content-wrapper]')) {
+
+          // Check for various dropdown-related elements
+          const isDropdownElement =
+            target?.closest('[data-radix-select-content]') ||
+            target?.closest('[data-radix-select-viewport]') ||
+            target?.closest('[data-radix-popper-content-wrapper]') ||
+            target?.closest('[data-radix-select-item]') ||
+            target?.closest('[role="option"]') ||
+            target?.closest('[data-state="open"]') ||
+            target?.closest('.select-content') ||
+            target?.closest('.select-viewport') ||
+            target?.closest('[data-radix-collection-item]');
+
+          if (isDropdownElement) {
             e.preventDefault();
+            return;
+          }
+
+          // Additional check for any element with dropdown-related attributes
+          const hasDropdownAttributes = target?.hasAttribute('data-radix-select-trigger') ||
+            target?.hasAttribute('data-radix-select-value') ||
+            target?.closest('[data-radix-select-trigger]') ||
+            target?.closest('[data-radix-select-value]');
+
+          if (hasDropdownAttributes) {
+            e.preventDefault();
+            return;
           }
         }}
       >
