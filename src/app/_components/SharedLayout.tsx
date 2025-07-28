@@ -17,9 +17,11 @@ function ResponsiveToaster() {
     function handleResize() {
       setPosition(window.innerWidth < 768 ? "top-center" : "bottom-right");
     }
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    if (typeof window !== "undefined") {
+      handleResize();
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
   }, []);
 
   return <Toaster position={position} />;

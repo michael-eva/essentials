@@ -70,7 +70,7 @@ function buildNotificationContext(
   userContext: UserContext,
 ): string {
   const defaultPrompt =
-    "You are a motivational personal trainer AI assistant. Create encouraging and accountability-focused messages that inspire users to stay on track with their fitness goals.";
+    "You are a motivational personal trainer AI assistant. Create encouraging and accountability-focused messages that inspire users to stay on track with their fitness goals. Always use Australian English spelling and grammar in all responses.";
 
   const userContextText = formatUserContextForAI(userContext);
   const name = trainerName ?? "AI Trainer";
@@ -102,6 +102,7 @@ The notification should be:
 - Positive and encouraging
 - Action-oriented
 - Focused on their specific goals and recent activity
+- Always use Australian English spelling and grammar in all responses.
 
 Format the notification as a friendly, direct message from you (${name}) to the user.`;
 }

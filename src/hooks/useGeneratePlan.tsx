@@ -56,7 +56,7 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
     const totalActivitiesPerWeek = totalClassesPerWeek + totalWorkoutsPerWeek + cardioWorkoutsPerWeek;
 
     // Build a comprehensive prompt based on user preferences
-    let prompt = `Create a ${planLength}-week personalized workout plan with the following specifications:\n\n`;
+    let prompt = `Create a ${planLength}-week personalised workout plan with the following specifications:\n\n`;
 
     // Add workout specifications (including cardio)
     if (totalWorkoutsPerWeek > 0 || cardioWorkoutsPerWeek > 0) {

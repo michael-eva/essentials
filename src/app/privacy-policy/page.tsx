@@ -59,8 +59,8 @@ export default function PrivacyPolicy() {
                 2. How We Use Your Information
               </h2>
               <ul className="list-disc space-y-2 pl-6 text-gray-700">
-                <li>Provide and personalize our fitness services</li>
-                <li>Create customized workout and nutrition plans</li>
+                <li>Provide and personalise our fitness services</li>
+                <li>Create customised workout and nutrition plans</li>
                 <li>Track your progress and provide recommendations</li>
                 <li>Process payments and manage your subscription</li>
                 <li>Send important updates and promotional communications</li>
@@ -101,8 +101,8 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="mb-3 text-xl font-semibold">4. Data Security</h2>
               <p className="leading-relaxed text-gray-700">
-                We implement appropriate technical and organizational measures
-                to protect your personal information against unauthorized
+                We implement appropriate technical and organisational measures
+                to protect your personal information against unauthorised
                 access, alteration, disclosure, or destruction. This includes
                 encryption, secure servers, and regular security assessments.
                 However, no method of transmission over the internet is 100%
@@ -114,9 +114,9 @@ export default function PrivacyPolicy() {
               <h2 className="mb-3 text-xl font-semibold">5. Data Retention</h2>
               <p className="leading-relaxed text-gray-700">
                 We retain your personal information for as long as necessary to
-                provide our services and fulfill the purposes outlined in this
+                provide our services and fulfil the purposes outlined in this
                 policy. When you delete your account, we will delete or
-                anonymize your personal information within 30 days, except where
+                anonymise your personal information within 30 days, except where
                 we are required to retain it for legal or regulatory purposes.
               </p>
             </section>
@@ -161,7 +161,7 @@ export default function PrivacyPolicy() {
               </h2>
               <p className="leading-relaxed text-gray-700">
                 We use cookies and similar technologies to enhance your
-                experience, analyze usage patterns, and provide personalized
+                experience, analyse usage patterns, and provide personalised
                 content. You can control cookie settings through your browser,
                 but disabling cookies may affect the functionality of our
                 services.
