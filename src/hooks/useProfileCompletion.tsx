@@ -102,7 +102,7 @@ export function useProfileCompletion() {
     switch (formType) {
       case "healthCons": {
         const data = section as FormData["healthCons"]
-        totalFields = 4 + (data.chronicConditions.includes("Other") ? 1 : 0) + (data.injuries ? 1 : 0) + (data.recentSurgery ? 1 : 0)
+        totalFields = 4 + (data.chronicConditions.includes("Other") ? 1 : 0) + (data.injuries ? 1 : 0) + (data.recentSurgery ? 1 : 0) + (data.pregnancyConsultedDoctor ? 1 : 0) + (data.pregnancyConsultedDoctorDetails !== null ? 1 : 0)
         filledFields = [
           data.injuries !== null,
           data.recentSurgery !== null,
@@ -110,7 +110,9 @@ export function useProfileCompletion() {
           data.pregnancy,
           data.injuriesDetails,
           data.surgeryDetails,
-          data.chronicConditions.includes("Other") ? data.otherHealthConditions.length > 0 : null
+          data.chronicConditions.includes("Other") ? data.otherHealthConditions.length > 0 : null,
+          data.pregnancyConsultedDoctor !== null,
+          data.pregnancyConsultedDoctorDetails !== null
         ].filter(Boolean).length
         break
       }
@@ -127,7 +129,7 @@ export function useProfileCompletion() {
       }
       case "pilates": {
         const data = section as FormData["pilates"]
-        totalFields = 2 + (data.pilatesExperience ? 1 : 0)
+        totalFields = 5 + (data.pilatesExperience ? 1 : 0) + (data.fitnessGoals.includes("Other") ? 1 : 0) + (data.specificGoals !== null ? 1 : 0)
         filledFields = [
           data.pilatesExperience !== null,
           data.pilatesExperience ? data.pilatesDuration !== null : null,
