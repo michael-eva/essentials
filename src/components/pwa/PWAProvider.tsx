@@ -42,16 +42,14 @@ export function PWAProvider() {
     // Register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js', {
-        // Force update check in Safari
-        updateViaCache: 'none'
+        // Use default caching strategy for more stable behavior
+        updateViaCache: 'all'
       })
         .then((registration) => {
           setRegistration(registration)
 
-          // Force immediate update check for Safari
-          registration.update().catch(err => {
-            console.error('Manual update check failed:', err)
-          })
+          // Only check for updates periodically, not immediately
+          // This prevents aggressive update checking that might cause issues
 
           // Handle service worker updates
           registration.addEventListener('updatefound', () => {
