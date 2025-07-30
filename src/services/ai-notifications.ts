@@ -76,14 +76,7 @@ export async function generateAiNotification(
 function determineNotificationType(
   userContext: UserContext,
   preferences: NotificationPreferences | null,
-):
-  | "workout_reminder"
-  | "progress_celebration"
-  | "motivation_boost"
-  | "goal_check_in"
-  | "accountability_nudge"
-  | "streak_celebration"
-  | "recovery_reminder" {
+): "workout_reminder" | "progress_celebration" | "motivation_boost" {
   const enabledTypes = preferences?.enabledTypes ?? [
     "workout_reminder",
     "progress_celebration",
@@ -94,17 +87,6 @@ function determineNotificationType(
   const streak = userContext.recentActivity?.consistency?.streak ?? 0;
 
   // If user has missed recent workouts, send accountability nudge
-  if (
-    enabledTypes.includes("accountability_nudge") &&
-    recentWorkouts.length === 0
-  ) {
-    return "accountability_nudge";
-  }
-
-  // If user has a good streak, celebrate it
-  if (enabledTypes.includes("streak_celebration") && streak >= 3) {
-    return "streak_celebration";
-  }
 
   // If user has completed workouts recently, celebrate progress
   if (

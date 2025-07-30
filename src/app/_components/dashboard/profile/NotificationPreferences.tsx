@@ -16,8 +16,6 @@ const NOTIFICATION_TYPES = [
   { value: "workout_reminder", label: "Workout Reminders" },
   { value: "progress_celebration", label: "Progress Celebrations" },
   { value: "motivation_boost", label: "Motivation Boosts" },
-  { value: "streak_celebration", label: "Streak Celebrations" },
-  { value: "recovery_reminder", label: "Recovery Reminders" },
 ];
 
 export function NotificationPreferences() {

@@ -45,15 +45,16 @@ export const activityTypeEnum = pgEnum("activity_type", [
 // ]);
 
 export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
-export const deliveryStatusEnum = pgEnum("delivery_status", ["pending", "sent", "failed", "expired"]);
+export const deliveryStatusEnum = pgEnum("delivery_status", [
+  "pending",
+  "sent",
+  "failed",
+  "expired",
+]);
 export const notificationTypeEnum = pgEnum("notification_type", [
-  "workout_reminder", 
-  "progress_celebration", 
-  "motivation_boost", 
-  "goal_check_in", 
-  "accountability_nudge",
-  "streak_celebration",
-  "recovery_reminder"
+  "workout_reminder",
+  "progress_celebration",
+  "motivation_boost",
 ]);
 
 export const PilatesVideosParamsSchema = z.object({
