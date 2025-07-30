@@ -615,11 +615,6 @@ export async function upsertNotificationPreferences(
       target: notificationPreferences.userId,
       set: {
         enabledTypes: data.enabledTypes,
-        tone: data.tone,
-        preferredTimes: data.preferredTimes,
-        focusAreas: data.focusAreas,
-        frequency: data.frequency,
-        quietHours: data.quietHours,
         updatedAt: new Date(),
       },
     })

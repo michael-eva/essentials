@@ -131,21 +131,6 @@ function buildNotificationContext(
   notificationType: string,
 ): string {
   const userContextText = formatUserContextForAI(userContext);
-  const tone = preferences?.tone ?? "motivational";
-  const focusAreas = preferences?.focusAreas ?? [
-    "accountability",
-    "encouragement",
-    "goal_tracking",
-  ];
-
-  const toneInstructions = {
-    motivational: "Use an energetic, inspiring tone that pumps up the user",
-    gentle: "Use a soft, supportive tone that's encouraging but not pushy",
-    challenging:
-      "Use a direct, challenging tone that pushes the user to do better",
-    friendly: "Use a warm, casual tone like talking to a good mate",
-    professional: "Use a respectful, structured tone like a personal trainer",
-  };
 
   const typeInstructions = {
     workout_reminder:
@@ -162,11 +147,9 @@ function buildNotificationContext(
     recovery_reminder: "Remind them about the importance of rest and recovery",
   };
 
-  return `You are a fitness AI assistant. Create ${tone} messages that inspire users to stay on track with their fitness goals. Always use Australian English spelling and grammar.
+  return `You are a fitness AI assistant. Create motivational messages that inspire users to stay on track with their fitness goals. Always use Australian English spelling and grammar.
 
 NOTIFICATION TYPE: ${notificationType}
-TONE: ${tone} - ${toneInstructions[tone]}
-FOCUS AREAS: ${focusAreas.join(", ")}
 
 TYPE-SPECIFIC INSTRUCTION: ${typeInstructions[notificationType as keyof typeof typeInstructions]}
 
@@ -177,8 +160,7 @@ Current date and time: ${new Date().toISOString()}
 
 Create a notification that:
 - Is brief and impactful (1-2 sentences maximum)
-- Matches the ${tone} tone exactly
-- Focuses on: ${focusAreas.join(", ")}
+- Uses a motivational, encouraging tone
 - Is specific to their context and recent activity
 - Uses Australian English spelling and grammar
 

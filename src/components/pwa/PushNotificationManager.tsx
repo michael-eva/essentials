@@ -49,6 +49,7 @@ export function PushNotificationManager() {
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false)
   const [isPWAInstalled, setIsPWAInstalled] = useState(false)
   const [showInstallPrompt, setShowInstallPrompt] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const { user } = useSession()
   const { data: notificationSubscriptionStatus } = api.notifications.getNotificationSubscriptionStatus.useQuery()
   const utils = api.useUtils()
@@ -74,6 +75,7 @@ export function PushNotificationManager() {
   }
 
   useEffect(() => {
+    setIsClient(true)
     // Check if we're in a browser environment and service workers are supported
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
       // Check PWA installation status
@@ -257,8 +259,26 @@ export function PushNotificationManager() {
     }
   }
 
-  // Check if service workers are supported
-  const isServiceWorkerSupported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window
+  // Check if service workers are supported - only after client hydration
+  const isServiceWorkerSupported = isClient && typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window
+
+  if (!isClient) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Push Notifications</CardTitle>
+          <CardDescription>
+            Get notified about your workouts, progress updates, and fitness tips.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            Loading notification settings...
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (!isServiceWorkerSupported) {
     return (

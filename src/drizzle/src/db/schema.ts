@@ -55,13 +55,6 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "streak_celebration",
   "recovery_reminder"
 ]);
-export const notificationToneEnum = pgEnum("notification_tone", [
-  "motivational", 
-  "gentle", 
-  "challenging", 
-  "friendly", 
-  "professional"
-]);
 
 export const PilatesVideosParamsSchema = z.object({
   limit: z.number().int().positive().optional().default(5),
@@ -413,17 +406,6 @@ export const notificationPreferences = pgTable("notification_preferences", {
   enabledTypes: jsonb("enabled_types")
     .$type<string[]>()
     .default(["workout_reminder", "progress_celebration", "motivation_boost"]),
-  tone: notificationToneEnum("tone").default("motivational"),
-  preferredTimes: jsonb("preferred_times")
-    .$type<string[]>()
-    .default(["morning", "afternoon"]),
-  focusAreas: jsonb("focus_areas")
-    .$type<string[]>()
-    .default(["accountability", "encouragement", "goal_tracking"]),
-  frequency: text("frequency").default("daily"), // "daily", "every_other_day", "weekly"
-  quietHours: jsonb("quiet_hours")
-    .$type<{ start: string; end: string }>()
-    .default({ start: "22:00", end: "07:00" }),
   createdAt: timestamp("created_at")
     .notNull()
     .default(sql`now()`),
