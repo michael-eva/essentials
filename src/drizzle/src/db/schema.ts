@@ -45,6 +45,23 @@ export const activityTypeEnum = pgEnum("activity_type", [
 // ]);
 
 export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
+export const deliveryStatusEnum = pgEnum("delivery_status", ["pending", "sent", "failed", "expired"]);
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "workout_reminder", 
+  "progress_celebration", 
+  "motivation_boost", 
+  "goal_check_in", 
+  "accountability_nudge",
+  "streak_celebration",
+  "recovery_reminder"
+]);
+export const notificationToneEnum = pgEnum("notification_tone", [
+  "motivational", 
+  "gentle", 
+  "challenging", 
+  "friendly", 
+  "professional"
+]);
 
 export const PilatesVideosParamsSchema = z.object({
   limit: z.number().int().positive().optional().default(5),
@@ -347,8 +364,11 @@ export const notifications = pgTable("notifications", {
     .default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   body: text("body").notNull(),
+  type: notificationTypeEnum("type").default("motivation_boost"),
   scheduledTime: timestamp("scheduled_time"),
   sent: boolean("sent").default(false),
+  sentAt: timestamp("sent_at"),
+  deliveryStatus: deliveryStatusEnum("delivery_status").default("pending"),
   createdAt: timestamp("created_at")
     .notNull()
     .default(sql`now()`),
@@ -375,6 +395,39 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
       onUpdate: "cascade",
     }),
   createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+});
+
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  enabledTypes: jsonb("enabled_types")
+    .$type<string[]>()
+    .default(["workout_reminder", "progress_celebration", "motivation_boost"]),
+  tone: notificationToneEnum("tone").default("motivational"),
+  preferredTimes: jsonb("preferred_times")
+    .$type<string[]>()
+    .default(["morning", "afternoon"]),
+  focusAreas: jsonb("focus_areas")
+    .$type<string[]>()
+    .default(["accountability", "encouragement", "goal_tracking"]),
+  frequency: text("frequency").default("daily"), // "daily", "every_other_day", "weekly"
+  quietHours: jsonb("quiet_hours")
+    .$type<{ start: string; end: string }>()
+    .default({ start: "22:00", end: "07:00" }),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
     .notNull()
     .default(sql`now()`),
 });

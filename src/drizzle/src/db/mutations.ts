@@ -16,6 +16,7 @@ import {
   AiSystemPrompt,
   notifications,
   pushSubscriptions,
+  notificationPreferences,
 } from "./schema";
 import type {
   NewWorkout,
@@ -30,8 +31,10 @@ import type {
   NewAiSystemPrompt,
   NewNotification,
   NewPushSubscription,
+  NewNotificationPreferences,
   Notification,
   PushSubscription,
+  NotificationPreferences,
 } from "./queries";
 import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
@@ -494,11 +497,40 @@ export async function updateNotification(
 
 export async function markNotificationAsSent(
   id: string,
+  deliveryStatus: "sent" | "failed" = "sent",
 ): Promise<Notification | null> {
   const result = await db
     .update(notifications)
-    .set({ sent: true })
+    .set({ 
+      sent: deliveryStatus === "sent",
+      sentAt: new Date(),
+      deliveryStatus: deliveryStatus,
+    })
     .where(eq(notifications.id, id))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function markNotificationAsDelivered(
+  userId: string,
+  message: string,
+  deliveryStatus: "sent" | "failed" = "sent",
+): Promise<Notification | null> {
+  // Find the most recent unsent notification for this user with matching message
+  const result = await db
+    .update(notifications)
+    .set({ 
+      sent: deliveryStatus === "sent",
+      sentAt: new Date(),
+      deliveryStatus: deliveryStatus,
+    })
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        eq(notifications.body, message),
+        eq(notifications.sent, false),
+      )
+    )
     .returning();
   return result[0] ?? null;
 }
@@ -570,4 +602,35 @@ export async function upsertPushSubscription(
     })
     .returning();
   return result[0]!;
+}
+
+// Notification Preferences mutations
+export async function upsertNotificationPreferences(
+  data: NewNotificationPreferences,
+): Promise<NotificationPreferences> {
+  const result = await db
+    .insert(notificationPreferences)
+    .values(data)
+    .onConflictDoUpdate({
+      target: notificationPreferences.userId,
+      set: {
+        enabledTypes: data.enabledTypes,
+        tone: data.tone,
+        preferredTimes: data.preferredTimes,
+        focusAreas: data.focusAreas,
+        frequency: data.frequency,
+        quietHours: data.quietHours,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+  return result[0]!;
+}
+
+export async function deleteNotificationPreferences(
+  userId: string,
+): Promise<void> {
+  await db
+    .delete(notificationPreferences)
+    .where(eq(notificationPreferences.userId, userId));
 }

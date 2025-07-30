@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/env";
-import { getAllUsers, getUpcomingNotifications, getPushSubscriptionByUserId } from "@/drizzle/src/db/queries";
+import { getAllUsers, getNotificationsCreatedToday, getPushSubscriptionByUserId } from "@/drizzle/src/db/queries";
 import { generateAiNotification } from "@/services/ai-notifications";
 import { buildUserContext } from "@/services/context-manager";
 import { checkOnboardingCompletion } from "@/drizzle/src/db/queries";
@@ -43,11 +43,11 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Check if user has upcoming notifications
-        const upcomingNotifications = await getUpcomingNotifications(user.id);
+        // Check if user has reached daily notification limit (3 per day)
+        const todayNotifications = await getNotificationsCreatedToday(user.id);
         
-        if (upcomingNotifications.length === 0) {
-          // No upcoming notifications, generate one
+        if (todayNotifications.length < 3) {
+          // User has not reached daily limit, generate notification
           try {
             // Build user context for AI notification
             const userContext = await buildUserContext(user.id);
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
             console.error(errorMessage, error);
           }
         } else {
-          results.skipped.push(`User ${user.id}: Has ${upcomingNotifications.length} upcoming notifications`);
+          results.skipped.push(`User ${user.id}: Has reached daily limit (${todayNotifications.length}/3 notifications today)`);
         }
       } catch (error) {
         const errorMessage = `User ${user.id}: Processing error - ${error instanceof Error ? error.message : 'Unknown error'}`;
