@@ -28,6 +28,11 @@ export async function generateWorkoutPlanAI(
     pilates: pilatesClasses,
     nonPilates: nonPilates,
   };
+
+  // Extract the number of weeks from user prompt
+  const weekCountMatch = userPrompt?.match(/(\d+)(?:\s*weeks?|\s*-week)/i);
+  const weekCount = weekCountMatch ? parseInt(weekCountMatch[1]!) : 1;
+
   // Create a comprehensive prompt for the AI
   const combinedPrompt = `You are a professional personal trainer and fitness expert. Generate a personalised workout plan based on the following information:
 
@@ -45,17 +50,25 @@ ${JSON.stringify(availableClasses.pilates, null, 2)}
 ${JSON.stringify(availableClasses.nonPilates, null, 2)}
 
 ## GENERATION REQUIREMENTS
-1. **Workout Details**: 
+1. **Plan Duration**: 
+   - Set the plan 'weeks' field to exactly ${weekCount}
+   - Generate weekly schedules for ALL ${weekCount} weeks (weekNumber: 1, 2, 3, ..., ${weekCount})
+   - Each week should have the requested activities distributed appropriately
+
+2. **Workout Details**: 
    - For every workout of type 'workout', provide a detailed 'exercises' array with name, sets, reps, and weight if applicable. Do NOT use generic labels like 'Full Body Workout'.
    - For cardio workouts, only use: ${availableClasses.nonPilates}. Specify duration and intensity level.
    - Only add cardio workouts if the user has selected to include them in the plan. This means that userPrompt explicitly calls for "WORKOUTS"
 
-2. **Unique IDs**: Each workout MUST have a unique 'id' field (UUID format). For class-based workouts:
+3. **Unique IDs**: Each workout MUST have a unique 'id' field (UUID format). For class-based workouts:
    - Generate a NEW unique UUID for the workout 'id' field
    - Set the 'classId' field to reference the existing class ID
    - Do NOT reuse the existing class ID as the workout ID
 
-3. **Workout References**: Each weekly schedule should reference exact workout IDs from the workouts array.
+4. **Weekly Schedules**: 
+   - Create weekly schedule entries for ALL ${weekCount} weeks
+   - Each weekly schedule should reference exact workout IDs from the workouts array
+   - Distribute workouts across all weeks to create a progressive plan
 
 
 **Example Class Workout:**

@@ -20,6 +20,8 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
     },
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
+      void utils.workoutPlan.getUpcomingActivities.invalidate();
+      void utils.workoutPlan.getPreviousPlans.invalidate();
       if (redirectToPlan) {
         router.push("/dashboard/your-plan");
       }
@@ -56,7 +58,10 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
     const totalActivitiesPerWeek = totalClassesPerWeek + totalWorkoutsPerWeek + cardioWorkoutsPerWeek;
 
     // Build a comprehensive prompt based on user preferences
-    let prompt = `Create a ${planLength}-week personalised workout plan with the following specifications:\n\n`;
+    // Extract just the number from planLength (e.g., "3 weeks" -> "3")
+    const weekCount = planLength.split(' ')[0];
+
+    let prompt = `Create a ${weekCount}-week personalised workout plan with the following specifications:\n\n`;
 
     // Add workout specifications (including cardio)
     if (totalWorkoutsPerWeek > 0 || cardioWorkoutsPerWeek > 0) {
@@ -76,13 +81,12 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
       if (longClassesPerWeek > 0) prompt += `- ${longClassesPerWeek} long classes (30+ minutes each)\n`;
     }
 
-    prompt += `\nTOTAL: ${totalActivitiesPerWeek} activities per week for ${planLength} weeks.`;
+    prompt += `\nTOTAL: ${totalActivitiesPerWeek} activities per week for ${weekCount} weeks.`;
 
     // Add additional notes if provided
     if (additionalNotes?.trim()) {
       prompt += `\n\nADDITIONAL PREFERENCES: ${additionalNotes}`;
     }
-
     generatePlanMutation.mutate({ prompt });
     setShowGeneratePlanDialog(false);
   };

@@ -41,7 +41,6 @@ export default function ClassRecommendations() {
   // Fetch data using tRPC
   const utils = api.useUtils();
   const { data: activePlan, isLoading: isLoadingActivePlan } = api.workoutPlan.getActivePlan.useQuery()
-  const { data: supplementaryWorkouts = [] } = api.workoutPlan.getSupplementaryWorkouts.useQuery()
   const startPlan = api.workoutPlan.startWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
@@ -73,12 +72,6 @@ export default function ClassRecommendations() {
   const updatePlanName = api.workoutPlan.updatePlanName.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
-    },
-  });
-  const deletePlan = api.workoutPlan.deleteWorkoutPlan.useMutation({
-    onSuccess: () => {
-      void utils.workoutPlan.getActivePlan.invalidate();
-      void utils.workoutPlan.getPreviousPlans.invalidate();
     },
   });
   const { generatePlan, isLoading, LoadingScreen, GeneratePlanDialog } = useGeneratePlan();

@@ -45,7 +45,6 @@ export default function WeeklySchedule({
   planData
 }: WeeklyScheduleProps) {
   const router = useRouter()
-  console.log(weeks);
 
   // Calculate current week based on plan start date and paused time
   const getCurrentWeek = () => {
@@ -147,7 +146,6 @@ export default function WeeklySchedule({
             <div className="space-y-3">
               {week.items.filter(Boolean).map((item, index) => {
                 const workout = item as Workout & { mux_playback_id?: string };
-                console.log("workout", workout)
                 // Convert Workout to PilatesVideo format for class types
                 const convertToPilatesVideo = (workout: Workout & { mux_playback_id?: string }): PilatesVideo => ({
                   id: workout.id,
