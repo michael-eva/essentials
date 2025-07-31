@@ -138,23 +138,37 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 lg:space-y-8">
       {GeneratePlanDialog}
       <LoadingScreen />
-      <DefaultBox
-        title="Pilates Videos"
-        description="Start a Pilates class anytime"
-        showViewAll={true}
-        viewAllHref='pilates-videos'
-      >
-        {isLoadingPilatesVideos ? (
-          <div className="py-8 text-center text-gray-500">Loading videos...</div>
-        ) : !pilatesVideos || pilatesVideos?.items.length === 0 ? (
-          <div className="py-8 text-center text-gray-500">No videos available.</div>
-        ) : (
-          <PilatesVideoGrid videos={pilatesVideos.items} />
-        )}
-      </DefaultBox>
+
+      {/* Desktop Grid Layout - Top Row */}
+      <div className="lg:grid lg:grid-cols-1 lg:gap-8 lg:space-y-0 space-y-6">
+        <DefaultBox
+          title="Pilates Videos"
+          description="Start a Pilates class anytime"
+          showViewAll={true}
+          viewAllHref='pilates-videos'
+        >
+          {isLoadingPilatesVideos ? (
+            <div className="py-8 text-center text-gray-500">Loading videos...</div>
+          ) : !pilatesVideos || pilatesVideos?.items.length === 0 ? (
+            <div className="py-8 text-center text-gray-500">No videos available.</div>
+          ) : (
+            <PilatesVideoGrid videos={pilatesVideos.items} />
+          )}
+        </DefaultBox>
+
+        <DefaultBox
+          title="Progress Tracking"
+          description="Your progress over the past 30 days"
+          showViewAll={false}
+        >
+          <ProgressSection />
+        </DefaultBox>
+      </div>
+
+      {/* Full Width Section */}
       <DefaultBox
         title="Upcoming Workouts"
         description={
@@ -246,13 +260,6 @@ export default function Dashboard() {
             </div>
           ))
         )}
-      </DefaultBox>
-      <DefaultBox
-        title="Progress Tracking"
-        description="Your progress over the past 30 days"
-        showViewAll={false}
-      >
-        <ProgressSection />
       </DefaultBox>
 
 

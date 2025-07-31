@@ -143,7 +143,7 @@ export default function WeeklySchedule({
                 </Button>
               </div>
             )}
-            <div className="space-y-3">
+            <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {week.items.filter(Boolean).map((item, index) => {
                 const workout = item as Workout & { mux_playback_id?: string };
                 // Convert Workout to PilatesVideo format for class types
@@ -173,7 +173,7 @@ export default function WeeklySchedule({
                       )}
                       <PilatesVideoCard video={convertToPilatesVideo(workout)} link={`/dashboard/class/${workout.id}`} height={130} />
                       {workout.status === 'completed' && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2 mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2 mt-2 lg:absolute lg:top-2 lg:left-2 lg:ml-0 lg:mt-0">
                           <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
@@ -202,6 +202,14 @@ export default function WeeklySchedule({
                       link={`/dashboard/workout/${workout.id}`}
                       height={130}
                     />
+                    {workout.status === 'completed' && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2 mt-2 lg:absolute lg:top-2 lg:left-2 lg:ml-0 lg:mt-0">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Completed
+                      </span>
+                    )}
                   </div>
                 );
               })}

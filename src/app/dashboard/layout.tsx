@@ -54,7 +54,7 @@ export default function DashboardLayout({
   // Special handling for My PT page - mobile only
   const isMyPTPage = currentTab === 'mypt'
   return (
-    <div className="pb-6 flex flex-col px-4">
+    <div className="pb-6 flex flex-col px-4 lg:px-8 xl:px-12 max-w-7xl mx-auto">
       {/* Mobile-only fixed header for My PT */}
       {isMyPTPage && (
         <div className="md:hidden fixed top-0 left-0 right-0 z-40">
@@ -75,7 +75,7 @@ export default function DashboardLayout({
       />
 
       {/* Content area with conditional mobile spacing for My PT */}
-      <div className={`min-h-screen pb-24 md:pt-20 md:pb-8 ${isMyPTPage ? 'pt-20 md:pt-0' : ''}`}>
+      <div className={`min-h-screen pb-24 md:pt-20 md:pb-8 lg:pt-24 ${isMyPTPage ? 'pt-20 md:pt-0' : ''}`}>
         {children}
       </div>
 
