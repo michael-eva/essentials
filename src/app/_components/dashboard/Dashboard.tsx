@@ -7,7 +7,6 @@ import {
   XCircle,
   Clock,
   Plus,
-  Activity,
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ import type { workoutStatusEnum } from "@/drizzle/src/db/schema";
 import useGeneratePlan from "@/hooks/useGeneratePlan";
 import {
   UpcomingClassesSkeleton,
-  WorkoutLoggingSkeleton,
   ActivityHistorySkeleton,
 } from "./DashboardSkeleton";
 import { ProgressSection } from "./ProgressSection";
@@ -42,7 +40,7 @@ export default function Dashboard() {
   });
   const { data: upcomingClasses, isLoading: isLoadingUpcomingClasses } =
     api.workoutPlan.getUpcomingActivities.useQuery();
-  const { data: pastWorkoutsData = { workouts: [], currentWeek: undefined }, isLoading: isLoadingPastWorkouts } =
+  const { data: pastWorkoutsData = { workouts: [], currentWeek: undefined } } =
     api.workoutPlan.getWorkoutsToLog.useQuery();
   const { data: activityHistory = [], isLoading: isLoadingActivityHistory } =
     api.workoutPlan.getActivityHistory.useQuery({});
@@ -83,19 +81,6 @@ export default function Dashboard() {
   const hasWorkouts = Array.isArray(upcomingClasses) && upcomingClasses.length > 0;
   const planStatus = !Array.isArray(upcomingClasses) ? upcomingClasses : null;
 
-  const handleMarkComplete = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
-    setSelectedWorkout(workout);
-    if (workout.type === "class") {
-      setIsDialogOpen(true);
-    } else {
-      setIsManualActivityDialogOpen(true);
-    }
-  };
-
-  const handleMarkMissed = (workout: (typeof pastWorkoutsData.workouts)[0]) => {
-    setSelectedWorkout(workout);
-    setIsMarkMissedDialogOpen(true);
-  };
 
   const handleSubmitMarkMissed = (workoutId: string) => {
     updateWorkoutStatus({ workoutId, status: "not_completed" });
@@ -138,19 +123,6 @@ export default function Dashboard() {
       },
     });
 
-  };
-
-  const getStatusIcon = (status: WorkoutStatus | null | undefined) => {
-    if (!status) return <Clock className="h-4 w-4 text-yellow-500" />;
-
-    switch (status) {
-      case "completed":
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      case "not_completed":
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      case "not_recorded":
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-    }
   };
 
   const handleGeneratePlan = () => {
