@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import webpush from "web-push";
 import { sendNotification } from "@/app/actions";
 import { env } from "@/env";
 
@@ -8,23 +7,16 @@ interface NotificationRequest {
   userId: string;
   title?: string;
   message: string;
+  notificationId?: string;
 }
 
-// Configure VAPID details
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY!;
-
-if (vapidPublicKey && vapidPrivateKey) {
-  webpush.setVapidDetails(
-    "mailto:michael@extensa.studio",
-    vapidPublicKey,
-    vapidPrivateKey,
-  );
+export async function GET() {
+  return NextResponse.json({ status: "API endpoint is working" });
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Check API key authentication
+    // Step 1: Test authentication
     const apiKey = request.headers.get("apiKey");
     if (!apiKey || apiKey !== env.WEBHOOK_API_KEY) {
       return NextResponse.json(
@@ -33,9 +25,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = (await request.json()) as NotificationRequest;
+    // Step 2: Test JSON parsing
+    let body: NotificationRequest;
+    try {
+      body = (await request.json()) as NotificationRequest;
+    } catch (jsonError) {
+      return NextResponse.json(
+        { success: false, error: "Invalid JSON" },
+        { status: 400 },
+      );
+    }
 
-    // Validate required fields
+    // Step 3: Test validation
     if (!body.userId || typeof body.userId !== "string") {
       return NextResponse.json(
         { success: false, error: "Invalid userId" },
@@ -50,26 +51,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Step 4: Test notification sending
     const title = typeof body.title === "string" ? body.title : "Essentials";
-
-    const result = await sendNotification(body.userId, body.message, title);
+    
+    let result;
+    try {
+      result = await sendNotification(body.userId, body.message, title);
+    } catch (sendError) {
+      return NextResponse.json(
+        { success: false, error: "Failed to send notification", details: String(sendError) },
+        { status: 500 },
+      );
+    }
 
     if (result.statusCode === 201) {
       return NextResponse.json({ success: true });
     }
 
-    if (result.statusCode !== 201) {
-      return NextResponse.json(result, { status: result.statusCode });
-    }
-
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 },
+      { success: false, error: result.error || "Unknown error", statusCode: result.statusCode },
+      { status: result.statusCode || 500 },
     );
+
   } catch (error) {
-    console.error("Error sending notification to user:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: "Unexpected error", details: String(error) },
       { status: 500 },
     );
   }

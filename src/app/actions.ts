@@ -1,11 +1,12 @@
 "use server";
 
 import webpush from "web-push";
-import { getPushSubscriptionByUserId } from "@/drizzle/src/db/queries";
+import { getPushSubscriptionByUserId, getNotificationPreferences } from "@/drizzle/src/db/queries";
 import {
   deletePushSubscriptionByEndpoint,
   deletePushSubscriptionsByUserId,
   upsertPushSubscription,
+  upsertNotificationPreferences,
 } from "@/drizzle/src/db/mutations";
 
 // Configure VAPID details for push notifications (only if keys are available)
@@ -81,6 +82,21 @@ export async function subscribeUser(
       auth: sub.keys.auth,
       userId,
     });
+
+    // Check if user already has notification preferences, if not create defaults with all enabled
+    const existingPreferences = await getNotificationPreferences(userId);
+    if (!existingPreferences) {
+      await upsertNotificationPreferences({
+        userId,
+        enabledTypes: [
+          "workout_reminder",
+          "progress_celebration",
+          "motivation_boost",
+          "streak_celebration",
+          "recovery_reminder"
+        ],
+      });
+    }
 
     return {
       success: true,

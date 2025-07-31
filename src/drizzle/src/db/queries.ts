@@ -30,6 +30,7 @@ import {
   PilatesVideos,
   notifications,
   pushSubscriptions,
+  notificationPreferences,
   type PilatesVideosParams,
   PilatesVideosParamsSchema,
 } from "./schema";
@@ -46,6 +47,7 @@ export type AiSystemPrompt = InferSelectModel<typeof AiSystemPrompt>;
 export type PilatesVideos = InferSelectModel<typeof PilatesVideos>;
 export type Notification = InferSelectModel<typeof notifications>;
 export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
+export type NotificationPreferences = InferSelectModel<typeof notificationPreferences>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -56,6 +58,7 @@ export type NewAiChatMessages = InferInsertModel<typeof AiChatMessages>;
 export type NewAiSystemPrompt = InferInsertModel<typeof AiSystemPrompt>;
 export type NewNotification = InferInsertModel<typeof notifications>;
 export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
+export type NewNotificationPreferences = InferInsertModel<typeof notificationPreferences>;
 
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;
@@ -1114,6 +1117,41 @@ export async function getUpcomingNotifications(
     )
     .orderBy(asc(notifications.scheduledTime));
   return result;
+}
+
+// Get notifications created today for a specific user
+export async function getNotificationsCreatedToday(
+  userId: string,
+): Promise<Notification[]> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Start of today
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1); // Start of tomorrow
+
+  const result = await db
+    .select()
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        gte(notifications.createdAt, today),
+        lt(notifications.createdAt, tomorrow),
+      ),
+    )
+    .orderBy(desc(notifications.createdAt));
+  return result;
+}
+
+// Get notification preferences for a user
+export async function getNotificationPreferences(
+  userId: string,
+): Promise<NotificationPreferences | null> {
+  const result = await db
+    .select()
+    .from(notificationPreferences)
+    .where(eq(notificationPreferences.userId, userId))
+    .limit(1);
+  return result[0] ?? null;
 }
 
 export async function getAchievementForWorkout(

@@ -26,6 +26,7 @@ import {
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
 import { generateAndInsertWorkoutPlan } from "@/services/workout-plan-service";
+import { triggerWorkoutCompletionNotification } from "@/services/workout-completion-notifications";
 
 export const workoutPlanRouter = createTRPCRouter({
   getPreviousPlans: protectedProcedure.query(async ({ ctx }) => {
@@ -225,7 +226,12 @@ export const workoutPlanRouter = createTRPCRouter({
         if (input.workoutId) {
           await updateWorkoutStatus(input.workoutId, "completed");
         }
-        return await insertWorkoutTracking(newActivity);
+        const result = await insertWorkoutTracking(newActivity);
+        
+        // Trigger workout completion notification
+        triggerWorkoutCompletionNotification(ctx.userId, newActivity.name ?? undefined).catch(console.error);
+        
+        return result;
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error";
@@ -259,7 +265,12 @@ export const workoutPlanRouter = createTRPCRouter({
           likelyToDoAgain: input.likelyToDoAgain ?? undefined,
         } as NewWorkoutTracking;
         await updateCompletedClass(input.workoutId, "completed");
-        return await insertWorkoutTracking(newActivity);
+        const result = await insertWorkoutTracking(newActivity);
+        
+        // Trigger workout completion notification
+        triggerWorkoutCompletionNotification(ctx.userId, newActivity.name ?? undefined).catch(console.error);
+        
+        return result;
       } catch (error) {
         console.error("Error inserting manual activity:", error);
         throw error;

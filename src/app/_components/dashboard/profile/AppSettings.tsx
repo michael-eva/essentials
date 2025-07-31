@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import DefaultBox from "../../global/DefaultBox"
 import { PushNotificationManager } from "@/components/pwa/PushNotificationManager"
+import { NotificationPreferences } from "./NotificationPreferences"
+import { api } from "@/trpc/react"
 import Link from "next/link"
 
 export default function AppSettings() {
+  const { data: notificationSubscriptionStatus } = api.notifications.getNotificationSubscriptionStatus.useQuery()
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -32,17 +36,15 @@ export default function AppSettings() {
         </div>
       </DefaultBox>
 
-      <DefaultBox
-        title="Preferences"
-        description="Additional app configuration options"
-        showViewAll={false}
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-gray-500">
-            More app settings and preferences will be available here in future updates.
-          </p>
-        </div>
-      </DefaultBox>
+      {notificationSubscriptionStatus?.hasSubscription && (
+        <DefaultBox
+          title="Notification Preferences"
+          description="Customize your notification settings and preferences"
+          showViewAll={false}
+        >
+          <NotificationPreferences />
+        </DefaultBox>
+      )}
     </div>
   )
 }
