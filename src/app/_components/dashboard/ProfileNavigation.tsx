@@ -9,14 +9,14 @@ import { toast } from "sonner"
 import Link from "next/link"
 
 const profileSections = [
-  {
-    id: "account",
-    title: "Account Information",
-    description: "Update your personal details and contact information",
-    icon: <User className="h-6 w-6" />,
-    color: "#3B82F6",
-    href: "/dashboard/profile/account"
-  },
+  // {
+  //   id: "account",
+  //   title: "Account Information",
+  //   description: "Update your personal details and contact information",
+  //   icon: <User className="h-6 w-6" />,
+  //   color: "#3B82F6",
+  //   href: "/dashboard/profile/account"
+  // },
   {
     id: "settings",
     title: "Profile Settings",
