@@ -1,9 +1,5 @@
 import React from "react";
-import PilatesVideoCard from "./PilatesVideoCard";
 import type { PilatesVideo } from "@/types/pilates";
-import Link from "next/link";
-import Image from "next/image";
-import { PlayCircle } from "lucide-react";
 import PilatesVideoLibraryCard from "./PilatesVideoLibraryCard";
 
 const PilatesVideoGrid: React.FC<{ videos: PilatesVideo[] }> = ({ videos }) => (
