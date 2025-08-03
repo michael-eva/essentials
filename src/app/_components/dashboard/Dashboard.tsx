@@ -414,9 +414,20 @@ export default function Dashboard() {
             </Button>
           </div>
         ) : (
-          activityHistory
-            .filter((activity) => activity.tracking.name)
-            .map((activity, index) => {
+          <div className="space-y-4">
+            <Button
+              variant="default"
+              className="w-full"
+              onClick={() => setIsManualActivityDialogOpen(true)}
+              disabled={isInsertingManualActivity}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {isInsertingManualActivity ? "Recording..." : "Record Activity"}
+            </Button>
+            <div className="space-y-0">
+              {activityHistory
+                .filter((activity) => activity.tracking.name)
+                .map((activity, index) => {
               // Function to get activity image based on type
               const getActivityImage = (activityType: string | null) => {
                 const localImages = {
@@ -492,7 +503,9 @@ export default function Dashboard() {
                   </div>
                 </div>
               );
-            })
+            })}
+            </div>
+          </div>
         )}
       </DefaultBox>
 

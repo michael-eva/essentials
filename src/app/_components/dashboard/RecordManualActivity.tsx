@@ -225,7 +225,7 @@ export default function RecordManualActivity({
             }}
           />
 
-          {!isCardioWorkout ? (
+          {isCardioWorkout && (
             <>
               <div className="space-y-2">
                 <Label>Distance</Label>
@@ -280,17 +280,6 @@ export default function RecordManualActivity({
                 }}
               />
             </>
-          ) : (
-            <div className="space-y-2">
-              <Label>Resistance Training</Label>
-              <ExerciseList
-                exercises={exercises}
-                onChange={setExercises}
-              />
-              {form.formState.errors.exercises && (
-                <p className="text-sm text-destructive">{form.formState.errors.exercises.message}</p>
-              )}
-            </div>
           )}
 
           <div className="space-y-2 bg-orange-50 rounded-md p-4">
