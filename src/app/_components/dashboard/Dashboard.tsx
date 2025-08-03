@@ -246,26 +246,57 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number })[]).map((classItem, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between bg-brand-white border-b px-4 rounded-lg border-gray-100 py-3 last:border-0 last:pb-0"
-                onClick={() => handleUpcomingWorkoutClick(classItem)}
-              >
-                <div>
-                  <p className="font-medium text-gray-900">{classItem.name}</p>
-                  <p className="text-sm text-gray-500 flex items-center gap-1">
-                    <Clock className="h-4 w-4" /> {classItem.duration} min
-                  </p>
+            (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number; mux_playback_id?: string })[]).map((classItem, index) => {
+              // Function to get activity image based on type
+              const getActivityImage = (activityType: string | null) => {
+                const localImages = {
+                  run: "/images/workouts/running.jpg",
+                  cycle: "/images/workouts/cycle.jpg",
+                  swim: "/images/workouts/swimming.jpg",
+                  walk: "/images/workouts/walking.jpg",
+                  class: "/images/workouts/pilates.jpg", // Default for classes
+                };
+                return localImages[activityType as keyof typeof localImages] || "/images/workouts/fitness.jpg";
+              };
+
+              return (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 bg-brand-white border-b px-4 rounded-lg border-gray-100 py-3 last:border-0 last:pb-0 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleUpcomingWorkoutClick(classItem)}
+                >
+                  {/* Thumbnail */}
+                  <div className="flex w-16 h-16 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-brand-sage/10">
+                    <Image
+                      src={classItem.mux_playback_id
+                        ? `https://image.mux.com/${classItem.mux_playback_id}/thumbnail.png?width=128&height=128&fit_mode=smartcrop&time=35`
+                        : getActivityImage(classItem.activityType)
+                      }
+                      alt={`${classItem.activityType || 'fitness'} workout`}
+                      className="h-full w-full rounded object-cover"
+                      width={64}
+                      height={64}
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900">{classItem.name}</p>
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
+                      <Clock className="h-4 w-4" /> {classItem.duration} min
+                    </p>
+                  </div>
+
+                  {/* Right side info */}
+                  <div className="flex flex-col items-end gap-2 text-right flex-shrink-0">
+                    <p className="text-sm text-gray-500">{classItem.level}</p>
+                    <span className="text-accent text-sm font-medium">
+                      Week {classItem.weekNumber}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-end gap-2 text-right">
-                  <p className="text-sm text-gray-500">{classItem.level}</p>
-                  <span className="text-accent text-sm font-medium">
-                    Week {classItem.weekNumber}
-                  </span>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </DefaultBox>
         <DefaultBox
@@ -428,82 +459,82 @@ export default function Dashboard() {
               {activityHistory
                 .filter((activity) => activity.tracking.name)
                 .map((activity, index) => {
-              // Function to get activity image based on type
-              const getActivityImage = (activityType: string | null) => {
-                const localImages = {
-                  run: "/images/workouts/running.jpg",
-                  cycle: "/images/workouts/cycling.jpg",
-                  swim: "/images/workouts/swimming.jpg",
-                  walk: "/images/workouts/walking.jpg",
-                  class: "/images/workouts/pilates.jpg", // Default for classes
-                };
-                return localImages[activityType as keyof typeof localImages] || "/images/workouts/fitness.jpg";
-              };
+                  // Function to get activity image based on type
+                  const getActivityImage = (activityType: string | null) => {
+                    const localImages = {
+                      run: "/images/workouts/running.jpg",
+                      cycle: "/images/workouts/cycling.jpg",
+                      swim: "/images/workouts/swimming.jpg",
+                      walk: "/images/workouts/walking.jpg",
+                      class: "/images/workouts/pilates.jpg", // Default for classes
+                    };
+                    return localImages[activityType as keyof typeof localImages] || "/images/workouts/fitness.jpg";
+                  };
 
-              const handleActivityClick = () => {
-                if (activity.workout) {
-                  if (activity.workout.type === "class") {
-                    router.push(`/dashboard/class/${activity.workout.id}`);
-                  } else {
-                    router.push(`/dashboard/workout/${activity.workout.id}`);
-                  }
-                }
-              };
-
-              return (
-                <div
-                  key={activity.tracking.id}
-                  className={`flex items-center gap-3 py-3 ${index < activityHistory.filter((a) => a.tracking.name).length - 1
-                    ? 'border-b border-gray-200'
-                    : ''
-                    } ${activity.workout ? 'cursor-pointer hover:bg-gray-50 rounded-lg px-2 mx-[-8px] transition-colors' : ''
-                    }`}
-                  onClick={activity.workout ? handleActivityClick : undefined}
-                >
-                  {/* Thumbnail */}
-                  <div className="flex w-16 h-16 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-brand-sage/10">
-                    <Image
-                      src={activity.workout?.mux_playback_id
-                        ? `https://image.mux.com/${activity.workout.mux_playback_id}/thumbnail.png?width=128&height=128&fit_mode=smartcrop&time=35`
-                        : getActivityImage(activity.tracking.activityType)
+                  const handleActivityClick = () => {
+                    if (activity.workout) {
+                      if (activity.workout.type === "class") {
+                        router.push(`/dashboard/class/${activity.workout.id}`);
+                      } else {
+                        router.push(`/dashboard/workout/${activity.workout.id}`);
                       }
-                      alt={`${activity.tracking.activityType || 'fitness'} activity`}
-                      className="h-full w-full rounded object-cover"
-                      width={64}
-                      height={64}
-                    />
-                  </div>
+                    }
+                  };
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 capitalize">{activity.tracking.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(activity.tracking?.date ?? "").toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        },
-                      )}
-                    </p>
-                  </div>
+                  return (
+                    <div
+                      key={activity.tracking.id}
+                      className={`flex items-center gap-3 py-3 ${index < activityHistory.filter((a) => a.tracking.name).length - 1
+                        ? 'border-b border-gray-200'
+                        : ''
+                        } ${activity.workout ? 'cursor-pointer hover:bg-gray-50 rounded-lg px-2 mx-[-8px] transition-colors' : ''
+                        }`}
+                      onClick={activity.workout ? handleActivityClick : undefined}
+                    >
+                      {/* Thumbnail */}
+                      <div className="flex w-16 h-16 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-brand-sage/10">
+                        <Image
+                          src={activity.workout?.mux_playback_id
+                            ? `https://image.mux.com/${activity.workout.mux_playback_id}/thumbnail.png?width=128&height=128&fit_mode=smartcrop&time=35`
+                            : getActivityImage(activity.tracking.activityType)
+                          }
+                          alt={`${activity.tracking.activityType || 'fitness'} activity`}
+                          className="h-full w-full rounded object-cover"
+                          width={64}
+                          height={64}
+                        />
+                      </div>
 
-                  {/* Duration */}
-                  <div className="text-right flex-shrink-0">
-                    {["run", "cycle", "swim", "walk"].includes(activity.tracking.activityType || "") && activity.tracking.durationHours && activity.tracking.durationMinutes ? (
-                      <p className="text-accent font-medium">
-                        {activity.tracking.durationHours}h {activity.tracking.durationMinutes}m
-                      </p>
-                    ) : activity.workout?.duration ? (
-                      <p className="text-accent font-medium">
-                        {activity.workout.duration} min
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 capitalize">{activity.tracking.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(activity.tracking?.date ?? "").toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            },
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Duration */}
+                      <div className="text-right flex-shrink-0">
+                        {["run", "cycle", "swim", "walk"].includes(activity.tracking.activityType || "") && activity.tracking.durationHours && activity.tracking.durationMinutes ? (
+                          <p className="text-accent font-medium">
+                            {activity.tracking.durationHours}h {activity.tracking.durationMinutes}m
+                          </p>
+                        ) : activity.workout?.duration ? (
+                          <p className="text-accent font-medium">
+                            {activity.workout.duration} min
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}

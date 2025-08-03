@@ -47,7 +47,9 @@ export type AiSystemPrompt = InferSelectModel<typeof AiSystemPrompt>;
 export type PilatesVideos = InferSelectModel<typeof PilatesVideos>;
 export type Notification = InferSelectModel<typeof notifications>;
 export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
-export type NotificationPreferences = InferSelectModel<typeof notificationPreferences>;
+export type NotificationPreferences = InferSelectModel<
+  typeof notificationPreferences
+>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -58,7 +60,9 @@ export type NewAiChatMessages = InferInsertModel<typeof AiChatMessages>;
 export type NewAiSystemPrompt = InferInsertModel<typeof AiSystemPrompt>;
 export type NewNotification = InferInsertModel<typeof notifications>;
 export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
-export type NewNotificationPreferences = InferInsertModel<typeof notificationPreferences>;
+export type NewNotificationPreferences = InferInsertModel<
+  typeof notificationPreferences
+>;
 
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;
@@ -74,10 +78,12 @@ export type NewProgressTracking = InferInsertModel<typeof progressTracking>;
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
 
-export async function getUpcomingActivities(
-  userId: string,
-): Promise<
-  | (Workout & { tracking: WorkoutTracking | null; weekNumber?: number })[]
+export async function getUpcomingActivities(userId: string): Promise<
+  | (Workout & {
+      tracking: WorkoutTracking | null;
+      weekNumber?: number;
+      mux_playback_id?: string;
+    })[]
   | { status: "no_plan" | "plan_paused" | "plan_inactive"; planName?: string }
 > {
   // First check if there's an active workout plan for the user
@@ -155,6 +161,33 @@ export async function getUpcomingActivities(
     .map((t) => t.workoutId)
     .filter((id): id is string => Boolean(id));
 
+  // Fetch mux_playback_id for class workouts
+  const classIds = workouts
+    .filter((w) => w.type === "class" && w.classId)
+    .map((w) => w.classId)
+    .filter((id): id is string => Boolean(id));
+
+  let pilatesVideos: { id: string; mux_playback_id: string }[] = [];
+  if (classIds.length > 0) {
+    pilatesVideos = (
+      await db
+        .select({
+          id: PilatesVideos.id,
+          mux_playback_id: PilatesVideos.mux_playback_id,
+        })
+        .from(PilatesVideos)
+        .where(inArray(PilatesVideos.id, classIds))
+    ).filter((v) => v.mux_playback_id !== null) as {
+      id: string;
+      mux_playback_id: string;
+    }[];
+  }
+
+  // Create a map for quick lookup
+  const pilatesVideoMap = Object.fromEntries(
+    pilatesVideos.map((v) => [v.id, v.mux_playback_id]),
+  );
+
   return workouts.map((workout) => {
     const tracking =
       trackingData.find((t) => t.workoutId === workout.id) ?? null;
@@ -163,6 +196,10 @@ export async function getUpcomingActivities(
       tracking,
       weekNumber: workout.weekNumber ?? undefined,
       exercises: tracking?.exercises ?? null,
+      mux_playback_id:
+        workout.type === "class" && workout.classId
+          ? pilatesVideoMap[workout.classId]
+          : undefined,
     };
   });
 }
@@ -506,7 +543,12 @@ export async function getActivityHistory(
   userId: string,
   limit = 5,
   offset = 0,
-): Promise<Array<{ tracking: WorkoutTracking; workout: (Workout & { mux_playback_id?: string }) | null }>> {
+): Promise<
+  Array<{
+    tracking: WorkoutTracking;
+    workout: (Workout & { mux_playback_id?: string }) | null;
+  }>
+> {
   const trackingData = await db
     .select()
     .from(workoutTracking)
@@ -532,7 +574,7 @@ export async function getActivityHistory(
     .filter((w) => w.type === "class" && w.classId)
     .map((w) => w.classId)
     .filter((id): id is string => Boolean(id));
-  
+
   let pilatesVideos: { id: string; mux_playback_id: string }[] = [];
   if (classIds.length > 0) {
     pilatesVideos = (
@@ -557,7 +599,8 @@ export async function getActivityHistory(
   // Attach mux_playback_id to class workouts
   const workoutsWithMux = workouts.map((w) => ({
     ...w,
-    mux_playback_id: w.type === "class" && w.classId ? pilatesVideoMap[w.classId] : undefined,
+    mux_playback_id:
+      w.type === "class" && w.classId ? pilatesVideoMap[w.classId] : undefined,
   }));
 
   return trackingData.map((tracking) => ({
