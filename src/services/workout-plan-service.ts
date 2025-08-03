@@ -94,11 +94,27 @@ export async function generateAndInsertWorkoutPlan({
 
     // Process and create unique workout instances for each week
     console.log("🏋️ Processing workouts and creating week-specific instances");
+    
+    // First, validate that all schedule workout IDs exist in the workouts array
+    const workoutIds = new Set(generatedPlan.workouts.map(w => w.id));
+    const invalidSchedules = generatedPlan.weeklySchedules.filter(
+      schedule => !workoutIds.has(schedule.workoutId)
+    );
+    
+    if (invalidSchedules.length > 0) {
+      console.error("❌ Invalid weekly schedules found:");
+      console.error("Available workout IDs:", Array.from(workoutIds));
+      console.error("Invalid schedule workout IDs:", invalidSchedules.map(s => s.workoutId));
+      throw new Error(
+        `AI generated weekly schedules with invalid workout IDs: ${invalidSchedules.map(s => s.workoutId).join(", ")}. Available workout IDs: ${Array.from(workoutIds).join(", ")}`
+      );
+    }
 
     for (const schedule of generatedPlan.weeklySchedules) {
       const originalWorkout = generatedPlan.workouts.find(
         (w) => w.id === schedule.workoutId,
       );
+      // This should never happen now due to validation above, but keeping as safety check
       if (!originalWorkout) {
         console.warn(
           `⚠️ Workout not found for schedule: ${schedule.workoutId}`,
@@ -144,8 +160,11 @@ export async function generateAndInsertWorkoutPlan({
           `${schedule.workoutId}-week-${schedule.weekNumber}`,
         );
         if (!weekSpecificWorkoutId) {
+          console.error("❌ Workout instance mapping failed:");
+          console.error("Looking for mapping key:", `${schedule.workoutId}-week-${schedule.weekNumber}`);
+          console.error("Available mappings:", Array.from(workoutInstanceMap.keys()));
           throw new Error(
-            `No workout instance found for ${schedule.workoutId} in week ${schedule.weekNumber}`,
+            `No workout instance found for ${schedule.workoutId} in week ${schedule.weekNumber}. Available mappings: ${Array.from(workoutInstanceMap.keys()).join(", ")}`
           );
         }
 

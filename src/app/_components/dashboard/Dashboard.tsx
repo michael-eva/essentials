@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import DefaultBox from "../global/DefaultBox";
 
 import { useState } from "react";
@@ -29,6 +30,7 @@ import MarkClassMissed from "./MarkClassMissed";
 import { useRouter } from "next/navigation";
 import type { Workout, WorkoutTracking } from "@/drizzle/src/db/queries";
 import PilatesVideoGrid from "@/app/_components/dashboard/PilatesVideoGrid";
+import Image from "next/image";
 type WorkoutStatus = (typeof workoutStatusEnum.enumValues)[number];
 
 export default function Dashboard() {
@@ -76,6 +78,7 @@ export default function Dashboard() {
   const [isMarkMissedDialogOpen, setIsMarkMissedDialogOpen] = useState(false);
   const [isManualActivityDialogOpen, setIsManualActivityDialogOpen] =
     useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   // Helper function to check if we have workouts or a status
   const hasWorkouts = Array.isArray(upcomingClasses) && upcomingClasses.length > 0;
@@ -129,6 +132,12 @@ export default function Dashboard() {
     generatePlan();
   };
 
+  // Handle redirect to personal trainer
+  const handleGoToPersonalTrainer = () => {
+    setIsHelpModalOpen(false);
+    router.push("/dashboard/mypt");
+  };
+
   const handleUpcomingWorkoutClick = (workout: Workout) => {
     if (workout.type === "class") {
       router.push(`/dashboard/class/${workout.id}`);
@@ -142,7 +151,8 @@ export default function Dashboard() {
       {GeneratePlanDialog}
       <LoadingScreen />
 
-      {/* Desktop Grid Layout - Top Row */}
+
+      {/* Desktop Grid Layout - Pilates Videos and Progress */}
       <div className="lg:grid lg:grid-cols-1 lg:gap-8 lg:space-y-0 space-y-6">
         <DefaultBox
           title="Pilates Videos"
@@ -150,6 +160,13 @@ export default function Dashboard() {
           showViewAll={true}
           viewAllHref='pilates-videos'
         >
+          <div className="mb-4">
+            <Button
+              onClick={() => setIsHelpModalOpen(true)}
+            >
+              Don&apos;t know where to start?
+            </Button>
+          </div>
           {isLoadingPilatesVideos ? (
             <div className="py-8 text-center text-gray-500">Loading videos...</div>
           ) : !pilatesVideos || pilatesVideos?.items.length === 0 ? (
@@ -158,7 +175,99 @@ export default function Dashboard() {
             <PilatesVideoGrid videos={pilatesVideos.items} />
           )}
         </DefaultBox>
-
+        {/* Full Width Section - Upcoming Workouts */}
+        <DefaultBox
+          title="Upcoming Workouts"
+          description={
+            hasWorkouts
+              ? "Your scheduled workouts:"
+              : planStatus?.status === "no_plan"
+                ? "No workout plan created yet"
+                : planStatus?.status === "plan_paused"
+                  ? `Your plan "${planStatus.planName}" is currently paused`
+                  : planStatus?.status === "plan_inactive"
+                    ? `Your plan "${planStatus.planName}" is inactive`
+                    : "No upcoming workouts scheduled"
+          }
+          viewAllText="View All Upcoming Workouts"
+          viewAllHref="your-plan"
+        >
+          {isLoadingUpcomingClasses ? (
+            <UpcomingClassesSkeleton />
+          ) : !hasWorkouts ? (
+            <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-brand-brown bg-brand-light-nude px-4 py-8 text-center">
+              <div className="flex flex-col items-center space-y-2">
+                <CalendarDays className="h-12 w-12 text-gray-400" />
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {planStatus?.status === "no_plan"
+                    ? "No Workout Plan"
+                    : planStatus?.status === "plan_paused"
+                      ? "Plan Paused"
+                      : planStatus?.status === "plan_inactive"
+                        ? "Plan Inactive"
+                        : "No Upcoming Workouts"}
+                </h3>
+                <p className="mb-6 max-w-md text-center text-gray-500">
+                  {planStatus?.status === "no_plan"
+                    ? "You don't have any workout plans yet. Create a workout plan to get started with your fitness journey!"
+                    : planStatus?.status === "plan_paused"
+                      ? `Your plan "${planStatus.planName}" is currently paused. Resume it to see your upcoming workouts.`
+                      : planStatus?.status === "plan_inactive"
+                        ? `Your plan "${planStatus.planName}" is inactive. Activate it to see your upcoming workouts.`
+                        : "You don't have any workouts scheduled. Create a workout plan to get started with your fitness journey!"}
+                </p>
+              </div>
+              <div className="flex w-full max-w-sm flex-col gap-3">
+                {planStatus?.status === "plan_paused" ? <Button
+                  variant="default"
+                  className="w-full"
+                  onClick={() => router.push("/dashboard/your-plan")}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  View Plan
+                </Button>
+                  :
+                  <Button
+                    variant="default"
+                    className="w-full"
+                    onClick={handleGeneratePlan}
+                    disabled={isLoading}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    {isLoading ? "Creating Plan..." : "Create Workout Plan"}
+                  </Button>}
+                <Button
+                  variant="outline"
+                  onClick={() => setIsManualActivityDialogOpen(true)}
+                  disabled={isInsertingManualActivity}
+                >
+                  {isInsertingManualActivity ? "Recording..." : "Record Activity"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number })[]).map((classItem, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between bg-brand-white border-b px-4 rounded-lg border-gray-100 py-3 last:border-0 last:pb-0"
+                onClick={() => handleUpcomingWorkoutClick(classItem)}
+              >
+                <div>
+                  <p className="font-medium text-gray-900">{classItem.name}</p>
+                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                    <Clock className="h-4 w-4" /> {classItem.duration} min
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-2 text-right">
+                  <p className="text-sm text-gray-500">{classItem.level}</p>
+                  <span className="text-accent text-sm font-medium">
+                    Week {classItem.weekNumber}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </DefaultBox>
         <DefaultBox
           title="Progress Tracking"
           description="Your progress over the past 30 days"
@@ -167,100 +276,6 @@ export default function Dashboard() {
           <ProgressSection />
         </DefaultBox>
       </div>
-
-      {/* Full Width Section */}
-      <DefaultBox
-        title="Upcoming Workouts"
-        description={
-          hasWorkouts
-            ? "Your scheduled workouts:"
-            : planStatus?.status === "no_plan"
-              ? "No workout plan created yet"
-              : planStatus?.status === "plan_paused"
-                ? `Your plan "${planStatus.planName}" is currently paused`
-                : planStatus?.status === "plan_inactive"
-                  ? `Your plan "${planStatus.planName}" is inactive`
-                  : "No upcoming workouts scheduled"
-        }
-        viewAllText="View All Upcoming Workouts"
-        viewAllHref="your-plan"
-      >
-        {isLoadingUpcomingClasses ? (
-          <UpcomingClassesSkeleton />
-        ) : !hasWorkouts ? (
-          <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-brand-brown bg-brand-light-nude px-4 py-8 text-center">
-            <div className="flex flex-col items-center space-y-2">
-              <CalendarDays className="h-12 w-12 text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-900">
-                {planStatus?.status === "no_plan"
-                  ? "No Workout Plan"
-                  : planStatus?.status === "plan_paused"
-                    ? "Plan Paused"
-                    : planStatus?.status === "plan_inactive"
-                      ? "Plan Inactive"
-                      : "No Upcoming Workouts"}
-              </h3>
-              <p className="mb-6 max-w-md text-center text-gray-500">
-                {planStatus?.status === "no_plan"
-                  ? "You don't have any workout plans yet. Create a workout plan to get started with your fitness journey!"
-                  : planStatus?.status === "plan_paused"
-                    ? `Your plan "${planStatus.planName}" is currently paused. Resume it to see your upcoming workouts.`
-                    : planStatus?.status === "plan_inactive"
-                      ? `Your plan "${planStatus.planName}" is inactive. Activate it to see your upcoming workouts.`
-                      : "You don't have any workouts scheduled. Create a workout plan to get started with your fitness journey!"}
-              </p>
-            </div>
-            <div className="flex w-full max-w-sm flex-col gap-3">
-              {planStatus?.status === "plan_paused" ? <Button
-                variant="default"
-                className="w-full"
-                onClick={() => router.push("/dashboard/your-plan")}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                View Plan
-              </Button>
-                :
-                <Button
-                  variant="default"
-                  className="w-full"
-                  onClick={handleGeneratePlan}
-                  disabled={isLoading}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  {isLoading ? "Creating Plan..." : "Create Workout Plan"}
-                </Button>}
-              <Button
-                variant="outline"
-                onClick={() => setIsManualActivityDialogOpen(true)}
-                disabled={isInsertingManualActivity}
-              >
-                {isInsertingManualActivity ? "Recording..." : "Record Activity"}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number })[]).map((classItem, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between bg-brand-white border-b px-4 rounded-lg border-gray-100 py-3 last:border-0 last:pb-0"
-              onClick={() => handleUpcomingWorkoutClick(classItem)}
-            >
-              <div>
-                <p className="font-medium text-gray-900">{classItem.name}</p>
-                <p className="text-sm text-gray-500 flex items-center gap-1">
-                  <Clock className="h-4 w-4" /> {classItem.duration} min
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-2 text-right">
-                <p className="text-sm text-gray-500">{classItem.level}</p>
-                <span className="text-accent text-sm font-medium">
-                  Week {classItem.weekNumber}
-                </span>
-              </div>
-            </div>
-          ))
-        )}
-      </DefaultBox>
 
 
       {/* <DefaultBox
@@ -401,35 +416,83 @@ export default function Dashboard() {
         ) : (
           activityHistory
             .filter((activity) => activity.tracking.name)
-            .map((activity, index) => (
-              <div
-                key={activity.tracking.id}
-                className="flex items-center justify-between border-b border-brand-brown pb-3 last:border-0 last:pb-0"
-              >
-                <div>
-                  <p className="font-medium text-gray-900 capitalize">{activity.tracking.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(activity.tracking?.date ?? "").toLocaleDateString(
-                      "en-US",
-                      {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      },
-                    )}
-                  </p>
-                </div>
-                <div className="text-right">
-                  {activity.tracking.activityType === "workout" && activity.tracking.durationHours && activity.tracking.durationMinutes ? (
-                    <p className="text-accent font-medium">
-                      {activity.tracking.durationHours}h {activity.tracking.durationMinutes}m
+            .map((activity, index) => {
+              // Function to get activity image based on type
+              const getActivityImage = (activityType: string | null) => {
+                const localImages = {
+                  run: "/images/workouts/running.jpg",
+                  cycle: "/images/workouts/cycling.jpg",
+                  swim: "/images/workouts/swimming.jpg",
+                  walk: "/images/workouts/walking.jpg",
+                  class: "/images/workouts/pilates.jpg", // Default for classes
+                };
+                return localImages[activityType as keyof typeof localImages] || "/images/workouts/fitness.jpg";
+              };
+
+              const handleActivityClick = () => {
+                if (activity.workout) {
+                  if (activity.workout.type === "class") {
+                    router.push(`/dashboard/class/${activity.workout.id}`);
+                  } else {
+                    router.push(`/dashboard/workout/${activity.workout.id}`);
+                  }
+                }
+              };
+
+              return (
+                <div
+                  key={activity.tracking.id}
+                  className={`flex items-center gap-3 py-3 ${index < activityHistory.filter((a) => a.tracking.name).length - 1
+                    ? 'border-b border-gray-200'
+                    : ''
+                    } ${activity.workout ? 'cursor-pointer hover:bg-gray-50 rounded-lg px-2 mx-[-8px] transition-colors' : ''
+                    }`}
+                  onClick={activity.workout ? handleActivityClick : undefined}
+                >
+                  {/* Thumbnail */}
+                  <div className="flex w-16 h-16 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-brand-sage/10">
+                    <Image
+                      src={activity.workout?.mux_playback_id
+                        ? `https://image.mux.com/${activity.workout.mux_playback_id}/thumbnail.png?width=128&height=128&fit_mode=smartcrop&time=35`
+                        : getActivityImage(activity.tracking.activityType)
+                      }
+                      alt={`${activity.tracking.activityType || 'fitness'} activity`}
+                      className="h-full w-full rounded object-cover"
+                      width={64}
+                      height={64}
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 capitalize">{activity.tracking.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(activity.tracking?.date ?? "").toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        },
+                      )}
                     </p>
-                  ) : (
-                    null
-                  )}
+                  </div>
+
+                  {/* Duration */}
+                  <div className="text-right flex-shrink-0">
+                    {["run", "cycle", "swim", "walk"].includes(activity.tracking.activityType || "") && activity.tracking.durationHours && activity.tracking.durationMinutes ? (
+                      <p className="text-accent font-medium">
+                        {activity.tracking.durationHours}h {activity.tracking.durationMinutes}m
+                      </p>
+                    ) : activity.workout?.duration ? (
+                      <p className="text-accent font-medium">
+                        {activity.workout.duration} min
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
         )}
       </DefaultBox>
 
@@ -460,6 +523,33 @@ export default function Dashboard() {
         initialActivityType={selectedWorkout?.activityType ?? undefined}
         initialDurationMinutes={selectedWorkout?.duration ?? undefined}
       />
+
+      {/* Help Modal */}
+      <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Need Help Getting Started?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Not sure which Pilates video to choose? Let your Personal Trainer guide you! They can recommend the perfect videos based on your fitness level, goals, and preferences.
+            </p>
+          </div>
+          <DialogFooter className="flex flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsHelpModalOpen(false)}
+            >
+              Stay Here
+            </Button>
+            <Button
+              onClick={handleGoToPersonalTrainer}
+            >
+              Go to Personal Trainer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

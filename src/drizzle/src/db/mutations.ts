@@ -46,7 +46,7 @@ const db = drizzle(client);
 export type WorkoutTrackingInput = {
   userId: string;
   workoutId?: string | null;
-  activityType: string;
+  activityType: "run" | "cycle" | "swim" | "walk" | "class";
   date: Date;
   durationHours?: number | null;
   durationMinutes?: number | null;

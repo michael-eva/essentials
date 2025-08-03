@@ -16,7 +16,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, link, height = 120 }
   const getActivityImage = (activityType: string | null) => {
     const localImages = {
       run: "/images/workouts/running.jpg",
-      cycle: "/images/workouts/cycling.jpg",
+      cycle: "/images/workouts/cycle.jpg",
       swim: "/images/workouts/swimming.jpg",
       walk: "/images/workouts/walking.jpg",
     };
@@ -33,7 +33,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, link, height = 120 }
         <Image
           src={getActivityImage(workout.activityType || 'default')}
           alt={`${workout.activityType || 'fitness'} workout`}
-          className="h-full w-full rounded object-cover"
+          className=" rounded object-cover"
           width={96}
           height={96}
           onError={() => setImageError(true)}

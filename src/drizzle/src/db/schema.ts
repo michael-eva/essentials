@@ -24,6 +24,7 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "cycle",
   "swim",
   "walk",
+  "class",
 ]);
 
 // export const workoutTimesEnum = pgEnum("workout_times", [
@@ -123,7 +124,7 @@ export const workoutTracking = pgTable("workout_tracking", {
       onUpdate: "cascade",
     }),
   workoutId: uuid("workout_id"),
-  activityType: text("activity_type").notNull(),
+  activityType: activityTypeEnum("activity_type").notNull(),
   date: timestamp("date").notNull(),
   durationHours: integer("duration_hours"),
   durationMinutes: integer("duration_minutes"),

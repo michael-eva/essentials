@@ -182,7 +182,7 @@ export const workoutPlanRouter = createTRPCRouter({
     .input(
       z.object({
         workoutId: z.string().nullable().optional(),
-        workoutType: z.string(),
+        workoutType: z.enum(["run", "cycle", "swim", "walk", "class"]),
         date: z.date(),
         durationHours: z.number().optional(),
         durationMinutes: z.number().optional(),

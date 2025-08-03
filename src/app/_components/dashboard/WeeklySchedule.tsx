@@ -19,7 +19,6 @@ interface WeeklyScheduleProps {
   isEditing?: boolean;
   onDeleteClass?: (weekNumber: number, classIndex: number) => void;
   onAddClass?: (weekNumber: number) => void;
-  onBookClass?: (workoutId: string, name: string) => void;
   editingWeeks?: Set<number>;
   onToggleWeekEdit?: (weekNumber: number) => void;
   accordionValuePrefix?: string;
@@ -38,7 +37,6 @@ export default function WeeklySchedule({
   isEditing = false,
   onDeleteClass,
   onAddClass,
-  onBookClass,
   editingWeeks = new Set(),
   onToggleWeekEdit,
   accordionValuePrefix = "",

@@ -77,16 +77,7 @@ export default function ClassRecommendations() {
   const { generatePlan, isLoading, LoadingScreen, GeneratePlanDialog } = useGeneratePlan();
   const planStatus: 'active' | 'paused' | 'not started' = activePlan?.isActive && !activePlan?.pausedAt && activePlan.startDate ? 'active' : activePlan?.pausedAt ? 'paused' : 'not started'
 
-  const handleBookClass = (workoutId: string, name: string) => {
-    let sessionType = ""
-    if (name.toLowerCase().includes("reformer")) {
-      sessionType = "Reformer"
-    } else {
-      sessionType = "Pilates"
-    }
-    // bookClass.mutate({ workoutId })
-    router.push(`/dashboard/classes?sessionType=${sessionType}`)
-  }
+
 
   const getWeeklySchedules = () => {
     if (activePlan?.weeklySchedules) {
@@ -101,12 +92,6 @@ export default function ClassRecommendations() {
     // Fallback (if no activePlan or no weeklySchedules)
     return [];
   }
-
-
-
-
-
-
 
   const handleStartPlan = () => {
     setConfirmationDialog({
@@ -314,7 +299,6 @@ export default function ClassRecommendations() {
                 isEditing={true}
                 onDeleteClass={handleDeleteClass}
                 onAddClass={handleAddNewClass}
-                onBookClass={handleBookClass}
                 editingWeeks={editingWeeks}
                 onToggleWeekEdit={toggleWeekEdit}
                 isActivePlan={true}

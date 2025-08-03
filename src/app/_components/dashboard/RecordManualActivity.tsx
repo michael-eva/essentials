@@ -28,7 +28,7 @@ const exerciseSchema = z.object({
 })
 
 const activityFormSchema = z.object({
-  workoutType: z.string({
+  workoutType: z.enum(["run", "cycle", "swim", "walk", "class"], {
     required_error: "Please select an activity type",
   }),
   date: z.date(),
@@ -53,17 +53,7 @@ const ACTIVITY_ICONS = {
   cycle: Bike,
   swim: Waves,
   walk: Footprints,
-  hike: Mountain,
-  rowing: Ship,
-  elliptical: Ellipsis,
-  workout: Dumbbell,
-  weightlift: Anvil,
-  dance: Activity,
-  "team sports": LandPlot,
-  pilates: CircleGauge,
-  bodyweight: Weight,
-  resistance: Scaling,
-  other: Ellipsis,
+  class: CircleGauge,
 } as const;
 
 function safeParseInt(val: string | undefined) {
@@ -90,7 +80,7 @@ export default function RecordManualActivity({
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activityFormSchema),
     defaultValues: {
-      workoutType: initialActivityType,
+      workoutType: (initialActivityType && ["run", "cycle", "swim", "walk", "class"].includes(initialActivityType)) ? initialActivityType as "run" | "cycle" | "swim" | "walk" | "class" : undefined,
       date: new Date(),
       durationHours: initialDurationHours ?? 0,
       durationMinutes: initialDurationMinutes ?? 0,
@@ -104,8 +94,8 @@ export default function RecordManualActivity({
   })
 
   useEffect(() => {
-    if (initialActivityType) {
-      form.setValue("workoutType", initialActivityType)
+    if (initialActivityType && ["run", "cycle", "swim", "walk", "class"].includes(initialActivityType)) {
+      form.setValue("workoutType", initialActivityType as "run" | "cycle" | "swim" | "walk" | "class")
     }
   }, [initialActivityType, form])
 
@@ -136,7 +126,7 @@ export default function RecordManualActivity({
   const [tempDistanceDec, setTempDistanceDec] = useState(safeParseInt(decPart))
   const [tempDistanceUnit, setTempDistanceUnit] = useState(form.watch("distanceUnit") === "miles" ? "mi" : "km")
 
-  const isWorkout = form.watch("workoutType") === "workout"
+  const isCardioWorkout = ["run", "cycle", "swim", "walk"].includes(form.watch("workoutType") ?? "")
 
   const [exercises, setExercises] = useState<Exercise[]>(form.watch("exercises") ?? [])
 
@@ -155,7 +145,7 @@ export default function RecordManualActivity({
             <Label>Activity Type</Label>
             <Select
               value={form.watch("workoutType")}
-              onValueChange={(value) => form.setValue("workoutType", value)}
+              onValueChange={(value) => form.setValue("workoutType", value as "run" | "cycle" | "swim" | "walk" | "class")}
             >
               <SelectTrigger className="flex items-center w-full border rounded-md px-3 py-2 text-left bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors gap-2">
                 {!form.watch("workoutType") && <Activity className="w-4 h-4 text-muted-foreground" />}
@@ -235,7 +225,7 @@ export default function RecordManualActivity({
             }}
           />
 
-          {!isWorkout ? (
+          {!isCardioWorkout ? (
             <>
               <div className="space-y-2">
                 <Label>Distance</Label>

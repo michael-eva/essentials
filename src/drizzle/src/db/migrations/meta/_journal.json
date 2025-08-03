@@ -57,6 +57,13 @@
       "when": 1753870177720,
       "tag": "0007_furry_ricochet",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1753899600000,
+      "tag": "0008_fix_activity_type_enum",
+      "breakpoints": true
     }
   ]
 }

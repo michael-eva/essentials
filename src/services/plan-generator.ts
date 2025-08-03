@@ -56,8 +56,9 @@ ${JSON.stringify(availableClasses.nonPilates, null, 2)}
    - Each week should have the requested activities distributed appropriately
 
 2. **Workout Details**: 
-   - For every workout of type 'workout', provide a detailed 'exercises' array with name, sets, reps, and weight if applicable. Do NOT use generic labels like 'Full Body Workout'.
-   - For cardio workouts, only use: ${availableClasses.nonPilates}. Specify duration and intensity level.
+   - For every workout with type: "workout" (cardio workouts), the activityType field MUST be one of: ${JSON.stringify(availableClasses.nonPilates)}
+   - IMPORTANT: "workout" is NOT a valid activityType. Only use: run, cycle, swim, walk
+   - For cardio workouts, specify duration and intensity level in the description
    - Only add cardio workouts if the user has selected to include them in the plan. This means that userPrompt explicitly calls for "WORKOUTS"
 
 3. **Unique IDs**: Each workout MUST have a unique 'id' field (UUID format). For class-based workouts:
@@ -81,14 +82,24 @@ If including "Abs, Arms & Booty" class (ID: d24df388-15c9-46f3-bf4a-98353784aa6c
   // ... other fields
 }
 
-**Example Cardio Workout:**
+**Example Cardio Workouts:**
 {
   "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890", // NEW unique UUID
   "name": "Morning Run",
   "type": "workout",
-  "activityType": "run",
+  "activityType": "run", // MUST be: run, cycle, swim, or walk
   "duration": 30,
   "description": "Steady pace run, maintain conversation level intensity",
+  "exercises": null
+}
+
+{
+  "id": "b2c3d4e5-f6g7-8901-bcde-f23456789012",
+  "name": "Evening Cycle",
+  "type": "workout", 
+  "activityType": "cycle", // MUST be: run, cycle, swim, or walk
+  "duration": 45,
+  "description": "Moderate intensity cycling session",
   "exercises": null
 }
 

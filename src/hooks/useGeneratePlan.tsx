@@ -51,6 +51,16 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
   const handleConfirmGeneratePlan = (preferences: PlanPreferences) => {
     const { additionalNotes, shortClassesPerWeek, mediumClassesPerWeek, longClassesPerWeek, additionalCardioWorkouts, isCardioWorkout, cardioType, shortWorkoutsPerWeek, mediumWorkoutsPerWeek, longWorkoutsPerWeek, planLength } = preferences;
 
+    // Map UI cardio type names to activityType enum values
+    const cardioTypeMap: Record<string, string> = {
+      "Running": "run",
+      "Cycling": "cycle", 
+      "Walking": "walk",
+      "Swimming": "swim"
+    };
+    
+    const mappedCardioTypes = cardioType.map(type => cardioTypeMap[type] || type.toLowerCase());
+
     // Calculate total activities per week
     const totalClassesPerWeek = shortClassesPerWeek + mediumClassesPerWeek + longClassesPerWeek;
     const totalWorkoutsPerWeek = shortWorkoutsPerWeek + mediumWorkoutsPerWeek + longWorkoutsPerWeek;
@@ -67,10 +77,13 @@ export default function useGeneratePlan({ redirectToPlan = true } = {}) {
     if (totalWorkoutsPerWeek > 0 || cardioWorkoutsPerWeek > 0) {
       const totalWorkouts = totalWorkoutsPerWeek + cardioWorkoutsPerWeek;
       prompt += `WORKOUTS (${totalWorkouts} per week):\n`;
-      if (shortWorkoutsPerWeek > 0) prompt += `- ${shortWorkoutsPerWeek} short workouts (10-20 minutes each)\n`;
-      if (mediumWorkoutsPerWeek > 0) prompt += `- ${mediumWorkoutsPerWeek} medium workouts (20-30 minutes each)\n`;
-      if (longWorkoutsPerWeek > 0) prompt += `- ${longWorkoutsPerWeek} long workouts (30+ minutes each)\n`;
-      if (cardioWorkoutsPerWeek > 0) prompt += `- ${cardioWorkoutsPerWeek} cardio workouts (types: ${cardioType.join(", ")})\n`;
+      if (shortWorkoutsPerWeek > 0) prompt += `- ${shortWorkoutsPerWeek} short ${mappedCardioTypes.length > 0 ? mappedCardioTypes.join("/") : "cardio"} workouts (10-20 minutes each)\n`;
+      if (mediumWorkoutsPerWeek > 0) prompt += `- ${mediumWorkoutsPerWeek} medium ${mappedCardioTypes.length > 0 ? mappedCardioTypes.join("/") : "cardio"} workouts (20-30 minutes each)\n`;
+      if (longWorkoutsPerWeek > 0) prompt += `- ${longWorkoutsPerWeek} long ${mappedCardioTypes.length > 0 ? mappedCardioTypes.join("/") : "cardio"} workouts (30+ minutes each)\n`;
+      
+      if (mappedCardioTypes.length > 0) {
+        prompt += `\nIMPORTANT: All workouts above should be ONLY ${mappedCardioTypes.join(" OR ")} activities. Do not include any other activity types.\n`;
+      }
     }
 
     // Add class specifications
