@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Settings, Sparkles, Info, Activity, Zap, Play, Trash2 } from "lucide-react";
+import { Send, MessageSquare, Settings, Sparkles, Info, Activity, Zap, Play, Trash2, Heart, Baby } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import type { AppRouter } from "@/server/api/root";
@@ -114,7 +114,7 @@ function detectClassRecommendation(content: string): { hasRecommendation: boolea
 // Utility function to render markdown bold text
 function renderMarkdownContent(content: string): React.ReactNode {
   const parts = content.split(/(\*\*.*?\*\*)/g);
-  
+
   return parts.map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       const boldText = part.slice(2, -2);
@@ -153,6 +153,12 @@ export function AIInteractionSection() {
     // { enabled: trainerInfo?.isOnboardingComplete }
   );
   const isOnboardingComplete = trainerInfo?.isOnboardingComplete === true
+
+  // Get health considerations
+  const { data: healthConsiderations } = api.myPt.getHealthConsiderations.useQuery(
+    undefined,
+    { enabled: isOnboardingComplete }
+  );
 
   // Get pilates videos for class recommendations
   const { data: pilatesVideos } = api.workout.getPilatesVideos.useQuery({
@@ -199,6 +205,77 @@ export function AIInteractionSection() {
     },
   });
   const { generatePlan, GeneratePlanDialog, isLoading: isGeneratePlanLoading, LoadingScreen, error: generatePlanError } = useGeneratePlan()
+
+  // Helper component to render health considerations
+  const HealthConsiderationsInfo = () => {
+    if (!healthConsiderations) {
+      return null;
+    }
+
+    // Only show pregnancy if it's a positive pregnancy status
+    const pregnancyValue = healthConsiderations.pregnancy?.toLowerCase() || '';
+    const hasPregnancy = pregnancyValue &&
+      pregnancyValue !== 'no' &&
+      pregnancyValue !== 'not_applicable' &&
+      pregnancyValue !== 'n/a' &&
+      pregnancyValue !== 'not applicable' &&
+      pregnancyValue !== 'none' &&
+      !pregnancyValue.includes('not') &&
+      (pregnancyValue.includes('trimester') ||
+        pregnancyValue.includes('pregnant') ||
+        pregnancyValue.includes('expecting') ||
+        pregnancyValue === 'yes');
+
+    const hasInjuries = healthConsiderations.hasInjuries &&
+      healthConsiderations.injuriesDetails &&
+      healthConsiderations.injuriesDetails.trim() !== '';
+
+    // Only show if there are actual relevant health considerations
+    if (!hasPregnancy && !hasInjuries) {
+      return null;
+    }
+
+    // Determine title based on what's present
+    const getTitle = () => {
+      if (hasInjuries && hasPregnancy) {
+        return "Your Health Considerations";
+      } else if (hasInjuries) {
+        return "Health Condition Noted";
+      } else if (hasPregnancy) {
+        return "Pregnancy Considerations";
+      }
+      return "Your Health Considerations";
+    };
+
+    return (
+      <div className="mb-2 px-3 py-2.5 bg-brand-light-yellow border border-brand-nude rounded-lg">
+        <div className="flex items-center gap-2">
+          <Info className="h-4 w-4 text-brand-brown flex-shrink-0" />
+          <div className="flex-1">
+            <div className="text-sm font-medium text-brand-brown">
+              {getTitle()}
+            </div>
+            <div className="text-xs text-brand-brown/70 mt-1">
+              {hasInjuries && (
+                <div className="flex items-center gap-1.5">
+                  <Heart className="h-3 w-3 flex-shrink-0 text-brand-bright-orange" />
+                  <span className="font-medium">{healthConsiderations.injuriesDetails}</span>
+                  <span className="text-brand-brown/60">• Emma will adapt exercises</span>
+                </div>
+              )}
+              {hasPregnancy && (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Baby className="h-3 w-3 flex-shrink-0 text-brand-bright-orange" />
+                  <span className="font-medium capitalize">{healthConsiderations.pregnancy}</span>
+                  <span className="text-brand-brown/60">• Pregnancy-safe focus</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const handleGeneratePlan = () => {
     generatePlan();
@@ -398,54 +475,63 @@ export function AIInteractionSection() {
         </DialogContent>
       </Dialog>
       {/* Mobile: Fixed chat interface */}
-      <div className="md:hidden fixed inset-0 top-[62px] flex flex-col">
-        {/* Personal Trainer Header Section - Mobile */}
-        <div className="flex-shrink-0 px-4">
-          <DefaultBox
-            title="Coach Emma"
-            description="Your fitness companion"
-            showViewAll={false}
-            icon={
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="p-2">
-                    <Settings className="h-5 w-5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-48 p-0">
-                  <div className="flex flex-col">
-                    <Button
-                      variant="ghost"
-                      className="justify-start px-4 py-2 text-sm"
-                      onClick={() => {
-                        setShowCustomize(true);
-                      }}
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Meet your trainer
+      <div className="md:hidden fixed inset-0 top-20 bottom-16 flex flex-col">
+        {/* Top Section: Header + Health Info - Mobile */}
+        <div className="flex-shrink-0 bg-white border-b border-brand-brown/10 max-h-[40vh] overflow-y-auto">
+          <div className="px-4">
+            <DefaultBox
+              title="Coach Emma"
+              description="Your fitness companion"
+              showViewAll={false}
+              icon={
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-2">
+                      <Settings className="h-5 w-5" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => {
-                        setShowDeleteDialog(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Clear Chat
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            }
-            showChildren={false}
-          >
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-0">
+                    <div className="flex flex-col">
+                      <Button
+                        variant="ghost"
+                        className="justify-start px-4 py-2 text-sm"
+                        onClick={() => {
+                          setShowCustomize(true);
+                        }}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Meet your trainer
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="justify-start px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => {
+                          setShowDeleteDialog(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Clear Chat
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              }
+              showChildren={false}
+            >
+              {/* Required children prop even when showChildren is false */}
+              <></>
+            </DefaultBox>
             <CustomizePTDialog open={showCustomize} onOpenChange={setShowCustomize} />
-          </DefaultBox>
+
+            {/* Health Considerations - Outside DefaultBox but visually integrated */}
+            <div className="mt-2">
+              <HealthConsiderationsInfo />
+            </div>
+          </div>
         </div>
 
-        {/* Messages Area - Mobile */}
-        <div className="flex-1 overflow-hidden px-4 py-2 pt-5">
+        {/* Middle Section: Messages Area - Mobile */}
+        <div className="flex-1 overflow-hidden px-4 py-2 min-h-0">
           <div ref={mobileScrollRef} className="h-full overflow-y-auto px-4 py-4 border border-brand-brown/20 rounded-lg bg-brand-light-nude">
             {isLoadingHistory && messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
@@ -459,7 +545,7 @@ export function AIInteractionSection() {
                 <p className="text-sm">Ask about workouts, nutrition, goals, or anything fitness-related.</p>
               </div>
             ) : (
-              <div className="flex flex-col gap-4 pb-4">
+              <div className="flex flex-col gap-4 pb-2">
                 {messages.map((message) => {
                   const classRecommendation = message.role === "assistant" ? detectClassRecommendation(message.content) : null;
 
@@ -478,38 +564,6 @@ export function AIInteractionSection() {
                           }`}
                         style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
                       >
-                        {/* Tool Calls Display */}
-                        {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
-                          <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                            <div className="text-xs font-semibold text-blue-700 mb-2">🔧 Tool Calls:</div>
-                            {message.toolCalls.map((toolCall, index) => (
-                              <div key={toolCall.id || index} className="text-xs text-blue-600 mb-1">
-                                <span className="font-medium">{toolCall.function?.name || toolCall.name}</span>
-                                <span className="text-blue-500 ml-1">
-                                  ({JSON.stringify(toolCall.function?.arguments || toolCall.args)})
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Tool Response Display */}
-                        {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 &&
-                          message.toolCalls.some(toolCall => toolCall.response) && (
-                            <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
-                              <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
-                              {message.toolCalls.map((toolCall, index) => (
-                                toolCall.response && (
-                                  <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
-                                    <span className="font-medium">{toolCall.response.name}:</span>
-                                    <span className="text-purple-500 ml-1">
-                                      {toolCall.response.content}
-                                    </span>
-                                  </div>
-                                )
-                              ))}
-                            </div>
-                          )}
 
                         <div className="text-sm">{renderMarkdownContent(message.content)}</div>
 
@@ -580,8 +634,8 @@ export function AIInteractionSection() {
           </div>
         </div>
 
-        {/* Input Area - Mobile */}
-        <div className="flex-shrink-0 p-4 pb-20 bg-white">
+        {/* Bottom Section: Input Area - Mobile */}
+        <div className="flex-shrink-0 px-4 pt-2 pb-6 bg-white border-t border-brand-brown/10 safe-area-inset-bottom min-h-[80px]">
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
@@ -650,6 +704,8 @@ export function AIInteractionSection() {
         >
           <CustomizePTDialog open={showCustomize} onOpenChange={setShowCustomize} />
 
+          <HealthConsiderationsInfo />
+
           {/* Messages Area - Desktop */}
           <div ref={desktopScrollRef} className="h-96 overflow-y-auto px-4 py-4 border border-brand-brown/20 rounded-lg bg-brand-nude/30">
             {isLoadingHistory && messages.length === 0 ? (
@@ -664,7 +720,7 @@ export function AIInteractionSection() {
                 <p className="text-sm">Ask about workouts, nutrition, goals, or anything fitness-related.</p>
               </div>
             ) : (
-              <div className="flex flex-col gap-4 pb-4">
+              <div className="flex flex-col gap-4 pb-6">
                 {messages.map((message) => {
                   const classRecommendation = message.role === "assistant" ? detectClassRecommendation(message.content) : null;
 
@@ -683,38 +739,6 @@ export function AIInteractionSection() {
                           }`}
                         style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
                       >
-                        {/* Tool Calls Display */}
-                        {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
-                          <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                            <div className="text-xs font-semibold text-blue-700 mb-2">🔧 Tool Calls:</div>
-                            {message.toolCalls.map((toolCall, index) => (
-                              <div key={toolCall.id || index} className="text-xs text-blue-600 mb-1">
-                                <span className="font-medium">{toolCall.function?.name || toolCall.name}</span>
-                                <span className="text-blue-500 ml-1">
-                                  ({JSON.stringify(toolCall.function?.arguments || toolCall.args)})
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Tool Response Display */}
-                        {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 &&
-                          message.toolCalls.some(toolCall => toolCall.response) && (
-                            <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-md">
-                              <div className="text-xs font-semibold text-purple-700 mb-2">✨ Tool Response:</div>
-                              {message.toolCalls.map((toolCall, index) => (
-                                toolCall.response && (
-                                  <div key={toolCall.id || index} className="text-xs text-purple-600 mb-1">
-                                    <span className="font-medium">{toolCall.response.name}:</span>
-                                    <span className="text-purple-500 ml-1">
-                                      {toolCall.response.content}
-                                    </span>
-                                  </div>
-                                )
-                              ))}
-                            </div>
-                          )}
 
                         <div className="text-sm">{renderMarkdownContent(message.content)}</div>
 

@@ -7,6 +7,7 @@ import {
   getAiSystemPrompt,
   getMessages,
   checkOnboardingCompletion,
+  getOnboardingData,
 } from "@/drizzle/src/db/queries";
 import {
   insertAiSystemPrompt,
@@ -228,6 +229,40 @@ export const myPtRouter = createTRPCRouter({
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch trainer information",
+      });
+    }
+  }),
+
+  /**
+   * Get user's health considerations (injuries, pregnancy)
+   */
+  getHealthConsiderations: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const userId = ctx.userId;
+      const onboardingData = await getOnboardingData(userId);
+
+      if (!onboardingData) {
+        return {
+          hasInjuries: false,
+          injuriesDetails: null,
+          pregnancy: null,
+          pregnancyConsultedDoctor: false,
+          pregnancyConsultedDoctorDetails: null,
+        };
+      }
+
+      return {
+        hasInjuries: !!onboardingData.injuries,
+        injuriesDetails: onboardingData.injuriesDetails,
+        pregnancy: onboardingData.pregnancy,
+        pregnancyConsultedDoctor: !!onboardingData.pregnancyConsultedDoctor,
+        pregnancyConsultedDoctorDetails: onboardingData.pregnancyConsultedDoctorDetails,
+      };
+    } catch (error) {
+      console.error("Error fetching health considerations:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch health considerations",
       });
     }
   }),
