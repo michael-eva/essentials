@@ -42,6 +42,49 @@ ${userPrompt || "No specific preferences provided - create a balanced plan based
 Relevant context about the user, that you should use to generate the workout plan:
 ${formatUserContextForAI(context)}
 
+## CRITICAL SAFETY ADAPTATIONS
+Based on the user's health profile, you MUST follow these safety guidelines:
+
+${context.profile.health.pregnancy === "yes" || context.profile.health.pregnancy === "currently pregnant" ? `
+**PREGNANCY ADAPTATIONS (CRITICAL):**
+- NEVER include high-intensity cardio or HIIT workouts
+- Avoid supine (lying on back) exercises after first trimester
+- Exclude exercises with twisting or deep abdominal work
+- Focus on gentle, prenatal-safe Pilates classes only
+- Limit workout intensity to light-moderate (max 6/10 intensity)
+- Include more rest days and shorter session durations
+- Recommend consulting healthcare provider before starting any new exercise
+- Prioritize exercises that support posture and reduce back pain
+${context.profile.health.pregnancyConsultedDoctor ? `- User has consulted doctor: ${context.profile.health.pregnancyConsultedDoctorDetails}` : "- IMPORTANT: Recommend consulting doctor before starting plan"}
+` : ""}
+
+${context.profile.health.injuries ? `
+**INJURY ADAPTATIONS (CRITICAL):**
+- Current injuries: ${context.profile.health.injuriesDetails}
+- Modify or exclude exercises that could aggravate existing injuries
+- Focus on gentle, rehabilitative movements
+- Recommend lower impact alternatives
+- Include proper warm-up and cool-down routines
+- Suggest consulting a physical therapist if pain persists
+` : ""}
+
+${context.profile.health.recentSurgery ? `
+**POST-SURGERY ADAPTATIONS (CRITICAL):**
+- Recent surgery: ${context.profile.health.surgeryDetails}
+- Follow post-surgical exercise guidelines
+- Start with very gentle movements and progress slowly
+- Avoid exercises that strain the surgical site
+- Recommend medical clearance before beginning any program
+` : ""}
+
+${context.profile.health.chronicConditions && context.profile.health.chronicConditions.length > 0 ? `
+**CHRONIC CONDITION ADAPTATIONS:**
+- Conditions: ${context.profile.health.chronicConditions.join(", ")}
+- Adapt intensity and duration based on condition limitations
+- Include exercises that may help manage symptoms
+- Monitor for any adverse reactions during workouts
+` : ""}
+
 ## AVAILABLE CLASSES
 **Pilates Classes (type: "class"):**
 ${JSON.stringify(availableClasses.pilates, null, 2)}
@@ -50,26 +93,35 @@ ${JSON.stringify(availableClasses.pilates, null, 2)}
 ${JSON.stringify(availableClasses.nonPilates, null, 2)}
 
 ## GENERATION REQUIREMENTS
-1. **Plan Duration**: 
+1. **Safety First**: 
+   - ALWAYS prioritize the safety adaptations listed above
+   - If user has pregnancy or injuries, override any conflicting user preferences for safety
+   - Include safety disclaimers in workout descriptions when appropriate
+
+2. **Plan Duration**: 
    - Set the plan 'weeks' field to exactly ${weekCount}
    - Generate weekly schedules for ALL ${weekCount} weeks (weekNumber: 1, 2, 3, ..., ${weekCount})
    - Each week should have the requested activities distributed appropriately
+   ${context.profile.health.pregnancy || context.profile.health.injuries || context.profile.health.recentSurgery ? "- Include more rest days and shorter sessions for safety" : ""}
 
-2. **Workout Details**: 
+3. **Workout Details**: 
    - For every workout with type: "workout" (cardio workouts), the activityType field MUST be one of: ${JSON.stringify(availableClasses.nonPilates)}
    - IMPORTANT: "workout" is NOT a valid activityType. Only use: run, cycle, swim, walk
    - For cardio workouts, specify duration and intensity level in the description
+   ${context.profile.health.pregnancy ? "- For pregnant users: EXCLUDE all cardio workouts unless specifically walking at gentle pace" : ""}
+   ${context.profile.health.injuries ? "- For users with injuries: Avoid high-impact cardio, prefer walking or swimming if appropriate" : ""}
    - Only add cardio workouts if the user has selected to include them in the plan. This means that userPrompt explicitly calls for "WORKOUTS"
 
-3. **Unique IDs**: Each workout MUST have a unique 'id' field (UUID format). For class-based workouts:
+4. **Unique IDs**: Each workout MUST have a unique 'id' field (UUID format). For class-based workouts:
    - Generate a NEW unique UUID for the workout 'id' field
    - Set the 'classId' field to reference the existing class ID
    - Do NOT reuse the existing class ID as the workout ID
 
-4. **Weekly Schedules**: 
+5. **Weekly Schedules**: 
    - Create weekly schedule entries for ALL ${weekCount} weeks
    - Each weekly schedule should reference exact workout IDs from the workouts array
    - Distribute workouts across all weeks to create a progressive plan
+   ${context.profile.health.pregnancy || context.profile.health.injuries ? "- Progress very gradually due to health considerations" : ""}
 
 
 **Example Class Workout:**

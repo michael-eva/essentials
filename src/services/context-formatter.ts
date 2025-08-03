@@ -21,14 +21,13 @@ MOTIVATION & GOALS:
 - Progress Tracking Methods: ${motivationInfo.progressTracking?.join(", ") ?? "Not specified"}
 - Other Progress Tracking: ${motivationInfo.otherProgressTracking?.join(", ") ?? "Not specified"}
 
-HEALTH INFORMATION:
-- Injuries: ${health.injuries ? `Yes - ${health.injuriesDetails}` : "No injuries reported"}
-- Recent Surgery: ${health.recentSurgery ? `Yes - ${health.surgeryDetails}` : "No recent surgery"}
-- Chronic Conditions: ${health.chronicConditions?.join(", ") ?? "None"}
-- Other Health Conditions: ${health.otherHealthConditions?.join(", ") ?? "None"}
-- Pregnancy: ${health.pregnancy ?? "Not specified"}
-- Pregnancy Consulted Doctor: ${health.pregnancyConsultedDoctor ? "Yes" : "No"}
-- Pregnancy Consulted Doctor Details: ${health.pregnancyConsultedDoctorDetails ?? "Not specified"}
+HEALTH INFORMATION (CRITICAL FOR SAFETY):
+- Injuries: ${health.injuries ? `⚠️ YES - ${health.injuriesDetails}` : "✅ No injuries reported"}
+- Recent Surgery: ${health.recentSurgery ? `⚠️ YES - ${health.surgeryDetails}` : "✅ No recent surgery"}
+- Chronic Conditions: ${health.chronicConditions && health.chronicConditions.length > 0 ? `⚠️ ${health.chronicConditions.join(", ")}` : "✅ None"}
+- Other Health Conditions: ${health.otherHealthConditions && health.otherHealthConditions.length > 0 ? `⚠️ ${health.otherHealthConditions.join(", ")}` : "✅ None"}
+- Pregnancy Status: ${health.pregnancy === "yes" || health.pregnancy === "currently pregnant" ? `🤰 PREGNANT - Special adaptations required` : health.pregnancy === "no" ? "✅ Not pregnant" : "Not specified"}
+${health.pregnancy === "yes" || health.pregnancy === "currently pregnant" ? `- Doctor Consultation: ${health.pregnancyConsultedDoctor ? `✅ Yes - ${health.pregnancyConsultedDoctorDetails}` : "⚠️ Not consulted - recommend medical clearance"}` : ""}
 
 RECENT ACTIVITY:
 - Total Workouts (Last 30 days): ${recentActivity.recentWorkouts.length}
