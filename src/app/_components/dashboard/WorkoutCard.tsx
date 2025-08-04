@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Workout } from "@/drizzle/src/db/queries";
 import { Activity, Clock, User, Target } from "lucide-react";
 import Image from "next/image";
+import { localImages } from "@/app/_constants/local_images";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -14,13 +15,6 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, link, height = 120 }
   const [imageError, setImageError] = useState(false);
 
   const getActivityImage = (activityType: string | null) => {
-    const localImages = {
-      run: "/images/workouts/running.jpg",
-      cycle: "/images/workouts/cycle.jpg",
-      swim: "/images/workouts/swimming.jpg",
-      walk: "/images/workouts/walking.jpg",
-    };
-
     return localImages[activityType as keyof typeof localImages];
   };
 

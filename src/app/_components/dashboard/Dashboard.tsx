@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import type { Workout, WorkoutTracking } from "@/drizzle/src/db/queries";
 import PilatesVideoGrid from "@/app/_components/dashboard/PilatesVideoGrid";
 import Image from "next/image";
+import { localImages } from "@/app/_constants/local_images";
 type WorkoutStatus = (typeof workoutStatusEnum.enumValues)[number];
 
 export default function Dashboard() {
@@ -249,13 +250,6 @@ export default function Dashboard() {
             (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number; mux_playback_id?: string })[]).map((classItem, index) => {
               // Function to get activity image based on type
               const getActivityImage = (activityType: string | null) => {
-                const localImages = {
-                  run: "/images/workouts/running.jpg",
-                  cycle: "/images/workouts/cycle.jpg",
-                  swim: "/images/workouts/swimming.jpg",
-                  walk: "/images/workouts/walking.jpg",
-                  class: "/images/workouts/pilates.jpg", // Default for classes
-                };
                 return localImages[activityType as keyof typeof localImages] || "/images/workouts/fitness.jpg";
               };
 
@@ -273,7 +267,7 @@ export default function Dashboard() {
                         : getActivityImage(classItem.activityType)
                       }
                       alt={`${classItem.activityType || 'fitness'} workout`}
-                      className="h-full w-full rounded object-cover"
+                      className="h-full w-full rounded object-contain"
                       width={64}
                       height={64}
                     />
@@ -461,13 +455,6 @@ export default function Dashboard() {
                 .map((activity, index) => {
                   // Function to get activity image based on type
                   const getActivityImage = (activityType: string | null) => {
-                    const localImages = {
-                      run: "/images/workouts/running.jpg",
-                      cycle: "/images/workouts/cycling.jpg",
-                      swim: "/images/workouts/swimming.jpg",
-                      walk: "/images/workouts/walking.jpg",
-                      class: "/images/workouts/pilates.jpg", // Default for classes
-                    };
                     return localImages[activityType as keyof typeof localImages] || "/images/workouts/fitness.jpg";
                   };
 
@@ -499,7 +486,7 @@ export default function Dashboard() {
                             : getActivityImage(activity.tracking.activityType)
                           }
                           alt={`${activity.tracking.activityType || 'fitness'} activity`}
-                          className="h-full w-full rounded object-cover"
+                          className="h-full w-full rounded object-contain"
                           width={64}
                           height={64}
                         />
