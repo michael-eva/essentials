@@ -169,6 +169,7 @@ export function AIInteractionSection() {
   const { mutate: deleteChat } = api.personalTrainer.deleteChat.useMutation({
     onSuccess: () => {
       toast.success("Chat history cleared");
+      setMessages([]); // Clear local state immediately
       utils.myPt.getChatHistory.invalidate();
     },
   });
@@ -179,15 +180,11 @@ export function AIInteractionSection() {
   // Mutation for sending messages
   const { mutate: sendMessage } = api.myPt.sendMessage.useMutation({
     onSuccess: (data) => {
-      const assistantMessage: Message = {
-        id: Date.now().toString(),
-        content: data.message,
-        role: "assistant",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
       setError(null);
       connectionFeedback.resetRetries(); // Reset retry count on success
+      // Invalidate and refetch chat history to sync with database
+      // This will replace any optimistic updates with real database data
+      utils.myPt.getChatHistory.invalidate();
     },
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
       console.error("Failed to send message:", error);
@@ -198,6 +195,8 @@ export function AIInteractionSection() {
       // Only set error for non-retryable errors or after max retries
       if (connectionFeedback.retryCount >= connectionFeedback.maxRetries) {
         setError(error.message);
+        // Remove optimistic update on permanent failure
+        setMessages((prev) => prev.filter(msg => !msg.id.startsWith('temp-')));
       }
     },
     onSettled: () => {
@@ -305,7 +304,7 @@ export function AIInteractionSection() {
 
       setMessages(formattedMessages);
 
-      // Scroll to bottom after loading chat history
+      // Scroll to bottom after loading/updating chat history
       setTimeout(() => {
         if (mobileScrollRef.current) {
           mobileScrollRef.current.scrollTop = mobileScrollRef.current.scrollHeight;
@@ -314,6 +313,9 @@ export function AIInteractionSection() {
           desktopScrollRef.current.scrollTop = desktopScrollRef.current.scrollHeight;
         }
       }, 300); // Longer delay to ensure all messages are rendered
+    } else if (chatHistory?.messages?.length === 0) {
+      // Explicitly handle empty messages array
+      setMessages([]);
     }
   }, [chatHistory]);
 
@@ -358,12 +360,13 @@ export function AIInteractionSection() {
 
     const currentMessage = input.trim();
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `temp-${Date.now()}`, // Temporary ID for optimistic update
       content: currentMessage,
       role: "user",
       timestamp: new Date(),
     };
 
+    // Optimistic update: immediately show user message
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -373,6 +376,7 @@ export function AIInteractionSection() {
     const retryFn = () => {
       setIsLoading(true);
       setError(null);
+      // Don't add another optimistic update on retry - it's already there
       sendMessage({ message: currentMessage });
     };
     setRetryMessageFn(() => retryFn);
