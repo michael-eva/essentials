@@ -23,6 +23,7 @@ import {
   updateWorkoutPlan,
   updateWorkoutStatus,
   bookClass,
+  deleteWorkout,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
 import { generateAndInsertWorkoutPlan } from "@/services/workout-plan-service";
@@ -227,10 +228,13 @@ export const workoutPlanRouter = createTRPCRouter({
           await updateWorkoutStatus(input.workoutId, "completed");
         }
         const result = await insertWorkoutTracking(newActivity);
-        
+
         // Trigger workout completion notification
-        triggerWorkoutCompletionNotification(ctx.userId, newActivity.name ?? undefined).catch(console.error);
-        
+        triggerWorkoutCompletionNotification(
+          ctx.userId,
+          newActivity.name ?? undefined,
+        ).catch(console.error);
+
         return result;
       } catch (error) {
         const errorMessage =
@@ -266,10 +270,13 @@ export const workoutPlanRouter = createTRPCRouter({
         } as NewWorkoutTracking;
         await updateCompletedClass(input.workoutId, "completed");
         const result = await insertWorkoutTracking(newActivity);
-        
+
         // Trigger workout completion notification
-        triggerWorkoutCompletionNotification(ctx.userId, newActivity.name ?? undefined).catch(console.error);
-        
+        triggerWorkoutCompletionNotification(
+          ctx.userId,
+          newActivity.name ?? undefined,
+        ).catch(console.error);
+
         return result;
       } catch (error) {
         console.error("Error inserting manual activity:", error);
@@ -574,6 +581,61 @@ export const workoutPlanRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch personal trainer interaction",
+        });
+      }
+    }),
+
+  removeWorkoutFromSchedule: protectedProcedure
+    .input(
+      z.object({
+        planId: z.string(),
+        weekNumber: z.number(),
+        workoutIndex: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Get the active plan to verify ownership and get weekly schedules
+        const activePlan = await getActivePlan(ctx.userId);
+        if (!activePlan || activePlan.id !== input.planId) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Active plan not found or access denied",
+          });
+        }
+
+        // Find the specific weekly schedule entry to remove
+        const weeklySchedules = activePlan.weeklySchedules?.find(
+          (week) => week.weekNumber === input.weekNumber,
+        );
+
+        if (!weeklySchedules?.items[input.workoutIndex]) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Workout not found in schedule",
+          });
+        }
+
+        const workoutToRemove = weeklySchedules.items[input.workoutIndex];
+        if (!workoutToRemove) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Workout not found",
+          });
+        }
+
+        // Delete the workout from the database (this will cascade to weekly_schedule)
+        await deleteWorkout(workoutToRemove.id);
+
+        return { success: true };
+      } catch (error) {
+        console.error("Error removing workout from schedule:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to remove workout from schedule",
         });
       }
     }),

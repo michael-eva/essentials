@@ -24,6 +24,7 @@ export default function ClassRecommendations() {
   const [editedPlanName, setEditedPlanName] = useState("")
   const [editingWeeks, setEditingWeeks] = useState<Set<number>>(new Set())
   const [addClassDialogOpen, setAddClassDialogOpen] = useState(false)
+  const [deletingWorkout, setDeletingWorkout] = useState<{ weekNumber: number, workoutIndex: number } | null>(null)
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     title: string;
@@ -72,6 +73,15 @@ export default function ClassRecommendations() {
   const updatePlanName = api.workoutPlan.updatePlanName.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
+    },
+  });
+  const removeWorkoutFromSchedule = api.workoutPlan.removeWorkoutFromSchedule.useMutation({
+    onSuccess: () => {
+      void utils.workoutPlan.getActivePlan.invalidate();
+      setDeletingWorkout(null);
+    },
+    onError: () => {
+      setDeletingWorkout(null);
     },
   });
   const { generatePlan, isLoading, LoadingScreen, GeneratePlanDialog } = useGeneratePlan();
@@ -206,8 +216,24 @@ export default function ClassRecommendations() {
     setEditPlanNameDialogOpen(false)
   }
 
-  const handleDeleteClass = (_weekNumber: number, _classIndex: number) => {
-    // Implementation
+  const handleDeleteClass = (weekNumber: number, workoutIndex: number) => {
+    if (!activePlan?.id) return;
+
+    setConfirmationDialog({
+      open: true,
+      title: "Remove Workout",
+      description: "Are you sure you want to remove this workout from your plan? This action cannot be undone.",
+      onConfirm: () => {
+        setDeletingWorkout({ weekNumber, workoutIndex });
+        removeWorkoutFromSchedule.mutate({
+          planId: activePlan.id,
+          weekNumber,
+          workoutIndex,
+        });
+        setConfirmationDialog({ ...confirmationDialog, open: false });
+      },
+      variant: "destructive"
+    });
   }
 
   const handleAddNewClass = (_weekNumber: number) => {
@@ -302,6 +328,7 @@ export default function ClassRecommendations() {
                 editingWeeks={editingWeeks}
                 onToggleWeekEdit={toggleWeekEdit}
                 isActivePlan={true}
+                deletingWorkout={deletingWorkout}
                 planData={activePlan ? {
                   startDate: activePlan.startDate,
                   pausedAt: activePlan.pausedAt,

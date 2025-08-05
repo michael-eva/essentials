@@ -23,6 +23,7 @@ interface WeeklyScheduleProps {
   onToggleWeekEdit?: (weekNumber: number) => void;
   accordionValuePrefix?: string;
   isActivePlan: boolean;
+  deletingWorkout?: {weekNumber: number, workoutIndex: number} | null;
   planData?: {
     startDate: Date | null;
     pausedAt: Date | null;
@@ -40,6 +41,7 @@ export default function WeeklySchedule({
   editingWeeks = new Set(),
   onToggleWeekEdit,
   accordionValuePrefix = "",
+  deletingWorkout = null,
   planData
 }: WeeklyScheduleProps) {
   const router = useRouter()
@@ -164,9 +166,10 @@ export default function WeeklySchedule({
                             e.stopPropagation();
                             onDeleteClass(week.weekNumber, index);
                           }}
-                          className="absolute -top-2 right-0 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-sm font-bold transition-colors z-10"
+                          disabled={deletingWorkout?.weekNumber === week.weekNumber && deletingWorkout?.workoutIndex === index}
+                          className="absolute -top-2 right-0 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-sm font-bold transition-colors z-10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          ×
+                          {deletingWorkout?.weekNumber === week.weekNumber && deletingWorkout?.workoutIndex === index ? "..." : "×"}
                         </button>
                       )}
                       <PilatesVideoCard video={convertToPilatesVideo(workout)} link={`/dashboard/class/${workout.id}`} height={130} />
@@ -190,9 +193,10 @@ export default function WeeklySchedule({
                           e.stopPropagation();
                           onDeleteClass(week.weekNumber, index);
                         }}
-                        className="absolute -top-2 right-0 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-sm font-bold transition-colors z-10"
+                        disabled={deletingWorkout?.weekNumber === week.weekNumber && deletingWorkout?.workoutIndex === index}
+                        className="absolute -top-2 right-0 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-sm font-bold transition-colors z-10 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        ×
+                        {deletingWorkout?.weekNumber === week.weekNumber && deletingWorkout?.workoutIndex === index ? "..." : "×"}
                       </button>
                     )}
                     <WorkoutCard
@@ -212,7 +216,7 @@ export default function WeeklySchedule({
                 );
               })}
             </div>
-            {isEditing && editingWeeks.has(week.weekNumber) && onAddClass && (
+            {/* {isEditing && editingWeeks.has(week.weekNumber) && onAddClass && (
               <div className="mt-4 flex justify-center">
                 <Button
                   // variant="outline"
@@ -224,7 +228,7 @@ export default function WeeklySchedule({
                   Add Workout
                 </Button>
               </div>
-            )}
+            )} */}
           </AccordionContent>
         </AccordionItem>
       ))
