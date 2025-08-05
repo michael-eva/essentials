@@ -324,17 +324,19 @@ export default function ClassRecommendations() {
           <Button
             variant="outline"
             onClick={handleGeneratePlan}
-            className="border-brand-brown text-accent hover:bg-gray-50 transition-colors"
+            disabled={isLoading}
+            className="border-brand-brown text-accent hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Create New Plan
+            {isLoading ? "Creating..." : "Create New Plan"}
           </Button>
           <Button
             onClick={handleStartPlan}
-            className="bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 transition-colors"
+            disabled={startPlan.isPending || resumePlan.isPending}
+            className="bg-brand-bright-orange text-brand-white hover:bg-brand-bright-orange/90 transition-colors disabled:opacity-50"
           >
             <Play className="w-4 h-4 mr-2" />
-            Start Plan
+            {startPlan.isPending || resumePlan.isPending ? "Starting..." : "Start Plan"}
           </Button>
         </motion.div>
       )}
@@ -350,19 +352,21 @@ export default function ClassRecommendations() {
             <Button
               variant="outline"
               onClick={handlePausePlan}
-              className="text-brand-white border-none bg-brand-bright-orange transition-colors"
+              disabled={pausePlan.isPending}
+              className="text-brand-white border-none bg-brand-bright-orange transition-colors disabled:opacity-50"
             >
               <Pause className="w-4 h-4 mr-2" />
-              Take a Break
+              {pausePlan.isPending ? "Pausing..." : "Take a Break"}
             </Button>
           ) : (
             <Button
               variant="outline"
               onClick={handleStartPlan}
-              className="border-none text-brand-white bg-brand-bright-orange hover:bg-gray-50 transition-colors"
+              disabled={resumePlan.isPending}
+              className="border-none text-brand-white bg-brand-bright-orange hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               <Play className="w-4 h-4 mr-2" />
-              Continue Plan
+              {resumePlan.isPending ? "Continuing..." : "Continue Plan"}
             </Button>
           )}
           <Popover>
@@ -375,17 +379,19 @@ export default function ClassRecommendations() {
               <div className="space-y-1">
                 <button
                   onClick={handleRestartPlan}
-                  className="flex w-full items-center px-3 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors"
+                  disabled={restartPlan.isPending}
+                  className="flex w-full items-center px-3 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
-                  Start Over
+                  {restartPlan.isPending ? "Restarting..." : "Start Over"}
                 </button>
                 <button
                   onClick={handleCancelPlan}
-                  className="flex w-full items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  disabled={cancelPlan.isPending}
+                  className="flex w-full items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <X className="w-4 h-4 mr-2" />
-                  End Plan
+                  {cancelPlan.isPending ? "Ending..." : "End Plan"}
                 </button>
               </div>
             </PopoverContent>
@@ -449,10 +455,11 @@ export default function ClassRecommendations() {
               </Button>
               <Button
                 onClick={handlePlanNameSave}
+                disabled={updatePlanName.isPending}
                 variant="default"
-                className="w-1/2"
+                className="w-1/2 disabled:opacity-50"
               >
-                Save Changes
+                {updatePlanName.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </div>
