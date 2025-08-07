@@ -92,12 +92,51 @@ function detectClassRecommendation(content: string): { hasRecommendation: boolea
     "Abs, Arms & Booty"
   ];
 
+  // Action phrases that indicate the user wants to proceed with a workout
+  const actionPhrases = [
+    "try it now",
+    "do it now", 
+    "start the workout",
+    "go to the workout",
+    "take me to",
+    "yes, let's do it",
+    "let's try it",
+    "i want to try",
+    "i'd like to try",
+    "show me the workout",
+    "start now",
+    "let's go",
+    "yes please",
+    "sure",
+    "sounds good"
+  ];
 
-  // Check for pilates videos
+  // Phrases that indicate AI is offering options (don't show button yet)
+  const questionPhrases = [
+    "would you like to",
+    "should i add it to",
+    "what would you prefer",
+    "how does that sound",
+    "would you prefer to"
+  ];
+
+  // Check if user is responding positively to a workout recommendation
+  const hasActionPhrase = actionPhrases.some(phrase => contentLower.includes(phrase));
+  
+  // Check if AI is asking a question (don't show button yet)
+  const isAskingQuestion = questionPhrases.some(phrase => contentLower.includes(phrase));
+  
+  // Check for pilates videos in the content
   for (const video of pilatesVideos) {
     if (contentLower.includes(video.toLowerCase())) {
+      // Show button only when:
+      // 1. User is responding positively with action phrases, OR
+      // 2. AI explicitly says "try it now" or similar direct action, AND
+      // 3. AI is NOT asking a question (offering choices)
+      const shouldShowButton = hasActionPhrase && !isAskingQuestion;
+      
       return {
-        hasRecommendation: true,
+        hasRecommendation: shouldShowButton,
         className: video,
         classType: 'class'
       };

@@ -563,18 +563,56 @@ async function ManageWorkoutPlan({
         const newWorkoutId = uuidv4();
         console.log(`🆔 Generated new workout ID: ${newWorkoutId}`);
 
+        // If it's a pilates class (has classId), fetch the class details
+        let workoutDetails = {
+          name: workoutData.name || "New Workout",
+          instructor: workoutData.instructor || "AI Trainer",
+          duration: workoutData.duration || 30,
+          description: workoutData.description || "AI-generated workout",
+          level: workoutData.level || "Intermediate",
+        };
+
+        if (workoutData.classId && workoutData.type === "class") {
+          console.log(
+            `🎯 Fetching pilates class details for ID: ${workoutData.classId}`,
+          );
+          try {
+            // Import the function here to avoid circular dependency
+            const { getPilatesVideoById } = await import(
+              "@/drizzle/src/db/queries"
+            );
+            const pilatesClass = await getPilatesVideoById(workoutData.classId);
+
+            if (pilatesClass) {
+              workoutDetails = {
+                name: pilatesClass.title,
+                instructor: pilatesClass.instructor || "Emma",
+                duration: pilatesClass.duration,
+                description: pilatesClass.description,
+                level: pilatesClass.difficulty,
+              };
+              console.log(`✅ Using pilates class details:`, workoutDetails);
+            }
+          } catch (error) {
+            console.error("❌ Error fetching pilates class details:", error);
+            // Fall back to provided/default values
+          }
+        }
+
         const newWorkout = await insertWorkouts([
           {
             id: newWorkoutId,
-            name: workoutData.name || "New Workout",
-            instructor: workoutData.instructor || "AI Trainer",
-            duration: workoutData.duration || 30,
-            description: workoutData.description || "AI-generated workout",
-            level: workoutData.level || "Intermediate",
+            name: workoutDetails.name,
+            instructor: workoutDetails.instructor,
+            duration: workoutDetails.duration,
+            description: workoutDetails.description,
+            level: workoutDetails.level,
             type: workoutData.type || "workout",
             status: "not_recorded",
             isBooked: false,
             userId: userId,
+            classId: workoutData.classId,
+            activityType: workoutData.activityType || null,
           },
         ]);
 
@@ -590,10 +628,31 @@ async function ManageWorkoutPlan({
         );
 
         if (!existingSchedule2) {
-          console.error(`❌ No schedule found for week ${weekNumber}`);
-          throw new Error(
-            `No workout scheduled for week ${weekNumber}. Use add_workout_to_week instead.`,
+          // No existing schedule - create a new one (add workout to empty week)
+          console.log(
+            `📅 No existing schedule found for week ${weekNumber}, creating new schedule`,
           );
+
+          const newScheduleId = uuidv4();
+          console.log("🆔 Generated new schedule ID:", newScheduleId);
+
+          const newSchedule = await insertWeeklySchedule({
+            id: newScheduleId,
+            planId: resolvedPlanId2,
+            weekNumber,
+            workoutId: newWorkoutId,
+          });
+
+          console.log("✅ New workout and schedule created:", newSchedule);
+
+          return {
+            success: true,
+            message: `Created new ${workoutData.name} workout and added it to week ${weekNumber}`,
+            data: {
+              newWorkout: newWorkout[0],
+              newSchedule: newSchedule,
+            },
+          };
         }
 
         console.log(
