@@ -152,10 +152,20 @@ export default function ClassRecommendations() {
       title: "Take a Break",
       description: "Are you sure you want to take a break from this plan? You can continue it later.",
       onConfirm: () => {
-        setConfirmationDialog({ ...confirmationDialog, open: false })
-        pausePlan.mutate({
-          planId: activePlan?.id ?? "",
-        })
+        if (activePlan?.id) {
+          pausePlan.mutate(
+            { planId: activePlan.id },
+            {
+              onSuccess: () => {
+                setConfirmationDialog({ ...confirmationDialog, open: false });
+              },
+              onError: (error) => {
+                console.error("Failed to pause plan:", error);
+                setConfirmationDialog({ ...confirmationDialog, open: false });
+              }
+            }
+          );
+        }
       }
     })
   }

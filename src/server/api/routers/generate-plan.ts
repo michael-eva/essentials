@@ -24,6 +24,7 @@ import {
   updateWorkoutStatus,
   bookClass,
   deleteWorkout,
+  resumeWorkoutPlanSafely,
 } from "@/drizzle/src/db/mutations";
 import type { NewWorkoutTracking } from "@/drizzle/src/db/queries";
 import { generateAndInsertWorkoutPlan } from "@/services/workout-plan-service";
@@ -335,39 +336,23 @@ export const workoutPlanRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // First get the current plan to calculate pause duration
-        const currentPlan = await getActivePlan(ctx.userId);
-        if (!currentPlan) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "No active plan found",
-          });
-        }
-
-        const now = new Date();
-        const pausedAt = currentPlan.pausedAt;
-
-        if (!pausedAt) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Plan is not paused",
-          });
-        }
-
-        // Calculate new pause duration
-        const pauseDuration = Math.floor(
-          (now.getTime() - pausedAt.getTime()) / 1000,
-        );
-        const newTotalPausedDuration =
-          (currentPlan.totalPausedDuration ?? 0) + pauseDuration;
-
-        return await updateWorkoutPlan(input.planId, {
-          totalPausedDuration: newTotalPausedDuration,
-          resumedAt: now,
-          pausedAt: null,
-        });
+        return await resumeWorkoutPlanSafely(input.planId, ctx.userId);
       } catch (error) {
         console.error("Error resuming workout plan:", error);
+        if (error instanceof Error) {
+          if (error.message === "Plan not found or access denied") {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "No active plan found",
+            });
+          }
+          if (error.message === "Plan is not paused") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Plan is not paused",
+            });
+          }
+        }
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to resume workout plan",

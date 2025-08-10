@@ -125,6 +125,43 @@ export async function updateWorkoutPlan(
   return updatedPlan;
 }
 
+export async function resumeWorkoutPlanSafely(planId: string, userId: string) {
+  // Get the plan and validate in one query
+  const currentPlan = await db
+    .select()
+    .from(workoutPlan)
+    .where(and(eq(workoutPlan.id, planId), eq(workoutPlan.userId, userId)))
+    .limit(1);
+
+  if (!currentPlan[0]) {
+    throw new Error("Plan not found or access denied");
+  }
+
+  const plan = currentPlan[0];
+  
+  if (!plan.pausedAt) {
+    throw new Error("Plan is not paused");
+  }
+
+  const now = new Date();
+  const pauseDuration = Math.floor(
+    (now.getTime() - plan.pausedAt.getTime()) / 1000,
+  );
+  const newTotalPausedDuration = (plan.totalPausedDuration ?? 0) + pauseDuration;
+
+  const result = await db
+    .update(workoutPlan)
+    .set({
+      totalPausedDuration: newTotalPausedDuration,
+      resumedAt: now,
+      pausedAt: null,
+    })
+    .where(eq(workoutPlan.id, planId))
+    .returning();
+
+  return result[0];
+}
+
 /**
  * Deactivates all workout plans for a specific user
  * Used when creating a new plan to ensure only one plan is active at a time
