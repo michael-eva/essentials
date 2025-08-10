@@ -83,6 +83,7 @@ export const myPtRouter = createTRPCRouter({
         const userId = ctx.userId;
         const messages = await getMessages(userId);
 
+        // Messages are already ordered by createdAt ASC from the database
         // Apply pagination
         const limit = input?.limit ?? 50;
         const offset = input?.offset ?? 0;

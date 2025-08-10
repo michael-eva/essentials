@@ -68,7 +68,15 @@ function detectPlanGenerationSuggestion(content: string): boolean {
     "button to generate",
     "click to generate",
     "button will appear",
-    "see a button"
+    "see a button",
+    "see a 'generate plan' button",
+    "generate plan' button",
+    "button to continue",
+    "button to proceed",
+    "you'll see a",
+    "you will see a",
+    "then you'll see",
+    "then you will see"
   ];
 
   const contentLower = content.toLowerCase();
@@ -95,7 +103,7 @@ function detectClassRecommendation(content: string): { hasRecommendation: boolea
   // Action phrases that indicate the user wants to proceed with a workout
   const actionPhrases = [
     "try it now",
-    "do it now", 
+    "do it now",
     "start the workout",
     "go to the workout",
     "take me to",
@@ -122,10 +130,10 @@ function detectClassRecommendation(content: string): { hasRecommendation: boolea
 
   // Check if user is responding positively to a workout recommendation
   const hasActionPhrase = actionPhrases.some(phrase => contentLower.includes(phrase));
-  
+
   // Check if AI is asking a question (don't show button yet)
   const isAskingQuestion = questionPhrases.some(phrase => contentLower.includes(phrase));
-  
+
   // Check for pilates videos in the content
   for (const video of pilatesVideos) {
     if (contentLower.includes(video.toLowerCase())) {
@@ -134,7 +142,7 @@ function detectClassRecommendation(content: string): { hasRecommendation: boolea
       // 2. AI explicitly says "try it now" or similar direct action, AND
       // 3. AI is NOT asking a question (offering choices)
       const shouldShowButton = hasActionPhrase && !isAskingQuestion;
-      
+
       return {
         hasRecommendation: shouldShowButton,
         className: video,
@@ -218,12 +226,16 @@ export function AIInteractionSection() {
 
   // Mutation for sending messages
   const { mutate: sendMessage } = api.myPt.sendMessage.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setError(null);
       connectionFeedback.resetRetries(); // Reset retry count on success
+
+      // Remove temporary optimistic updates
+      setMessages((prev) => prev.filter(msg => !msg.id.startsWith('temp-')));
+
       // Invalidate and refetch chat history to sync with database
       // This will replace any optimistic updates with real database data
-      utils.myPt.getChatHistory.invalidate();
+      await utils.myPt.getChatHistory.invalidate();
     },
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
       console.error("Failed to send message:", error);
@@ -341,7 +353,18 @@ export function AIInteractionSection() {
         toolCalls: msg.toolCalls || undefined,
       }));
 
-      setMessages(formattedMessages);
+      // Only update if the messages actually changed to avoid unnecessary re-renders
+      setMessages((prev) => {
+        const prevIds = prev.filter(m => !m.id.startsWith('temp-')).map(m => m.id);
+        const newIds = formattedMessages.map(m => m.id);
+
+        // If the message IDs are the same, keep the current state
+        if (prevIds.length === newIds.length && prevIds.every(id => newIds.includes(id))) {
+          return prev;
+        }
+
+        return formattedMessages;
+      });
 
       // Scroll to bottom after loading/updating chat history
       setTimeout(() => {
