@@ -31,12 +31,15 @@ export default function ClassRecommendations() {
     description: string;
     onConfirm: () => void;
     variant?: "default" | "destructive";
+    isLoading?: boolean;
+    loadingText?: string;
   }>({
     open: false,
     title: "",
     description: "",
     onConfirm: () => { console.log("confirm") },
-    variant: "default"
+    variant: "default",
+    isLoading: false
   })
 
   // Fetch data using tRPC
@@ -124,14 +127,22 @@ export default function ClassRecommendations() {
         if (activePlan?.pausedAt) {
           // Resume the plan
           if (activePlan?.id) {
+            // Set loading state
+            setConfirmationDialog(prev => ({ 
+              ...prev, 
+              isLoading: true, 
+              loadingText: "Continuing plan..." 
+            }));
+            
             resumePlan.mutate(
               { planId: activePlan.id },
               {
                 onSuccess: () => {
-                  setConfirmationDialog({ ...confirmationDialog, open: false });
+                  setConfirmationDialog(prev => ({ ...prev, open: false, isLoading: false }));
                 },
                 onError: (error) => {
                   console.error("Failed to resume plan:", error);
+                  setConfirmationDialog(prev => ({ ...prev, isLoading: false }));
                 }
               }
             );
@@ -139,14 +150,22 @@ export default function ClassRecommendations() {
         } else {
           // Start a new plan
           if (activePlan?.id) {
+            // Set loading state
+            setConfirmationDialog(prev => ({ 
+              ...prev, 
+              isLoading: true, 
+              loadingText: "Starting plan..." 
+            }));
+            
             startPlan.mutate(
               { planId: activePlan.id },
               {
                 onSuccess: () => {
-                  setConfirmationDialog({ ...confirmationDialog, open: false });
+                  setConfirmationDialog(prev => ({ ...prev, open: false, isLoading: false }));
                 },
                 onError: (error) => {
                   console.error("Failed to start plan:", error);
+                  setConfirmationDialog(prev => ({ ...prev, isLoading: false }));
                 }
               }
             );
@@ -163,15 +182,22 @@ export default function ClassRecommendations() {
       description: "Are you sure you want to take a break from this plan? You can continue it later.",
       onConfirm: () => {
         if (activePlan?.id) {
+          // Set loading state
+          setConfirmationDialog(prev => ({ 
+            ...prev, 
+            isLoading: true, 
+            loadingText: "Taking a break..." 
+          }));
+          
           pausePlan.mutate(
             { planId: activePlan.id },
             {
               onSuccess: () => {
-                setConfirmationDialog({ ...confirmationDialog, open: false });
+                setConfirmationDialog(prev => ({ ...prev, open: false, isLoading: false }));
               },
               onError: (error) => {
                 console.error("Failed to pause plan:", error);
-                setConfirmationDialog({ ...confirmationDialog, open: false });
+                setConfirmationDialog(prev => ({ ...prev, isLoading: false }));
               }
             }
           );
@@ -472,6 +498,8 @@ export default function ClassRecommendations() {
         description={confirmationDialog.description}
         onConfirm={confirmationDialog.onConfirm}
         variant={confirmationDialog.variant}
+        isLoading={confirmationDialog.isLoading}
+        loadingText={confirmationDialog.loadingText}
       />
 
       <Dialog open={editPlanNameDialogOpen} onOpenChange={setEditPlanNameDialogOpen}>
