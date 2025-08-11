@@ -213,12 +213,23 @@ export default function ClassRecommendations() {
       description: "Are you sure you want to start over? This will reset all progress and begin from week 1.",
       onConfirm: () => {
         if (activePlan?.id) {
+          // Set loading state
+          setConfirmationDialog(prev => ({ 
+            ...prev, 
+            isLoading: true, 
+            loadingText: "Starting over..." 
+          }));
+          
           restartPlan.mutate(
             { planId: activePlan.id },
             {
               onSuccess: () => {
-                setConfirmationDialog({ ...confirmationDialog, open: false });
+                setConfirmationDialog(prev => ({ ...prev, open: false, isLoading: false }));
               },
+              onError: (error) => {
+                console.error("Failed to restart plan:", error);
+                setConfirmationDialog(prev => ({ ...prev, isLoading: false }));
+              }
             }
           );
         }
@@ -232,11 +243,26 @@ export default function ClassRecommendations() {
       title: "End Plan",
       description: "Are you sure you want to end this plan? This action cannot be undone.",
       onConfirm: () => {
-        setConfirmationDialog({ ...confirmationDialog, open: false })
         if (activePlan?.id) {
-          cancelPlan.mutate({
-            planId: activePlan.id,
-          })
+          // Set loading state
+          setConfirmationDialog(prev => ({ 
+            ...prev, 
+            isLoading: true, 
+            loadingText: "Ending plan..." 
+          }));
+          
+          cancelPlan.mutate(
+            { planId: activePlan.id },
+            {
+              onSuccess: () => {
+                setConfirmationDialog(prev => ({ ...prev, open: false, isLoading: false }));
+              },
+              onError: (error) => {
+                console.error("Failed to end plan:", error);
+                setConfirmationDialog(prev => ({ ...prev, isLoading: false }));
+              }
+            }
+          );
         }
       },
       variant: "destructive"
