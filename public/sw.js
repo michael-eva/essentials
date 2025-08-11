@@ -3,11 +3,11 @@
 // SAFARI COMPATIBILITY - NULL RESPONSE FIX  
 // ==========================================
 
-const CACHE_NAME = 'essentials-safari-v5.1'
-const STATIC_CACHE = 'essentials-static-v5.1'
-const DYNAMIC_CACHE = 'essentials-dynamic-v5.1'
+const CACHE_NAME = 'essentials-safari-v5.2'
+const STATIC_CACHE = 'essentials-static-v5.2'
+const DYNAMIC_CACHE = 'essentials-dynamic-v5.2'
 const DEBUG_MODE = true
-const SW_VERSION = '5.1.0'
+const SW_VERSION = '5.2.0'
 
 // Completely new cache strategy
 const STATIC_ASSETS = [
@@ -16,13 +16,13 @@ const STATIC_ASSETS = [
   '/logo/essentials_studio_logo.png'
 ]
 
-console.log('🚀 SERVICE WORKER V5.1 - SAFARI NULL RESPONSE FIX')
+console.log('🚀 SERVICE WORKER V5.2 - SAFARI NULL RESPONSE FIX + TRPC BYPASS')
 console.log('📦 Cache Names:', { CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE })
 console.log('🔥 SW Version:', SW_VERSION)
 
 // Enhanced install event
 self.addEventListener('install', (event) => {
-  console.log('🔧 SERVICE WORKER V5.1 INSTALLING...')
+  console.log('🔧 SERVICE WORKER V5.2 INSTALLING...')
   
   event.waitUntil(
     Promise.all([
@@ -39,7 +39,7 @@ self.addEventListener('install', (event) => {
         return cache
       })
     ]).then(() => {
-      console.log('✅ V5.1 SERVICE WORKER INSTALLED SUCCESSFULLY')
+      console.log('✅ V5.2 SERVICE WORKER INSTALLED SUCCESSFULLY')
       return self.skipWaiting()
     }).catch(error => {
       console.error('❌ Installation failed:', error)
@@ -51,7 +51,7 @@ self.addEventListener('install', (event) => {
 
 // Enhanced message handling
 self.addEventListener('message', (event) => {
-  console.log('📨 V5.1 Service Worker received message:', event.data)
+  console.log('📨 V5.2 Service Worker received message:', event.data)
   
   if (event.data && event.data.type === 'SKIP_WAITING') {
     console.log('⚡ SKIP_WAITING command received')
@@ -75,6 +75,13 @@ self.addEventListener('fetch', (event) => {
     console.log('📱 Navigation request - letting browser handle:', event.request.url)
     // Don't intercept navigation requests - let browser handle them naturally
     return
+  }
+
+  // Don't cache tRPC API calls or sensitive state endpoints - always fetch fresh
+  if (event.request.url.includes('/api/trpc/') || 
+      event.request.url.includes('workoutPlan.getActivePlan')) {
+    console.log('🔥 tRPC API call - bypassing cache for fresh data:', event.request.url)
+    return // Let browser handle API calls normally to always get fresh data
   }
 
   // Handle other requests - GUARANTEED RESPONSE  

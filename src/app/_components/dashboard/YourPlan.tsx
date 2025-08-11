@@ -41,22 +41,32 @@ export default function ClassRecommendations() {
 
   // Fetch data using tRPC
   const utils = api.useUtils();
-  const { data: activePlan, isLoading: isLoadingActivePlan } = api.workoutPlan.getActivePlan.useQuery()
+  const { data: activePlan, isLoading: isLoadingActivePlan } = api.workoutPlan.getActivePlan.useQuery(undefined, {
+    staleTime: 0, // Always refetch on mount to ensure fresh state
+    refetchOnMount: true, // Force refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+  })
   const startPlan = api.workoutPlan.startWorkoutPlan.useMutation({
     onSuccess: () => {
       void utils.workoutPlan.getActivePlan.invalidate();
     },
   });
   const pausePlan = api.workoutPlan.pauseWorkoutPlan.useMutation({
-    onSuccess: () => {
-      void utils.workoutPlan.getActivePlan.invalidate();
-      void utils.workoutPlan.getUpcomingActivities.invalidate();
+    onSuccess: async () => {
+      // Invalidate all workout plan related queries
+      await utils.workoutPlan.getActivePlan.invalidate();
+      await utils.workoutPlan.getUpcomingActivities.invalidate();
+      // Force refetch to ensure fresh data
+      await utils.workoutPlan.getActivePlan.refetch();
     },
   });
   const resumePlan = api.workoutPlan.resumeWorkoutPlan.useMutation({
-    onSuccess: () => {
-      void utils.workoutPlan.getActivePlan.invalidate();
-      void utils.workoutPlan.getUpcomingActivities.invalidate();
+    onSuccess: async () => {
+      // Invalidate all workout plan related queries
+      await utils.workoutPlan.getActivePlan.invalidate();
+      await utils.workoutPlan.getUpcomingActivities.invalidate();
+      // Force refetch to ensure fresh data
+      await utils.workoutPlan.getActivePlan.refetch();
     },
   });
   const restartPlan = api.workoutPlan.restartWorkoutPlan.useMutation({

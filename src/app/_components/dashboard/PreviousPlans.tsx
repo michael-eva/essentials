@@ -27,7 +27,10 @@ export default function PreviousPlans() {
   // Fetch data using tRPC
   const utils = api.useUtils();
   const { data: previousPlans = [], isLoading: isLoadingPreviousPlans } = api.workoutPlan.getPreviousPlans.useQuery()
-  const { data: activePlan } = api.workoutPlan.getActivePlan.useQuery()
+  const { data: activePlan } = api.workoutPlan.getActivePlan.useQuery(undefined, {
+    staleTime: 0, // Always refetch to ensure fresh state
+    refetchOnMount: true,
+  })
   const { data: supplementaryWorkouts = [] } = api.workoutPlan.getSupplementaryWorkouts.useQuery()
   console.log(previousPlans);
 
