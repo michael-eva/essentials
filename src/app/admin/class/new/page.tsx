@@ -4,10 +4,12 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Progress } from "~/components/ui/progress";
-import { ArrowLeft, Upload, MessageCircle, Save } from "lucide-react";
+import { ArrowLeft, Upload, MessageCircle, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 import VideoUploader from "./VideoUploader";
 import ClassDataExtractor from "./ClassDataExtractor";
+import { api } from "~/trpc/react";
+import { toast } from "sonner";
 
 type UploadStep = "upload" | "extract" | "review";
 
@@ -40,6 +42,24 @@ export default function NewClassPage() {
   const [currentStep, setCurrentStep] = useState<UploadStep>("upload");
   const [uploadData, setUploadData] = useState<UploadData | null>(null);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Insert pilates video mutation
+  const insertPilatesVideo = api.admin.insertPilatesVideo.useMutation({
+    onSuccess: () => {
+      toast.success("Class saved successfully!");
+      // Reset form or redirect
+      setCurrentStep("upload");
+      setUploadData(null);
+      setExtractedData(null);
+    },
+    onError: (error) => {
+      toast.error(`Failed to save class: ${error.message}`);
+    },
+    onSettled: () => {
+      setIsSaving(false);
+    },
+  });
 
   const steps = [
     { id: "upload", title: "Upload Video", icon: Upload },
@@ -58,6 +78,17 @@ export default function NewClassPage() {
   const handleDataExtracted = (data: ExtractedData) => {
     setExtractedData(data);
     setCurrentStep("review");
+  };
+
+  const handleSave = async () => {
+    if (!uploadData || !extractedData) return;
+    
+    setIsSaving(true);
+    insertPilatesVideo.mutate({
+      ...extractedData,
+      muxAssetId: uploadData.assetId,
+      muxPlaybackId: uploadData.playbackId,
+    });
   };
 
   return (
@@ -170,9 +201,21 @@ export default function NewClassPage() {
                 >
                   Back to Edit
                 </Button>
-                <Button>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Class
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Class
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
