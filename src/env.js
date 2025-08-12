@@ -16,7 +16,7 @@ export const env = createEnv({
     OPENAI_API_KEY: z.string(),
     WEBHOOK_API_KEY: z.string(),
     VAPID_PRIVATE_KEY: z.string(),
-    WAITLIST_ACCESS_CODE: z.string().default("EARLY_ACCESS_2024"),
+    WAITLIST_ACCESS_CODE: z.string(),
   },
 
   /**
