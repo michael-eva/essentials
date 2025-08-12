@@ -1,7 +1,10 @@
+///<reference types="jest" />
 // Global test setup for Jest
+// @ts-ignore
 jest.setTimeout(60000);
 
 // Global test configuration
+// @ts-ignore
 global.testConfig = {
   baseUrl: 'http://localhost:3000',
   timeout: 30000,
@@ -17,4 +20,5 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Global test helpers
+// @ts-ignore
 global.sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
