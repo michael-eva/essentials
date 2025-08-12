@@ -31,6 +31,7 @@ import {
   notifications,
   pushSubscriptions,
   notificationPreferences,
+  waitlist,
   type PilatesVideosParams,
   PilatesVideosParamsSchema,
 } from "./schema";
@@ -50,6 +51,7 @@ export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
 export type NotificationPreferences = InferSelectModel<
   typeof notificationPreferences
 >;
+export type Waitlist = InferSelectModel<typeof waitlist>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -63,6 +65,7 @@ export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
 export type NewNotificationPreferences = InferInsertModel<
   typeof notificationPreferences
 >;
+export type NewWaitlist = InferInsertModel<typeof waitlist>;
 
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;

@@ -17,6 +17,7 @@ import {
   notifications,
   pushSubscriptions,
   notificationPreferences,
+  waitlist,
 } from "./schema";
 import type {
   NewWorkout,
@@ -35,6 +36,8 @@ import type {
   Notification,
   PushSubscription,
   NotificationPreferences,
+  NewWaitlist,
+  Waitlist,
 } from "./queries";
 import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
@@ -665,4 +668,19 @@ export async function deleteNotificationPreferences(
   await db
     .delete(notificationPreferences)
     .where(eq(notificationPreferences.userId, userId));
+}
+
+// Waitlist mutations
+export async function insertWaitlist(data: NewWaitlist): Promise<Waitlist> {
+  const result = await db.insert(waitlist).values(data).returning();
+  return result[0]!;
+}
+
+export async function getWaitlistByEmail(email: string): Promise<Waitlist | null> {
+  const result = await db
+    .select()
+    .from(waitlist)
+    .where(eq(waitlist.email, email))
+    .limit(1);
+  return result[0] ?? null;
 }
