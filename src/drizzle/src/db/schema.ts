@@ -447,6 +447,17 @@ export const PilatesVideos = pgTable("pilates_videos", {
   instructor: text("instructor"),
 });
 
+export const waitlist = pgTable("waitlist", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+});
+
 export const appConfig = pgTable("app_config", {
   key: text("key").notNull().primaryKey(),
   value: text("value").notNull(),
@@ -508,6 +519,9 @@ export const selectOnboardingSchema = createSelectSchema(onboarding);
 export const insertPersonalTrainerInteractionsSchema = createInsertSchema(
   personalTrainerInteractions,
 );
+
+export const insertWaitlistSchema = createInsertSchema(waitlist);
+export const selectWaitlistSchema = createSelectSchema(waitlist);
 
 export const insertAppConfigSchema = createInsertSchema(appConfig);
 export const selectAppConfigSchema = createSelectSchema(appConfig);
