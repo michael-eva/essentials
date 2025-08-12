@@ -114,3 +114,42 @@ Always run before committing:
 1. `npm run check` (lint + typecheck)
 2. `npm run format:check`
 3. Test database migrations in development before applying to production
+
+### Testing Commands
+- `npm test` - Run all Jest tests
+- `npm run test:e2e` - Run E2E tests with Puppeteer  
+- `npm run test:watch` - Run tests in watch mode
+
+## Claude Scratchpad System
+
+### Available Scratchpads
+The `/claude-scratch/` directory provides organized workspaces for experimentation and analysis:
+
+- **`experiments/`** - Prototype new features, test different approaches, API experimentation
+- **`analysis/`** - Code analysis, performance investigations, refactoring plans  
+- **`planning/`** - Feature planning, architecture design, implementation roadmaps
+- **`debugging/`** - Debug sessions, issue reproduction, test cases
+- **`temp/`** - Quick notes, temporary files, draft ideas
+
+### When to Use Scratchpads
+Use scratchpads for:
+- **Complex analysis** requiring multiple files or iterations
+- **Feature exploration** with different approaches to compare
+- **Debugging sessions** that need systematic investigation
+- **Architecture planning** for major features or refactors
+- **Prototyping** before final implementation
+
+### Scratchpad Guidelines
+1. **Organized exploration** - Use appropriate subdirectories for different work types
+2. **Descriptive naming** - Include dates and task context in filenames
+3. **Document findings** - Add notes about what works/doesn't work  
+4. **Reference codebase** - Link to specific files, issues, or PRs when relevant
+5. **Clean iteration** - Keep multiple approaches to compare solutions
+
+### Example Usage
+- "Can you analyze the Dashboard performance in a scratchpad and propose optimizations?"
+- "Experiment with different WebSocket implementations for real-time features"
+- "Debug the flaky Puppeteer tests systematically in a scratchpad"
+- "Plan the social features architecture across multiple files"
+
+See `/claude-scratch/USAGE_EXAMPLES.md` for detailed examples and workflows.

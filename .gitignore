@@ -47,3 +47,9 @@ yarn-error.log*
 .idea
 
 .vscode
+
+# claude scratchpads (keep local only)
+/claude-scratch/
+*.scratch.*
+/temp/
+/sandbox/
