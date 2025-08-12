@@ -6,68 +6,43 @@ import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { api } from '@/trpc/react'
 
 export default function WaitlistPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isCheckingAccess, setIsCheckingAccess] = useState(true)
   const router = useRouter()
 
-  // Check if user already has access on page load
-  useEffect(() => {
-    const checkExistingAccess = async () => {
-      try {
-        const response = await fetch('/api/waitlist/validate')
-        const data = await response.json()
-        
-        if (data.hasAccess) {
-          router.push('/auth')
-          return
-        }
-      } catch (error) {
-        console.error('Error checking waitlist access:', error)
-      }
-      
-      setIsCheckingAccess(false)
-    }
+  // Use tRPC hooks
+  const { data: accessData, isLoading: isCheckingAccess } = api.waitlist.checkAccess.useQuery(undefined, {
+    retry: false,
+  });
 
-    void checkExistingAccess()
-  }, [router])
+  const validatePasswordMutation = api.waitlist.validatePassword.useMutation()
+
+  // Check if user already has access and redirect
+  useEffect(() => {
+    if (accessData?.hasAccess) {
+      router.push('/auth')
+    }
+  }, [accessData, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError('')
 
     if (!password.trim()) {
       setError('Please enter your access code.')
-      setIsLoading(false)
       return
     }
 
     try {
-      const response = await fetch('/api/waitlist/validate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        router.push('/auth')
-      } else {
-        setError(data.error || 'Invalid access code. Please check your code and try again.')
-      }
-    } catch (error) {
+      await validatePasswordMutation.mutateAsync({ password: password.trim() })
+      router.push('/auth')
+    } catch (error: any) {
       console.error('Error validating access code:', error)
-      setError('Something went wrong. Please try again.')
+      setError(error?.message || 'Invalid access code. Please check your code and try again.')
     }
-    
-    setIsLoading(false)
   }
 
   // Show loading state while checking for existing access
@@ -124,9 +99,9 @@ export default function WaitlistPage() {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading}
+              disabled={validatePasswordMutation.isPending}
             >
-              {isLoading ? 'Verifying...' : 'Access App'}
+              {validatePasswordMutation.isPending ? 'Verifying...' : 'Access App'}
             </Button>
           </form>
           <div className="text-center">
