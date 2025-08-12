@@ -55,7 +55,7 @@ export default function WaitlistForm() {
   const submitWaitlistMutation = api.waitlist.submitWaitlist.useMutation({
     onSuccess: (data) => {
       setIsSubmitted(true);
-      
+
       if (data.hasValidAccessCode) {
         localStorage.setItem(ACCESS_CODE_STORAGE_KEY, "true");
         toast.success(data.message);
@@ -128,7 +128,7 @@ export default function WaitlistForm() {
                 Thank you for joining our waitlist!
               </h2>
               <p className="text-brand-brown/70 mb-6">
-                We'll notify you when Essentials is ready for you to experience.
+                We&apos;ll notify you when Essentials is ready for you to experience.
               </p>
               <Button
                 onClick={() => setIsSubmitted(false)}
