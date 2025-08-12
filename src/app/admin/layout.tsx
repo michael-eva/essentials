@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { env } from "@/env";
+import Link from "next/link";
 
 export default function AdminLayout({
   children,
@@ -26,12 +27,12 @@ export default function AdminLayout({
               >
                 Upload Class
               </a>
-              <a
+              <Link
                 href="/dashboard"
                 className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Back to App
-              </a>
+              </Link>
             </nav>
           </div>
         </div>

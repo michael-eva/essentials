@@ -62,7 +62,8 @@ export const adminRouter = createTRPCRouter({
 
         // Create a direct upload using Mux SDK
         const directUpload = await mux.video.uploads.create({
-          cors_origin: env.NODE_ENV === "development" ? "http://localhost:3000" : "*", // Set specific origin for dev
+          cors_origin:
+            env.NODE_ENV === "development" ? "http://localhost:3000" : "*", // Set specific origin for dev
           new_asset_settings: {
             playback_policy: ["public"],
             video_quality: "plus", // Higher quality for pilates videos
@@ -115,7 +116,9 @@ export const adminRouter = createTRPCRouter({
             asset = await mux.video.assets.retrieve(upload.asset_id);
             // Get the public playback ID
             if (asset.playback_ids && asset.playback_ids.length > 0) {
-              const publicPlayback = asset.playback_ids.find(p => p.policy === 'public');
+              const publicPlayback = asset.playback_ids.find(
+                (p) => p.policy === "public",
+              );
               playbackId = publicPlayback?.id || asset.playback_ids[0]?.id;
             }
           } catch (assetError) {
@@ -159,7 +162,9 @@ export const adminRouter = createTRPCRouter({
         // Get the public playback ID
         let playbackId = null;
         if (asset.playback_ids && asset.playback_ids.length > 0) {
-          const publicPlayback = asset.playback_ids.find(p => p.policy === 'public');
+          const publicPlayback = asset.playback_ids.find(
+            (p) => p.policy === "public",
+          );
           playbackId = publicPlayback?.id || asset.playback_ids[0]?.id;
         }
 

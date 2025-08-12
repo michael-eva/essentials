@@ -40,16 +40,16 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
         // If upload completed and asset is ready
         if (status.uploadStatus === "asset_created" && status.assetStatus === "ready") {
           setUploadStatus("complete");
-          onUploadComplete({ 
-            assetId: status.assetId!, 
+          onUploadComplete({
+            assetId: status.assetId!,
             playbackId: status.playbackId || undefined
           });
-        } 
+        }
         // If upload failed
         else if (status.uploadStatus === "errored" || status.assetStatus === "errored") {
           setUploadStatus("error");
           setErrorMessage("Video processing failed");
-        } 
+        }
         // If upload timed out
         else if (status.uploadStatus === "timed_out") {
           setUploadStatus("error");
@@ -179,16 +179,16 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
           console.log("Upload successful, switching to processing status");
           setUploadStatus("processing");
           setUploadProgress(100);
-          
+
           // Start polling upload status
           console.log("Starting status polling for upload:", uploadId);
           pollUploadStatus(uploadId);
           resolve();
         } else {
-          console.error("Upload failed:", { 
-            status: xhr.status, 
-            statusText: xhr.statusText, 
-            responseText: xhr.responseText 
+          console.error("Upload failed:", {
+            status: xhr.status,
+            statusText: xhr.statusText,
+            responseText: xhr.responseText
           });
           setUploadStatus("error");
           setErrorMessage(`Upload failed: ${xhr.status} ${xhr.statusText}`);
@@ -223,7 +223,7 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
         console.error("Error sending file:", sendError);
         setUploadStatus("error");
         setErrorMessage("Failed to initiate file upload");
-        reject(sendError);
+        reject(sendError instanceof Error ? sendError : new Error("Failed to initiate file upload"));
       }
     });
   };

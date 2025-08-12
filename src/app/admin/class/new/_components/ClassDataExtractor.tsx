@@ -234,7 +234,7 @@ export function ClassDataExtractor({
             <span>AI Class Data Assistant</span>
           </CardTitle>
           <CardDescription>
-            Paste information about your pilates class below. I'll extract and organize it into the required format.
+            Paste information about your pilates class below. I&apos;ll extract and organize it into the required format.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -244,8 +244,8 @@ export function ClassDataExtractor({
               {chatMessages.map((message, index) => (
                 <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.role === "user"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-900 shadow-sm border"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-900 shadow-sm border"
                     }`}>
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     <p className={`text-xs mt-1 ${message.role === "user" ? "text-blue-100" : "text-gray-500"
@@ -308,7 +308,7 @@ export function ClassDataExtractor({
               <MessageSquare className="h-4 w-4" />
               <AlertDescription>
                 <strong>How it works:</strong> Paste any information you have about your pilates class.
-                I'll ask questions to gather missing details and organize everything into the proper format
+                I&apos;ll ask questions to gather missing details and organize everything into the proper format
                 for your class database.
               </AlertDescription>
             </Alert>

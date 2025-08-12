@@ -179,7 +179,7 @@ export default function NewClassPage() {
             <Alert className="mb-4">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
-                Class "{classData?.title}" has been successfully created with video ID: {videoData?.playbackId}
+                Class &quot;{classData?.title}&quot; has been successfully created with video ID: {videoData?.playbackId}
               </AlertDescription>
             </Alert>
 
