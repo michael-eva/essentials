@@ -158,7 +158,7 @@ export default function WaitlistForm() {
               Join Essentials
             </CardTitle>
             <CardDescription className="text-brand-brown/70">
-              Be among the first to experience personalized fitness training
+              Be among the first to experience personalised fitness training
             </CardDescription>
           </CardHeader>
           <CardContent>
