@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,23 +11,79 @@ export default function WaitlistPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true)
   const router = useRouter()
+
+  // Check if user already has access on page load
+  useEffect(() => {
+    const checkExistingAccess = async () => {
+      try {
+        const response = await fetch('/api/waitlist/validate')
+        const data = await response.json()
+        
+        if (data.hasAccess) {
+          router.push('/auth')
+          return
+        }
+      } catch (error) {
+        console.error('Error checking waitlist access:', error)
+      }
+      
+      setIsCheckingAccess(false)
+    }
+
+    void checkExistingAccess()
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
 
-    // Simple password check - in a real app this would be handled securely on the server
-    if (password === process.env.NEXT_PUBLIC_WAITLIST_PASSWORD || password === 'early-access-2024') {
-      router.push('/auth')
-    } else if (password.trim()) {
-      setError('Invalid access code. Please check your code and try again.')
-    } else {
+    if (!password.trim()) {
       setError('Please enter your access code.')
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/waitlist/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        router.push('/auth')
+      } else {
+        setError(data.error || 'Invalid access code. Please check your code and try again.')
+      }
+    } catch (error) {
+      console.error('Error validating access code:', error)
+      setError('Something went wrong. Please try again.')
     }
     
     setIsLoading(false)
+  }
+
+  // Show loading state while checking for existing access
+  if (isCheckingAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-brand-light-yellow to-brand-bright-orange/20 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md mx-auto">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-brown mx-auto"></div>
+              <p className="mt-2 text-brand-brown/70">Checking access...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
