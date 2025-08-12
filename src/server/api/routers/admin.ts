@@ -7,8 +7,14 @@ import { insertPilatesVideo } from "@/drizzle/src/db/mutations";
 import { generateAiChatResponse } from "@/services/ai-chat";
 import { buildUserContext } from "@/services/context-manager";
 
-// Note: Mux SDK will be imported once the dependency is installed
-// import Mux from '@mux/mux-node';
+// Import Mux SDK
+import Mux from "@mux/mux-node";
+
+// Initialize Mux client with credentials
+const mux = new Mux({
+  tokenId: env.MUX_TOKEN_ID,
+  tokenSecret: env.MUX_TOKEN_SECRET,
+});
 
 // Schema for class data validation
 const ClassDataSchema = z.object({
@@ -33,14 +39,14 @@ const ClassDataSchema = z.object({
 });
 
 export const adminRouter = createTRPCRouter({
-  // Upload video to Mux
+  // Upload video to Mux using Direct Uploads
   uploadVideo: protectedProcedure
     .input(
       z.object({
         filename: z.string(),
         contentType: z.string(),
-        fileData: z.string(), // base64 encoded file data
-      })
+        fileData: z.string().optional(), // Not needed for direct uploads
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
@@ -52,48 +58,89 @@ export const adminRouter = createTRPCRouter({
       }
 
       try {
-        // TODO: Initialize Mux client once dependency is installed
-        /*
-        const { Video } = new Mux(env.MUX_TOKEN_ID, env.MUX_TOKEN_SECRET);
-        
-        // Convert base64 to buffer
-        const fileBuffer = Buffer.from(input.fileData, 'base64');
-        
-        // Create asset in Mux
-        const asset = await Video.Assets.create({
-          input: [{
-            url: `data:${input.contentType};base64,${input.fileData}`
-          }],
-          playback_policy: ['public'],
-          mp4_support: 'standard',
+        console.log("Creating Mux direct upload for file:", input.filename);
+
+        // Create a direct upload using Mux SDK
+        const directUpload = await mux.video.uploads.create({
+          cors_origin: env.NODE_ENV === "development" ? "http://localhost:3000" : "*", // Set specific origin for dev
+          new_asset_settings: {
+            playback_policy: ["public"],
+            video_quality: "plus", // Higher quality for pilates videos
+          },
+        });
+
+        console.log("Mux direct upload created successfully:", {
+          uploadId: directUpload.id,
+          uploadUrl: directUpload.url,
+          status: directUpload.status,
         });
 
         return {
-          assetId: asset.id,
-          playbackId: asset.playback_ids?.[0]?.id,
-          status: asset.status,
-        };
-        */
-
-        // Placeholder response until Mux SDK is installed
-        const mockAssetId = `mock_asset_${Date.now()}`;
-        const mockPlaybackId = `mock_playback_${Date.now()}`;
-        
-        return {
-          assetId: mockAssetId,
-          playbackId: mockPlaybackId,
-          status: "preparing", // Mock status
+          uploadId: directUpload.id,
+          uploadUrl: directUpload.url,
+          assetId: directUpload.asset_id, // Will be null initially
+          status: directUpload.status,
         };
       } catch (error) {
-        console.error("Error uploading to Mux:", error);
+        console.error("Error creating Mux direct upload:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to upload video to Mux",
+          message: "Failed to create Mux direct upload",
         });
       }
     }),
 
-  // Check video processing status
+  // Check upload status and get asset information
+  getUploadStatus: protectedProcedure
+    .input(z.object({ uploadId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if user has admin privileges
+      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        // Check upload status
+        const upload = await mux.video.uploads.retrieve(input.uploadId);
+
+        let asset = null;
+        let playbackId = null;
+
+        // If upload has created an asset, get asset details
+        if (upload.asset_id) {
+          try {
+            asset = await mux.video.assets.retrieve(upload.asset_id);
+            // Get the public playback ID
+            if (asset.playback_ids && asset.playback_ids.length > 0) {
+              const publicPlayback = asset.playback_ids.find(p => p.policy === 'public');
+              playbackId = publicPlayback?.id || asset.playback_ids[0]?.id;
+            }
+          } catch (assetError) {
+            console.warn("Asset not yet available:", assetError);
+          }
+        }
+
+        return {
+          uploadStatus: upload.status,
+          assetId: upload.asset_id,
+          assetStatus: asset?.status || null,
+          playbackId,
+          duration: asset?.duration || null,
+          aspectRatio: asset?.aspect_ratio || null,
+        };
+      } catch (error) {
+        console.error("Error checking upload status:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to check upload status",
+        });
+      }
+    }),
+
+  // Check video processing status (legacy method for backward compatibility)
   getVideoStatus: protectedProcedure
     .input(z.object({ assetId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -106,23 +153,21 @@ export const adminRouter = createTRPCRouter({
       }
 
       try {
-        // TODO: Check actual Mux status once dependency is installed
-        /*
-        const { Video } = new Mux(env.MUX_TOKEN_ID, env.MUX_TOKEN_SECRET);
-        const asset = await Video.Assets.retrieve(input.assetId);
-        
+        // Check actual Mux status
+        const asset = await mux.video.assets.retrieve(input.assetId);
+
+        // Get the public playback ID
+        let playbackId = null;
+        if (asset.playback_ids && asset.playback_ids.length > 0) {
+          const publicPlayback = asset.playback_ids.find(p => p.policy === 'public');
+          playbackId = publicPlayback?.id || asset.playback_ids[0]?.id;
+        }
+
         return {
           status: asset.status,
+          playbackId,
           duration: asset.duration,
           aspectRatio: asset.aspect_ratio,
-        };
-        */
-
-        // Mock response - always return ready after a delay
-        return {
-          status: "ready",
-          duration: 2700, // 45 minutes in seconds
-          aspectRatio: "16:9",
         };
       } catch (error) {
         console.error("Error checking video status:", error);
@@ -143,10 +188,10 @@ export const adminRouter = createTRPCRouter({
             role: z.enum(["user", "assistant"]),
             content: z.string(),
             timestamp: z.date(),
-          })
+          }),
         ),
         existingData: ClassDataSchema.partial().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
@@ -201,15 +246,16 @@ Chat context: User has provided: "${input.userInput}"`;
         const aiResponse = await generateAiChatResponse(
           `${systemPrompt}\n\nUser says: ${input.userInput}`,
           ctx.userId,
-          userContext
+          userContext,
         );
 
         // Check if AI indicates extraction is complete
         let extractedData = null;
         if (aiResponse.includes("EXTRACTION_COMPLETE:")) {
           try {
-            const jsonMatch = aiResponse.match(/EXTRACTION_COMPLETE:\s*({.*})/s);
-            if (jsonMatch) {
+            const regex = /EXTRACTION_COMPLETE:\s*({.*})/s;
+            const jsonMatch = regex.exec(aiResponse);
+            if (jsonMatch?.[1]) {
               const rawData = JSON.parse(jsonMatch[1]);
               extractedData = ClassDataSchema.parse(rawData);
             }
@@ -219,8 +265,9 @@ Chat context: User has provided: "${input.userInput}"`;
         }
 
         return {
-          message: aiResponse.replace(/EXTRACTION_COMPLETE:.*$/s, "").trim() || 
-                   "I've organized your class information! Please review the details below.",
+          message:
+            aiResponse.replace(/EXTRACTION_COMPLETE:.*$/s, "").trim() ||
+            "I've organized your class information! Please review the details below.",
           extractedData,
           isComplete: !!extractedData,
         };
@@ -264,7 +311,9 @@ Chat context: User has provided: "${input.userInput}"`;
           tags: input.tags,
           exerciseSequence: input.exerciseSequence,
           instructor: input.instructor,
-          videoUrl: input.muxPlaybackId ? `https://stream.mux.com/${input.muxPlaybackId}.m3u8` : "",
+          videoUrl: input.muxPlaybackId
+            ? `https://stream.mux.com/${input.muxPlaybackId}.m3u8`
+            : "",
           muxAssetId: input.muxAssetId,
           mux_playback_id: input.muxPlaybackId,
         });

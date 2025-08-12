@@ -33,7 +33,7 @@ interface ClassData {
 export default function NewClassPage() {
   const [step, setStep] = useState<"upload" | "extract" | "complete">("upload");
   const [videoData, setVideoData] = useState<{
-    playbackId: string;
+    playbackId?: string;
     assetId: string;
   } | null>(null);
   const [classData, setClassData] = useState<ClassData | null>(null);
@@ -50,7 +50,7 @@ export default function NewClassPage() {
     },
   });
 
-  const handleVideoUpload = (uploadData: { playbackId: string; assetId: string }) => {
+  const handleVideoUpload = (uploadData: { playbackId?: string; assetId: string }) => {
     setVideoData(uploadData);
     setStep("extract");
   };
@@ -65,7 +65,7 @@ export default function NewClassPage() {
 
   const handleSubmit = async () => {
     if (!classData) return;
-    
+
     setIsSubmitting(true);
     createClassMutation.mutate(classData);
   };
@@ -89,42 +89,34 @@ export default function NewClassPage() {
       {/* Progress Indicator */}
       <div className="mb-8">
         <div className="flex items-center space-x-4">
-          <div className={`flex items-center space-x-2 ${
-            step === "upload" ? "text-blue-600" : step !== "upload" ? "text-green-600" : "text-gray-400"
-          }`}>
-            <div className={`rounded-full p-2 ${
-              step === "upload" ? "bg-blue-100" : step !== "upload" ? "bg-green-100" : "bg-gray-100"
+          <div className={`flex items-center space-x-2 ${step === "upload" ? "text-blue-600" : "text-green-600"
             }`}>
+            <div className={`rounded-full p-2 ${step === "upload" ? "bg-blue-100" : "bg-green-100"
+              }`}>
               {step !== "upload" ? <CheckCircle className="w-4 h-4" /> : <Upload className="w-4 h-4" />}
             </div>
             <span className="text-sm font-medium">Upload Video</span>
           </div>
-          
-          <div className={`h-px flex-1 ${
-            step !== "upload" ? "bg-green-300" : "bg-gray-300"
-          }`} />
-          
-          <div className={`flex items-center space-x-2 ${
-            step === "extract" ? "text-blue-600" : step === "complete" ? "text-green-600" : "text-gray-400"
-          }`}>
-            <div className={`rounded-full p-2 ${
-              step === "extract" ? "bg-blue-100" : step === "complete" ? "bg-green-100" : "bg-gray-100"
+
+          <div className={`h-px flex-1 ${step !== "upload" ? "bg-green-300" : "bg-gray-300"
+            }`} />
+
+          <div className={`flex items-center space-x-2 ${step === "extract" ? "text-blue-600" : step === "complete" ? "text-green-600" : "text-gray-400"
             }`}>
+            <div className={`rounded-full p-2 ${step === "extract" ? "bg-blue-100" : step === "complete" ? "bg-green-100" : "bg-gray-100"
+              }`}>
               {step === "complete" ? <CheckCircle className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
             </div>
             <span className="text-sm font-medium">Extract Data</span>
           </div>
-          
-          <div className={`h-px flex-1 ${
-            step === "complete" ? "bg-green-300" : "bg-gray-300"
-          }`} />
-          
-          <div className={`flex items-center space-x-2 ${
-            step === "complete" ? "text-green-600" : "text-gray-400"
-          }`}>
-            <div className={`rounded-full p-2 ${
-              step === "complete" ? "bg-green-100" : "bg-gray-100"
+
+          <div className={`h-px flex-1 ${step === "complete" ? "bg-green-300" : "bg-gray-300"
+            }`} />
+
+          <div className={`flex items-center space-x-2 ${step === "complete" ? "text-green-600" : "text-gray-400"
             }`}>
+            <div className={`rounded-full p-2 ${step === "complete" ? "bg-green-100" : "bg-gray-100"
+              }`}>
               <CheckCircle className="w-4 h-4" />
             </div>
             <span className="text-sm font-medium">Complete</span>
@@ -162,7 +154,7 @@ export default function NewClassPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ClassDataExtractor 
+            <ClassDataExtractor
               onDataExtracted={handleDataExtracted}
               onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
@@ -190,7 +182,7 @@ export default function NewClassPage() {
                 Class "{classData?.title}" has been successfully created with video ID: {videoData?.playbackId}
               </AlertDescription>
             </Alert>
-            
+
             <div className="flex space-x-4">
               <Button onClick={handleStartOver} variant="outline">
                 Upload Another Class

@@ -43,11 +43,11 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-export function ClassDataExtractor({ 
-  onDataExtracted, 
-  onSubmit, 
+export function ClassDataExtractor({
+  onDataExtracted,
+  onSubmit,
   isSubmitting,
-  extractedData 
+  extractedData
 }: ClassDataExtractorProps) {
   const [userInput, setUserInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -57,7 +57,7 @@ export function ClassDataExtractor({
   const extractDataMutation = api.admin.extractClassData.useMutation({
     onSuccess: (response) => {
       setIsExtracting(false);
-      
+
       // Add AI response to chat
       setChatMessages(prev => [
         ...prev,
@@ -104,7 +104,7 @@ export function ClassDataExtractor({
     extractDataMutation.mutate({
       userInput: userInput.trim(),
       chatHistory: chatMessages,
-      existingData: extractedData,
+      existingData: extractedData || undefined,
     });
 
     setUserInput("");
@@ -208,15 +208,13 @@ export function ClassDataExtractor({
           </div>
 
           <div className="flex items-center space-x-4 text-sm">
-            <span className={`flex items-center space-x-1 ${
-              extractedData.beginnerFriendly ? "text-green-600" : "text-gray-600"
-            }`}>
+            <span className={`flex items-center space-x-1 ${extractedData.beginnerFriendly ? "text-green-600" : "text-gray-600"
+              }`}>
               <CheckCircle className="w-4 h-4" />
               <span>Beginner Friendly</span>
             </span>
-            <span className={`flex items-center space-x-1 ${
-              extractedData.modifications ? "text-green-600" : "text-gray-600"
-            }`}>
+            <span className={`flex items-center space-x-1 ${extractedData.modifications ? "text-green-600" : "text-gray-600"
+              }`}>
               <CheckCircle className="w-4 h-4" />
               <span>Includes Modifications</span>
             </span>
@@ -245,15 +243,13 @@ export function ClassDataExtractor({
             <div className="mb-4 max-h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50 space-y-3">
               {chatMessages.map((message, index) => (
                 <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.role === "user" 
-                      ? "bg-blue-600 text-white" 
+                  <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.role === "user"
+                      ? "bg-blue-600 text-white"
                       : "bg-white text-gray-900 shadow-sm border"
-                  }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.role === "user" ? "text-blue-100" : "text-gray-500"
                     }`}>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className={`text-xs mt-1 ${message.role === "user" ? "text-blue-100" : "text-gray-500"
+                      }`}>
                       {formatTime(message.timestamp)}
                     </p>
                   </div>
@@ -311,8 +307,8 @@ export function ClassDataExtractor({
             <Alert className="mt-4">
               <MessageSquare className="h-4 w-4" />
               <AlertDescription>
-                <strong>How it works:</strong> Paste any information you have about your pilates class. 
-                I'll ask questions to gather missing details and organize everything into the proper format 
+                <strong>How it works:</strong> Paste any information you have about your pilates class.
+                I'll ask questions to gather missing details and organize everything into the proper format
                 for your class database.
               </AlertDescription>
             </Alert>

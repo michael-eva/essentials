@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, FileVideo, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
 interface VideoUploaderProps {
-  onUploadComplete: (data: { playbackId: string; assetId: string }) => void;
+  onUploadComplete: (data: { playbackId?: string; assetId: string }) => void;
 }
 
 export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
@@ -19,43 +19,59 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const uploadVideoMutation = api.admin.uploadVideo.useMutation({
-    onSuccess: (data) => {
-      setUploadStatus("processing");
-      // Poll for video processing status
-      pollVideoStatus(data.assetId, data.playbackId);
-    },
     onError: (error) => {
       setUploadStatus("error");
       setErrorMessage(error.message);
     },
   });
 
-  const checkVideoStatusMutation = api.admin.getVideoStatus.useMutation();
+  const checkUploadStatusMutation = api.admin.getUploadStatus.useMutation();
 
-  const pollVideoStatus = async (assetId: string, playbackId: string) => {
-    const maxAttempts = 30; // 5 minutes max
+  const pollUploadStatus = async (uploadId: string) => {
+    const maxAttempts = 60; // 10 minutes max (60 * 10 seconds)
     let attempts = 0;
 
     const poll = async () => {
       try {
-        const status = await checkVideoStatusMutation.mutateAsync({ assetId });
-        
-        if (status.status === "ready") {
+        const status = await checkUploadStatusMutation.mutateAsync({ uploadId });
+
+        console.log("Upload status check:", status);
+
+        // If upload completed and asset is ready
+        if (status.uploadStatus === "asset_created" && status.assetStatus === "ready") {
           setUploadStatus("complete");
-          onUploadComplete({ assetId, playbackId });
-        } else if (status.status === "errored") {
+          onUploadComplete({ 
+            assetId: status.assetId!, 
+            playbackId: status.playbackId || undefined
+          });
+        } 
+        // If upload failed
+        else if (status.uploadStatus === "errored" || status.assetStatus === "errored") {
           setUploadStatus("error");
           setErrorMessage("Video processing failed");
-        } else if (attempts < maxAttempts) {
+        } 
+        // If upload timed out
+        else if (status.uploadStatus === "timed_out") {
+          setUploadStatus("error");
+          setErrorMessage("Upload timed out");
+        }
+        // If upload cancelled
+        else if (status.uploadStatus === "cancelled") {
+          setUploadStatus("error");
+          setErrorMessage("Upload was cancelled");
+        }
+        // Continue polling if still processing
+        else if (attempts < maxAttempts) {
           attempts++;
-          setTimeout(poll, 10000); // Check every 10 seconds
+          setTimeout(() => void poll(), 10000); // Check every 10 seconds
         } else {
           setUploadStatus("error");
-          setErrorMessage("Video processing timed out");
+          setErrorMessage("Upload status check timed out");
         }
       } catch (error) {
+        console.error("Error checking upload status:", error);
         setUploadStatus("error");
-        setErrorMessage("Failed to check video status");
+        setErrorMessage("Failed to check upload status");
       }
     };
 
@@ -64,7 +80,7 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && file.type.startsWith("video/")) {
+    if (file?.type.startsWith("video/")) {
       if (file.size <= 2 * 1024 * 1024 * 1024) { // 2GB limit
         setSelectedFile(file);
         setUploadStatus("idle");
@@ -92,9 +108,9 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
     setIsDragOver(false);
-    
+
     const file = event.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("video/")) {
+    if (file?.type.startsWith("video/")) {
       if (file.size <= 2 * 1024 * 1024 * 1024) { // 2GB limit
         setSelectedFile(file);
         setUploadStatus("idle");
@@ -116,19 +132,100 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
     setUploadProgress(0);
 
     try {
-      // Convert file to base64 for upload
-      const fileBuffer = await selectedFile.arrayBuffer();
-      const base64 = Buffer.from(fileBuffer).toString("base64");
+      console.log("Starting upload process for file:", selectedFile.name);
 
-      uploadVideoMutation.mutate({
+      // Create direct upload with Mux
+      const uploadData = await uploadVideoMutation.mutateAsync({
         filename: selectedFile.name,
         contentType: selectedFile.type,
-        fileData: base64,
       });
+
+      console.log("Received upload data from Mux:", uploadData);
+
+      if (uploadData.uploadUrl) {
+        console.log("Uploading file directly to Mux URL:", uploadData.uploadUrl);
+        // Upload directly to Mux using the upload URL
+        await uploadToMux(uploadData.uploadUrl, selectedFile, uploadData.uploadId);
+      } else {
+        throw new Error("No upload URL received from Mux");
+      }
     } catch (error) {
+      console.error("Upload error:", error);
       setUploadStatus("error");
-      setErrorMessage("Failed to process file for upload");
+      setErrorMessage(error instanceof Error ? error.message : "Failed to process file for upload");
     }
+  };
+
+  // Upload file directly to Mux using XMLHttpRequest for progress tracking
+  const uploadToMux = async (uploadUrl: string, file: File, uploadId: string) => {
+    return new Promise<void>((resolve, reject) => {
+      console.log("Starting direct upload to Mux:", { uploadUrl, uploadId, fileSize: file.size });
+
+      const xhr = new XMLHttpRequest();
+
+      // Track upload progress
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          console.log(`Upload progress: ${progress}%`);
+          setUploadProgress(progress);
+        }
+      };
+
+      xhr.onload = () => {
+        console.log("Upload response:", { status: xhr.status, statusText: xhr.statusText });
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          console.log("Upload successful, switching to processing status");
+          setUploadStatus("processing");
+          setUploadProgress(100);
+          
+          // Start polling upload status
+          console.log("Starting status polling for upload:", uploadId);
+          pollUploadStatus(uploadId);
+          resolve();
+        } else {
+          console.error("Upload failed:", { 
+            status: xhr.status, 
+            statusText: xhr.statusText, 
+            responseText: xhr.responseText 
+          });
+          setUploadStatus("error");
+          setErrorMessage(`Upload failed: ${xhr.status} ${xhr.statusText}`);
+          reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+        }
+      };
+
+      xhr.onerror = () => {
+        console.error("Upload network error");
+        setUploadStatus("error");
+        setErrorMessage("Network error during upload");
+        reject(new Error("Network error during upload"));
+      };
+
+      xhr.ontimeout = () => {
+        console.error("Upload timeout");
+        setUploadStatus("error");
+        setErrorMessage("Upload timed out");
+        reject(new Error("Upload timed out"));
+      };
+
+      // Open the request
+      xhr.open('PUT', uploadUrl);
+      xhr.setRequestHeader('Content-Type', file.type);
+      xhr.timeout = 10 * 60 * 1000; // 10 minutes timeout
+
+      // Send the file
+      console.log("Sending file to Mux...");
+      try {
+        xhr.send(file);
+      } catch (sendError) {
+        console.error("Error sending file:", sendError);
+        setUploadStatus("error");
+        setErrorMessage("Failed to initiate file upload");
+        reject(sendError);
+      }
+    });
   };
 
   const formatFileSize = (bytes: number) => {
@@ -146,14 +243,13 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-          isDragOver
-            ? "border-blue-400 bg-blue-50"
-            : "border-gray-300 hover:border-gray-400"
-        } ${uploadStatus !== "idle" && uploadStatus !== "error" ? "cursor-not-allowed opacity-50" : ""}`}
+        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragOver
+          ? "border-blue-400 bg-blue-50"
+          : "border-gray-300 hover:border-gray-400"
+          } ${uploadStatus !== "idle" && uploadStatus !== "error" ? "cursor-not-allowed opacity-50" : ""}`}
       >
-        <input 
-          type="file" 
+        <input
+          type="file"
           accept="video/*"
           onChange={handleFileChange}
           className="hidden"
