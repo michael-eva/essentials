@@ -7,10 +7,6 @@ import { VideoUploader } from "./_components/VideoUploader";
 import { ClassDataExtractor } from "./_components/ClassDataExtractor";
 import { CheckCircle, Upload, MessageSquare, ArrowRight } from "lucide-react";
 
-// Force dynamic rendering and prevent caching
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 interface ClassData {
   title: string;
   summary: string;
@@ -41,18 +37,9 @@ export default function NewClassPage() {
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Force cache refresh on component mount
+  // Clear any cached state on component mount
   useEffect(() => {
-    // Clear any cached state
     if (typeof window !== 'undefined') {
-      // Force a re-render by updating timestamp
-      const timestamp = Date.now();
-      window.history.replaceState(
-        { timestamp },
-        '',
-        `${window.location.pathname}?t=${timestamp}`
-      );
-
       // Clear any localStorage or sessionStorage that might be causing issues
       sessionStorage.removeItem('newClassPageState');
       localStorage.removeItem('newClassPageState');
@@ -125,7 +112,7 @@ export default function NewClassPage() {
                 2
               </div>
               <span className={`text-sm font-medium ${step === "complete" ? "text-slate-900" : "text-slate-500"}`}>
-                Complete
+                Review
               </span>
             </div>
           </div>
