@@ -17,6 +17,7 @@ import {
   notifications,
   pushSubscriptions,
   notificationPreferences,
+  PilatesVideos,
 } from "./schema";
 import type {
   NewWorkout,
@@ -665,4 +666,32 @@ export async function deleteNotificationPreferences(
   await db
     .delete(notificationPreferences)
     .where(eq(notificationPreferences.userId, userId));
+}
+
+// Pilates Video mutations
+export type NewPilatesVideo = {
+  title: string;
+  summary: string;
+  description: string;
+  difficulty: string;
+  duration: number;
+  equipment: string;
+  pilatesStyle: string;
+  classType: string;
+  focusArea: string;
+  targetedMuscles: string;
+  intensity: number;
+  modifications: boolean;
+  beginnerFriendly: boolean;
+  tags: string;
+  exerciseSequence: string;
+  videoUrl: string;
+  muxAssetId?: string | null;
+  mux_playback_id?: string | null;
+  instructor?: string | null;
+};
+
+export async function insertPilatesVideo(data: NewPilatesVideo) {
+  const result = await db.insert(PilatesVideos).values(data).returning();
+  return result[0]!;
 }
