@@ -115,10 +115,11 @@ export default function WaitlistForm() {
           transition={{ duration: 0.3 }}
         >
           <Card className="w-full max-w-md shadow-lg">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-brand-cobalt rounded-full flex items-center justify-center mx-auto mb-6">
+            <CardContent className="px-8 py-4 text-center">
+              <img src="/logo/essentials_pt_logo.png" alt="logo" className="rounded-lg mb-6" />
+              {/* <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg
-                  className="w-8 h-8 text-white"
+                  className="w-8 h-8 text-brand-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -130,7 +131,7 @@ export default function WaitlistForm() {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-              </div>
+              </div> */}
               <h2 className="text-2xl font-bold text-brand-brown mb-4">
                 Thank you for joining our waitlist!
               </h2>
@@ -152,7 +153,7 @@ export default function WaitlistForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-brand-light-yellow to-brand-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-brand-white flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -161,6 +162,7 @@ export default function WaitlistForm() {
       >
         <Card className="shadow-lg">
           <CardHeader className="text-center">
+            <img src="/logo/essentials_pt_logo.png" alt="logo" className="rounded-lg mb-6" />
             <CardTitle className="text-3xl font-bold text-brand-brown">
               Join Essentials
             </CardTitle>

@@ -44,6 +44,18 @@ export const waitlistRouter = createTRPCRouter({
         };
       } catch (error) {
         console.error("Error submitting waitlist:", error);
+        
+        // Check if this is a unique constraint violation for email
+        if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+          const pgError = error as { constraint_name?: string };
+          if (pgError.constraint_name === 'waitlist_email_unique') {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "This email address is already registered on our waitlist.",
+            });
+          }
+        }
+        
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to submit waitlist form. Please try again.",
