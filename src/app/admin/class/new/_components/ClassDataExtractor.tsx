@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MessageSquare, Send, Edit3, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, MessageSquare, Send, Edit3, CheckCircle, AlertCircle, Save, Clock } from "lucide-react";
 
 interface ClassData {
   title: string;
@@ -41,6 +41,10 @@ interface ClassDataExtractorProps {
     content: string;
     timestamp: string;
   }>;
+  onSaveDraft?: () => void;
+  isSavingDraft?: boolean;
+  videoData?: any;
+  lastSaveTime?: Date | null;
 }
 
 interface ChatMessage {
@@ -55,7 +59,11 @@ export function ClassDataExtractor({
   isSubmitting,
   extractedData,
   onChatUpdate,
-  initialChatHistory = []
+  initialChatHistory = [],
+  onSaveDraft,
+  isSavingDraft = false,
+  videoData,
+  lastSaveTime
 }: ClassDataExtractorProps) {
   const [userInput, setUserInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() =>
@@ -347,21 +355,57 @@ export function ClassDataExtractor({
 
       {/* Submit Button */}
       {extractedData && (
-        <div className="flex justify-end space-x-4">
-          {extractionComplete && (
-            <Button variant="outline" onClick={() => setExtractionComplete(false)}>
-              <Edit3 className="w-4 h-4 mr-2" />
-              Make Changes
+        <div className="flex justify-between items-center">
+          {/* Save Draft Button */}
+          <div className="flex flex-col items-start">
+            <Button
+              onClick={onSaveDraft}
+              variant="outline"
+              disabled={isSavingDraft || (!videoData && !extractedData && chatMessages.length === 0)}
+              className="flex items-center space-x-2"
+            >
+              {isSavingDraft ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Save to Drafts</span>
+                </>
+              )}
             </Button>
-          )}
-          <Button onClick={onSubmit} disabled={isSubmitting}>
-            {isSubmitting ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <CheckCircle className="w-4 h-4 mr-2" />
+            {lastSaveTime && !isSavingDraft && (
+              <div className="flex items-center space-x-1 text-xs text-gray-500 mt-1">
+                <Clock className="w-3 h-3" />
+                <span>
+                  Last synced {lastSaveTime.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })} (database)
+                </span>
+              </div>
             )}
-            Create Pilates Class
-          </Button>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-4">
+            {extractionComplete && (
+              <Button variant="outline" onClick={() => setExtractionComplete(false)}>
+                <Edit3 className="w-4 h-4 mr-2" />
+                Make Changes
+              </Button>
+            )}
+            <Button onClick={onSubmit} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              )}
+              Create Pilates Class
+            </Button>
+          </div>
         </div>
       )}
     </div>

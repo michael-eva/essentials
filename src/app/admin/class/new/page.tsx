@@ -5,7 +5,7 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { VideoUploader } from "./_components/VideoUploader";
 import { ClassDataExtractor } from "./_components/ClassDataExtractor";
-import { CheckCircle, Upload, MessageSquare, ArrowRight, Save, Clock } from "lucide-react";
+import { CheckCircle, Upload, MessageSquare, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -101,17 +101,17 @@ export default function NewClassPage() {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     // Listen for Next.js navigation events
-    const originalPushState = history.pushState;
-    const originalReplaceState = history.replaceState;
+    const originalPushState = history.pushState.bind(history);
+    const originalReplaceState = history.replaceState.bind(history);
 
-    history.pushState = function (...args) {
+    history.pushState = (...args) => {
       handleRouteChangeStart(args[2] as string);
-      return originalPushState.apply(history, args);
+      return originalPushState(...args);
     };
 
-    history.replaceState = function (...args) {
+    history.replaceState = (...args) => {
       handleRouteChangeStart(args[2] as string);
-      return originalReplaceState.apply(history, args);
+      return originalReplaceState(...args);
     };
 
     return () => {
@@ -431,75 +431,14 @@ export default function NewClassPage() {
                 extractedData={classData}
                 onChatUpdate={handleChatUpdate}
                 initialChatHistory={chatHistory}
+                onSaveDraft={handleSaveDraft}
+                isSavingDraft={isSavingDraft}
+                videoData={videoData}
+                lastSaveTime={lastSaveTime}
               />
             </section>
 
-            {/* Action Buttons */}
-            <div className="flex justify-between items-center pt-4">
-              {/* Save Draft Button and Status */}
-              <div className="flex flex-col items-start">
-                <div className="flex items-center space-x-3">
-                  <Button
-                    onClick={handleSaveDraft}
-                    variant="outline"
-                    disabled={isSavingDraft || (!videoData && !classData && chatHistory.length === 0)}
-                    className="flex items-center space-x-2"
-                  >
-                    {isSavingDraft ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                        <span>Saving...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4" />
-                        <span>Save to Drafts</span>
-                      </>
-                    )}
-                  </Button>
-                  {lastSaveTime && !isSavingDraft && (
-                    <div className="flex items-center space-x-1 text-xs text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      <span>
-                        Last synced {lastSaveTime.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })} (database)
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {(videoData || classData || chatHistory.length > 0) && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {hasLocalStorage === true
-                      ? "Auto-saves to your browser • Click to sync to database"
-                      : "Click to save your progress to database"}
-                  </p>
-                )}
-              </div>
 
-              {/* Create Class Button */}
-              {classData && videoData && (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  size="lg"
-                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Creating Class...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <span>Create Class</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  )}
-                </Button>
-              )}
-            </div>
           </div>
         )}
 
