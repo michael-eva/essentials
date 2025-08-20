@@ -1,11 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { VideoUploader } from "./_components/VideoUploader";
 import { ClassDataExtractor } from "./_components/ClassDataExtractor";
-import { CheckCircle, Upload, MessageSquare, ArrowRight } from "lucide-react";
+import { CheckCircle, Upload, MessageSquare, ArrowRight, Save, Clock } from "lucide-react";
+import { toast } from "sonner";
+import { 
+  getFromLocalStorage, 
+  saveToLocalStorage, 
+  clearLocalStorage, 
+  isLocalStorageAvailable,
+  type LocalDraftData 
+} from "./_utils/localStorage";
 
 interface ClassData {
   title: string;
@@ -36,24 +44,182 @@ export default function NewClassPage() {
   } | null>(null);
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [chatHistory, setChatHistory] = useState<Array<{
+    role: "user" | "assistant";
+    content: string;
+    timestamp: string;
+  }>>([]);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+  const [hasLocalStorage, setHasLocalStorage] = useState<boolean | null>(null);
+  
 
-  // Clear any cached state on component mount
+  // Check localStorage availability on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Clear any localStorage or sessionStorage that might be causing issues
-      sessionStorage.removeItem('newClassPageState');
-      localStorage.removeItem('newClassPageState');
-    }
+    setHasLocalStorage(isLocalStorageAvailable());
   }, []);
+
+  // Load draft data on component mount (prioritize localStorage, fallback to database)
+  const { data: draftData } = api.admin.loadDraft.useQuery(
+    { sessionId },
+    { 
+      enabled: !!sessionId && (hasLocalStorage === false || hasLocalStorage === null), // Query DB if localStorage unavailable or unknown
+      staleTime: 60000 // Cache for 1 minute
+    }
+  );
+  
+  // Save draft mutation (only used for manual saves now)
+  const saveDraftMutation = api.admin.saveDraft.useMutation({
+    onSuccess: () => {
+      setIsSavingDraft(false);
+      setLastSaveTime(new Date());
+      toast.success("Draft saved to database - Available across all your devices.");
+    },
+    onError: () => {
+      setIsSavingDraft(false);
+      toast.error("Database save failed - Your local data is still safe. Please try again to sync across devices.");
+    },
+  });
+  
+  // Delete draft mutation
+  const deleteDraftMutation = api.admin.deleteDraft.useMutation();
+  
+  // Simple restoration on mount - run once only
+  const hasRestoredRef = useRef(false);
+  
+  useEffect(() => {
+    if (hasRestoredRef.current) return; // Already restored, don't run again
+    if (hasLocalStorage === null) return; // Wait for localStorage availability check
+    
+    // Try localStorage first if available
+    if (hasLocalStorage === true) {
+      const localData = getFromLocalStorage();
+      if (localData) {
+        let restored = false;
+        
+        if (localData.videoData && !videoData) {
+          setVideoData(localData.videoData);
+          restored = true;
+        }
+        if (localData.classData && !classData) {
+          setClassData(localData.classData);
+          restored = true;
+        }
+        if (localData.chatHistory && localData.chatHistory.length > 0 && chatHistory.length === 0) {
+          setChatHistory(localData.chatHistory);
+          restored = true;
+        }
+        
+        if (restored) {
+          hasRestoredRef.current = true;
+          toast.success("Draft restored from browser storage");
+          return;
+        }
+      }
+    }
+    
+    // Fallback to database if localStorage had no data or not available
+    if (draftData && !hasRestoredRef.current) {
+      let restored = false;
+      
+      if ((draftData.muxAssetId || draftData.muxPlaybackId) && !videoData) {
+        setVideoData({
+          assetId: draftData.muxAssetId || '',
+          playbackId: draftData.muxPlaybackId || undefined,
+        });
+        restored = true;
+      }
+      if (draftData.extractedData && !classData) {
+        setClassData(draftData.extractedData as ClassData);
+        restored = true;
+      }
+      if (draftData.chatHistory && draftData.chatHistory.length > 0 && chatHistory.length === 0) {
+        setChatHistory(draftData.chatHistory);
+        restored = true;
+      }
+      
+      if (restored) {
+        hasRestoredRef.current = true;
+        toast.success("Draft restored from database");
+      }
+    }
+  }, [hasLocalStorage, draftData, videoData, classData, chatHistory]);
+
+  // Warn user before leaving page if there's unsaved progress
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (videoData || classData || chatHistory.length > 0) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved progress. Are you sure you want to leave?";
+        return "You have unsaved progress. Are you sure you want to leave?";
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [videoData, classData, chatHistory]);
+  
+  // Simple auto-save to localStorage only
+  useEffect(() => {
+    // Only save if we have localStorage and actual data
+    if (hasLocalStorage === true && (videoData || classData || chatHistory.length > 0)) {
+      // Use a longer timeout to prevent excessive saves
+      const timer = setTimeout(() => {
+        try {
+          saveToLocalStorage({
+            sessionId,
+            videoData: videoData || undefined,
+            classData: classData || undefined,
+            chatHistory,
+          });
+          console.log('Saved to localStorage:', { videoData: !!videoData, classData: !!classData, chatLength: chatHistory.length });
+        } catch (error) {
+          console.error('Failed to save to localStorage:', error);
+        }
+      }, 1000); // 1 second delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [hasLocalStorage, videoData, classData, chatHistory, sessionId]);
+
+  // Manual save to database only
+  const handleSaveDraft = useCallback(() => {
+    if (!videoData && !classData && chatHistory.length === 0) {
+      toast.error("No data to save");
+      return;
+    }
+
+    setIsSavingDraft(true);
+    
+    // Save to database only (localStorage auto-saves separately)
+    saveDraftMutation.mutate({
+      sessionId,
+      muxAssetId: videoData?.assetId,
+      muxPlaybackId: videoData?.playbackId,
+      chatHistory,
+      extractedData: classData || undefined,
+    });
+  }, [videoData, classData, chatHistory, sessionId, saveDraftMutation]);
 
   const createClassMutation = api.admin.createPilatesVideo.useMutation({
     onSuccess: () => {
+      // Clear localStorage immediately
+      if (hasLocalStorage === true) {
+        clearLocalStorage();
+      }
+      
+      // Delete database draft
+      deleteDraftMutation.mutate({ sessionId });
+      
       setStep("complete");
       setIsSubmitting(false);
+      toast.success("Class created successfully - Your pilates class has been uploaded and is now available.");
     },
     onError: (error) => {
       console.error("Error creating class:", error);
       setIsSubmitting(false);
+      toast.error("Creation failed - Failed to create the class. Please try again.");
     },
   });
 
@@ -62,12 +228,33 @@ export default function NewClassPage() {
   };
 
   const handleDataExtracted = (extractedData: ClassData) => {
-    setClassData({
+    const newData = {
       ...extractedData,
       muxPlaybackId: videoData?.playbackId,
       muxAssetId: videoData?.assetId,
-    });
+    };
+    setClassData(newData);
   };
+  
+  const handleChatUpdate = useCallback((newChatHistory: Array<{
+    role: "user" | "assistant";
+    content: string;
+    timestamp: Date;
+  }>) => {
+    const serializedHistory = newChatHistory.map(msg => ({
+      ...msg,
+      timestamp: msg.timestamp.toISOString(),
+    }));
+    
+    // Only update if the chat actually changed to prevent loops
+    setChatHistory(prev => {
+      if (JSON.stringify(prev) === JSON.stringify(serializedHistory)) {
+        return prev; // No change, return same reference to prevent re-render
+      }
+      return serializedHistory;
+    });
+  }, []);
+  
 
   const handleSubmit = async () => {
     if (!classData) return;
@@ -76,9 +263,16 @@ export default function NewClassPage() {
   };
 
   const handleStartOver = () => {
+    // Clear localStorage
+    if (hasLocalStorage === true) {
+      clearLocalStorage();
+    }
+    
     setStep("upload");
     setVideoData(null);
     setClassData(null);
+    setChatHistory([]);
+    setLastSaveTime(null);
     setIsSubmitting(false);
   };
 
@@ -134,7 +328,11 @@ export default function NewClassPage() {
                   </p>
                 </div>
               </div>
-              <VideoUploader onUploadComplete={handleVideoUpload} />
+              <VideoUploader 
+                onUploadComplete={handleVideoUpload} 
+                existingVideoData={videoData || undefined}
+                sessionId={sessionId}
+              />
             </section>
 
             {/* Class Info Section */}
@@ -155,12 +353,57 @@ export default function NewClassPage() {
                 onSubmit={handleSubmit}
                 isSubmitting={isSubmitting}
                 extractedData={classData}
+                onChatUpdate={handleChatUpdate}
+                initialChatHistory={chatHistory}
               />
             </section>
 
-            {/* Action Button */}
-            {classData && videoData && (
-              <div className="text-center pt-4">
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center pt-4">
+              {/* Save Draft Button and Status */}
+              <div className="flex flex-col items-start">
+                <div className="flex items-center space-x-3">
+                  <Button
+                    onClick={handleSaveDraft}
+                    variant="outline"
+                    disabled={isSavingDraft || (!videoData && !classData && chatHistory.length === 0)}
+                    className="flex items-center space-x-2"
+                  >
+                    {isSavingDraft ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>Save to Database</span>
+                      </>
+                    )}
+                  </Button>
+                  {lastSaveTime && !isSavingDraft && (
+                    <div className="flex items-center space-x-1 text-xs text-gray-500">
+                      <Clock className="w-3 h-3" />
+                      <span>
+                        Last synced {lastSaveTime.toLocaleTimeString([], { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })} (database)
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {(videoData || classData || chatHistory.length > 0) && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    {hasLocalStorage === true 
+                      ? "Auto-saves to your browser • Click to sync to database"
+                      : "Click to save your progress to database"}
+                  </p>
+                )}
+              </div>
+              
+              {/* Create Class Button */}
+              {classData && videoData && (
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
@@ -179,8 +422,8 @@ export default function NewClassPage() {
                     </div>
                   )}
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
@@ -191,7 +434,7 @@ export default function NewClassPage() {
             </div>
             <h2 className="text-2xl font-semibold text-slate-900 mb-3">Class Created Successfully</h2>
             <p className="text-slate-600 mb-8 max-w-md mx-auto">
-              Your pilates class "{classData?.title}" has been uploaded and is now available in the system.
+              Your pilates class &quot;{classData?.title}&quot; has been uploaded and is now available in the system.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

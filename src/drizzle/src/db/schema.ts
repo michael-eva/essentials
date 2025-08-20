@@ -8,6 +8,7 @@ import {
   timestamp,
   uuid,
   jsonb,
+  unique,
   type PgTableWithColumns,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -446,6 +447,52 @@ export const PilatesVideos = pgTable("pilates_videos", {
   mux_playback_id: text("mux_playback_id"),
   instructor: text("instructor"),
 });
+
+export const classDrafts = pgTable("class_drafts", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  sessionId: text("session_id").notNull(),
+  muxAssetId: text("mux_asset_id"),
+  muxPlaybackId: text("mux_playback_id"),
+  chatHistory: jsonb("chat_history").$type<Array<{
+    role: "user" | "assistant";
+    content: string;
+    timestamp: string;
+  }>>(),
+  extractedData: jsonb("extracted_data").$type<{
+    title?: string;
+    summary?: string;
+    description?: string;
+    difficulty?: string;
+    duration?: number;
+    equipment?: string;
+    pilatesStyle?: string;
+    classType?: string;
+    focusArea?: string;
+    targetedMuscles?: string;
+    intensity?: number;
+    modifications?: boolean;
+    beginnerFriendly?: boolean;
+    tags?: string;
+    exerciseSequence?: string;
+    instructor?: string;
+  }>(),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .default(sql`now()`),
+}, (table) => ({
+  userSessionUnique: unique("user_session_unique").on(table.userId, table.sessionId),
+}));
 
 export const appConfig = pgTable("app_config", {
   key: text("key").notNull().primaryKey(),

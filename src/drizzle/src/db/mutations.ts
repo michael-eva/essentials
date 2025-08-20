@@ -18,6 +18,7 @@ import {
   pushSubscriptions,
   notificationPreferences,
   PilatesVideos,
+  classDrafts,
 } from "./schema";
 import type {
   NewWorkout,
@@ -694,4 +695,49 @@ export type NewPilatesVideo = {
 export async function insertPilatesVideo(data: NewPilatesVideo) {
   const result = await db.insert(PilatesVideos).values(data).returning();
   return result[0]!;
+}
+
+// Draft operations
+export async function insertOrUpdateClassDraft(data: {
+  userId: string;
+  sessionId: string;
+  muxAssetId?: string;
+  muxPlaybackId?: string;
+  chatHistory?: Array<{
+    role: "user" | "assistant";
+    content: string;
+    timestamp: string;
+  }>;
+  extractedData?: any;
+}) {
+  const result = await db
+    .insert(classDrafts)
+    .values(data)
+    .onConflictDoUpdate({
+      target: [classDrafts.userId, classDrafts.sessionId],
+      set: {
+        muxAssetId: data.muxAssetId,
+        muxPlaybackId: data.muxPlaybackId,
+        chatHistory: data.chatHistory,
+        extractedData: data.extractedData,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+  return result[0]!;
+}
+
+export async function getClassDraft(userId: string, sessionId: string) {
+  const result = await db
+    .select()
+    .from(classDrafts)
+    .where(and(eq(classDrafts.userId, userId), eq(classDrafts.sessionId, sessionId)))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function deleteClassDraft(userId: string, sessionId: string) {
+  await db
+    .delete(classDrafts)
+    .where(and(eq(classDrafts.userId, userId), eq(classDrafts.sessionId, sessionId)));
 }
