@@ -2,7 +2,7 @@
  * localStorage utilities for admin class creation persistence
  */
 
-const STORAGE_KEY = 'admin_class_new_draft';
+const STORAGE_KEY = "admin_class_new_draft";
 
 export interface VideoData {
   playbackId?: string;
@@ -23,8 +23,8 @@ export interface ClassData {
   intensity: number;
   modifications: boolean;
   beginnerFriendly: boolean;
-  tags: string;
-  exerciseSequence: string;
+  tags: string[];
+  exerciseSequence: string[];
   instructor: string;
   muxPlaybackId?: string;
   muxAssetId?: string;
@@ -52,7 +52,8 @@ export const saveToLocalStorage = (data: Partial<LocalDraftData>): void => {
   try {
     const existing = getFromLocalStorage();
     const updated: LocalDraftData = {
-      sessionId: existing?.sessionId || data.sessionId || `session_${Date.now()}`,
+      sessionId:
+        existing?.sessionId || data.sessionId || `session_${Date.now()}`,
       videoData: data.videoData || existing?.videoData,
       classData: data.classData || existing?.classData,
       chatHistory: data.chatHistory || existing?.chatHistory || [],
@@ -61,9 +62,9 @@ export const saveToLocalStorage = (data: Partial<LocalDraftData>): void => {
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    console.log('Draft saved to localStorage:', updated.sessionId);
+    console.log("Draft saved to localStorage:", updated.sessionId);
   } catch (error) {
-    console.warn('Failed to save to localStorage:', error);
+    console.warn("Failed to save to localStorage:", error);
   }
 };
 
@@ -76,21 +77,22 @@ export const getFromLocalStorage = (): LocalDraftData | null => {
     if (!stored) return null;
 
     const data = JSON.parse(stored) as LocalDraftData;
-    
+
     // Check if data is recent (within 7 days)
     const lastSaved = new Date(data.lastSaved);
-    const daysSinceLastSaved = (Date.now() - lastSaved.getTime()) / (1000 * 60 * 60 * 24);
-    
+    const daysSinceLastSaved =
+      (Date.now() - lastSaved.getTime()) / (1000 * 60 * 60 * 24);
+
     if (daysSinceLastSaved > 7) {
-      console.log('Draft data is older than 7 days, clearing...');
+      console.log("Draft data is older than 7 days, clearing...");
       clearLocalStorage();
       return null;
     }
 
-    console.log('Draft loaded from localStorage:', data.sessionId);
+    console.log("Draft loaded from localStorage:", data.sessionId);
     return data;
   } catch (error) {
-    console.warn('Failed to load from localStorage:', error);
+    console.warn("Failed to load from localStorage:", error);
     return null;
   }
 };
@@ -101,9 +103,9 @@ export const getFromLocalStorage = (): LocalDraftData | null => {
 export const clearLocalStorage = (): void => {
   try {
     localStorage.removeItem(STORAGE_KEY);
-    console.log('Draft cleared from localStorage');
+    console.log("Draft cleared from localStorage");
   } catch (error) {
-    console.warn('Failed to clear localStorage:', error);
+    console.warn("Failed to clear localStorage:", error);
   }
 };
 
@@ -133,7 +135,7 @@ export const saveChatToLocalStorage = (chatHistory: ChatMessage[]): void => {
  */
 export const isLocalStorageAvailable = (): boolean => {
   try {
-    const test = '__localStorage_test__';
+    const test = "__localStorage_test__";
     localStorage.setItem(test, test);
     localStorage.removeItem(test);
     return true;

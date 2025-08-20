@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,8 +23,8 @@ interface ClassData {
   intensity: number;
   modifications: boolean;
   beginnerFriendly: boolean;
-  tags: string;
-  exerciseSequence: string;
+  tags: string[];
+  exerciseSequence: string[];
   instructor: string;
   muxPlaybackId?: string;
   muxAssetId?: string;
@@ -35,6 +35,12 @@ interface ClassDataExtractorProps {
   onSubmit: () => void;
   isSubmitting: boolean;
   extractedData: ClassData | null;
+  onChatUpdate?: (chatHistory: ChatMessage[]) => void;
+  initialChatHistory?: Array<{
+    role: "user" | "assistant";
+    content: string;
+    timestamp: string;
+  }>;
 }
 
 interface ChatMessage {
@@ -47,26 +53,39 @@ export function ClassDataExtractor({
   onDataExtracted,
   onSubmit,
   isSubmitting,
-  extractedData
+  extractedData,
+  onChatUpdate,
+  initialChatHistory = []
 }: ClassDataExtractorProps) {
   const [userInput, setUserInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() =>
+    initialChatHistory.map(msg => ({
+      ...msg,
+      timestamp: new Date(msg.timestamp)
+    }))
+  );
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionComplete, setExtractionComplete] = useState(false);
+
+  // Update extractionComplete when extractedData changes
+  useEffect(() => {
+    setExtractionComplete(!!extractedData);
+  }, [extractedData]);
 
   const extractDataMutation = api.admin.extractClassData.useMutation({
     onSuccess: (response) => {
       setIsExtracting(false);
 
       // Add AI response to chat
-      setChatMessages(prev => [
-        ...prev,
-        {
-          role: "assistant",
-          content: response.message,
-          timestamp: new Date(),
-        }
-      ]);
+      const newMessage = {
+        role: "assistant" as const,
+        content: response.message,
+        timestamp: new Date(),
+      };
+
+      const updated = [...chatMessages, newMessage];
+      setChatMessages(updated);
+      onChatUpdate?.(updated);
 
       // If data extraction is complete, update parent
       if (response.extractedData) {
@@ -76,14 +95,15 @@ export function ClassDataExtractor({
     },
     onError: (error) => {
       setIsExtracting(false);
-      setChatMessages(prev => [
-        ...prev,
-        {
-          role: "assistant",
-          content: `Sorry, I encountered an error: ${error.message}. Please try again.`,
-          timestamp: new Date(),
-        }
-      ]);
+      const errorMessage = {
+        role: "assistant" as const,
+        content: `Sorry, I encountered an error: ${error.message}. Please try again.`,
+        timestamp: new Date(),
+      };
+
+      const updated = [...chatMessages, errorMessage];
+      setChatMessages(updated);
+      onChatUpdate?.(updated);
     },
   });
 
@@ -97,7 +117,9 @@ export function ClassDataExtractor({
       timestamp: new Date(),
     };
 
-    setChatMessages(prev => [...prev, newUserMessage]);
+    const updated = [...chatMessages, newUserMessage];
+    setChatMessages(updated);
+    onChatUpdate?.(updated);
     setIsExtracting(true);
 
     // Send to AI for processing
@@ -192,9 +214,9 @@ export function ClassDataExtractor({
           <div>
             <label className="text-sm font-medium text-gray-700">Tags</label>
             <div className="flex flex-wrap gap-2 mt-1">
-              {extractedData.tags.split(",").map((tag, index) => (
+              {extractedData.tags.map((tag, index) => (
                 <Badge key={index} variant="outline" className="text-xs">
-                  {tag.trim()}
+                  {tag}
                 </Badge>
               ))}
             </div>
@@ -202,9 +224,13 @@ export function ClassDataExtractor({
 
           <div>
             <label className="text-sm font-medium text-gray-700">Exercise Sequence</label>
-            <p className="text-sm text-gray-900 border border-gray-200 rounded p-2 mt-1 whitespace-pre-line">
-              {extractedData.exerciseSequence}
-            </p>
+            <div className="border border-gray-200 rounded p-2 mt-1">
+              {extractedData.exerciseSequence.map((exercise, index) => (
+                <div key={index} className="text-sm text-gray-900 mb-1">
+                  {index + 1}. {exercise}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center space-x-4 text-sm">
@@ -320,12 +346,14 @@ export function ClassDataExtractor({
       {renderDataPreview()}
 
       {/* Submit Button */}
-      {extractionComplete && extractedData && (
+      {extractedData && (
         <div className="flex justify-end space-x-4">
-          <Button variant="outline" onClick={() => setExtractionComplete(false)}>
-            <Edit3 className="w-4 h-4 mr-2" />
-            Make Changes
-          </Button>
+          {extractionComplete && (
+            <Button variant="outline" onClick={() => setExtractionComplete(false)}>
+              <Edit3 className="w-4 h-4 mr-2" />
+              Make Changes
+            </Button>
+          )}
           <Button onClick={onSubmit} disabled={isSubmitting}>
             {isSubmitting ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

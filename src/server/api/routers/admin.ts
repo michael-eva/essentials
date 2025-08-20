@@ -3,7 +3,12 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { env } from "@/env";
 import { PilatesVideos } from "@/drizzle/src/db/schema";
-import { insertPilatesVideo } from "@/drizzle/src/db/mutations";
+import {
+  insertPilatesVideo,
+  insertOrUpdateClassDraft,
+  getClassDraft,
+  deleteClassDraft,
+} from "@/drizzle/src/db/mutations";
 import { generateAiChatResponse } from "@/services/ai-chat";
 import { buildUserContext } from "@/services/context-manager";
 
@@ -31,8 +36,10 @@ const ClassDataSchema = z.object({
   intensity: z.number().int().min(1).max(10, "Intensity must be between 1-10"),
   modifications: z.boolean(),
   beginnerFriendly: z.boolean(),
-  tags: z.string().min(1, "Tags are required"),
-  exerciseSequence: z.string().min(1, "Exercise sequence is required"),
+  tags: z.array(z.string()).min(1, "At least one tag is required"),
+  exerciseSequence: z
+    .array(z.string())
+    .min(1, "At least one exercise is required"),
   instructor: z.string().min(1, "Instructor is required"),
   muxPlaybackId: z.string().optional(),
   muxAssetId: z.string().optional(),
@@ -208,48 +215,61 @@ export const adminRouter = createTRPCRouter({
       }
 
       try {
+        // Build conversation context from chat history so the AI can infer from prior messages
+        const chatHistoryText = (input.chatHistory || [])
+          .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
+          .join("\n");
+
         // Build system prompt for pilates class data extraction
-        const systemPrompt = `You are an AI assistant helping to extract and organize pilates class information for a class management system. 
+        const systemPrompt = `You are an AI assistant helping to extract and organize pilates class information for a class management system.
 
 Your job is to:
-1. Extract class information from user input
-2. Ask clarifying questions for missing required fields
+1. Extract class information from the entire conversation and latest user input
+2. Infer as many required fields as possible from context without asking redundant questions
 3. Organize data into the required schema format
 4. Be conversational and helpful
 
-REQUIRED FIELDS for pilates class:
+REQUIRED FIELDS for pilates class (must be present in the final JSON):
 - title (string): Class name/title
-- summary (string): Brief 1-2 sentence description 
+- summary (string): Brief 1-2 sentence description
 - description (string): Detailed class description
-- difficulty (string): "Beginner", "Intermediate", or "Advanced"
+- difficulty (string): "Beginner", "Intermediate", or "Advanced" (if a range like "Beginner–Intermediate" is provided, choose the closest single value)
 - duration (number): Class length in minutes
 - equipment (string): Required equipment (e.g., "Mat", "Mat and small ball", "No equipment")
 - pilatesStyle (string): Style of pilates (e.g., "Classical", "Contemporary", "Reformer", "Mat")
 - classType (string): Type of class (e.g., "Core Focus", "Full Body", "Strength", "Flexibility")
 - focusArea (string): Primary focus (e.g., "Core", "Full Body", "Lower Body", "Upper Body")
 - targetedMuscles (string): Muscles targeted (e.g., "Core, Glutes, Back")
-- intensity (number): 1-10 scale
+- intensity (number): 1-10 scale (infer reasonably if a qualitative description suggests a level)
 - modifications (boolean): Whether modifications are provided
 - beginnerFriendly (boolean): Suitable for beginners
-- tags (string): Comma-separated tags for searchability
-- exerciseSequence (string): List or description of exercises in order
+- tags (array): Array of tags for searchability
+- exerciseSequence (array): Array of exercises in order
 - instructor (string): Instructor name
 
-If the user provides information, extract what you can and ask for missing required fields. 
-When you have ALL required information, respond with "EXTRACTION_COMPLETE:" followed by the JSON data.
+OPTIONAL CONTEXT (do not block completion if missing; include in description or tags if present):
+- Pre/Postnatal suitability notes
+- Injury avoidance notes for specific areas (e.g., shoulders, wrists, neck)
 
-Be conversational and ask one question at a time to make it feel natural.
+Guidelines:
+- Prefer inferring from the conversation over asking. Only ask if a truly required field cannot be confidently inferred.
+- If a short marketing-style blurb is present, use it to create the summary.
+- Normalize values to the required format (e.g., map ranges to a single difficulty; convert durations like "7 minutes" to 7).
+- If existing extracted data is provided, treat it as ground truth unless contradicted by newer user input.
+- When you have ALL required information, respond with "EXTRACTION_COMPLETE:" followed by only the JSON data (no markdown code fences).`;
 
-Current extraction status: ${input.existingData ? "Some data already extracted" : "Starting fresh"}
+        const existingDataText = input.existingData
+          ? `\n\nExisting extracted data (may be partial): ${JSON.stringify(input.existingData)}`
+          : "";
 
-Chat context: User has provided: "${input.userInput}"`;
+        const fullPrompt = `${systemPrompt}\n\n=== Conversation so far ===\n${chatHistoryText}\n\n=== Latest user message ===\n${input.userInput}${existingDataText}`;
 
         // Create a user context for AI (minimal for admin tasks)
         const userContext = await buildUserContext(ctx.userId);
 
         // Generate AI response using existing chat system
         const aiResponse = await generateAiChatResponse(
-          `${systemPrompt}\n\nUser says: ${input.userInput}`,
+          fullPrompt,
           ctx.userId,
           userContext,
         );
@@ -298,6 +318,15 @@ Chat context: User has provided: "${input.userInput}"`;
       }
 
       try {
+        // Log the input data for debugging
+        console.log("Creating pilates video with data:", {
+          title: input.title,
+          muxAssetId: input.muxAssetId,
+          muxPlaybackId: input.muxPlaybackId,
+          tags: input.tags,
+          exerciseSequence: input.exerciseSequence,
+        });
+
         // Insert into pilates_videos table
         const pilatesVideo = await insertPilatesVideo({
           title: input.title,
@@ -329,6 +358,101 @@ Chat context: User has provided: "${input.userInput}"`;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to create pilates class",
+        });
+      }
+    }),
+
+  // Load draft data
+  loadDraft: protectedProcedure
+    .input(z.object({ sessionId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check if user has admin privileges
+      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const draft = await getClassDraft(ctx.userId, input.sessionId);
+        return draft;
+      } catch (error) {
+        console.error("Error loading draft:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to load draft",
+        });
+      }
+    }),
+
+  // Save draft data
+  saveDraft: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.string(),
+        muxAssetId: z.string().optional(),
+        muxPlaybackId: z.string().optional(),
+        chatHistory: z
+          .array(
+            z.object({
+              role: z.enum(["user", "assistant"]),
+              content: z.string(),
+              timestamp: z.string(),
+            }),
+          )
+          .optional(),
+        extractedData: ClassDataSchema.partial().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if user has admin privileges
+      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const draft = await insertOrUpdateClassDraft({
+          userId: ctx.userId,
+          sessionId: input.sessionId,
+          muxAssetId: input.muxAssetId,
+          muxPlaybackId: input.muxPlaybackId,
+          chatHistory: input.chatHistory,
+          extractedData: input.extractedData,
+        });
+        return draft;
+      } catch (error) {
+        console.error("Error saving draft:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to save draft",
+        });
+      }
+    }),
+
+  // Delete draft data
+  deleteDraft: protectedProcedure
+    .input(z.object({ sessionId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if user has admin privileges
+      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        await deleteClassDraft(ctx.userId, input.sessionId);
+        return { success: true };
+      } catch (error) {
+        console.error("Error deleting draft:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete draft",
         });
       }
     }),

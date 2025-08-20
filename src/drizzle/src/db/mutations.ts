@@ -140,7 +140,7 @@ export async function resumeWorkoutPlanSafely(planId: string, userId: string) {
   }
 
   const plan = currentPlan[0];
-  
+
   if (!plan.pausedAt) {
     throw new Error("Plan is not paused");
   }
@@ -149,7 +149,8 @@ export async function resumeWorkoutPlanSafely(planId: string, userId: string) {
   const pauseDuration = Math.floor(
     (now.getTime() - plan.pausedAt.getTime()) / 1000,
   );
-  const newTotalPausedDuration = (plan.totalPausedDuration ?? 0) + pauseDuration;
+  const newTotalPausedDuration =
+    (plan.totalPausedDuration ?? 0) + pauseDuration;
 
   const result = await db
     .update(workoutPlan)
@@ -540,7 +541,7 @@ export async function markNotificationAsSent(
 ): Promise<Notification | null> {
   const result = await db
     .update(notifications)
-    .set({ 
+    .set({
       sent: deliveryStatus === "sent",
       sentAt: new Date(),
       deliveryStatus: deliveryStatus,
@@ -558,7 +559,7 @@ export async function markNotificationAsDelivered(
   // Find the most recent unsent notification for this user with matching message
   const result = await db
     .update(notifications)
-    .set({ 
+    .set({
       sent: deliveryStatus === "sent",
       sentAt: new Date(),
       deliveryStatus: deliveryStatus,
@@ -568,7 +569,7 @@ export async function markNotificationAsDelivered(
         eq(notifications.userId, userId),
         eq(notifications.body, message),
         eq(notifications.sent, false),
-      )
+      ),
     )
     .returning();
   return result[0] ?? null;
@@ -684,8 +685,8 @@ export type NewPilatesVideo = {
   intensity: number;
   modifications: boolean;
   beginnerFriendly: boolean;
-  tags: string;
-  exerciseSequence: string;
+  tags: string[];
+  exerciseSequence: string[];
   videoUrl: string;
   muxAssetId?: string | null;
   mux_playback_id?: string | null;
@@ -693,6 +694,14 @@ export type NewPilatesVideo = {
 };
 
 export async function insertPilatesVideo(data: NewPilatesVideo) {
+  // Log the data being inserted for debugging
+  console.log("Inserting pilates video with data:", {
+    muxAssetId: data.muxAssetId,
+    mux_playback_id: data.mux_playback_id,
+    tags: data.tags,
+    exerciseSequence: data.exerciseSequence,
+  });
+
   const result = await db.insert(PilatesVideos).values(data).returning();
   return result[0]!;
 }
@@ -731,7 +740,9 @@ export async function getClassDraft(userId: string, sessionId: string) {
   const result = await db
     .select()
     .from(classDrafts)
-    .where(and(eq(classDrafts.userId, userId), eq(classDrafts.sessionId, sessionId)))
+    .where(
+      and(eq(classDrafts.userId, userId), eq(classDrafts.sessionId, sessionId)),
+    )
     .limit(1);
   return result[0] || null;
 }
@@ -739,5 +750,7 @@ export async function getClassDraft(userId: string, sessionId: string) {
 export async function deleteClassDraft(userId: string, sessionId: string) {
   await db
     .delete(classDrafts)
-    .where(and(eq(classDrafts.userId, userId), eq(classDrafts.sessionId, sessionId)));
+    .where(
+      and(eq(classDrafts.userId, userId), eq(classDrafts.sessionId, sessionId)),
+    );
 }

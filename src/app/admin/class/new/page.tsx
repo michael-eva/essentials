@@ -7,12 +7,13 @@ import { VideoUploader } from "./_components/VideoUploader";
 import { ClassDataExtractor } from "./_components/ClassDataExtractor";
 import { CheckCircle, Upload, MessageSquare, ArrowRight, Save, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { 
-  getFromLocalStorage, 
-  saveToLocalStorage, 
-  clearLocalStorage, 
+import { useRouter } from "next/navigation";
+import {
+  getFromLocalStorage,
+  saveToLocalStorage,
+  clearLocalStorage,
   isLocalStorageAvailable,
-  type LocalDraftData 
+  type LocalDraftData
 } from "./_utils/localStorage";
 
 interface ClassData {
@@ -29,14 +30,15 @@ interface ClassData {
   intensity: number;
   modifications: boolean;
   beginnerFriendly: boolean;
-  tags: string;
-  exerciseSequence: string;
+  tags: string[];
+  exerciseSequence: string[];
   instructor: string;
   muxPlaybackId?: string;
   muxAssetId?: string;
 }
 
 export default function NewClassPage() {
+  const router = useRouter();
   const [step, setStep] = useState<"upload" | "complete">("upload");
   const [videoData, setVideoData] = useState<{
     playbackId?: string;
@@ -53,51 +55,110 @@ export default function NewClassPage() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [hasLocalStorage, setHasLocalStorage] = useState<boolean | null>(null);
-  
+  const [isUploading, setIsUploading] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Check localStorage availability on mount
   useEffect(() => {
     setHasLocalStorage(isLocalStorageAvailable());
   }, []);
 
+  // Track unsaved changes
+  useEffect(() => {
+    const hasChanges = !!(videoData || classData || chatHistory.length > 0);
+    setHasUnsavedChanges(hasChanges);
+  }, [videoData, classData, chatHistory]);
+
+  // Enhanced navigation warning system
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges || isUploading) {
+        const message = isUploading
+          ? "Video is currently uploading. Leaving this page may interrupt the upload and cause data loss."
+          : "You have unsaved progress that will be lost if you leave this page.";
+
+        e.preventDefault();
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    // Handle Next.js navigation attempts
+    const handleRouteChangeStart = (url: string) => {
+      if (hasUnsavedChanges || isUploading) {
+        const message = isUploading
+          ? "Video is currently uploading. Are you sure you want to navigate away? This may interrupt the upload."
+          : "You have unsaved changes. Are you sure you want to navigate away? Your progress may be lost.";
+
+        if (!window.confirm(message)) {
+          // Prevent navigation by throwing an error (Next.js will catch this)
+          throw new Error("Navigation cancelled by user");
+        }
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Listen for Next.js navigation events
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    history.pushState = function (...args) {
+      handleRouteChangeStart(args[2] as string);
+      return originalPushState.apply(history, args);
+    };
+
+    history.replaceState = function (...args) {
+      handleRouteChangeStart(args[2] as string);
+      return originalReplaceState.apply(history, args);
+    };
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
+    };
+  }, [hasUnsavedChanges, isUploading]);
+
   // Load draft data on component mount (prioritize localStorage, fallback to database)
   const { data: draftData } = api.admin.loadDraft.useQuery(
     { sessionId },
-    { 
+    {
       enabled: !!sessionId && (hasLocalStorage === false || hasLocalStorage === null), // Query DB if localStorage unavailable or unknown
       staleTime: 60000 // Cache for 1 minute
     }
   );
-  
+
   // Save draft mutation (only used for manual saves now)
   const saveDraftMutation = api.admin.saveDraft.useMutation({
     onSuccess: () => {
       setIsSavingDraft(false);
       setLastSaveTime(new Date());
-      toast.success("Draft saved to database - Available across all your devices.");
+      toast.success("Draft saved - Available across all your devices and in admin dashboard.");
     },
     onError: () => {
       setIsSavingDraft(false);
       toast.error("Database save failed - Your local data is still safe. Please try again to sync across devices.");
     },
   });
-  
+
   // Delete draft mutation
   const deleteDraftMutation = api.admin.deleteDraft.useMutation();
-  
+
   // Simple restoration on mount - run once only
   const hasRestoredRef = useRef(false);
-  
+
   useEffect(() => {
     if (hasRestoredRef.current) return; // Already restored, don't run again
     if (hasLocalStorage === null) return; // Wait for localStorage availability check
-    
+
     // Try localStorage first if available
     if (hasLocalStorage === true) {
       const localData = getFromLocalStorage();
       if (localData) {
         let restored = false;
-        
+
         if (localData.videoData && !videoData) {
           setVideoData(localData.videoData);
           restored = true;
@@ -110,7 +171,7 @@ export default function NewClassPage() {
           setChatHistory(localData.chatHistory);
           restored = true;
         }
-        
+
         if (restored) {
           hasRestoredRef.current = true;
           toast.success("Draft restored from browser storage");
@@ -118,11 +179,11 @@ export default function NewClassPage() {
         }
       }
     }
-    
+
     // Fallback to database if localStorage had no data or not available
     if (draftData && !hasRestoredRef.current) {
       let restored = false;
-      
+
       if ((draftData.muxAssetId || draftData.muxPlaybackId) && !videoData) {
         setVideoData({
           assetId: draftData.muxAssetId || '',
@@ -131,14 +192,14 @@ export default function NewClassPage() {
         restored = true;
       }
       if (draftData.extractedData && !classData) {
-        setClassData(draftData.extractedData as ClassData);
+        setClassData(draftData.extractedData as unknown as ClassData);
         restored = true;
       }
       if (draftData.chatHistory && draftData.chatHistory.length > 0 && chatHistory.length === 0) {
         setChatHistory(draftData.chatHistory);
         restored = true;
       }
-      
+
       if (restored) {
         hasRestoredRef.current = true;
         toast.success("Draft restored from database");
@@ -146,20 +207,6 @@ export default function NewClassPage() {
     }
   }, [hasLocalStorage, draftData, videoData, classData, chatHistory]);
 
-  // Warn user before leaving page if there's unsaved progress
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (videoData || classData || chatHistory.length > 0) {
-        e.preventDefault();
-        e.returnValue = "You have unsaved progress. Are you sure you want to leave?";
-        return "You have unsaved progress. Are you sure you want to leave?";
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [videoData, classData, chatHistory]);
-  
   // Simple auto-save to localStorage only
   useEffect(() => {
     // Only save if we have localStorage and actual data
@@ -191,7 +238,7 @@ export default function NewClassPage() {
     }
 
     setIsSavingDraft(true);
-    
+
     // Save to database only (localStorage auto-saves separately)
     saveDraftMutation.mutate({
       sessionId,
@@ -208,10 +255,10 @@ export default function NewClassPage() {
       if (hasLocalStorage === true) {
         clearLocalStorage();
       }
-      
+
       // Delete database draft
       deleteDraftMutation.mutate({ sessionId });
-      
+
       setStep("complete");
       setIsSubmitting(false);
       toast.success("Class created successfully - Your pilates class has been uploaded and is now available.");
@@ -235,7 +282,7 @@ export default function NewClassPage() {
     };
     setClassData(newData);
   };
-  
+
   const handleChatUpdate = useCallback((newChatHistory: Array<{
     role: "user" | "assistant";
     content: string;
@@ -245,7 +292,7 @@ export default function NewClassPage() {
       ...msg,
       timestamp: msg.timestamp.toISOString(),
     }));
-    
+
     // Only update if the chat actually changed to prevent loops
     setChatHistory(prev => {
       if (JSON.stringify(prev) === JSON.stringify(serializedHistory)) {
@@ -254,10 +301,24 @@ export default function NewClassPage() {
       return serializedHistory;
     });
   }, []);
-  
+
 
   const handleSubmit = async () => {
     if (!classData) return;
+
+    // Check if there are unsaved changes that haven't been synced to database
+    if (hasUnsavedChanges && !lastSaveTime) {
+      const shouldContinue = window.confirm(
+        "You have unsaved changes that haven't been synced to the database. " +
+        "While your data is safe in your browser, syncing to the database ensures it's available across all your devices. " +
+        "Would you like to continue creating the class anyway?"
+      );
+
+      if (!shouldContinue) {
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     createClassMutation.mutate(classData);
   };
@@ -267,7 +328,7 @@ export default function NewClassPage() {
     if (hasLocalStorage === true) {
       clearLocalStorage();
     }
-    
+
     setStep("upload");
     setVideoData(null);
     setClassData(null);
@@ -283,6 +344,20 @@ export default function NewClassPage() {
         <header className="text-center mb-12">
           <h1 className="text-4xl font-light text-slate-800 mb-3">New Class</h1>
           <div className="w-16 h-1 bg-blue-500 mx-auto rounded-full" />
+          {isUploading && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-800 text-sm font-medium">
+                🚫 Video upload in progress. Please do not refresh or navigate away from this page to avoid interrupting the upload.
+              </p>
+            </div>
+          )}
+          {hasUnsavedChanges && !isUploading && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-amber-800 text-sm">
+                ⚠️ You have unsaved changes. Your progress is automatically saved to your browser, but consider syncing to the database for cross-device access.
+              </p>
+            </div>
+          )}
         </header>
 
         {/* Progress */}
@@ -328,8 +403,9 @@ export default function NewClassPage() {
                   </p>
                 </div>
               </div>
-              <VideoUploader 
-                onUploadComplete={handleVideoUpload} 
+              <VideoUploader
+                onUploadComplete={handleVideoUpload}
+                onUploadStateChange={setIsUploading}
                 existingVideoData={videoData || undefined}
                 sessionId={sessionId}
               />
@@ -377,7 +453,7 @@ export default function NewClassPage() {
                     ) : (
                       <>
                         <Save className="w-4 h-4" />
-                        <span>Save to Database</span>
+                        <span>Save to Drafts</span>
                       </>
                     )}
                   </Button>
@@ -385,9 +461,9 @@ export default function NewClassPage() {
                     <div className="flex items-center space-x-1 text-xs text-gray-500">
                       <Clock className="w-3 h-3" />
                       <span>
-                        Last synced {lastSaveTime.toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
+                        Last synced {lastSaveTime.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
                         })} (database)
                       </span>
                     </div>
@@ -395,13 +471,13 @@ export default function NewClassPage() {
                 </div>
                 {(videoData || classData || chatHistory.length > 0) && (
                   <p className="text-xs text-gray-500 mt-1">
-                    {hasLocalStorage === true 
+                    {hasLocalStorage === true
                       ? "Auto-saves to your browser • Click to sync to database"
                       : "Click to save your progress to database"}
                   </p>
                 )}
               </div>
-              
+
               {/* Create Class Button */}
               {classData && videoData && (
                 <Button

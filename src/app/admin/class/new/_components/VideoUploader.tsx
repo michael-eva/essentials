@@ -10,17 +10,25 @@ import { saveVideoToLocalStorage, getFromLocalStorage } from "../_utils/localSto
 
 interface VideoUploaderProps {
   onUploadComplete: (data: { playbackId?: string; assetId: string }) => void;
+  onUploadStateChange?: (isUploading: boolean) => void;
   existingVideoData?: { playbackId?: string; assetId: string };
   sessionId: string;
 }
 
-export function VideoUploader({ onUploadComplete, existingVideoData, sessionId }: VideoUploaderProps) {
+export function VideoUploader({ onUploadComplete, onUploadStateChange, existingVideoData, sessionId }: VideoUploaderProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "processing" | "complete" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [restoredVideoData, setRestoredVideoData] = useState<{ playbackId?: string; assetId: string } | null>(null);
+
+  // Notify parent of upload state changes
+  useEffect(() => {
+    if (onUploadStateChange) {
+      onUploadStateChange(uploadStatus === "uploading" || uploadStatus === "processing");
+    }
+  }, [uploadStatus, onUploadStateChange]);
 
   // Restore existing video data on mount (prioritize props, then localStorage)
   useEffect(() => {
@@ -67,10 +75,10 @@ export function VideoUploader({ onUploadComplete, existingVideoData, sessionId }
             assetId: status.assetId!,
             playbackId: status.playbackId || undefined
           };
-          
+
           // Save to localStorage immediately
           saveVideoToLocalStorage(videoData);
-          
+
           // Notify parent
           onUploadComplete(videoData);
         }
@@ -420,7 +428,7 @@ export function VideoUploader({ onUploadComplete, existingVideoData, sessionId }
                     {selectedFile && (
                       <Button
                         onClick={handleUpload}
-                        variant="outline" 
+                        variant="outline"
                         size="sm"
                       >
                         Retry Upload
