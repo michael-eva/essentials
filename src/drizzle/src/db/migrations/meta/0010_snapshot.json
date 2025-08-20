@@ -1,6 +1,6 @@
 {
-  "id": "5484a299-c209-4741-aa66-dc0db6d65df8",
-  "prevId": "65920403-341b-4da8-80bd-6d45071e5991",
+  "id": "f90b0712-b07e-4cc0-9b5d-f04af5cd73be",
+  "prevId": "5484a299-c209-4741-aa66-dc0db6d65df8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1042,7 +1042,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "waitlist_email_unique": {
+          "name": "waitlist_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

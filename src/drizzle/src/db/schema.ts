@@ -453,6 +453,19 @@ export const appConfig = pgTable("app_config", {
   updatedAt: timestamp("updated_at").default(sql`now()`),
 });
 
+export const waitlist = pgTable("waitlist", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull().unique(),
+  accessCode: text("access_code"),
+  hasValidAccessCode: boolean("has_valid_access_code").notNull().default(false),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+});
+
 // Custom Zod schemas for complex types
 export const workoutTrackingInputSchema = z.object({
   userId: z.string().uuid(),
@@ -511,3 +524,6 @@ export const insertPersonalTrainerInteractionsSchema = createInsertSchema(
 
 export const insertAppConfigSchema = createInsertSchema(appConfig);
 export const selectAppConfigSchema = createSelectSchema(appConfig);
+
+export const insertWaitlistSchema = createInsertSchema(waitlist);
+export const selectWaitlistSchema = createSelectSchema(waitlist);
