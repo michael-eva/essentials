@@ -33,6 +33,7 @@ import {
   notificationPreferences,
   type PilatesVideosParams,
   PilatesVideosParamsSchema,
+  waitlist,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -63,6 +64,7 @@ export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
 export type NewNotificationPreferences = InferInsertModel<
   typeof notificationPreferences
 >;
+export type NewWaitlist = InferInsertModel<typeof waitlist>;
 
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;

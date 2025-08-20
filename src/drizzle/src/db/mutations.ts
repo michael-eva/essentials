@@ -17,6 +17,7 @@ import {
   notifications,
   pushSubscriptions,
   notificationPreferences,
+  waitlist,
 } from "./schema";
 import type {
   NewWorkout,
@@ -35,6 +36,7 @@ import type {
   Notification,
   PushSubscription,
   NotificationPreferences,
+  NewWaitlist,
 } from "./queries";
 import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
@@ -138,7 +140,7 @@ export async function resumeWorkoutPlanSafely(planId: string, userId: string) {
   }
 
   const plan = currentPlan[0];
-  
+
   if (!plan.pausedAt) {
     throw new Error("Plan is not paused");
   }
@@ -147,7 +149,8 @@ export async function resumeWorkoutPlanSafely(planId: string, userId: string) {
   const pauseDuration = Math.floor(
     (now.getTime() - plan.pausedAt.getTime()) / 1000,
   );
-  const newTotalPausedDuration = (plan.totalPausedDuration ?? 0) + pauseDuration;
+  const newTotalPausedDuration =
+    (plan.totalPausedDuration ?? 0) + pauseDuration;
 
   const result = await db
     .update(workoutPlan)
@@ -538,7 +541,7 @@ export async function markNotificationAsSent(
 ): Promise<Notification | null> {
   const result = await db
     .update(notifications)
-    .set({ 
+    .set({
       sent: deliveryStatus === "sent",
       sentAt: new Date(),
       deliveryStatus: deliveryStatus,
@@ -556,7 +559,7 @@ export async function markNotificationAsDelivered(
   // Find the most recent unsent notification for this user with matching message
   const result = await db
     .update(notifications)
-    .set({ 
+    .set({
       sent: deliveryStatus === "sent",
       sentAt: new Date(),
       deliveryStatus: deliveryStatus,
@@ -566,7 +569,7 @@ export async function markNotificationAsDelivered(
         eq(notifications.userId, userId),
         eq(notifications.body, message),
         eq(notifications.sent, false),
-      )
+      ),
     )
     .returning();
   return result[0] ?? null;
@@ -665,4 +668,9 @@ export async function deleteNotificationPreferences(
   await db
     .delete(notificationPreferences)
     .where(eq(notificationPreferences.userId, userId));
+}
+
+export async function insertWaitlist(data: NewWaitlist) {
+  const result = await db.insert(waitlist).values(data).returning();
+  return result[0]!;
 }

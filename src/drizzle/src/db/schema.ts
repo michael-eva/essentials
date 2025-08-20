@@ -458,7 +458,7 @@ export const waitlist = pgTable("waitlist", {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   fullName: text("full_name").notNull(),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
   accessCode: text("access_code"),
   hasValidAccessCode: boolean("has_valid_access_code").notNull().default(false),
   createdAt: timestamp("created_at")

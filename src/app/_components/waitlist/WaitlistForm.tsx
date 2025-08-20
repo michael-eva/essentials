@@ -59,10 +59,7 @@ export default function WaitlistForm() {
       if (data.hasValidAccessCode) {
         localStorage.setItem(ACCESS_CODE_STORAGE_KEY, "true");
         toast.success(data.message);
-        // Redirect to auth page after a short delay
-        setTimeout(() => {
-          router.push("/auth");
-        }, 2000);
+        setHasValidAccessCode(true);
       } else {
         toast.success(data.message);
       }
@@ -71,6 +68,16 @@ export default function WaitlistForm() {
       toast.error(error.message);
     },
   });
+
+  // Handle redirect with cleanup when hasValidAccessCode changes
+  useEffect(() => {
+    if (hasValidAccessCode) {
+      const timeoutId = setTimeout(() => {
+        router.push("/auth");
+      }, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [hasValidAccessCode, router]);
 
   const validateAccessCodeMutation = api.waitlist.validateAccessCode.useMutation({
     onSuccess: (data) => {

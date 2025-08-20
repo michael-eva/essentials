@@ -1,13 +1,8 @@
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { waitlist } from "@/drizzle/src/db/schema";
 import { env } from "@/env";
-
-const client = postgres(env.DATABASE_URL);
-const db = drizzle(client);
+import { insertWaitlist } from "@/drizzle/src/db/mutations";
 
 // Get the access code from environment variables
 
@@ -19,24 +14,32 @@ export const waitlistRouter = createTRPCRouter({
         fullName: z.string().min(1, "Full name is required"),
         email: z.string().email("Please enter a valid email address"),
         accessCode: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
-        const hasValidAccessCode = input.accessCode === env.WAITLIST_ACCESS_CODE;
+        const hasValidAccessCode =
+          input.accessCode === env.WAITLIST_ACCESS_CODE;
 
-        const result = await db.insert(waitlist).values({
+        const result = await insertWaitlist({
           fullName: input.fullName,
           email: input.email,
           accessCode: input.accessCode || null,
           hasValidAccessCode,
-        }).returning();
+        });
+
+        // const result = await db.insert(waitlist).values({
+        //   fullName: input.fullName,
+        //   email: input.email,
+        //   accessCode: input.accessCode || null,
+        //   hasValidAccessCode,
+        // }).returning();
 
         return {
           success: true,
           hasValidAccessCode,
-          message: hasValidAccessCode 
-            ? "Valid access code! You can now sign in to the app." 
+          message: hasValidAccessCode
+            ? "Valid access code! You can now sign in to the app."
             : "Thank you for joining our waitlist!",
         };
       } catch (error) {
@@ -53,15 +56,15 @@ export const waitlistRouter = createTRPCRouter({
     .input(
       z.object({
         accessCode: z.string().min(1, "Access code is required"),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const isValid = input.accessCode === env.WAITLIST_ACCESS_CODE;
-      
+
       return {
         isValid,
-        message: isValid 
-          ? "Valid access code! You can now access the app." 
+        message: isValid
+          ? "Valid access code! You can now access the app."
           : "Invalid access code. Please check and try again.",
       };
     }),
