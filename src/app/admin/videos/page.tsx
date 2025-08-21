@@ -1,11 +1,14 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -30,8 +33,33 @@ import {
   Image as ImageIcon
 } from "lucide-react";
 import Image from "next/image";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 const PAGE_SIZE = 12;
+
+// Form schema for video editing
+const editVideoSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  summary: z.string().min(1, "Summary is required"),
+  description: z.string().min(1, "Description is required"),
+  difficulty: z.string().min(1, "Difficulty is required"),
+  duration: z.number().int().positive("Duration must be a positive number"),
+  equipment: z.string().min(1, "Equipment is required"),
+  pilatesStyle: z.string().min(1, "Pilates style is required"),
+  classType: z.string().min(1, "Class type is required"),
+  focusArea: z.string().min(1, "Focus area is required"),
+  targetedMuscles: z.string().min(1, "Targeted muscles is required"),
+  intensity: z.number().int().min(1).max(10, "Intensity must be between 1-10"),
+  modifications: z.boolean(),
+  beginnerFriendly: z.boolean(),
+  tags: z.string().min(1, "Tags are required"),
+  exerciseSequence: z.string().min(1, "Exercise sequence is required"),
+  instructor: z.string().min(1, "Instructor is required"),
+});
+
+type EditVideoForm = z.infer<typeof editVideoSchema>;
 
 
 export default function AdminVideosPage() {
@@ -42,6 +70,7 @@ export default function AdminVideosPage() {
   const [selectedInstructor, setSelectedInstructor] = useState("all");
   const [deleteVideoId, setDeleteVideoId] = useState<string | null>(null);
   const [editVideoId, setEditVideoId] = useState<string | null>(null);
+  const [editVideoData, setEditVideoData] = useState<any>(null);
 
   // API calls
   const {
@@ -59,6 +88,38 @@ export default function AdminVideosPage() {
     onSuccess: () => {
       refetch();
       setDeleteVideoId(null);
+    },
+  });
+
+  const updateVideoMutation = api.admin.updateVideo.useMutation({
+    onSuccess: () => {
+      refetch();
+      setEditVideoId(null);
+      setEditVideoData(null);
+      form.reset();
+    },
+  });
+
+  // Form setup
+  const form = useForm<EditVideoForm>({
+    resolver: zodResolver(editVideoSchema),
+    defaultValues: {
+      title: "",
+      summary: "",
+      description: "",
+      difficulty: "",
+      duration: 0,
+      equipment: "",
+      pilatesStyle: "",
+      classType: "",
+      focusArea: "",
+      targetedMuscles: "",
+      intensity: 1,
+      modifications: true,
+      beginnerFriendly: true,
+      tags: "",
+      exerciseSequence: "",
+      instructor: "",
     },
   });
 
@@ -80,7 +141,61 @@ export default function AdminVideosPage() {
   };
 
   const handleEditVideo = (videoId: string) => {
-    setEditVideoId(videoId);
+    const video = filteredVideos.find(v => v.id === videoId);
+    if (video) {
+      setEditVideoId(videoId);
+      setEditVideoData(video);
+      
+      // Reset form with video data
+      form.reset({
+        title: video.title,
+        summary: video.summary,
+        description: video.description,
+        difficulty: video.difficulty,
+        duration: video.duration,
+        equipment: video.equipment,
+        pilatesStyle: video.pilatesStyle,
+        classType: video.classType,
+        focusArea: video.focusArea,
+        targetedMuscles: video.targetedMuscles,
+        intensity: video.intensity,
+        modifications: video.modifications,
+        beginnerFriendly: video.beginnerFriendly,
+        tags: video.tags.join(", "),
+        exerciseSequence: video.exerciseSequence.join(", "),
+        instructor: video.instructor || "",
+      });
+    }
+  };
+
+  const onSubmitEdit = (data: EditVideoForm) => {
+    if (!editVideoId) return;
+
+    updateVideoMutation.mutate({
+      id: editVideoId,
+      title: data.title,
+      summary: data.summary,
+      description: data.description,
+      difficulty: data.difficulty,
+      duration: data.duration,
+      equipment: data.equipment,
+      pilatesStyle: data.pilatesStyle,
+      classType: data.classType,
+      focusArea: data.focusArea,
+      targetedMuscles: data.targetedMuscles,
+      intensity: data.intensity,
+      modifications: data.modifications,
+      beginnerFriendly: data.beginnerFriendly,
+      tags: data.tags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0),
+      exerciseSequence: data.exerciseSequence.split(",").map(ex => ex.trim()).filter(ex => ex.length > 0),
+      instructor: data.instructor,
+    });
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditVideoId(null);
+    setEditVideoData(null);
+    form.reset();
   };
 
   const handleViewVideo = (videoId: string) => {
@@ -376,18 +491,245 @@ export default function AdminVideosPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Video Dialog - Placeholder for now */}
-      <Dialog open={!!editVideoId} onOpenChange={() => setEditVideoId(null)}>
-        <DialogContent className="max-w-2xl">
+      {/* Edit Video Dialog */}
+      <Dialog open={!!editVideoId} onOpenChange={handleCloseEditDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Video</DialogTitle>
             <DialogDescription>
-              Video editing functionality will be implemented here.
+              Update the video information below. All fields are required.
             </DialogDescription>
           </DialogHeader>
+          
+          <form onSubmit={form.handleSubmit(onSubmitEdit)} className="space-y-6">
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  {...form.register("title")}
+                  placeholder="Enter video title"
+                />
+                {form.formState.errors.title && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.title.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="instructor">Instructor *</Label>
+                <Input
+                  id="instructor"
+                  {...form.register("instructor")}
+                  placeholder="Enter instructor name"
+                />
+                {form.formState.errors.instructor && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.instructor.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div>
+              <Label htmlFor="summary">Summary *</Label>
+              <Textarea
+                id="summary"
+                {...form.register("summary")}
+                placeholder="Brief summary of the video"
+                rows={2}
+              />
+              {form.formState.errors.summary && (
+                <p className="text-sm text-red-600 mt-1">{form.formState.errors.summary.message}</p>
+              )}
+            </div>
+
+            {/* Description */}
+            <div>
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                {...form.register("description")}
+                placeholder="Detailed description of the video"
+                rows={4}
+              />
+              {form.formState.errors.description && (
+                <p className="text-sm text-red-600 mt-1">{form.formState.errors.description.message}</p>
+              )}
+            </div>
+
+            {/* Class Details */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="difficulty">Difficulty *</Label>
+                <Select value={form.watch("difficulty")} onValueChange={(value) => form.setValue("difficulty", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Beginner">Beginner</SelectItem>
+                    <SelectItem value="Intermediate">Intermediate</SelectItem>
+                    <SelectItem value="Advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.difficulty && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.difficulty.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="duration">Duration (minutes) *</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  {...form.register("duration", { valueAsNumber: true })}
+                  placeholder="e.g., 45"
+                />
+                {form.formState.errors.duration && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.duration.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="intensity">Intensity (1-10) *</Label>
+                <Input
+                  id="intensity"
+                  type="number"
+                  min="1"
+                  max="10"
+                  {...form.register("intensity", { valueAsNumber: true })}
+                  placeholder="e.g., 7"
+                />
+                {form.formState.errors.intensity && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.intensity.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="pilatesStyle">Pilates Style *</Label>
+                <Input
+                  id="pilatesStyle"
+                  {...form.register("pilatesStyle")}
+                  placeholder="e.g., Classical, Contemporary"
+                />
+                {form.formState.errors.pilatesStyle && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.pilatesStyle.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="classType">Class Type *</Label>
+                <Input
+                  id="classType"
+                  {...form.register("classType")}
+                  placeholder="e.g., Core Focus, Full Body"
+                />
+                {form.formState.errors.classType && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.classType.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="focusArea">Focus Area *</Label>
+                <Input
+                  id="focusArea"
+                  {...form.register("focusArea")}
+                  placeholder="e.g., Core, Full Body, Lower Body"
+                />
+                {form.formState.errors.focusArea && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.focusArea.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="targetedMuscles">Targeted Muscles *</Label>
+                <Input
+                  id="targetedMuscles"
+                  {...form.register("targetedMuscles")}
+                  placeholder="e.g., Core, Glutes, Back"
+                />
+                {form.formState.errors.targetedMuscles && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.targetedMuscles.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Equipment */}
+            <div>
+              <Label htmlFor="equipment">Equipment *</Label>
+              <Input
+                id="equipment"
+                {...form.register("equipment")}
+                placeholder="e.g., Mat, Mat and small ball, No equipment"
+              />
+              {form.formState.errors.equipment && (
+                <p className="text-sm text-red-600 mt-1">{form.formState.errors.equipment.message}</p>
+              )}
+            </div>
+
+            {/* Tags and Exercise Sequence */}
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="tags">Tags * (comma-separated)</Label>
+                <Input
+                  id="tags"
+                  {...form.register("tags")}
+                  placeholder="e.g., beginner, core, flexibility"
+                />
+                {form.formState.errors.tags && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.tags.message}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="exerciseSequence">Exercise Sequence * (comma-separated)</Label>
+                <Textarea
+                  id="exerciseSequence"
+                  {...form.register("exerciseSequence")}
+                  placeholder="e.g., Warm-up, Plank series, Cool down"
+                  rows={3}
+                />
+                {form.formState.errors.exerciseSequence && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.exerciseSequence.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Checkboxes */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="modifications"
+                  checked={form.watch("modifications")}
+                  onCheckedChange={(checked) => form.setValue("modifications", checked === true)}
+                />
+                <Label htmlFor="modifications">Includes modifications</Label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="beginnerFriendly"
+                  checked={form.watch("beginnerFriendly")}
+                  onCheckedChange={(checked) => form.setValue("beginnerFriendly", checked === true)}
+                />
+                <Label htmlFor="beginnerFriendly">Beginner friendly</Label>
+              </div>
+            </div>
+          </form>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditVideoId(null)}>
-              Close
+            <Button variant="outline" onClick={handleCloseEditDialog}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={form.handleSubmit(onSubmitEdit)}
+              disabled={updateVideoMutation.isPending || !form.formState.isDirty}
+            >
+              {updateVideoMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
