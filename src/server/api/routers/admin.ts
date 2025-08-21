@@ -9,6 +9,10 @@ import {
   getClassDraft,
   deleteClassDraft,
 } from "@/drizzle/src/db/mutations";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { sql, count, desc } from "drizzle-orm";
+import { classDrafts } from "@/drizzle/src/db/schema";
 import { generateAdminAiResponse } from "@/services/ai-chat";
 
 // Import Mux SDK
@@ -447,6 +451,69 @@ Guidelines:
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to delete draft",
+        });
+      }
+    }),
+
+  // Get video statistics for admin dashboard
+  getVideoStats: protectedProcedure
+    .query(async ({ ctx }) => {
+      // Check if user has admin privileges
+      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const client = postgres(process.env.DATABASE_URL!);
+        const db = drizzle(client);
+
+        const [liveVideosResult, draftVideosResult] = await Promise.all([
+          db.select({ count: count() }).from(PilatesVideos),
+          db.select({ count: count() }).from(classDrafts),
+        ]);
+
+        return {
+          liveVideos: liveVideosResult[0]?.count ?? 0,
+          draftVideos: draftVideosResult[0]?.count ?? 0,
+        };
+      } catch (error) {
+        console.error("Error getting video stats:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get video statistics",
+        });
+      }
+    }),
+
+  // Get all draft videos for admin management
+  getAllDrafts: protectedProcedure
+    .query(async ({ ctx }) => {
+      // Check if user has admin privileges
+      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const client = postgres(process.env.DATABASE_URL!);
+        const db = drizzle(client);
+
+        const drafts = await db
+          .select()
+          .from(classDrafts)
+          .orderBy(desc(classDrafts.updatedAt));
+
+        return drafts;
+      } catch (error) {
+        console.error("Error getting all drafts:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get draft videos",
         });
       }
     }),
