@@ -46,7 +46,13 @@ export const activityTypeEnum = pgEnum("activity_type", [
 //   "other",
 // ]);
 
-export const roleEnum = pgEnum("role", ["developer", "user", "assistant"]);
+export const roleEnum = pgEnum("role", [
+  "developer",
+  "user",
+  "assistant",
+  "admin",
+]);
+
 export const deliveryStatusEnum = pgEnum("delivery_status", [
   "pending",
   "sent",
@@ -75,6 +81,7 @@ export const user = pgTable("user", {
   id: uuid("id").primaryKey().unique(),
   email: text("email").notNull().unique(),
   name: text("name"),
+  role: roleEnum("role").default("user"),
 });
 
 export const workout = pgTable("workout", {

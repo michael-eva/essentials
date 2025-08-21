@@ -7,6 +7,7 @@ import { personalTrainerRouter } from "./routers/personal-trainer";
 import { myPtRouter } from "./routers/my-pt";
 import { notificationsRouter } from "./routers/notifications";
 import { adminRouter } from "./routers/admin";
+import { userRouter } from "./routers/user";
 
 /**
  * This is the primary router for your server.
@@ -22,6 +23,7 @@ export const appRouter = createTRPCRouter({
   myPt: myPtRouter,
   notifications: notificationsRouter,
   admin: adminRouter,
+  user: userRouter,
 });
 
 // export type definition of API

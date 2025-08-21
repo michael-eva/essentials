@@ -14,6 +14,7 @@ import { buildUserContext } from "@/services/context-manager";
 
 // Import Mux SDK
 import Mux from "@mux/mux-node";
+import { getUser } from "@/drizzle/src/db/queries";
 
 // Initialize Mux client with credentials
 const mux = new Mux({

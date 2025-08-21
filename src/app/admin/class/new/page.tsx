@@ -5,7 +5,7 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { VideoUploader } from "./_components/VideoUploader";
 import { ClassDataExtractor } from "./_components/ClassDataExtractor";
-import { CheckCircle, Upload, MessageSquare, ArrowRight } from "lucide-react";
+import { CheckCircle, Upload, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -13,7 +13,6 @@ import {
   saveToLocalStorage,
   clearLocalStorage,
   isLocalStorageAvailable,
-  type LocalDraftData
 } from "./_utils/localStorage";
 
 interface ClassData {
@@ -74,52 +73,106 @@ export default function NewClassPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges || isUploading) {
         const message = isUploading
-          ? "Video is currently uploading. Leaving this page may interrupt the upload and cause data loss."
-          : "You have unsaved progress that will be lost if you leave this page.";
+          ? "Upload in progress. Don't leave this page."
+          : "Unsaved changes will be lost.";
 
         e.preventDefault();
-        e.returnValue = message;
         return message;
       }
     };
 
     // Handle Next.js navigation attempts
-    const handleRouteChangeStart = (url: string) => {
+    const handleRouteChangeStart = () => {
       if (hasUnsavedChanges || isUploading) {
         const message = isUploading
-          ? "Video is currently uploading. Are you sure you want to navigate away? This may interrupt the upload."
-          : "You have unsaved changes. Are you sure you want to navigate away? Your progress may be lost.";
+          ? "Upload in progress. Navigate away?"
+          : "Unsaved changes. Navigate away?";
 
         if (!window.confirm(message)) {
-          // Prevent navigation by throwing an error (Next.js will catch this)
-          throw new Error("Navigation cancelled by user");
+          // Prevent navigation by returning false
+          return false;
         }
       }
+      return true;
     };
 
     // Add event listeners
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Listen for Next.js navigation events
-    const originalPushState = history.pushState.bind(history);
-    const originalReplaceState = history.replaceState.bind(history);
-
-    history.pushState = (...args) => {
-      handleRouteChangeStart(args[2] as string);
-      return originalPushState(...args);
+    // Override router.push to add navigation guard
+    const originalPush = router.push;
+    router.push = (href: string, options?: any) => {
+      if (handleRouteChangeStart()) {
+        return originalPush.call(router, href, options);
+      }
+      return Promise.resolve(false);
     };
 
-    history.replaceState = (...args) => {
-      handleRouteChangeStart(args[2] as string);
-      return originalReplaceState(...args);
+    // Override router.back and router.forward
+    const originalBack = router.back;
+    const originalForward = router.forward;
+
+    router.back = () => {
+      if (handleRouteChangeStart()) {
+        return originalBack.call(router);
+      }
+      return Promise.resolve(false);
     };
+
+    router.forward = () => {
+      if (handleRouteChangeStart()) {
+        return originalForward.call(router);
+      }
+      return Promise.resolve(false);
+    };
+
+    // Handle popstate (browser back/forward buttons)
+    const handlePopState = (event: PopStateEvent) => {
+      if (hasUnsavedChanges || isUploading) {
+        const message = isUploading
+          ? "Upload in progress. Navigate away?"
+          : "Unsaved changes. Navigate away?";
+
+        if (!window.confirm(message)) {
+          // Push the current state back to prevent navigation
+          window.history.pushState(null, '', window.location.href);
+          return;
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // Global click handler to catch all navigation attempts
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const link = target.closest('a[href]');
+
+      if (link) {
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('/') && href !== window.location.pathname) {
+          if (!handleRouteChangeStart()) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+          }
+        }
+      }
+    };
+
+    // Use capture phase to catch events early
+    document.addEventListener('click', handleClick, true);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      history.pushState = originalPushState;
-      history.replaceState = originalReplaceState;
+      window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('click', handleClick, true);
+      // Restore original router methods
+      router.push = originalPush;
+      router.back = originalBack;
+      router.forward = originalForward;
     };
-  }, [hasUnsavedChanges, isUploading]);
+  }, [hasUnsavedChanges, isUploading, router]);
 
   // Load draft data on component mount (prioritize localStorage, fallback to database)
   const { data: draftData } = api.admin.loadDraft.useQuery(
@@ -135,11 +188,11 @@ export default function NewClassPage() {
     onSuccess: () => {
       setIsSavingDraft(false);
       setLastSaveTime(new Date());
-      toast.success("Draft saved - Available across all your devices and in admin dashboard.");
+      toast.success("Draft saved.");
     },
     onError: () => {
       setIsSavingDraft(false);
-      toast.error("Database save failed - Your local data is still safe. Please try again to sync across devices.");
+      toast.error("Save failed. Try again.");
     },
   });
 
@@ -174,7 +227,7 @@ export default function NewClassPage() {
 
         if (restored) {
           hasRestoredRef.current = true;
-          toast.success("Draft restored from browser storage");
+          toast.success("Draft restored");
           return;
         }
       }
@@ -202,7 +255,7 @@ export default function NewClassPage() {
 
       if (restored) {
         hasRestoredRef.current = true;
-        toast.success("Draft restored from database");
+        toast.success("Draft restored");
       }
     }
   }, [hasLocalStorage, draftData, videoData, classData, chatHistory]);
@@ -261,12 +314,12 @@ export default function NewClassPage() {
 
       setStep("complete");
       setIsSubmitting(false);
-      toast.success("Class created successfully - Your pilates class has been uploaded and is now available.");
+      toast.success("Class created successfully.");
     },
     onError: (error) => {
       console.error("Error creating class:", error);
       setIsSubmitting(false);
-      toast.error("Creation failed - Failed to create the class. Please try again.");
+      toast.error("Creation failed. Try again.");
     },
   });
 
@@ -309,14 +362,13 @@ export default function NewClassPage() {
     // Check if there are unsaved changes that haven't been synced to database
     if (hasUnsavedChanges && !lastSaveTime) {
       const shouldContinue = window.confirm(
-        "You have unsaved changes that haven't been synced to the database. " +
-        "While your data is safe in your browser, syncing to the database ensures it's available across all your devices. " +
-        "Would you like to continue creating the class anyway?"
+        "Unsaved changes haven't been synced. Continue anyway?"
       );
 
       if (!shouldContinue) {
         return;
       }
+
     }
 
     setIsSubmitting(true);
@@ -347,14 +399,14 @@ export default function NewClassPage() {
           {isUploading && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-800 text-sm font-medium">
-                🚫 Video upload in progress. Please do not refresh or navigate away from this page to avoid interrupting the upload.
+                Upload in progress. Don't refresh or navigate away.
               </p>
             </div>
           )}
           {hasUnsavedChanges && !isUploading && (
             <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-amber-800 text-sm">
-                ⚠️ You have unsaved changes. Your progress is automatically saved to your browser, but consider syncing to the database for cross-device access.
+                Unsaved changes. Auto-saved locally.
               </p>
             </div>
           )}
@@ -381,7 +433,7 @@ export default function NewClassPage() {
                 2
               </div>
               <span className={`text-sm font-medium ${step === "complete" ? "text-slate-900" : "text-slate-500"}`}>
-                Review
+                Complete
               </span>
             </div>
           </div>
@@ -399,7 +451,7 @@ export default function NewClassPage() {
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold text-slate-900 mb-2">Upload Video</h2>
                   <p className="text-slate-600 leading-relaxed">
-                    Select your pilates class video file. Supported formats: MP4, MOV, AVI, MKV, WMV (max 2GB).
+                    Select your video file (MP4, MOV, AVI, MKV, WMV - max 2GB).
                   </p>
                 </div>
               </div>
@@ -420,7 +472,7 @@ export default function NewClassPage() {
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold text-slate-900 mb-2">Class Information</h2>
                   <p className="text-slate-600 leading-relaxed">
-                    Paste any information about your class. Our AI will extract and organize the details automatically.
+                    Paste class details. AI will extract and organize automatically.
                   </p>
                 </div>
               </div>
@@ -447,9 +499,9 @@ export default function NewClassPage() {
             <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-green-600" />
             </div>
-            <h2 className="text-2xl font-semibold text-slate-900 mb-3">Class Created Successfully</h2>
+            <h2 className="text-2xl font-semibold text-slate-900 mb-3">Class Created</h2>
             <p className="text-slate-600 mb-8 max-w-md mx-auto">
-              Your pilates class &quot;{classData?.title}&quot; has been uploaded and is now available in the system.
+              &quot;{classData?.title}&quot; is now available.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -459,14 +511,14 @@ export default function NewClassPage() {
                 size="lg"
                 className="px-6 py-3 border-slate-300 text-slate-700 hover:bg-slate-50"
               >
-                Upload Another Class
+                New Class
               </Button>
               <Button
                 asChild
                 size="lg"
                 className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white"
               >
-                <a href="/admin">Back to Admin</a>
+                <a href="/admin">Admin</a>
               </Button>
             </div>
           </section>

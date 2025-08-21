@@ -391,12 +391,12 @@ export function ClassDataExtractor({
 
           {/* Action Buttons */}
           <div className="flex space-x-4">
-            {extractionComplete && (
+            {/* {extractionComplete && (
               <Button variant="outline" onClick={() => setExtractionComplete(false)}>
                 <Edit3 className="w-4 h-4 mr-2" />
                 Make Changes
               </Button>
-            )}
+            )} */}
             <Button onClick={onSubmit} disabled={isSubmitting}>
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

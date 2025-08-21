@@ -14,7 +14,7 @@
     "db:push:prod": "echo 'CONFIRM: About to push to PRODUCTION database' && read -p 'Type YES to continue: ' confirm && [ \"$confirm\" = \"YES\" ] && dotenv -e .env.prod -- drizzle-kit push",
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
     "db:studio:prod": "dotenv -e .env.prod -- drizzle-kit studio",
-    "dev": "next dev --turbo",
+    "dev": "next dev",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "lint": "next lint",

@@ -19,6 +19,7 @@ import {
   notificationPreferences,
   PilatesVideos,
   classDrafts,
+  insertUserSchema,
 } from "./schema";
 import type {
   NewWorkout,
@@ -231,7 +232,7 @@ export async function insertOnboarding(data: NewOnboarding) {
   }
 }
 
-export async function insertUser(data: User) {
+export async function insertUser(data: typeof insertUserSchema.type) {
   const result = await db.insert(user).values(data);
   return result;
 }

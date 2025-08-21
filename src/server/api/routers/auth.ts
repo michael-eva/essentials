@@ -12,7 +12,13 @@ import { getUser } from "@/drizzle/src/db/queries";
 
 export const authRouter = createTRPCRouter({
   generateOtp: publicProcedure
-    .input(z.object({ email: z.string(), password: z.string(), name: z.string().min(1, 'Name is required') }))
+    .input(
+      z.object({
+        email: z.string(),
+        password: z.string(),
+        name: z.string().min(1, "Name is required"),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       try {
         const { data, error } = await ctx.supabase.auth.admin.generateLink({
