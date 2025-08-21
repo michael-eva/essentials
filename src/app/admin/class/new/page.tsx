@@ -56,6 +56,8 @@ export default function NewClassPage() {
   const [hasLocalStorage, setHasLocalStorage] = useState<boolean | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+  const hasData = !!(videoData || classData || chatHistory.length > 0);
 
   // Check localStorage availability on mount
   useEffect(() => {
@@ -376,10 +378,27 @@ export default function NewClassPage() {
   };
 
   const handleStartOver = () => {
+    // Show confirmation dialog
+
+
+    if (hasData) {
+      const confirmReset = window.confirm(
+        "Are you sure you want to reset the form? This will clear all uploaded data, form inputs, and chat history. This action cannot be undone."
+      );
+
+      if (!confirmReset) {
+        return; // User cancelled the reset
+      }
+    }
+
     // Clear localStorage
     if (hasLocalStorage === true) {
       clearLocalStorage();
     }
+
+    // TODO: Remove video from Mux if videoData exists
+    // This prevents orphaned video assets when users reset the form
+    // Need to implement: api.admin.deleteVideo.mutate({ assetId: videoData?.assetId })
 
     setStep("upload");
     setVideoData(null);
@@ -387,6 +406,9 @@ export default function NewClassPage() {
     setChatHistory([]);
     setLastSaveTime(null);
     setIsSubmitting(false);
+    setResetKey(prev => prev + 1); // Force re-render of VideoUploader
+
+    toast.success("Form reset successfully");
   };
 
   return (
@@ -396,6 +418,18 @@ export default function NewClassPage() {
         <header className="text-center mb-12">
           <h1 className="text-4xl font-light text-slate-800 mb-3">New Class</h1>
           <div className="w-16 h-1 bg-blue-500 mx-auto rounded-full" />
+
+          {/* Reset Button */}
+          {hasData && <div className="mt-4 flex justify-center">
+            <Button
+              onClick={handleStartOver}
+              size="sm"
+              className="bg-red-400"
+            >
+              Reset Form
+            </Button>
+          </div>}
+
           {isUploading && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-800 text-sm font-medium">
@@ -456,6 +490,7 @@ export default function NewClassPage() {
                 </div>
               </div>
               <VideoUploader
+                key={resetKey} // Add key to force re-render
                 onUploadComplete={handleVideoUpload}
                 onUploadStateChange={setIsUploading}
                 existingVideoData={videoData || undefined}

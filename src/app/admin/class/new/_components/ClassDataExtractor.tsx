@@ -80,6 +80,16 @@ export function ClassDataExtractor({
     setExtractionComplete(!!extractedData);
   }, [extractedData]);
 
+  // Reset chat messages when initialChatHistory changes (e.g., when form is reset)
+  useEffect(() => {
+    setChatMessages(
+      initialChatHistory.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }))
+    );
+  }, [initialChatHistory]);
+
   const extractDataMutation = api.admin.extractClassData.useMutation({
     onSuccess: (response) => {
       setIsExtracting(false);
@@ -294,7 +304,7 @@ export function ClassDataExtractor({
                   <div className="bg-white text-gray-900 shadow-sm border max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
                     <div className="flex items-center space-x-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">Analyzing your input...</span>
+                      <span className="text-sm">Thinking...</span>
                     </div>
                   </div>
                 </div>
