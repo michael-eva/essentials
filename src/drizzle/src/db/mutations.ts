@@ -17,6 +17,9 @@ import {
   notifications,
   pushSubscriptions,
   notificationPreferences,
+  PilatesVideos,
+  classDrafts,
+  insertUserSchema,
   waitlist,
 } from "./schema";
 import type {
@@ -41,6 +44,7 @@ import type {
 import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
 import { getWeeklySchedulesByPlan } from "./queries";
+import { z } from "zod";
 
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
@@ -231,7 +235,7 @@ export async function insertOnboarding(data: NewOnboarding) {
   }
 }
 
-export async function insertUser(data: User) {
+export async function insertUser(data: typeof user.$inferInsert) {
   const result = await db.insert(user).values(data);
   return result;
 }
@@ -670,6 +674,90 @@ export async function deleteNotificationPreferences(
     .where(eq(notificationPreferences.userId, userId));
 }
 
+// Pilates Video mutations
+export type NewPilatesVideo = {
+  title: string;
+  summary: string;
+  description: string;
+  difficulty: string;
+  duration: number;
+  equipment: string;
+  pilatesStyle: string;
+  classType: string;
+  focusArea: string;
+  targetedMuscles: string;
+  intensity: number;
+  modifications: boolean;
+  beginnerFriendly: boolean;
+  tags: string[];
+  exerciseSequence: string[];
+  videoUrl: string;
+  muxAssetId?: string | null;
+  mux_playback_id?: string | null;
+  instructor?: string | null;
+};
+
+export async function insertPilatesVideo(data: NewPilatesVideo) {
+  // Log the data being inserted for debugging
+  console.log("Inserting pilates video with data:", {
+    muxAssetId: data.muxAssetId,
+    mux_playback_id: data.mux_playback_id,
+    tags: data.tags,
+    exerciseSequence: data.exerciseSequence,
+  });
+
+  const result = await db.insert(PilatesVideos).values(data).returning();
+  return result[0]!;
+}
+
+// Draft operations
+export async function insertOrUpdateClassDraft(data: {
+  userId: string;
+  sessionId: string;
+  muxAssetId?: string;
+  muxPlaybackId?: string;
+  chatHistory?: Array<{
+    role: "user" | "assistant";
+    content: string;
+    timestamp: string;
+  }>;
+  extractedData?: any;
+}) {
+  const result = await db
+    .insert(classDrafts)
+    .values(data)
+    .onConflictDoUpdate({
+      target: [classDrafts.userId, classDrafts.sessionId],
+      set: {
+        muxAssetId: data.muxAssetId,
+        muxPlaybackId: data.muxPlaybackId,
+        chatHistory: data.chatHistory,
+        extractedData: data.extractedData,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+  return result[0]!;
+}
+
+export async function getClassDraft(userId: string, sessionId: string) {
+  const result = await db
+    .select()
+    .from(classDrafts)
+    .where(
+      and(eq(classDrafts.userId, userId), eq(classDrafts.sessionId, sessionId)),
+    )
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function deleteClassDraft(userId: string, sessionId: string) {
+  await db
+    .delete(classDrafts)
+    .where(
+      and(eq(classDrafts.userId, userId), eq(classDrafts.sessionId, sessionId)),
+    );
+}
 export async function insertWaitlist(data: NewWaitlist) {
   const result = await db.insert(waitlist).values(data).returning();
   return result[0]!;

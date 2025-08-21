@@ -16,6 +16,25 @@ import { formatUserContextForAI } from "./context-formatter";
 import { getPilatesClasses } from "@/drizzle/src/db/queries";
 import { nonPilates } from "@/data";
 
+/**
+ * Simple AI function for admin data extraction without user context
+ */
+export async function generateAdminAiResponse(
+  prompt: string,
+): Promise<string> {
+  const simpleModel = new ChatOpenAI({
+    model: "gpt-4o",
+    maxTokens: 2000,
+  });
+
+  const response = await simpleModel.invoke([
+    new SystemMessage("You are an AI assistant helping with administrative tasks."),
+    new HumanMessage(prompt),
+  ]);
+
+  return response.content as string;
+}
+
 const model = new ChatOpenAI({
   model: "gpt-4o",
   maxTokens: 2000,

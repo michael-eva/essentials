@@ -33,6 +33,7 @@ import {
   notificationPreferences,
   type PilatesVideosParams,
   PilatesVideosParamsSchema,
+  roleEnum,
   waitlist,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
@@ -51,6 +52,7 @@ export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
 export type NotificationPreferences = InferSelectModel<
   typeof notificationPreferences
 >;
+export type Role = (typeof roleEnum.enumValues)[number];
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -1001,6 +1003,7 @@ export async function getPilatesVideos(
       .select()
       .from(PilatesVideos)
       .where(where)
+      .orderBy(desc(PilatesVideos.createdAt))
       .limit(limit)
       .offset(offset);
   }

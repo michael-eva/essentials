@@ -1,0 +1,397 @@
+"use client";
+import React, { useState } from "react";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Edit,
+  Trash2,
+  ExternalLink,
+  Play,
+  Search,
+  Image as ImageIcon
+} from "lucide-react";
+import Image from "next/image";
+
+const PAGE_SIZE = 12;
+
+
+export default function AdminVideosPage() {
+  const router = useRouter();
+  const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+  const [selectedInstructor, setSelectedInstructor] = useState("all");
+  const [deleteVideoId, setDeleteVideoId] = useState<string | null>(null);
+  const [editVideoId, setEditVideoId] = useState<string | null>(null);
+
+  // API calls
+  const {
+    data: videosData,
+    isLoading,
+    refetch
+  } = api.admin.getVideos.useQuery({
+    page,
+    limit: PAGE_SIZE,
+    difficulty: selectedDifficulty === "all" ? undefined : selectedDifficulty,
+    instructor: selectedInstructor === "all" ? undefined : selectedInstructor,
+  });
+
+  const deleteVideoMutation = api.admin.deleteVideo.useMutation({
+    onSuccess: () => {
+      refetch();
+      setDeleteVideoId(null);
+    },
+  });
+
+  // Filter videos by search term
+  const filteredVideos = videosData?.items?.filter(video =>
+    video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    video.instructor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    video.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+  ) || [];
+
+  const handleDeleteVideo = (videoId: string) => {
+    setDeleteVideoId(videoId);
+  };
+
+  const confirmDelete = () => {
+    if (deleteVideoId) {
+      deleteVideoMutation.mutate({ id: deleteVideoId });
+    }
+  };
+
+  const handleEditVideo = (videoId: string) => {
+    setEditVideoId(videoId);
+  };
+
+  const handleViewVideo = (videoId: string) => {
+    // Navigate to the user-facing video page
+    router.push(`/dashboard/pilates-videos?video=${videoId}`);
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
+  };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(date));
+  };
+
+  // Helper function to capitalize first letter of each tag
+  const capitalizeTag = (tag: string): string => {
+    if (!tag || tag.length === 0) return tag;
+    return tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase();
+  };
+
+  // Get unique values for filters
+  const uniqueDifficulties = [...new Set(videosData?.items?.map(v => v.difficulty) || [])];
+  const uniqueInstructors = [...new Set(videosData?.items?.map(v => v.instructor).filter(Boolean) || [])];
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-lg font-medium text-gray-900 mb-6">Live Videos</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+                <CardHeader>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-20 bg-gray-200 rounded"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="bg-white shadow rounded-lg p-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">Live Videos</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {videosData?.total || 0} published videos
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin")}
+          >
+            Back to Admin Dashboard
+          </Button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search videos, instructors, or tags..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by difficulty" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Difficulties</SelectItem>
+              {uniqueDifficulties.map((difficulty) => (
+                <SelectItem key={difficulty} value={difficulty}>
+                  {difficulty}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedInstructor} onValueChange={setSelectedInstructor}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by instructor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Instructors</SelectItem>
+              {uniqueInstructors.map((instructor) => (
+                <SelectItem key={instructor} value={instructor!}>
+                  {instructor}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Videos Grid */}
+        {filteredVideos.length === 0 ? (
+          <div className="text-center py-12">
+            <Play className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No videos found</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {searchTerm || selectedDifficulty !== "all" || selectedInstructor !== "all"
+                ? "Try adjusting your search or filters."
+                : "Upload your first video to get started."
+              }
+            </p>
+            {(!searchTerm && selectedDifficulty === "all" && selectedInstructor === "all") && (
+              <div className="mt-6">
+                <Button onClick={() => router.push("/admin/class/new")}>
+                  Upload New Video
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredVideos.map((video) => (
+                <Card key={video.id} className="transition-all hover:shadow-lg overflow-hidden">
+                  {/* Video Thumbnail */}
+                  <div className="relative h-48 bg-gray-100">
+                    {video.mux_playback_id ? (
+                      <Image
+                        src={`https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=400&height=300&fit_mode=smartcrop&time=35`}
+                        alt={video.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                          <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                          <p className="text-xs text-gray-500">No thumbnail</p>
+                        </div>
+                      </div>
+                    )}
+                    {/* Play button overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black bg-opacity-20">
+                      <div className="bg-white bg-opacity-90 rounded-full p-3">
+                        <Play className="h-6 w-6 text-gray-800" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-sm font-medium truncate">
+                          {video.title}
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-1">
+                          {video.instructor} • {formatDuration(video.duration)}
+                        </CardDescription>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => handleViewVideo(video.id)}
+                          title="View on site"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => handleEditVideo(video.id)}
+                          title="Edit video"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
+                          onClick={() => handleDeleteVideo(video.id)}
+                          title="Delete video"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {video.difficulty}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {video.classType}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-600 line-clamp-2">
+                        {video.summary}
+                      </p>
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <span>Created {formatDate(video.createdAt)}</span>
+                        <span>Intensity {video.intensity}/10</span>
+                      </div>
+                      {video.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {video.tags.slice(0, 3).map((tag, index) => (
+                            <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                              {capitalizeTag(tag)}
+                            </span>
+                          ))}
+                          {video.tags.length > 3 && (
+                            <span className="text-xs text-gray-500">
+                              +{video.tags.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {videosData && videosData.total > PAGE_SIZE && (
+              <div className="flex justify-center items-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-gray-600">
+                  Page {page} of {Math.ceil(videosData.total / PAGE_SIZE)}
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={page >= Math.ceil(videosData.total / PAGE_SIZE)}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteVideoId} onOpenChange={() => setDeleteVideoId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Video</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this video? This will permanently remove the video
+              from your library and delete the associated Mux assets. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteVideoId(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteVideoMutation.isPending}
+            >
+              {deleteVideoMutation.isPending ? "Deleting..." : "Delete Video"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Video Dialog - Placeholder for now */}
+      <Dialog open={!!editVideoId} onOpenChange={() => setEditVideoId(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Video</DialogTitle>
+            <DialogDescription>
+              Video editing functionality will be implemented here.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditVideoId(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

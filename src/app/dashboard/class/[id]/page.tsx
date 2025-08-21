@@ -204,10 +204,10 @@ export default function Page({ params }: PageProps) {
     return <ClassPageSkeleton />;
   }
 
-  const parsedTags = pilatesClass?.tags ? JSON.parse(pilatesClass.tags) as string[] : [];
+  const parsedTags = pilatesClass?.tags || [];
   const equipmentList = pilatesClass?.equipment?.split(',').map(e => e.trim()) ?? [];
-  
-  const parsedExerciseSequence = pilatesClass?.exerciseSequence ? JSON.parse(pilatesClass.exerciseSequence) as string[] : [];
+
+  const parsedExerciseSequence = pilatesClass?.exerciseSequence || [];
   const targetedMuscles = pilatesClass?.targetedMuscles?.split(',').map(m => m.trim()) ?? [];
 
   const handleMarkMissed = () => {

@@ -1,6 +1,6 @@
 {
-  "id": "65cd53af-a815-4954-8d7e-07b488447284",
-  "prevId": "65920403-341b-4da8-80bd-6d45071e5991",
+  "id": "0b670d32-5e94-4c34-8b06-9cb95bf625e3",
+  "prevId": "335115c0-0ffd-4cbb-ba7d-b2d812158970",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -227,13 +227,13 @@
         },
         "tags": {
           "name": "tags",
-          "type": "text",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": true
         },
         "exercise_sequence": {
           "name": "exercise_sequence",
-          "type": "text",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": true
         },
@@ -1063,6 +1063,14 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'user'"
         }
       },
       "indexes": {},
@@ -1084,58 +1092,6 @@
           ]
         }
       },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.waitlist": {
-      "name": "waitlist",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "full_name": {
-          "name": "full_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "access_code": {
-          "name": "access_code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "has_valid_access_code": {
-          "name": "has_valid_access_code",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1602,7 +1558,8 @@
       "values": [
         "developer",
         "user",
-        "assistant"
+        "assistant",
+        "admin"
       ]
     },
     "public.workout_status": {

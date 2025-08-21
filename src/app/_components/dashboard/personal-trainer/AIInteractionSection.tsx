@@ -20,11 +20,12 @@ import { ConnectionAwareLoading } from "@/components/ui/connection-aware-loading
 import { useConnectionFeedback } from "@/hooks/useConnectionFeedback";
 import { utils } from "prettier/doc.js";
 import React from "react";
+import type { Role } from "@/drizzle/src/db/queries";
 
 type Message = {
   id: string;
   content: string;
-  role: "user" | "assistant" | "developer";
+  role: Role;
   timestamp: Date;
   toolCalls?: Array<{
     id: string;

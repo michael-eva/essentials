@@ -6,6 +6,9 @@ import { authRouter } from "./routers/auth";
 import { personalTrainerRouter } from "./routers/personal-trainer";
 import { myPtRouter } from "./routers/my-pt";
 import { notificationsRouter } from "./routers/notifications";
+import { adminRouter } from "./routers/admin";
+import { userRouter } from "./routers/user";
+import { videosRouter } from "./routers/videos";
 import { waitlistRouter } from "./routers/waitlist";
 
 /**
@@ -21,6 +24,9 @@ export const appRouter = createTRPCRouter({
   personalTrainer: personalTrainerRouter,
   myPt: myPtRouter,
   notifications: notificationsRouter,
+  admin: adminRouter,
+  user: userRouter,
+  videos: videosRouter,
   waitlist: waitlistRouter,
 });
 
