@@ -9,8 +9,7 @@ import {
   getClassDraft,
   deleteClassDraft,
 } from "@/drizzle/src/db/mutations";
-import { generateAiChatResponse } from "@/services/ai-chat";
-import { buildUserContext } from "@/services/context-manager";
+import { generateAdminAiResponse } from "@/services/ai-chat";
 
 // Import Mux SDK
 import Mux from "@mux/mux-node";
@@ -226,7 +225,7 @@ export const adminRouter = createTRPCRouter({
 
 Your job is to:
 1. Extract class information from the entire conversation and latest user input
-2. Infer as many required fields as possible from context without asking redundant questions
+2. Infer as many required fields as possible from context without asking redundant questions, but if you are not sure, ask the user for clarification.
 3. Organize data into the required schema format
 4. Be conversational and helpful
 
@@ -257,7 +256,8 @@ Guidelines:
 - If a short marketing-style blurb is present, use it to create the summary.
 - Normalize values to the required format (e.g., map ranges to a single difficulty; convert durations like "7 minutes" to 7).
 - If existing extracted data is provided, treat it as ground truth unless contradicted by newer user input.
-- When you have ALL required information, respond with "EXTRACTION_COMPLETE:" followed by only the JSON data (no markdown code fences).`;
+- When you have ALL required information, respond with "EXTRACTION_COMPLETE:" followed by only the JSON data (no markdown code fences).
+- Always make sure that you have all the required information before responding with EXTRACTION_COMPLETE.`;
 
         const existingDataText = input.existingData
           ? `\n\nExisting extracted data (may be partial): ${JSON.stringify(input.existingData)}`
@@ -265,15 +265,8 @@ Guidelines:
 
         const fullPrompt = `${systemPrompt}\n\n=== Conversation so far ===\n${chatHistoryText}\n\n=== Latest user message ===\n${input.userInput}${existingDataText}`;
 
-        // Create a user context for AI (minimal for admin tasks)
-        const userContext = await buildUserContext(ctx.userId);
-
-        // Generate AI response using existing chat system
-        const aiResponse = await generateAiChatResponse(
-          fullPrompt,
-          ctx.userId,
-          userContext,
-        );
+        // Generate AI response using simplified admin function
+        const aiResponse = await generateAdminAiResponse(fullPrompt);
 
         // Check if AI indicates extraction is complete
         let extractedData = null;
