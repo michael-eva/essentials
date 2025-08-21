@@ -33,6 +33,7 @@ import {
   notificationPreferences,
   type PilatesVideosParams,
   PilatesVideosParamsSchema,
+  roleEnum,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -50,6 +51,7 @@ export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
 export type NotificationPreferences = InferSelectModel<
   typeof notificationPreferences
 >;
+export type Role = (typeof roleEnum.enumValues)[number];
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;

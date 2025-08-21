@@ -42,6 +42,7 @@ import type {
 import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
 import { getWeeklySchedulesByPlan } from "./queries";
+import { z } from "zod";
 
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
@@ -232,7 +233,7 @@ export async function insertOnboarding(data: NewOnboarding) {
   }
 }
 
-export async function insertUser(data: typeof insertUserSchema.type) {
+export async function insertUser(data: typeof user.$inferInsert) {
   const result = await db.insert(user).values(data);
   return result;
 }

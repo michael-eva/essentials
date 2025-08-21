@@ -75,7 +75,7 @@ export default function NewClassPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges || isUploading) {
         const message = isUploading
-          ? "Upload in progress. Don't leave this page."
+          ? "Upload in progress. Don&apos;t leave this page."
           : "Unsaved changes will be lost.";
 
         e.preventDefault();
@@ -102,31 +102,31 @@ export default function NewClassPage() {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     // Override router.push to add navigation guard
-    const originalPush = router.push;
-    router.push = (href: string, options?: any) => {
+    const originalPush = router.push.bind(router);
+    router.push = ((href: string, options?: Parameters<typeof router.push>[1]) => {
       if (handleRouteChangeStart()) {
-        return originalPush.call(router, href, options);
+        return originalPush(href, options);
       }
       return Promise.resolve(false);
-    };
+    }) as typeof router.push;
 
     // Override router.back and router.forward
-    const originalBack = router.back;
-    const originalForward = router.forward;
+    const originalBack = router.back.bind(router);
+    const originalForward = router.forward.bind(router);
 
-    router.back = () => {
+    router.back = (() => {
       if (handleRouteChangeStart()) {
-        return originalBack.call(router);
+        return originalBack();
       }
       return Promise.resolve(false);
-    };
+    }) as typeof router.back;
 
-    router.forward = () => {
+    router.forward = (() => {
       if (handleRouteChangeStart()) {
-        return originalForward.call(router);
+        return originalForward();
       }
       return Promise.resolve(false);
-    };
+    }) as typeof router.forward;
 
     // Handle popstate (browser back/forward buttons)
     const handlePopState = (event: PopStateEvent) => {
@@ -364,7 +364,7 @@ export default function NewClassPage() {
     // Check if there are unsaved changes that haven't been synced to database
     if (hasUnsavedChanges && !lastSaveTime) {
       const shouldContinue = window.confirm(
-        "Unsaved changes haven't been synced. Continue anyway?"
+        "Unsaved changes haven&apos;t been synced. Continue anyway?"
       );
 
       if (!shouldContinue) {
@@ -433,7 +433,7 @@ export default function NewClassPage() {
           {isUploading && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-800 text-sm font-medium">
-                Upload in progress. Don't refresh or navigate away.
+                Upload in progress. Don&apos;t refresh or navigate away.
               </p>
             </div>
           )}
