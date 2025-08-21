@@ -1,3 +1,4 @@
+///<reference types="jest" />
 // Global test setup for Jest
 // @ts-ignore
 jest.setTimeout(60000);

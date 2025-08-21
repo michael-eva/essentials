@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 
 // List of public routes that don't require authentication
-const publicRoutes = ['/auth', '/api/trpc', '/terms-of-service', '/privacy-policy'];
+const publicRoutes = ['/', '/auth', '/api/trpc', '/terms-of-service', '/privacy-policy'];
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
-        router.push('/auth');
+        router.push('/');
       }
     });
 

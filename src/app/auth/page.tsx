@@ -4,10 +4,19 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+const ACCESS_CODE_STORAGE_KEY = "essentials_access_code_validated";
+
 export default function AuthPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Check if user has valid access code
+    const storedValidation = localStorage.getItem(ACCESS_CODE_STORAGE_KEY);
+    if (storedValidation !== "true") {
+      // Redirect to root if no valid access code
+      router.push('/');
+      return;
+    }
     // Prevent scrolling on this page
     const originalOverflow = document.body.style.overflow;
     const originalPosition = document.body.style.position;

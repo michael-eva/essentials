@@ -20,6 +20,7 @@ import {
   PilatesVideos,
   classDrafts,
   insertUserSchema,
+  waitlist,
 } from "./schema";
 import type {
   NewWorkout,
@@ -38,6 +39,7 @@ import type {
   Notification,
   PushSubscription,
   NotificationPreferences,
+  NewWaitlist,
 } from "./queries";
 import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
@@ -755,4 +757,8 @@ export async function deleteClassDraft(userId: string, sessionId: string) {
     .where(
       and(eq(classDrafts.userId, userId), eq(classDrafts.sessionId, sessionId)),
     );
+}
+export async function insertWaitlist(data: NewWaitlist) {
+  const result = await db.insert(waitlist).values(data).returning();
+  return result[0]!;
 }

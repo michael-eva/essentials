@@ -1,6 +1,5 @@
-'use client'
-import { redirect } from "next/navigation"
+import WaitlistForm from "@/app/_components/waitlist/WaitlistForm";
 
-export default function page() {
-  redirect("/dashboard/overview")
+export default function HomePage() {
+  return <WaitlistForm />;
 }
