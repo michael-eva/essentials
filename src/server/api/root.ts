@@ -8,6 +8,7 @@ import { myPtRouter } from "./routers/my-pt";
 import { notificationsRouter } from "./routers/notifications";
 import { adminRouter } from "./routers/admin";
 import { userRouter } from "./routers/user";
+import { videosRouter } from "./routers/videos";
 
 /**
  * This is the primary router for your server.
@@ -24,6 +25,7 @@ export const appRouter = createTRPCRouter({
   notifications: notificationsRouter,
   admin: adminRouter,
   user: userRouter,
+  videos: videosRouter,
 });
 
 // export type definition of API

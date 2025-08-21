@@ -9,9 +9,13 @@ import {
   getClassDraft,
   deleteClassDraft,
 } from "@/drizzle/src/db/mutations";
+import {
+  getPilatesVideos,
+  getPilatesVideoById,
+} from "@/drizzle/src/db/queries";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { sql, count, desc } from "drizzle-orm";
+import { sql, count, desc, eq } from "drizzle-orm";
 import { classDrafts } from "@/drizzle/src/db/schema";
 import { generateAdminAiResponse } from "@/services/ai-chat";
 
@@ -456,8 +460,82 @@ Guidelines:
     }),
 
   // Get video statistics for admin dashboard
-  getVideoStats: protectedProcedure
-    .query(async ({ ctx }) => {
+  getVideoStats: protectedProcedure.query(async ({ ctx }) => {
+    // Check if user has admin privileges
+    if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Admin privileges required",
+      });
+    }
+
+    try {
+      const client = postgres(process.env.DATABASE_URL!);
+      const db = drizzle(client);
+
+      const [liveVideosResult, draftVideosResult] = await Promise.all([
+        db.select({ count: count() }).from(PilatesVideos),
+        db.select({ count: count() }).from(classDrafts),
+      ]);
+
+      return {
+        liveVideos: liveVideosResult[0]?.count ?? 0,
+        draftVideos: draftVideosResult[0]?.count ?? 0,
+      };
+    } catch (error) {
+      console.error("Error getting video stats:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to get video statistics",
+      });
+    }
+  }),
+
+  // Get all draft videos for admin management
+  getAllDrafts: protectedProcedure.query(async ({ ctx }) => {
+    // Check if user has admin privileges
+    if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Admin privileges required",
+      });
+    }
+
+    try {
+      const client = postgres(process.env.DATABASE_URL!);
+      const db = drizzle(client);
+
+      const drafts = await db
+        .select()
+        .from(classDrafts)
+        .orderBy(desc(classDrafts.updatedAt));
+
+      return drafts;
+    } catch (error) {
+      console.error("Error getting all drafts:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to get draft videos",
+      });
+    }
+  }),
+
+  // Get all published videos for admin management
+  getVideos: protectedProcedure
+    .input(
+      z
+        .object({
+          page: z.number().min(1).default(1),
+          limit: z.number().min(1).max(50).default(10),
+          difficulty: z.string().optional(),
+          equipment: z.string().optional(),
+          instructor: z.string().optional(),
+          minDuration: z.number().optional(),
+          maxDuration: z.number().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
       // Check if user has admin privileges
       if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
         throw new TRPCError({
@@ -467,30 +545,60 @@ Guidelines:
       }
 
       try {
-        const client = postgres(process.env.DATABASE_URL!);
-        const db = drizzle(client);
+        const page = input?.page ?? 1;
+        const limit = input?.limit ?? 10;
+        const offset = (page - 1) * limit;
 
-        const [liveVideosResult, draftVideosResult] = await Promise.all([
-          db.select({ count: count() }).from(PilatesVideos),
-          db.select({ count: count() }).from(classDrafts),
-        ]);
-
-        return {
-          liveVideos: liveVideosResult[0]?.count ?? 0,
-          draftVideos: draftVideosResult[0]?.count ?? 0,
-        };
+        return await getPilatesVideos({
+          ...input,
+          limit,
+          offset,
+        });
       } catch (error) {
-        console.error("Error getting video stats:", error);
+        console.error("Error getting videos for admin:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to get video statistics",
+          message: "Failed to get videos",
         });
       }
     }),
 
-  // Get all draft videos for admin management
-  getAllDrafts: protectedProcedure
-    .query(async ({ ctx }) => {
+  // Update video metadata
+  updateVideo: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        title: z.string().min(1, "Title is required").optional(),
+        summary: z.string().min(1, "Summary is required").optional(),
+        description: z.string().min(1, "Description is required").optional(),
+        difficulty: z.string().min(1, "Difficulty is required").optional(),
+        duration: z
+          .number()
+          .int()
+          .positive("Duration must be a positive number")
+          .optional(),
+        equipment: z.string().min(1, "Equipment is required").optional(),
+        pilatesStyle: z.string().min(1, "Pilates style is required").optional(),
+        classType: z.string().min(1, "Class type is required").optional(),
+        focusArea: z.string().min(1, "Focus area is required").optional(),
+        targetedMuscles: z
+          .string()
+          .min(1, "Targeted muscles is required")
+          .optional(),
+        intensity: z
+          .number()
+          .int()
+          .min(1)
+          .max(10, "Intensity must be between 1-10")
+          .optional(),
+        modifications: z.boolean().optional(),
+        beginnerFriendly: z.boolean().optional(),
+        tags: z.array(z.string()).optional(),
+        exerciseSequence: z.array(z.string()).optional(),
+        instructor: z.string().min(1, "Instructor is required").optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
       if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
         throw new TRPCError({
@@ -503,17 +611,108 @@ Guidelines:
         const client = postgres(process.env.DATABASE_URL!);
         const db = drizzle(client);
 
-        const drafts = await db
-          .select()
-          .from(classDrafts)
-          .orderBy(desc(classDrafts.updatedAt));
+        // First check if video exists
+        const existingVideo = await getPilatesVideoById(input.id);
+        if (!existingVideo) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Video not found",
+          });
+        }
 
-        return drafts;
+        // Filter out undefined values
+        const updateData = Object.fromEntries(
+          Object.entries(input).filter(([_, value]) => value !== undefined),
+        );
+        delete updateData.id; // Remove id from update data
+
+        if (Object.keys(updateData).length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "No update data provided",
+          });
+        }
+
+        const result = await db
+          .update(PilatesVideos)
+          .set({
+            ...updateData,
+            updatedAt: sql`now()`,
+          })
+          .where(eq(PilatesVideos.id, input.id))
+          .returning();
+
+        return result[0];
       } catch (error) {
-        console.error("Error getting all drafts:", error);
+        console.error("Error updating video:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to get draft videos",
+          message: "Failed to update video",
+        });
+      }
+    }),
+
+  // Delete video
+  deleteVideo: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if user has admin privileges
+      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const client = postgres(process.env.DATABASE_URL!);
+        const db = drizzle(client);
+
+        // First get the video to check Mux asset ID
+        const video = await getPilatesVideoById(input.id);
+        if (!video) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Video not found",
+          });
+        }
+
+        // Delete from Mux if asset exists
+        if (video.muxAssetId) {
+          try {
+            await mux.video.assets.delete(video.muxAssetId);
+            console.log("Deleted Mux asset:", video.muxAssetId);
+          } catch (muxError) {
+            console.warn("Failed to delete Mux asset:", muxError);
+            // Continue with database deletion even if Mux deletion fails
+          }
+        }
+
+        // Delete from database
+        const result = await db
+          .delete(PilatesVideos)
+          .where(eq(PilatesVideos.id, input.id))
+          .returning();
+
+        if (result.length === 0) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Video not found",
+          });
+        }
+
+        return { success: true, deletedVideo: result[0] };
+      } catch (error) {
+        console.error("Error deleting video:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete video",
         });
       }
     }),

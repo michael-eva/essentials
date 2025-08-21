@@ -9,7 +9,7 @@ export default function AdminPage() {
   const { data: videoStats, isLoading } = api.admin.getVideoStats.useQuery();
 
   const handleNavigateToLiveVideos = () => {
-    router.push("/dashboard/pilates-videos");
+    router.push("/admin/videos");
   };
 
   const handleNavigateToDrafts = () => {
@@ -20,7 +20,7 @@ export default function AdminPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-medium text-gray-900 mb-6">Admin Dashboard</h2>
-        
+
         {/* Upload Section */}
         <div className="mb-8">
           <h3 className="text-md font-medium text-gray-800 mb-4">Content Management</h3>
@@ -62,7 +62,7 @@ export default function AdminPage() {
               </CardContent>
               <CardFooter>
                 <Button variant="outline" className="w-full" onClick={handleNavigateToLiveVideos}>
-                  View All Live Videos
+                  Manage Live Videos
                 </Button>
               </CardFooter>
             </Card>

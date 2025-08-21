@@ -33,7 +33,7 @@ type ClassDraft = {
 export default function AdminDraftsPage() {
   const router = useRouter();
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
-  
+
   // For now, we'll need to add a query to get all drafts
   // This would require adding a new endpoint to the admin router
   const { data: drafts, isLoading, refetch } = api.admin.getAllDrafts.useQuery();
@@ -126,7 +126,7 @@ export default function AdminDraftsPage() {
             <Video className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No drafts</h3>
             <p className="mt-1 text-sm text-gray-500">
-              You don't have any draft videos yet. Start by uploading a new class.
+              You don&apos;t have any draft videos yet. Start by uploading a new class.
             </p>
             <div className="mt-6">
               <Button onClick={() => router.push("/admin/class/new")}>

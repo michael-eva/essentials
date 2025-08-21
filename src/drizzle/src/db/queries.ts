@@ -1001,6 +1001,7 @@ export async function getPilatesVideos(
       .select()
       .from(PilatesVideos)
       .where(where)
+      .orderBy(desc(PilatesVideos.createdAt))
       .limit(limit)
       .offset(offset);
   }
