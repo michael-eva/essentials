@@ -63,12 +63,17 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   const {
     data: { session },
   } = await supabase.auth.getSession();
-
+  const { data: userData } = await supabase
+    .from("user")
+    .select("role")
+    .eq("id", session?.user?.id)
+    .single();
   return {
     ...opts,
     supabase,
     session,
     userId: session?.user?.id,
+    userRole: userData?.role,
   };
 };
 
@@ -152,6 +157,7 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 /**
  * Protected (authenticated) procedure
  */
+
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(async ({ ctx, next }) => {
