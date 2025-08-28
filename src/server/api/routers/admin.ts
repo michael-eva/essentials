@@ -537,7 +537,7 @@ Guidelines:
     )
     .query(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
@@ -660,7 +660,7 @@ Guidelines:
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
