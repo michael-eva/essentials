@@ -57,6 +57,7 @@ export default function NewClassPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [resetKey, setResetKey] = useState(0);
+  const [videoUploadStatus, setVideoUploadStatus] = useState<"idle" | "uploading" | "processing" | "complete" | "error">("idle");
   const hasData = !!(videoData || classData || chatHistory.length > 0);
 
   // Check localStorage availability on mount
@@ -216,6 +217,7 @@ export default function NewClassPage() {
 
         if (localData.videoData && !videoData) {
           setVideoData(localData.videoData);
+          setVideoUploadStatus("complete"); // Video was previously uploaded and ready
           restored = true;
         }
         if (localData.classData && !classData) {
@@ -244,6 +246,7 @@ export default function NewClassPage() {
           assetId: draftData.muxAssetId || '',
           playbackId: draftData.muxPlaybackId || undefined,
         });
+        setVideoUploadStatus("complete"); // Video was previously uploaded and ready
         restored = true;
       }
       if (draftData.extractedData && !classData) {
@@ -329,6 +332,19 @@ export default function NewClassPage() {
     setVideoData(uploadData);
   };
 
+  const handleVideoStatusChange = (status: "idle" | "uploading" | "processing" | "complete" | "error") => {
+    setVideoUploadStatus(status);
+    // Update existing video data state based on status
+    if (status === "complete" && videoData) {
+      // Video is ready for database insertion
+    } else if (status === "idle" || status === "error") {
+      // Reset video data if upload failed or was reset
+      if (status === "error") {
+        setVideoData(null);
+      }
+    }
+  };
+
   const handleDataExtracted = (extractedData: ClassData) => {
     const newData = {
       ...extractedData,
@@ -406,6 +422,7 @@ export default function NewClassPage() {
     setChatHistory([]);
     setLastSaveTime(null);
     setIsSubmitting(false);
+    setVideoUploadStatus("idle");
     setResetKey(prev => prev + 1); // Force re-render of VideoUploader
 
     toast.success("Form reset successfully");
@@ -493,6 +510,7 @@ export default function NewClassPage() {
                 key={resetKey} // Add key to force re-render
                 onUploadComplete={handleVideoUpload}
                 onUploadStateChange={setIsUploading}
+                onUploadStatusChange={handleVideoStatusChange}
                 existingVideoData={videoData || undefined}
                 sessionId={sessionId}
               />
@@ -522,6 +540,7 @@ export default function NewClassPage() {
                 isSavingDraft={isSavingDraft}
                 videoData={videoData}
                 lastSaveTime={lastSaveTime}
+                videoUploadStatus={videoUploadStatus}
               />
             </section>
 

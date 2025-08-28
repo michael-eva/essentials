@@ -88,6 +88,7 @@ interface ClassDataExtractorProps {
   isSavingDraft?: boolean;
   videoData?: any;
   lastSaveTime?: Date | null;
+  videoUploadStatus?: "idle" | "uploading" | "processing" | "complete" | "error";
 }
 
 interface ChatMessage {
@@ -106,7 +107,8 @@ export function ClassDataExtractor({
   onSaveDraft,
   isSavingDraft = false,
   videoData,
-  lastSaveTime
+  lastSaveTime,
+  videoUploadStatus = "idle"
 }: ClassDataExtractorProps) {
   const [userInput, setUserInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() =>
@@ -553,13 +555,23 @@ export function ClassDataExtractor({
                 Make Changes
               </Button>
             )} */}
-            <Button onClick={onSubmit} disabled={isSubmitting}>
+            <Button 
+              onClick={onSubmit} 
+              disabled={isSubmitting || videoUploadStatus !== "complete"}
+            >
               {isSubmitting ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : videoUploadStatus === "uploading" || videoUploadStatus === "processing" ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
                 <CheckCircle className="w-4 h-4 mr-2" />
               )}
-              Create Pilates Class
+              {isSubmitting ? "Creating..." : 
+               videoUploadStatus === "uploading" ? "Video Uploading..." :
+               videoUploadStatus === "processing" ? "Processing Video..." :
+               videoUploadStatus === "error" ? "Video Upload Failed" :
+               videoUploadStatus === "idle" ? "Upload Video First" :
+               "Create Pilates Class"}
             </Button>
           </div>
         </div>

@@ -11,11 +11,12 @@ import { saveVideoToLocalStorage, getFromLocalStorage } from "../_utils/localSto
 interface VideoUploaderProps {
   onUploadComplete: (data: { playbackId?: string; assetId: string }) => void;
   onUploadStateChange?: (isUploading: boolean) => void;
+  onUploadStatusChange?: (status: "idle" | "uploading" | "processing" | "complete" | "error") => void;
   existingVideoData?: { playbackId?: string; assetId: string };
   sessionId: string;
 }
 
-export function VideoUploader({ onUploadComplete, onUploadStateChange, existingVideoData, sessionId }: VideoUploaderProps) {
+export function VideoUploader({ onUploadComplete, onUploadStateChange, onUploadStatusChange, existingVideoData, sessionId }: VideoUploaderProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "processing" | "complete" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -28,7 +29,10 @@ export function VideoUploader({ onUploadComplete, onUploadStateChange, existingV
     if (onUploadStateChange) {
       onUploadStateChange(uploadStatus === "uploading" || uploadStatus === "processing");
     }
-  }, [uploadStatus, onUploadStateChange]);
+    if (onUploadStatusChange) {
+      onUploadStatusChange(uploadStatus);
+    }
+  }, [uploadStatus, onUploadStateChange, onUploadStatusChange]);
 
   // Restore existing video data on mount (prioritize props, then localStorage)
   useEffect(() => {
