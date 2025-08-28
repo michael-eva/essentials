@@ -7,7 +7,50 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MessageSquare, Send, Edit3, CheckCircle, AlertCircle, Save, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Loader2, MessageSquare, Send, Edit3, CheckCircle, AlertCircle, Save, Clock, Edit } from "lucide-react";
+
+// Form schema for class data editing
+const editClassDataSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  summary: z.string().min(1, "Summary is required"),
+  description: z.string().min(1, "Description is required"),
+  difficulty: z.string().min(1, "Difficulty is required"),
+  duration: z.number().int().positive("Duration must be a positive number"),
+  equipment: z.string().min(1, "Equipment is required"),
+  pilatesStyle: z.string().min(1, "Pilates style is required"),
+  classType: z.string().min(1, "Class type is required"),
+  focusArea: z.string().min(1, "Focus area is required"),
+  targetedMuscles: z.string().min(1, "Targeted muscles is required"),
+  intensity: z.number().int().min(1).max(10, "Intensity must be between 1-10"),
+  modifications: z.boolean(),
+  beginnerFriendly: z.boolean(),
+  tags: z.string().min(1, "Tags are required"),
+  exerciseSequence: z.string().min(1, "Exercise sequence is required"),
+  instructor: z.string().min(1, "Instructor is required"),
+});
+
+type EditClassDataForm = z.infer<typeof editClassDataSchema>;
 
 interface ClassData {
   title: string;
@@ -74,6 +117,30 @@ export function ClassDataExtractor({
   );
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionComplete, setExtractionComplete] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
+  // Form setup for editing
+  const form = useForm<EditClassDataForm>({
+    resolver: zodResolver(editClassDataSchema),
+    defaultValues: {
+      title: "",
+      summary: "",
+      description: "",
+      difficulty: "",
+      duration: 0,
+      equipment: "",
+      pilatesStyle: "",
+      classType: "",
+      focusArea: "",
+      targetedMuscles: "",
+      intensity: 1,
+      modifications: true,
+      beginnerFriendly: true,
+      tags: "",
+      exerciseSequence: "",
+      instructor: "",
+    },
+  });
 
   // Update extractionComplete when extractedData changes
   useEffect(() => {
@@ -161,19 +228,90 @@ export function ClassDataExtractor({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const handleEditData = () => {
+    if (!extractedData) return;
+
+    // Populate form with existing data
+    form.reset({
+      title: extractedData.title,
+      summary: extractedData.summary,
+      description: extractedData.description,
+      difficulty: extractedData.difficulty,
+      duration: extractedData.duration,
+      equipment: extractedData.equipment,
+      pilatesStyle: extractedData.pilatesStyle,
+      classType: extractedData.classType,
+      focusArea: extractedData.focusArea,
+      targetedMuscles: extractedData.targetedMuscles,
+      intensity: extractedData.intensity,
+      modifications: extractedData.modifications,
+      beginnerFriendly: extractedData.beginnerFriendly,
+      tags: extractedData.tags.join(", "),
+      exerciseSequence: extractedData.exerciseSequence.join(", "),
+      instructor: extractedData.instructor,
+    });
+
+    setShowEditDialog(true);
+  };
+
+  const handleSaveEdit = (data: EditClassDataForm) => {
+    // Convert form data back to ClassData format
+    const updatedData: ClassData = {
+      ...extractedData!,
+      title: data.title,
+      summary: data.summary,
+      description: data.description,
+      difficulty: data.difficulty,
+      duration: data.duration,
+      equipment: data.equipment,
+      pilatesStyle: data.pilatesStyle,
+      classType: data.classType,
+      focusArea: data.focusArea,
+      targetedMuscles: data.targetedMuscles,
+      intensity: data.intensity,
+      modifications: data.modifications,
+      beginnerFriendly: data.beginnerFriendly,
+      tags: data.tags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0),
+      exerciseSequence: data.exerciseSequence.split(",").map(ex => ex.trim()).filter(ex => ex.length > 0),
+      instructor: data.instructor,
+    };
+
+    // Update the parent component with new data
+    onDataExtracted(updatedData);
+    setShowEditDialog(false);
+  };
+
+  const handleCloseEditDialog = () => {
+    setShowEditDialog(false);
+    form.reset();
+  };
+
   const renderDataPreview = () => {
     if (!extractedData) return null;
 
     return (
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <span>Extracted Class Data</span>
-          </CardTitle>
-          <CardDescription>
-            Review the extracted information before creating the class.
-          </CardDescription>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="flex items-center space-x-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span>Extracted Class Data</span>
+              </CardTitle>
+              <CardDescription>
+                Review the extracted information before creating the class.
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEditData}
+              className="flex items-center space-x-2"
+            >
+              <Edit className="w-4 h-4" />
+              <span>Edit</span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -367,7 +505,7 @@ export function ClassDataExtractor({
       {extractedData && (
         <div className="flex justify-between items-center">
           {/* Save Draft Button */}
-          <div className="flex flex-col items-start">
+          <div className="flex gap-2 items-start">
             <Button
               onClick={onSaveDraft}
               variant="outline"
@@ -385,6 +523,14 @@ export function ClassDataExtractor({
                   <span>Save to Drafts</span>
                 </>
               )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleEditData}
+              className="flex items-center space-x-2"
+            >
+              <Edit className="w-4 h-4" />
+              <span>Edit</span>
             </Button>
             {lastSaveTime && !isSavingDraft && (
               <div className="flex items-center space-x-1 text-xs text-gray-500 mt-1">
@@ -418,6 +564,250 @@ export function ClassDataExtractor({
           </div>
         </div>
       )}
+
+      {/* Edit Class Data Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={handleCloseEditDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Class Data</DialogTitle>
+            <DialogDescription>
+              Update the class information below. All fields are required.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={form.handleSubmit(handleSaveEdit)} className="space-y-6">
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  {...form.register("title")}
+                  placeholder="Enter class title"
+                />
+                {form.formState.errors.title && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.title.message}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="instructor">Instructor *</Label>
+                <Input
+                  id="instructor"
+                  {...form.register("instructor")}
+                  placeholder="Enter instructor name"
+                />
+                {form.formState.errors.instructor && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.instructor.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div>
+              <Label htmlFor="summary">Summary *</Label>
+              <Textarea
+                id="summary"
+                {...form.register("summary")}
+                placeholder="Brief summary of the class"
+                rows={2}
+              />
+              {form.formState.errors.summary && (
+                <p className="text-sm text-red-600 mt-1">{form.formState.errors.summary.message}</p>
+              )}
+            </div>
+
+            {/* Description */}
+            <div>
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                {...form.register("description")}
+                placeholder="Detailed description of the class"
+                rows={4}
+              />
+              {form.formState.errors.description && (
+                <p className="text-sm text-red-600 mt-1">{form.formState.errors.description.message}</p>
+              )}
+            </div>
+
+            {/* Class Details */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="difficulty">Difficulty *</Label>
+                <Select value={form.watch("difficulty")} onValueChange={(value) => form.setValue("difficulty", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Beginner">Beginner</SelectItem>
+                    <SelectItem value="Intermediate">Intermediate</SelectItem>
+                    <SelectItem value="Advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.difficulty && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.difficulty.message}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="duration">Duration (minutes) *</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  {...form.register("duration", { valueAsNumber: true })}
+                  placeholder="e.g., 45"
+                />
+                {form.formState.errors.duration && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.duration.message}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="intensity">Intensity (1-10) *</Label>
+                <Input
+                  id="intensity"
+                  type="number"
+                  min="1"
+                  max="10"
+                  {...form.register("intensity", { valueAsNumber: true })}
+                  placeholder="e.g., 7"
+                />
+                {form.formState.errors.intensity && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.intensity.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="pilatesStyle">Pilates Style *</Label>
+                <Input
+                  id="pilatesStyle"
+                  {...form.register("pilatesStyle")}
+                  placeholder="e.g., Classical, Contemporary"
+                />
+                {form.formState.errors.pilatesStyle && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.pilatesStyle.message}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="classType">Class Type *</Label>
+                <Input
+                  id="classType"
+                  {...form.register("classType")}
+                  placeholder="e.g., Core Focus, Full Body"
+                />
+                {form.formState.errors.classType && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.classType.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="focusArea">Focus Area *</Label>
+                <Input
+                  id="focusArea"
+                  {...form.register("focusArea")}
+                  placeholder="e.g., Core, Full Body, Lower Body"
+                />
+                {form.formState.errors.focusArea && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.focusArea.message}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="targetedMuscles">Targeted Muscles *</Label>
+                <Input
+                  id="targetedMuscles"
+                  {...form.register("targetedMuscles")}
+                  placeholder="e.g., Core, Glutes, Back"
+                />
+                {form.formState.errors.targetedMuscles && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.targetedMuscles.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Equipment */}
+            <div>
+              <Label htmlFor="equipment">Equipment *</Label>
+              <Input
+                id="equipment"
+                {...form.register("equipment")}
+                placeholder="e.g., Mat, Mat and small ball, No equipment"
+              />
+              {form.formState.errors.equipment && (
+                <p className="text-sm text-red-600 mt-1">{form.formState.errors.equipment.message}</p>
+              )}
+            </div>
+
+            {/* Tags and Exercise Sequence */}
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="tags">Tags * (comma-separated)</Label>
+                <Input
+                  id="tags"
+                  {...form.register("tags")}
+                  placeholder="e.g., beginner, core, flexibility"
+                />
+                {form.formState.errors.tags && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.tags.message}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="exerciseSequence">Exercise Sequence * (comma-separated)</Label>
+                <Textarea
+                  id="exerciseSequence"
+                  {...form.register("exerciseSequence")}
+                  placeholder="e.g., Warm-up, Plank series, Cool down"
+                  rows={3}
+                />
+                {form.formState.errors.exerciseSequence && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.exerciseSequence.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Checkboxes */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="modifications"
+                  checked={form.watch("modifications")}
+                  onCheckedChange={(checked) => form.setValue("modifications", checked === true)}
+                />
+                <Label htmlFor="modifications">Includes modifications</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="beginnerFriendly"
+                  checked={form.watch("beginnerFriendly")}
+                  onCheckedChange={(checked) => form.setValue("beginnerFriendly", checked === true)}
+                />
+                <Label htmlFor="beginnerFriendly">Beginner friendly</Label>
+              </div>
+            </div>
+          </form>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseEditDialog}>
+              Cancel
+            </Button>
+            <Button
+              onClick={form.handleSubmit(handleSaveEdit)}
+              disabled={!form.formState.isDirty}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

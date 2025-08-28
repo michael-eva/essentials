@@ -253,7 +253,7 @@ REQUIRED FIELDS for pilates class (must be present in the final JSON):
 - beginnerFriendly (boolean): Suitable for beginners
 - tags (array): Array of tags for searchability
 - exerciseSequence (array): Array of exercises in order
-- instructor (string): Instructor name
+- instructor (string): REQUIRED - Instructor name (cannot be empty or null)
 
 OPTIONAL CONTEXT (do not block completion if missing; include in description or tags if present):
 - Pre/Postnatal suitability notes
@@ -264,8 +264,10 @@ Guidelines:
 - If a short marketing-style blurb is present, use it to create the summary.
 - Normalize values to the required format (e.g., map ranges to a single difficulty; convert durations like "7 minutes" to 7).
 - If existing extracted data is provided, treat it as ground truth unless contradicted by newer user input.
+- The instructor field MUST have a value - if not provided, ask for it or use a default like "Unknown Instructor" as a last resort.
 - When you have ALL required information, respond with "EXTRACTION_COMPLETE:" followed by only the JSON data (no markdown code fences).
-- Always make sure that you have all the required information before responding with EXTRACTION_COMPLETE.`;
+- Always make sure that you have all the required information before responding with EXTRACTION_COMPLETE.
+- Never output empty strings or null values for required fields.`;
 
         const existingDataText = input.existingData
           ? `\n\nExisting extracted data (may be partial): ${JSON.stringify(input.existingData)}`
@@ -284,10 +286,24 @@ Guidelines:
             const jsonMatch = regex.exec(aiResponse);
             if (jsonMatch?.[1]) {
               const rawData = JSON.parse(jsonMatch[1]);
+              console.log("Raw extracted data before validation:", JSON.stringify(rawData, null, 2));
+              
+              // Check for critical required fields before validation
+              const requiredFields = ['title', 'summary', 'description', 'difficulty', 'duration', 'equipment', 'pilatesStyle', 'classType', 'focusArea', 'targetedMuscles', 'intensity', 'modifications', 'beginnerFriendly', 'tags', 'exerciseSequence', 'instructor'];
+              const missingFields = requiredFields.filter(field => !rawData[field] || (typeof rawData[field] === 'string' && rawData[field].trim() === '') || (Array.isArray(rawData[field]) && rawData[field].length === 0));
+              
+              if (missingFields.length > 0) {
+                console.error("Missing or empty required fields:", missingFields);
+                throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+              }
+              
               extractedData = ClassDataSchema.parse(rawData);
             }
           } catch (error) {
             console.error("Error parsing extracted data:", error);
+            if (error instanceof z.ZodError) {
+              console.error("Validation errors:", error.issues);
+            }
           }
         }
 
