@@ -231,7 +231,7 @@ export function ClassDataExtractor({
   const handleEditClass = () => {
     if (extractedData) {
       setIsEditDialogOpen(true);
-      
+
       // Reset form with extracted data
       form.reset({
         title: extractedData.title,
@@ -524,6 +524,15 @@ export function ClassDataExtractor({
             )}
           </div>
 
+          {/* Video Data Warning */}
+          {(!videoData?.assetId || !videoData?.playbackId) && (
+            <div className="mb-4">
+              <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                ⚠️ Please upload a video first to create the class
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex space-x-4">
             {/* {extractionComplete && (
@@ -532,7 +541,11 @@ export function ClassDataExtractor({
                 Make Changes
               </Button>
             )} */}
-            <Button onClick={onSubmit} disabled={isSubmitting}>
+            <Button
+              onClick={onSubmit}
+              disabled={isSubmitting || !videoData?.assetId || !videoData?.playbackId}
+              title={!videoData?.assetId || !videoData?.playbackId ? "Please upload a video first" : undefined}
+            >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
@@ -553,7 +566,7 @@ export function ClassDataExtractor({
               Update the class information below. All fields are required.
             </DialogDescription>
           </DialogHeader>
-          
+
           <form onSubmit={form.handleSubmit(onSubmitEdit)} className="space-y-6">
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -568,7 +581,7 @@ export function ClassDataExtractor({
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.title.message}</p>
                 )}
               </div>
-              
+
               <div>
                 <Label htmlFor="instructor">Instructor *</Label>
                 <Input
@@ -628,7 +641,7 @@ export function ClassDataExtractor({
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.difficulty.message}</p>
                 )}
               </div>
-              
+
               <div>
                 <Label htmlFor="duration">Duration (minutes) *</Label>
                 <Input
@@ -641,7 +654,7 @@ export function ClassDataExtractor({
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.duration.message}</p>
                 )}
               </div>
-              
+
               <div>
                 <Label htmlFor="intensity">Intensity (1-10) *</Label>
                 <Input
@@ -671,7 +684,7 @@ export function ClassDataExtractor({
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.pilatesStyle.message}</p>
                 )}
               </div>
-              
+
               <div>
                 <Label htmlFor="classType">Class Type *</Label>
                 <Input
@@ -697,7 +710,7 @@ export function ClassDataExtractor({
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.focusArea.message}</p>
                 )}
               </div>
-              
+
               <div>
                 <Label htmlFor="targetedMuscles">Targeted Muscles *</Label>
                 <Input
@@ -737,7 +750,7 @@ export function ClassDataExtractor({
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.tags.message}</p>
                 )}
               </div>
-              
+
               <div>
                 <Label htmlFor="exerciseSequence">Exercise Sequence * (comma-separated)</Label>
                 <Textarea
@@ -762,7 +775,7 @@ export function ClassDataExtractor({
                 />
                 <Label htmlFor="modifications">Includes modifications</Label>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="beginnerFriendly"
@@ -778,7 +791,7 @@ export function ClassDataExtractor({
             <Button variant="outline" onClick={handleCloseEditDialog}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={form.handleSubmit(onSubmitEdit)}
               disabled={!form.formState.isDirty}
             >
