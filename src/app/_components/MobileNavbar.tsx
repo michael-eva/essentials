@@ -2,6 +2,8 @@
 import { cn } from "@/lib/utils"
 import type { NavigationItem } from "../dashboard/layout"
 import { useRouter } from "next/navigation"
+import { api } from "@/trpc/react"
+import { Settings } from "lucide-react"
 
 
 interface MobileNavbarProps {
@@ -11,6 +13,8 @@ interface MobileNavbarProps {
 
 export default function MobileNavbar({ currentTab, navigationItems }: MobileNavbarProps) {
   const router = useRouter()
+  const { data: user } = api.user.getUser.useQuery()
+  
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg"
@@ -42,6 +46,22 @@ export default function MobileNavbar({ currentTab, navigationItems }: MobileNavb
             </button>
           )
         })}
+        
+        {/* Admin Button - Only show if user is admin */}
+        {user?.role === "admin" && (
+          <button
+            onClick={() => router.push("/admin")}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all duration-200",
+              "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            )}
+          >
+            <Settings className="h-5 w-5 transition-colors text-gray-500" />
+            <span className="text-xs font-medium transition-colors text-gray-500">
+              Admin
+            </span>
+          </button>
+        )}
       </div>
     </div>
   )
