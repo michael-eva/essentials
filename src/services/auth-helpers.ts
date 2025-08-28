@@ -4,10 +4,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export async function verifyOtp(
   email: string,
   token: string,
-  supabaseClient: SupabaseClient,
   type: "signup" | "email" = "email",
 ) {
-  const { data, error } = await supabaseClient.auth.verifyOtp({
+  const { data, error } = await supabase.auth.verifyOtp({
     email,
     token,
     type,
