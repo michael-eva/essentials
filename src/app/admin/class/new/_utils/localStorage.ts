@@ -62,17 +62,7 @@ export const saveToLocalStorage = (data: Partial<LocalDraftData>): void => {
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    console.log("Draft saved to localStorage:", {
-      sessionId: updated.sessionId,
-      videoData: updated.videoData,
-      classData: updated.classData,
-      muxData: updated.videoData
-        ? {
-            assetId: updated.videoData.assetId,
-            playbackId: updated.videoData.playbackId,
-          }
-        : null,
-    });
+    console.log("Draft saved to localStorage:", updated.sessionId);
   } catch (error) {
     console.warn("Failed to save to localStorage:", error);
   }
@@ -99,17 +89,7 @@ export const getFromLocalStorage = (): LocalDraftData | null => {
       return null;
     }
 
-    console.log("Draft loaded from localStorage:", {
-      sessionId: data.sessionId,
-      videoData: data.videoData,
-      classData: data.classData,
-      muxData: data.videoData
-        ? {
-            assetId: data.videoData.assetId,
-            playbackId: data.videoData.playbackId,
-          }
-        : null,
-    });
+    console.log("Draft loaded from localStorage:", data.sessionId);
     return data;
   } catch (error) {
     console.warn("Failed to load from localStorage:", error);
@@ -133,7 +113,6 @@ export const clearLocalStorage = (): void => {
  * Update only video data in localStorage
  */
 export const saveVideoToLocalStorage = (videoData: VideoData): void => {
-  console.log("Saving video data to localStorage:", videoData);
   saveToLocalStorage({ videoData });
 };
 

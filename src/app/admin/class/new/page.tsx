@@ -215,12 +215,10 @@ export default function NewClassPage() {
         let restored = false;
 
         if (localData.videoData && !videoData) {
-          console.log('Restoring video data from localStorage:', localData.videoData);
           setVideoData(localData.videoData);
           restored = true;
         }
         if (localData.classData && !classData) {
-          console.log('Restoring class data from localStorage:', localData.classData);
           setClassData(localData.classData);
           restored = true;
         }
@@ -242,10 +240,6 @@ export default function NewClassPage() {
       let restored = false;
 
       if ((draftData.muxAssetId || draftData.muxPlaybackId) && !videoData) {
-        console.log('Restoring video data from database:', {
-          muxAssetId: draftData.muxAssetId,
-          muxPlaybackId: draftData.muxPlaybackId
-        });
         setVideoData({
           assetId: draftData.muxAssetId || '',
           playbackId: draftData.muxPlaybackId || undefined,
@@ -253,7 +247,6 @@ export default function NewClassPage() {
         restored = true;
       }
       if (draftData.extractedData && !classData) {
-        console.log('Restoring class data from database:', draftData.extractedData);
         setClassData(draftData.extractedData as unknown as ClassData);
         restored = true;
       }
@@ -282,12 +275,7 @@ export default function NewClassPage() {
             classData: classData || undefined,
             chatHistory,
           });
-          console.log('Saved to localStorage:', {
-            videoData: videoData,
-            classData: classData,
-            chatLength: chatHistory.length,
-            muxData: videoData ? { assetId: videoData.assetId, playbackId: videoData.playbackId } : null
-          });
+          console.log('Saved to localStorage:', { videoData: !!videoData, classData: !!classData, chatLength: chatHistory.length });
         } catch (error) {
           console.error('Failed to save to localStorage:', error);
         }
@@ -296,27 +284,6 @@ export default function NewClassPage() {
       return () => clearTimeout(timer);
     }
   }, [hasLocalStorage, videoData, classData, chatHistory, sessionId]);
-
-  // Update classData with latest Mux information when videoData changes
-  useEffect(() => {
-    if (videoData && classData) {
-      const updatedClassData = {
-        ...classData,
-        muxPlaybackId: videoData.playbackId,
-        muxAssetId: videoData.assetId,
-      };
-
-      // Only update if the Mux data actually changed
-      if (updatedClassData.muxPlaybackId !== classData.muxPlaybackId ||
-        updatedClassData.muxAssetId !== classData.muxAssetId) {
-        console.log('Updating class data with new Mux info:', {
-          muxPlaybackId: updatedClassData.muxPlaybackId,
-          muxAssetId: updatedClassData.muxAssetId
-        });
-        setClassData(updatedClassData);
-      }
-    }
-  }, [videoData, classData]);
 
   // Manual save to database only
   const handleSaveDraft = useCallback(() => {
@@ -359,36 +326,15 @@ export default function NewClassPage() {
   });
 
   const handleVideoUpload = (uploadData: { playbackId?: string; assetId: string }) => {
-    console.log('Video upload completed:', uploadData);
     setVideoData(uploadData);
   };
 
   const handleDataExtracted = (extractedData: ClassData) => {
-    // Get the latest video data from localStorage as a fallback
-    let currentVideoData = videoData;
-    if (!currentVideoData && hasLocalStorage === true) {
-      const localData = getFromLocalStorage();
-      currentVideoData = localData?.videoData || null;
-    }
-
-    // If we still don't have video data, show a warning
-    if (!currentVideoData) {
-      console.warn('No video data available when setting class data. Mux fields will be undefined.');
-    }
-
     const newData = {
       ...extractedData,
-      muxPlaybackId: currentVideoData?.playbackId,
-      muxAssetId: currentVideoData?.assetId,
+      muxPlaybackId: videoData?.playbackId,
+      muxAssetId: videoData?.assetId,
     };
-
-    console.log('Setting class data with Mux info:', {
-      muxPlaybackId: newData.muxPlaybackId,
-      muxAssetId: newData.muxAssetId,
-      videoData: currentVideoData,
-      hasVideoData: !!currentVideoData
-    });
-
     setClassData(newData);
   };
 
@@ -415,23 +361,19 @@ export default function NewClassPage() {
   const handleSubmit = async () => {
     if (!classData) return;
 
-    // Validate that we have the required Mux data
-    if (!classData.muxAssetId || !classData.muxPlaybackId) {
-      console.error('Missing required Mux data:', {
-        muxAssetId: classData.muxAssetId,
-        muxPlaybackId: classData.muxPlaybackId
-      });
-      toast.error('Video data is missing. Please ensure the video has been uploaded successfully.');
-      setIsSubmitting(false);
-      return;
+    // Check if there are unsaved changes that haven't been synced to database
+    if (hasUnsavedChanges && !lastSaveTime) {
+      const shouldContinue = window.confirm(
+        "Unsaved changes haven&apos;t been synced. Continue anyway?"
+      );
+
+      if (!shouldContinue) {
+        return;
+      }
+
     }
 
     setIsSubmitting(true);
-    console.log('Submitting class data:', classData);
-    console.log('Mux data being sent:', {
-      muxPlaybackId: classData.muxPlaybackId,
-      muxAssetId: classData.muxAssetId
-    });
     createClassMutation.mutate(classData);
   };
 
