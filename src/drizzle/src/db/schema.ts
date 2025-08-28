@@ -529,6 +529,66 @@ export const waitlist = pgTable("waitlist", {
     .default(sql`now()`),
 });
 
+// Enum for upload queue status
+export const uploadStatusEnum = pgEnum("upload_status", [
+  "pending",
+  "uploading", 
+  "processing",
+  "completed",
+  "failed",
+  "cancelled"
+]);
+
+// Upload queue for multi-video CMS
+export const uploadQueue = pgTable("upload_queue", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  filename: text("filename").notNull(),
+  contentType: text("content_type").notNull(),
+  fileSize: integer("file_size"),
+  
+  // Mux upload tracking
+  muxUploadId: text("mux_upload_id"),
+  muxAssetId: text("mux_asset_id"),
+  muxPlaybackId: text("mux_playback_id"),
+  
+  // Upload status tracking
+  uploadStatus: uploadStatusEnum("upload_status").notNull().default("pending"),
+  uploadProgress: integer("upload_progress").notNull().default(0), // 0-100
+  
+  // AI content extraction status
+  aiExtractionStatus: uploadStatusEnum("ai_extraction_status").notNull().default("pending"),
+  aiExtractionProgress: integer("ai_extraction_progress").notNull().default(0), // 0-100
+  
+  // Error handling
+  errorMessage: text("error_message"),
+  retryCount: integer("retry_count").notNull().default(0),
+  maxRetries: integer("max_retries").notNull().default(3),
+  
+  // Timestamps
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .default(sql`now()`),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  
+  // Link to final video if successful
+  pilatesVideoId: uuid("pilates_video_id").references(() => PilatesVideos.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+});
+
 // Custom Zod schemas for complex types
 export const workoutTrackingInputSchema = z.object({
   userId: z.string().uuid(),
@@ -590,3 +650,6 @@ export const selectAppConfigSchema = createSelectSchema(appConfig);
 
 export const insertWaitlistSchema = createInsertSchema(waitlist);
 export const selectWaitlistSchema = createSelectSchema(waitlist);
+
+export const insertUploadQueueSchema = createInsertSchema(uploadQueue);
+export const selectUploadQueueSchema = createSelectSchema(uploadQueue);
