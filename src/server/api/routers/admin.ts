@@ -65,7 +65,7 @@ export const adminRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
@@ -111,7 +111,7 @@ export const adminRouter = createTRPCRouter({
     .input(z.object({ uploadId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
@@ -163,7 +163,7 @@ export const adminRouter = createTRPCRouter({
     .input(z.object({ assetId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
@@ -215,7 +215,7 @@ export const adminRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
@@ -312,7 +312,7 @@ Guidelines:
     .input(ClassDataSchema)
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
@@ -369,7 +369,7 @@ Guidelines:
     .input(z.object({ sessionId: z.string() }))
     .query(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
@@ -409,7 +409,7 @@ Guidelines:
     )
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
@@ -440,7 +440,7 @@ Guidelines:
     .input(z.object({ sessionId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",
@@ -462,7 +462,7 @@ Guidelines:
   // Get video statistics for admin dashboard
   getVideoStats: protectedProcedure.query(async ({ ctx }) => {
     // Check if user has admin privileges
-    if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+    if (ctx.userRole !== "admin") {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Admin privileges required",
@@ -494,7 +494,7 @@ Guidelines:
   // Get all draft videos for admin management
   getAllDrafts: protectedProcedure.query(async ({ ctx }) => {
     // Check if user has admin privileges
-    if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+    if (ctx.userRole !== "admin") {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Admin privileges required",
@@ -600,7 +600,7 @@ Guidelines:
     )
     .mutation(async ({ ctx, input }) => {
       // Check if user has admin privileges
-      if (env.NEXT_PUBLIC_USER_ROLE !== "DEVELOPER") {
+      if (ctx.userRole !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Admin privileges required",

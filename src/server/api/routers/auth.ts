@@ -9,6 +9,7 @@ import {
   clearAllUserData,
 } from "@/drizzle/src/db/mutations";
 import { getUser } from "@/drizzle/src/db/queries";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const authRouter = createTRPCRouter({
   generateOtp: publicProcedure
@@ -74,7 +75,7 @@ export const authRouter = createTRPCRouter({
       const authData = await verifyOtp(
         input.email,
         input.token,
-        ctx.supabase,
+        ctx.supabase as SupabaseClient,
         "signup",
       );
 
