@@ -35,6 +35,7 @@ import {
   PilatesVideosParamsSchema,
   roleEnum,
   waitlist,
+  uploadQueue,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -52,6 +53,7 @@ export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
 export type NotificationPreferences = InferSelectModel<
   typeof notificationPreferences
 >;
+export type UploadQueue = InferSelectModel<typeof uploadQueue>;
 export type Role = (typeof roleEnum.enumValues)[number];
 
 export type NewWorkout = InferInsertModel<typeof workout>;
@@ -1263,4 +1265,73 @@ export async function getAchievementForWorkout(
     .limit(1);
 
   return progress[0]?.achievements ?? [];
+}
+
+// Upload Queue queries
+export async function getUploadQueueItems(
+  userId: string,
+  limit = 20,
+  offset = 0,
+): Promise<UploadQueue[]> {
+  const result = await db
+    .select()
+    .from(uploadQueue)
+    .where(eq(uploadQueue.userId, userId))
+    .orderBy(desc(uploadQueue.createdAt))
+    .limit(limit)
+    .offset(offset);
+  return result;
+}
+
+export async function getUploadQueueItem(
+  id: string,
+): Promise<UploadQueue | null> {
+  const result = await db
+    .select()
+    .from(uploadQueue)
+    .where(eq(uploadQueue.id, id))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function getAllActiveUploads(): Promise<UploadQueue[]> {
+  const result = await db
+    .select()
+    .from(uploadQueue)
+    .where(
+      and(
+        inArray(uploadQueue.uploadStatus, ["pending", "uploading", "processing"]),
+      ),
+    )
+    .orderBy(desc(uploadQueue.createdAt));
+  return result;
+}
+
+export async function getUploadQueueItemByMuxUploadId(
+  muxUploadId: string,
+): Promise<UploadQueue | null> {
+  const result = await db
+    .select()
+    .from(uploadQueue)
+    .where(eq(uploadQueue.muxUploadId, muxUploadId))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function getFailedUploads(
+  userId?: string,
+  limit = 10,
+): Promise<UploadQueue[]> {
+  const conditions = [eq(uploadQueue.uploadStatus, "failed")];
+  if (userId) {
+    conditions.push(eq(uploadQueue.userId, userId));
+  }
+  
+  const result = await db
+    .select()
+    .from(uploadQueue)
+    .where(and(...conditions))
+    .orderBy(desc(uploadQueue.updatedAt))
+    .limit(limit);
+  return result;
 }
