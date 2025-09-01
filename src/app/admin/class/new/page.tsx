@@ -34,6 +34,7 @@ interface ClassData {
   instructor: string;
   muxPlaybackId?: string;
   muxAssetId?: string;
+  thumbnailTimestamp?: number;
 }
 
 export default function NewClassPage() {

@@ -62,6 +62,7 @@ const ClassDataSchema = z.object({
   instructor: z.string().min(1, "Instructor is required"),
   muxPlaybackId: z.string().optional(),
   muxAssetId: z.string().optional(),
+  thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater").default(35),
 });
 
 export const adminRouter = createTRPCRouter({
@@ -423,6 +424,7 @@ Guidelines:
             : "",
           muxAssetId: input.muxAssetId,
           mux_playback_id: input.muxPlaybackId,
+          thumbnailTimestamp: input.thumbnailTimestamp,
         });
 
         return pilatesVideo;
@@ -667,6 +669,7 @@ Guidelines:
         tags: z.array(z.string()).optional(),
         exerciseSequence: z.array(z.string()).optional(),
         instructor: z.string().min(1, "Instructor is required").optional(),
+        thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater").optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {

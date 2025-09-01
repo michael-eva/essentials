@@ -48,6 +48,7 @@ const editClassDataSchema = z.object({
   tags: z.string().min(1, "Tags are required"),
   exerciseSequence: z.string().min(1, "Exercise sequence is required"),
   instructor: z.string().min(1, "Instructor is required"),
+  thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater").default(35),
 });
 
 type EditClassDataForm = z.infer<typeof editClassDataSchema>;
@@ -71,6 +72,7 @@ interface ClassData {
   instructor: string;
   muxPlaybackId?: string;
   muxAssetId?: string;
+  thumbnailTimestamp?: number;
 }
 
 interface ClassDataExtractorProps {
@@ -251,6 +253,7 @@ export function ClassDataExtractor({
       tags: extractedData.tags.join(", "),
       exerciseSequence: extractedData.exerciseSequence.join(", "),
       instructor: extractedData.instructor,
+      thumbnailTimestamp: extractedData.thumbnailTimestamp ?? 35,
     });
 
     setShowEditDialog(true);
@@ -276,6 +279,7 @@ export function ClassDataExtractor({
       tags: data.tags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0),
       exerciseSequence: data.exerciseSequence.split(",").map(ex => ex.trim()).filter(ex => ex.length > 0),
       instructor: data.instructor,
+      thumbnailTimestamp: data.thumbnailTimestamp,
     };
 
     // Update the parent component with new data
@@ -688,6 +692,26 @@ export function ClassDataExtractor({
                 {form.formState.errors.intensity && (
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.intensity.message}</p>
                 )}
+              </div>
+            </div>
+
+            {/* Thumbnail Timestamp */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="thumbnailTimestamp">Thumbnail Timestamp (seconds) *</Label>
+                <Input
+                  id="thumbnailTimestamp"
+                  type="number"
+                  min="0"
+                  {...form.register("thumbnailTimestamp", { valueAsNumber: true })}
+                  placeholder="e.g., 35"
+                />
+                {form.formState.errors.thumbnailTimestamp && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.thumbnailTimestamp.message}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Timestamp in seconds for the video thumbnail
+                </p>
               </div>
             </div>
 
