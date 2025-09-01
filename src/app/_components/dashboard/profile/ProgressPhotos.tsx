@@ -206,8 +206,8 @@ export default function ProgressPhotos() {
       )}
 
       {/* Photo Viewer Modal */}
-      <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)} >
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-black border-none pt-4" showCloseButton={false}>
           <div className="relative">
             <Button
               variant="ghost"
@@ -219,14 +219,14 @@ export default function ProgressPhotos() {
             </Button>
             {selectedPhoto && (
               <div className="flex flex-col">
-                <div className="relative">
+                <div className="relative pb-4">
                   <img
                     src={selectedPhoto.imageUrl}
                     alt="Progress photo"
-                    className="w-full h-auto max-h-[70vh] object-contain"
+                    className="w-full h-auto px-4 object-contain"
                   />
                 </div>
-                <div className="p-4 border-t">
+                {/* <div className="p-4 border-t bg-white">
                   <div className="flex justify-between items-center">
                     <div className="text-sm text-gray-600">
                       Taken on {formatDate(selectedPhoto.takenAt)}
@@ -244,7 +244,7 @@ export default function ProgressPhotos() {
                       Delete Photo
                     </Button>
                   </div>
-                </div>
+                </div> */}
               </div>
             )}
           </div>
