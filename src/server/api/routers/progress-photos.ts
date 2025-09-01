@@ -1,22 +1,23 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { progressPhotos, insertProgressPhotosSchema } from "@/drizzle/src/db/schema";
-import { db } from "@/drizzle/src/db/mutations";
-import { desc, eq } from "drizzle-orm";
-import { supabase } from "@/lib/supabase/client";
+import {
+  progressPhotos,
+  insertProgressPhotosSchema,
+} from "@/drizzle/src/db/schema";
+import { eq } from "drizzle-orm";
+import { getProgressPhotos } from "@/drizzle/src/db/queries";
+import {
+  deleteProgressPhotos,
+  insertProgressPhotos,
+} from "@/drizzle/src/db/mutations";
 
 export const progressPhotosRouter = createTRPCRouter({
   // Get all progress photos for the current user
-  getAll: protectedProcedure
-    .query(async ({ ctx }) => {
-      const photos = await db
-        .select()
-        .from(progressPhotos)
-        .where(eq(progressPhotos.userId, ctx.session.user.id))
-        .orderBy(desc(progressPhotos.takenAt));
+  getAll: protectedProcedure.query(async ({ ctx }) => {
+    const photos = await getProgressPhotos(ctx.userId!);
 
-      return photos;
-    }),
+    return photos;
+  }),
 
   // Upload a new progress photo
   upload: protectedProcedure
@@ -24,45 +25,43 @@ export const progressPhotosRouter = createTRPCRouter({
       z.object({
         imageData: z.string(), // Base64 encoded image data
         fileName: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-      
+      const userId = ctx.userId;
+
       // Create unique storage path
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const storagePath = `progress-photos/${userId}/${timestamp}-${input.fileName}`;
-      
+
       // Convert base64 to buffer
-      const base64Data = input.imageData.split(',')[1];
-      const buffer = Buffer.from(base64Data, 'base64');
-      
+      const base64Data = input.imageData.split(",", 2)[1] ?? input.imageData;
+      const buffer = Buffer.from(base64Data, "base64");
+
       // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('progress-photos')
-        .upload(storagePath, buffer, {
-          contentType: 'image/jpeg',
-          upsert: false,
-        });
+      const { data: uploadData, error: uploadError } =
+        await ctx.supabase.storage
+          .from("progress-photos")
+          .upload(storagePath, buffer, {
+            contentType: "image/jpeg",
+            upsert: false,
+          });
 
       if (uploadError) {
         throw new Error(`Failed to upload image: ${uploadError.message}`);
       }
 
       // Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('progress-photos')
+      const { data: publicUrlData } = ctx.supabase.storage
+        .from("progress-photos")
         .getPublicUrl(storagePath);
 
       // Save metadata to database
-      const [photo] = await db
-        .insert(progressPhotos)
-        .values({
-          userId,
-          imageUrl: publicUrlData.publicUrl,
-          storagePath,
-        })
-        .returning();
+      const photo = await insertProgressPhotos({
+        userId,
+        imageUrl: publicUrlData.publicUrl,
+        storagePath,
+      });
 
       return photo;
     }),
@@ -71,13 +70,10 @@ export const progressPhotosRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.userId!;
 
       // Get photo data to verify ownership and get storage path
-      const [photo] = await db
-        .select()
-        .from(progressPhotos)
-        .where(eq(progressPhotos.id, input.id));
+      const [photo] = await getProgressPhotos(userId);
 
       if (!photo) {
         throw new Error("Photo not found");
@@ -88,8 +84,8 @@ export const progressPhotosRouter = createTRPCRouter({
       }
 
       // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('progress-photos')
+      const { error: storageError } = await ctx.supabase.storage
+        .from("progress-photos")
         .remove([photo.storagePath]);
 
       if (storageError) {
@@ -97,10 +93,7 @@ export const progressPhotosRouter = createTRPCRouter({
         // Continue with database deletion even if storage deletion fails
       }
 
-      // Delete from database
-      await db
-        .delete(progressPhotos)
-        .where(eq(progressPhotos.id, input.id));
+      await deleteProgressPhotos(userId, input.id);
 
       return { success: true };
     }),

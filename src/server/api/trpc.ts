@@ -61,18 +61,31 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   );
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const { data: userData } = await supabase
-    .from("user")
-    .select("role")
-    .eq("id", session?.user?.id)
-    .single();
+    data: { user },
+  } = await supabase.auth.getUser();
+  
+  let session = null;
+  let userData = null;
+  
+  if (user) {
+    // Get session for compatibility with existing code
+    const { data: sessionData } = await supabase.auth.getSession();
+    session = sessionData.session;
+    
+    // Get user role from database
+    const { data: userRoleData } = await supabase
+      .from("user")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    userData = userRoleData;
+  }
   return {
     ...opts,
     supabase,
     session,
-    userId: session?.user?.id,
+    user,
+    userId: user?.id,
     userRole: userData?.role,
   };
 };
