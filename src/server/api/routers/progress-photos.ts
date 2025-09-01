@@ -77,7 +77,8 @@ export const progressPhotosRouter = createTRPCRouter({
       const userId = ctx.userId;
 
       // Get photo data to verify ownership and get storage path
-      const [photo] = await getProgressPhotos(userId);
+      const photos = await getProgressPhotos(userId);
+      const photo = photos.find(p => p.id === input.id);
 
       if (!photo) {
         throw new Error("Photo not found");
