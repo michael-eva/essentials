@@ -19,10 +19,10 @@ export default function AdminLayout({
               </div>
               <nav className="flex space-x-8">
                 <a
-                  href="/admin/class/new"
+                  href="/admin"
                   className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  Upload Class
+                  Dashboard
                 </a>
                 <Link
                   href="/dashboard"

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+
 export default function AdminPage() {
   const router = useRouter();
   const { data: videoStats, isLoading } = api.admin.getVideoStats.useQuery();
@@ -18,12 +19,18 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-6">Admin Dashboard</h2>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+        <p className="text-gray-600 mt-2">Overview</p>
+      </div>
 
-        {/* Upload Section */}
-        <div className="mb-8">
-          <h3 className="text-md font-medium text-gray-800 mb-4">Content Management</h3>
+      {/* Upload Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Common administrative tasks</CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <h4 className="text-lg font-semibold text-blue-900 mb-2">
@@ -40,11 +47,16 @@ export default function AdminPage() {
               </a>
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Video Stats Section */}
-        <div>
-          <h3 className="text-md font-medium text-gray-800 mb-4">Video Library Overview</h3>
+      {/* Video Stats Section */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Video Library Overview</CardTitle>
+          <CardDescription>Current status of your video content</CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Live Videos Stat */}
             <Card className="cursor-pointer transition-all hover:shadow-lg" onClick={handleNavigateToLiveVideos}>
@@ -88,8 +100,8 @@ export default function AdminPage() {
               </CardFooter>
             </Card>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

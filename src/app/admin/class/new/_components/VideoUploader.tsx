@@ -73,10 +73,10 @@ export function VideoUploader({ onUploadComplete, onUploadStateChange, onUploadS
         console.log("Upload status check:", status);
 
         // If upload completed and asset is ready
-        if (status.uploadStatus === "asset_created" && status.assetStatus === "ready") {
+        if (status.uploadStatus === "asset_created" && status.assetStatus === "ready" && status.assetId) {
           setUploadStatus("complete");
           const videoData = {
-            assetId: status.assetId!,
+            assetId: status.assetId,
             playbackId: status.playbackId || undefined
           };
 
@@ -175,10 +175,11 @@ export function VideoUploader({ onUploadComplete, onUploadStateChange, onUploadS
     try {
       console.log("Starting upload process for file:", selectedFile.name);
 
-      // Create direct upload with Mux
+      // Create direct upload with Mux (now includes file size for queue tracking)
       const uploadData = await uploadVideoMutation.mutateAsync({
         filename: selectedFile.name,
         contentType: selectedFile.type,
+        fileSize: selectedFile.size,
       });
 
       console.log("Received upload data from Mux:", uploadData);
