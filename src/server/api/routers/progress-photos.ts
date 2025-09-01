@@ -38,12 +38,16 @@ export const progressPhotosRouter = createTRPCRouter({
       const base64Data = input.imageData.split(",", 2)[1] ?? input.imageData;
       const buffer = Buffer.from(base64Data, "base64");
 
+      // Detect MIME type from base64 data
+      const mimeMatch = input.imageData.match(/^data:([^;]+);base64,/);
+      const contentType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } =
         await ctx.supabase.storage
           .from("progress-photos")
           .upload(storagePath, buffer, {
-            contentType: "image/jpeg",
+            contentType,
             upsert: false,
           });
 
