@@ -787,15 +787,18 @@ export type NewUploadQueueItem = {
 };
 
 export async function insertUploadQueueItem(data: NewUploadQueueItem) {
-  const result = await db.insert(uploadQueue).values({
-    ...data,
-    uploadStatus: data.uploadStatus ?? "pending",
-    uploadProgress: data.uploadProgress ?? 0,
-    aiExtractionStatus: data.aiExtractionStatus ?? "pending", 
-    aiExtractionProgress: data.aiExtractionProgress ?? 0,
-    retryCount: data.retryCount ?? 0,
-    maxRetries: data.maxRetries ?? 3,
-  }).returning();
+  const result = await db
+    .insert(uploadQueue)
+    .values({
+      ...data,
+      uploadStatus: data.uploadStatus ?? "pending",
+      uploadProgress: data.uploadProgress ?? 0,
+      aiExtractionStatus: data.aiExtractionStatus ?? "pending",
+      aiExtractionProgress: data.aiExtractionProgress ?? 0,
+      retryCount: data.retryCount ?? 0,
+      maxRetries: data.maxRetries ?? 3,
+    })
+    .returning();
   return result[0]!;
 }
 
@@ -829,24 +832,27 @@ export async function updateUploadProgress(
   progress: number,
   status?: (typeof uploadStatusEnum.enumValues)[number],
 ) {
-  const updateData: any = {
-    uploadProgress: progress,
-    updatedAt: new Date(),
-  };
-  
+  const now = new Date();
   if (status) {
-    updateData.uploadStatus = status;
-    if (status === "uploading" && !status) {
-      updateData.startedAt = new Date();
-    }
-    if (status === "completed" || status === "failed") {
-      updateData.completedAt = new Date();
-    }
+    const setObject: Partial<typeof uploadQueue.$inferInsert> = {
+      uploadProgress: progress,
+      uploadStatus: status,
+      updatedAt: now,
+      startedAt: status === "uploading" ? now : undefined,
+      completedAt:
+        status === "completed" || status === "failed" ? now : undefined,
+    };
+    const result = await db
+      .update(uploadQueue)
+      .set(setObject)
+      .where(eq(uploadQueue.id, id))
+      .returning();
+    return result[0] ?? null;
   }
-  
+
   const result = await db
     .update(uploadQueue)
-    .set(updateData)
+    .set({ uploadProgress: progress, updatedAt: now })
     .where(eq(uploadQueue.id, id))
     .returning();
   return result[0] ?? null;
@@ -857,18 +863,15 @@ export async function updateAiExtractionProgress(
   progress: number,
   status?: (typeof uploadStatusEnum.enumValues)[number],
 ) {
-  const updateData: any = {
+  const now = new Date();
+  const setObject: Partial<typeof uploadQueue.$inferInsert> = {
     aiExtractionProgress: progress,
-    updatedAt: new Date(),
+    updatedAt: now,
+    aiExtractionStatus: status ?? undefined,
   };
-  
-  if (status) {
-    updateData.aiExtractionStatus = status;
-  }
-  
   const result = await db
     .update(uploadQueue)
-    .set(updateData)
+    .set(setObject)
     .where(eq(uploadQueue.id, id))
     .returning();
   return result[0] ?? null;
@@ -877,21 +880,26 @@ export async function updateAiExtractionProgress(
 export async function setUploadError(
   id: string,
   errorMessage: string,
-  incrementRetry: boolean = true,
+  incrementRetry = true,
 ) {
-  const updateData: any = {
-    errorMessage,
-    uploadStatus: "failed",
-    updatedAt: new Date(),
-  };
-  
+  const now = new Date();
   if (incrementRetry) {
-    updateData.retryCount = sql`${uploadQueue.retryCount} + 1`;
+    const result = await db
+      .update(uploadQueue)
+      .set({
+        errorMessage,
+        uploadStatus: "failed",
+        updatedAt: now,
+        retryCount: sql`${uploadQueue.retryCount} + 1`,
+      })
+      .where(eq(uploadQueue.id, id))
+      .returning();
+    return result[0] ?? null;
   }
-  
+
   const result = await db
     .update(uploadQueue)
-    .set(updateData)
+    .set({ errorMessage, uploadStatus: "failed", updatedAt: now })
     .where(eq(uploadQueue.id, id))
     .returning();
   return result[0] ?? null;
