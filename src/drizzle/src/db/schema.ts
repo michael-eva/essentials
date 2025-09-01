@@ -590,3 +590,29 @@ export const selectAppConfigSchema = createSelectSchema(appConfig);
 
 export const insertWaitlistSchema = createInsertSchema(waitlist);
 export const selectWaitlistSchema = createSelectSchema(waitlist);
+
+export const progressPhotos = pgTable("progress_photos", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  imageUrl: text("image_url").notNull(),
+  storagePath: text("storage_path").notNull(),
+  takenAt: timestamp("taken_at")
+    .notNull()
+    .default(sql`now()`),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .default(sql`now()`),
+});
+
+export const insertProgressPhotosSchema = createInsertSchema(progressPhotos);
+export const selectProgressPhotosSchema = createSelectSchema(progressPhotos);

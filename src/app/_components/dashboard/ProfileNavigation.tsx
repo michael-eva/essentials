@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { LogOut, User, Settings, Smartphone, AlertTriangle } from "lucide-react"
+import { LogOut, User, Settings, Smartphone, AlertTriangle, Camera } from "lucide-react"
 import { motion } from "framer-motion"
 import { useSession } from "@/contexts/SessionContext"
 import { toast } from "sonner"
@@ -17,6 +17,14 @@ const profileSections = [
   //   color: "#3B82F6",
   //   href: "/dashboard/profile/account"
   // },
+  {
+    id: "progress-photos",
+    title: "Progress Photos",
+    description: "Capture and view your fitness progress over time",
+    icon: <Camera className="h-6 w-6" />,
+    color: "#F59E0B",
+    href: "/dashboard/profile/progress-photos"
+  },
   {
     id: "settings",
     title: "Profile Settings",
