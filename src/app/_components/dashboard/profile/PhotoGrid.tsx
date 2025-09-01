@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Eye } from "lucide-react";
+import { Trash2, Eye, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Photo {
   id: string;
@@ -20,6 +23,18 @@ interface PhotoGridProps {
 }
 
 export default function PhotoGrid({ photos, isLoading, onPhotoClick, onDeleteClick }: PhotoGridProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile on mount
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -78,46 +93,77 @@ export default function PhotoGrid({ photos, isLoading, onPhotoClick, onDeleteCli
                 loading="lazy"
               />
               
-              {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center">
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="bg-white/90 hover:bg-white text-gray-900"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onPhotoClick({
-                        id: photo.id,
-                        imageUrl: photo.imageUrl,
-                        takenAt: photo.takenAt
-                      });
-                    }}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="bg-red-100 hover:bg-red-200 text-red-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteClick(photo.id);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+              
+              {/* Desktop Hover Overlay */}
+              {!isMobile && (
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-white/90 hover:bg-white text-gray-900"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPhotoClick({
+                          id: photo.id,
+                          imageUrl: photo.imageUrl,
+                          takenAt: photo.takenAt
+                        });
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-red-100 hover:bg-red-200 text-red-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteClick(photo.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Photo Info */}
             <div className="p-3">
-              <div className="text-sm font-medium text-gray-900">
-                {formatDate(photo.takenAt)}
-              </div>
-              <div className="text-xs text-gray-500">
-                {formatTime(photo.takenAt)}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">
+                    {formatDate(photo.takenAt)}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {formatTime(photo.takenAt)}
+                  </div>
+                </div>
+                
+                {/* Mobile Menu Button in Description */}
+                {isMobile && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-gray-400 hover:text-gray-600 h-8 w-8 p-0"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => onDeleteClick(photo.id)}
+                        className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Photo
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           </motion.div>

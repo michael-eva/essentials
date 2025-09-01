@@ -2,8 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, RotateCcw, Check, X, Loader2, RotateCw } from "lucide-react";
-import { toast } from "sonner";
+import { Camera, RotateCcw, Check, X, Loader2, SwitchCamera, Focus, Zap, ZapOff } from "lucide-react";
 
 interface CameraCaptureProps {
   onCapture: (imageData: string) => void;
@@ -11,218 +10,346 @@ interface CameraCaptureProps {
   isUploading?: boolean;
 }
 
+interface CameraConstraints {
+  width: { min: number; ideal: number; max: number };
+  height: { min: number; ideal: number; max: number };
+  facingMode: string;
+  frameRate: { ideal: number };
+}
+
 export default function CameraCapture({ onCapture, onCancel, isUploading = false }: CameraCaptureProps) {
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [isVideoReady, setIsVideoReady] = useState(false);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment'); // Default to back camera
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const facingMode = 'environment'; // Always use back camera
+  const [videoSize, setVideoSize] = useState({ width: 0, height: 0 });
+
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Initialize camera
+
+
+  // Get optimal camera constraints for high quality
+  const getCameraConstraints = useCallback((): MediaStreamConstraints => {
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    const constraints: MediaStreamConstraints = {
+      video: {
+        facingMode: { exact: facingMode },
+        width: { min: 640, ideal: isMobile ? 1920 : 2560, max: 4096 },
+        height: { min: 480, ideal: isMobile ? 1080 : 1440, max: 2160 },
+        frameRate: { ideal: 30, max: 60 },
+        aspectRatio: { ideal: 16 / 9 }
+      },
+      audio: false
+    };
+
+    return constraints;
+  }, [facingMode]);
+
+  // Initialize camera with high-quality settings
   const initializeCamera = useCallback(async () => {
     try {
       setIsInitializing(true);
-      setIsVideoReady(false);
       setError(null);
 
-      // Ensure running in a browser with supported MediaDevices API
-      if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-        setError("Camera can only be used in the browser environment.");
-        return;
+      // Clean up existing stream
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
 
-      const host = window.location.hostname;
-      const protocol = window.location.protocol;
-      const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost');
-      const isNgrok = host.includes('ngrok') || host.includes('ngrok-free.app');
-      
-      // Mobile browsers are stricter about secure contexts
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
-      if (!window.isSecureContext && !isLocalHost) {
-        const suggestion = isNgrok 
-          ? "Use 'ngrok http --scheme=https 3000' to get HTTPS tunneling"
-          : isMobile 
-            ? "Mobile browsers require HTTPS for camera access. Use ngrok with HTTPS or access from desktop for testing."
-            : "Camera requires HTTPS. Use a secure connection or localhost for testing.";
-            
-        setError(`Camera requires a secure context (HTTPS).
-        
-Current: ${protocol}//${host}
-Device: ${isMobile ? 'Mobile' : 'Desktop'}
-Secure Context: ${window.isSecureContext}
+      const constraints = getCameraConstraints();
+      let stream: MediaStream;
 
-${suggestion}`);
-        return;
-      }
+      try {
+        // Try with exact facingMode first
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (err: any) {
+        // Fallback to ideal facingMode if exact fails
+        const videoConstraints = constraints.video as MediaTrackConstraints;
+        constraints.video = {
+          ...videoConstraints,
+          facingMode: { ideal: facingMode }
+        };
 
-      // Enhanced mobile browser detection
-      if (!navigator.mediaDevices?.getUserMedia) {
-        const debugInfo = `
-          - Host: ${host}
-          - Secure Context: ${window.isSecureContext}
-          - MediaDevices: ${!!navigator.mediaDevices}
-          - GetUserMedia: ${!!navigator.mediaDevices?.getUserMedia}
-          - Protocol: ${window.location.protocol}
-          - User Agent: ${navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}
-        `;
-        
-        setError(`Camera API not available. This usually happens on mobile browsers without HTTPS.
-        
-Debug Info:${debugInfo}
-
-Try:
-1. Use HTTPS (ngrok with --scheme=https)
-2. Access via desktop browser for testing
-3. Ensure your ngrok URL uses https://`);
-        return;
-      }
-
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          facingMode: facingMode // Use current facing mode state
-        },
-        audio: false
-      });
-
-      setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        // Reset video ready state when setting new stream
-        setIsVideoReady(false);
-      }
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      if (err instanceof Error) {
-        // See https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#exceptions
-        // Handle common errors with friendly messages
-        if (err.name === 'NotAllowedError') {
-          setError("Camera permission denied. Please allow camera access and try again.");
-        } else if (err.name === 'NotFoundError') {
-          setError("No camera found. Please make sure your device has a camera.");
-        } else if (err.name === 'OverconstrainedError') {
-          setError("The requested camera constraints cannot be satisfied by the device.");
-        } else if (err.name === 'NotSupportedError') {
-          setError("Camera not supported on this device or browser.");
-        } else {
-          setError(`Camera error: ${err.message}`);
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (fallbackErr: any) {
+          // Final fallback - any camera with high resolution
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { min: 640, ideal: 1920, max: 4096 },
+              height: { min: 480, ideal: 1080, max: 2160 },
+              frameRate: { ideal: 30 }
+            },
+            audio: false
+          });
         }
-      } else {
-        setError("Failed to access camera. Please try again.");
       }
-    } finally {
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            const { videoWidth, videoHeight } = videoRef.current;
+            setVideoSize({ width: videoWidth, height: videoHeight });
+            console.log(`Camera resolution: ${videoWidth}x${videoHeight}`);
+          }
+          setIsInitializing(false);
+          setIsCameraReady(true);
+        };
+
+        videoRef.current.onerror = () => {
+          setError("Failed to load camera stream.");
+          setIsInitializing(false);
+        };
+
+        // Enable autofocus if supported
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          try {
+            const capabilities = videoTrack.getCapabilities();
+            if ('focusMode' in capabilities && Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
+              await videoTrack.applyConstraints({
+                advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet]
+              });
+            }
+          } catch (err) {
+            console.warn('Autofocus not supported:', err);
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error("Camera initialization error:", err);
       setIsInitializing(false);
+
+      if (err.name === 'NotAllowedError') {
+        setError("Camera permission denied. Please allow camera access and try again.");
+      } else if (err.name === 'NotFoundError') {
+        setError("No camera found. Please make sure your device has a camera.");
+      } else if (err.name === 'NotReadableError') {
+        setError("Camera is busy or in use. Please close other camera apps and try again.");
+      } else if (err.name === 'OverconstrainedError') {
+        setError("Camera doesn't support the requested quality. Trying lower resolution...");
+        // Retry with lower constraints
+        setTimeout(() => {
+          navigator.mediaDevices.getUserMedia({
+            video: { facingMode: facingMode, width: 1280, height: 720 },
+            audio: false
+          }).then(stream => {
+            streamRef.current = stream;
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+            }
+            setIsInitializing(false);
+            setIsCameraReady(true);
+            setError(null);
+          }).catch(() => {
+            setError("Unable to access camera with any quality settings.");
+          });
+        }, 1000);
+      } else {
+        setError(`Camera error: ${err.message}`);
+      }
     }
-  }, [facingMode]);
+  }, [facingMode, getCameraConstraints]);
 
   // Cleanup camera stream
   const cleanupCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
-    setIsVideoReady(false);
-    setIsInitializing(false);
-  }, [stream]);
+  }, []);
 
-  // Capture photo
-  const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+  // Capture high-quality photo with proper processing
+  const capturePhoto = useCallback(() => {
+    if (!isCameraReady || !videoRef.current) {
+      console.error("Camera is not ready");
+      return;
+    }
 
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
+    try {
+      const video = videoRef.current;
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d', { alpha: false });
 
-    if (!context) return;
+      if (!context) {
+        setError("Failed to capture photo. Please try again.");
+        return;
+      }
 
-    // Set canvas size to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+      // Get actual video dimensions
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
 
-    // Draw video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Set canvas to maximum quality
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
 
-    // Convert to base64 with compression
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    setCapturedImage(imageData);
-  };
+      // Enable high-quality rendering
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+
+      // Always use back camera - no flipping needed
+      context.drawImage(video, 0, 0, videoWidth, videoHeight);
+
+      // Use maximum quality JPEG with minimal compression
+      const imageData = canvas.toDataURL('image/jpeg', 0.95);
+
+      console.log(`Captured image: ${videoWidth}x${videoHeight}, Size: ${Math.round(imageData.length / 1024)}KB`);
+      console.log('Stream active after capture:', streamRef.current?.active);
+      setCapturedImage(imageData);
+    } catch (err) {
+      console.error("Error capturing photo:", err);
+      setError("Failed to capture photo. Please try again.");
+    }
+  }, [isCameraReady]);
 
   // Confirm capture and upload
-  const confirmCapture = () => {
+  const confirmCapture = useCallback(() => {
     if (capturedImage) {
       onCapture(capturedImage);
-      cleanupCamera();
     }
-  };
+  }, [capturedImage, onCapture]);
 
   // Retake photo
-  const retakePhoto = () => {
-    setCapturedImage(null);
-  };
+  const retakePhoto = useCallback(() => {
+    console.log('Retaking photo - Current stream active:', streamRef.current?.active);
+    console.log('Video element state:', videoRef.current?.videoWidth, videoRef.current?.videoHeight);
 
-  // Flip camera between front and back
-  const flipCamera = async () => {
-    // First cleanup current stream
+    setCapturedImage(null);
+
+    // Check if stream is still active and working
+    if (streamRef.current?.active && (videoRef.current?.videoWidth ?? 0) > 0) {
+      // Stream is good, just clear the captured image
+      console.log('Stream still active, just clearing captured image');
+      return;
+    }
+
+    // Stream needs reinitialization
+    console.log('Reinitializing camera stream');
+    setIsCameraReady(false);
+    setIsInitializing(true);
+    setError(null);
+
+    // Clean up current stream first
     cleanupCamera();
-    
-    // Toggle facing mode
-    const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
-    setFacingMode(newFacingMode);
-    
-    // Camera will reinitialize automatically due to useEffect dependency
-  };
+
+    // Small delay to ensure cleanup, then reinitialize camera
+    setTimeout(() => {
+      initializeCamera();
+    }, 200);
+  }, [initializeCamera, cleanupCamera]);
 
   // Cancel and cleanup
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     cleanupCamera();
     onCancel();
-  };
+  }, [onCancel, cleanupCamera]);
 
-  // Initialize camera on mount and when facing mode changes
+  // Camera switching removed - always use back camera
+
+  // Tap to focus (if supported)
+  const handleVideoClick = useCallback(async (e: React.MouseEvent) => {
+    if (!streamRef.current) return;
+
+    const videoTrack = streamRef.current.getVideoTracks()[0];
+    if (!videoTrack) return;
+
+    try {
+      const capabilities = videoTrack.getCapabilities();
+      if ('focusMode' in capabilities && Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('single-shot')) {
+        await videoTrack.applyConstraints({
+          advanced: [{ focusMode: 'single-shot' } as MediaTrackConstraintSet]
+        });
+      }
+    } catch (err) {
+      console.warn('Focus not supported:', err);
+    }
+  }, []);
+
+  // Initialize camera on mount and when facingMode changes
   useEffect(() => {
     initializeCamera();
+
+    // Cleanup on unmount
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
+      cleanupCamera();
     };
-  }, [facingMode]); // Reinitialize when facing mode changes
+  }, [initializeCamera, cleanupCamera]);
 
   // Show error state
   if (error) {
     return (
-      <div className="text-center py-8">
-        <Camera className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Camera Error</h3>
-        <p className="text-gray-600 mb-6">{error}</p>
-        <div className="flex gap-2 justify-center">
-          <Button onClick={initializeCamera} variant="outline">
-            Try Again
-          </Button>
-          <Button onClick={handleCancel} variant="ghost">
+      <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        {/* Error Content */}
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+          {/* Error Icon */}
+          <div className="w-24 h-24 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mb-6">
+            <Camera className="h-12 w-12 text-red-600" />
+          </div>
+
+          {/* Error Title */}
+          <h1 className="text-2xl font-bold text-white mb-4 tracking-tight">
+            CAMERA ERROR
+          </h1>
+
+          {/* Error Message */}
+          <p className="text-gray-300 text-lg mb-8 max-w-md leading-relaxed">
+            {error}
+          </p>
+
+          {/* Action Button */}
+          <Button
+            onClick={handleCancel}
+            size="lg"
+            className="bg-brand-bright-orange text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl mb-8"
+          >
             Cancel
           </Button>
+
+          {/* Troubleshooting Section */}
+          <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 max-w-md">
+            <p className="text-gray-400 text-sm mb-4 font-medium">
+              If the error persists, try:
+            </p>
+            <ul className="text-left space-y-3 text-gray-300">
+              <li className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0"></div>
+                <span className="text-sm">Refreshing the page</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0"></div>
+                <span className="text-sm">Closing other camera apps</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0"></div>
+                <span className="text-sm">Using a different browser</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="absolute inset-0 flex flex-col bg-black">
       {/* Camera View */}
-      <div className="relative bg-black rounded-lg overflow-hidden">
+      <div className="relative flex-1 bg-black overflow-hidden">
         {!capturedImage ? (
           <>
             {isInitializing && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
                 <div className="text-center">
                   <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-600 mb-2" />
-                  <p className="text-sm text-gray-600">Initializing camera...</p>
+                  <p className="text-sm text-gray-600">Initialising camera...</p>
                 </div>
               </div>
             )}
@@ -231,20 +358,10 @@ Try:
               autoPlay
               playsInline
               muted
-              preload="metadata"
-              className="w-full h-auto max-h-96 object-cover transition-opacity duration-300"
-              style={{ opacity: isVideoReady ? 1 : 0 }}
-              onLoadedMetadata={() => {
-                setIsInitializing(false);
-                setIsVideoReady(true);
-              }}
-              onCanPlay={() => {
-                setIsInitializing(false);
-                setIsVideoReady(true);
-              }}
-              onError={() => {
-                setError("Video playback error occurred");
-                setIsInitializing(false);
+              onClick={handleVideoClick}
+              className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+              style={{
+                filter: 'contrast(1.1) saturate(1.1)'
               }}
             />
           </>
@@ -252,83 +369,101 @@ Try:
           <img
             src={capturedImage}
             alt="Captured progress photo"
-            className="w-full h-auto max-h-96 object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              filter: 'contrast(1.05) saturate(1.05)'
+            }}
           />
         )}
       </div>
 
-      {/* Hidden canvas for photo capture */}
-      <canvas ref={canvasRef} className="hidden" />
-
       {/* Camera Controls */}
-      <div className="flex justify-center gap-4">
-        {!capturedImage ? (
-          <>
-            <Button
-              onClick={flipCamera}
-              disabled={isInitializing}
-              variant="outline"
-              className="px-4"
-              title={`Switch to ${facingMode === 'user' ? 'back' : 'front'} camera`}
-            >
-              <RotateCw className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={capturePhoto}
-              disabled={isInitializing || !stream || !isVideoReady}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-8"
-            >
-              <Camera className="h-4 w-4 mr-2" />
-              Capture
-            </Button>
-            <Button onClick={handleCancel} variant="outline">
-              Cancel
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button
-              onClick={confirmCapture}
-              disabled={isUploading}
-              className="bg-green-600 hover:bg-green-700 text-white px-8"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Save Photo
-                </>
-              )}
-            </Button>
-            <Button onClick={retakePhoto} variant="outline" disabled={isUploading}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Retake
-            </Button>
-            <Button onClick={handleCancel} variant="ghost" disabled={isUploading}>
-              Cancel
-            </Button>
-          </>
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-md">
+        {!capturedImage && (
+          <div className="flex justify-center items-center px-6 pt-4 pb-2">
+            {/* Camera Info */}
+            <div className="text-white text-xs opacity-75 text-center">
+              <div>{videoSize.width}×{videoSize.height}</div>
+              {/* <div>Back Camera</div> */}
+            </div>
+          </div>
         )}
+
+        <div className="flex justify-center items-center gap-4 p-6 pb-8">
+          {!capturedImage ? (
+            <>
+              {/* Capture Button - Large and prominent */}
+              <div className="flex items-center gap-6">
+                <Button onClick={handleCancel} variant="ghost" className="text-white hover:bg-white/20 px-6 py-3">
+                  Cancel
+                </Button>
+
+                <Button
+                  onClick={capturePhoto}
+                  disabled={isInitializing || !isCameraReady}
+                  className="bg-white hover:bg-gray-100 text-black rounded-full w-20 h-20 p-0 shadow-lg ring-4 ring-white/30 disabled:opacity-50 disabled:ring-gray-500/30"
+                >
+                  <Camera className="h-8 w-8" />
+                </Button>
+
+                <div className="w-16" /> {/* Spacer for symmetry */}
+              </div>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={retakePhoto}
+                disabled={isUploading}
+                variant="ghost"
+                className="text-white hover:bg-white/20 px-6 py-3 rounded-full"
+              >
+                <RotateCcw className="h-5 w-5 mr-2" />
+                Retake
+              </Button>
+
+              <Button
+                onClick={confirmCapture}
+                disabled={isUploading}
+                className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-full shadow-lg"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-5 w-5 mr-2" />
+                    Save Photo
+                  </>
+                )}
+              </Button>
+
+              <Button
+                onClick={handleCancel}
+                disabled={isUploading}
+                variant="ghost"
+                className="text-white hover:bg-white/20 px-6 py-3 rounded-full"
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Instructions */}
-      <div className="text-center text-sm text-gray-600">
-        {!capturedImage ? (
-          <p>
-            Position yourself in the frame and click capture to take your progress photo.
-            <br />
-            <span className="text-xs text-gray-500">
-              Using {facingMode === 'user' ? 'front' : 'back'} camera • Tap the flip button to switch
-            </span>
-          </p>
-        ) : (
-          <p>Review your photo and click save to add it to your progress gallery.</p>
-        )}
+      {/* Close Button */}
+      <div className="absolute top-4 right-4 z-20 safe-area-pt">
+        <Button
+          onClick={handleCancel}
+          variant="ghost"
+          size="sm"
+          className="bg-black/60 backdrop-blur-sm text-white hover:bg-black/80 rounded-full w-10 h-10 p-0"
+        >
+          <X className="h-5 w-5" />
+        </Button>
       </div>
+
     </div>
   );
 }

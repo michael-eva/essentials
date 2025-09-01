@@ -14,7 +14,7 @@ import {
 export const progressPhotosRouter = createTRPCRouter({
   // Get all progress photos for the current user
   getAll: protectedProcedure.query(async ({ ctx }) => {
-    const photos = await getProgressPhotos(ctx.userId!);
+    const photos = await getProgressPhotos(ctx.userId);
 
     return photos;
   }),
@@ -70,7 +70,7 @@ export const progressPhotosRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.userId!;
+      const userId = ctx.userId;
 
       // Get photo data to verify ownership and get storage path
       const [photo] = await getProgressPhotos(userId);
