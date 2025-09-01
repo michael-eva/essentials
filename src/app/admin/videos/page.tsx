@@ -200,7 +200,7 @@ export default function AdminVideosPage() {
 
   const handleViewVideo = (videoId: string) => {
     // Navigate to the user-facing video page
-    router.push(`/dashboard/pilates-videos/${videoId}`);
+    router.push(`/dashboard/pilates-video/${videoId}`);
   };
 
   const formatDuration = (minutes: number) => {

@@ -167,13 +167,13 @@ export default function PilatesVideosLibrary() {
 
       <div className="relative">
         {isLoading ? (
-          <div className="flex flex-col gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: PAGE_SIZE }).map((_, i) => (
               <PilatesVideosSkeleton key={i} />
             ))}
           </div>
         ) : (
-          <div className="flex flex-col gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentData.items.map((video) => (
               <PilatesVideoLibraryCard key={video.id} video={video} />
             ))}

@@ -8,10 +8,21 @@ import {
   insertOrUpdateClassDraft,
   getClassDraft,
   deleteClassDraft,
+  insertUploadQueueItem,
+  updateUploadQueueItem,
+  deleteUploadQueueItem,
+  updateUploadProgress,
+  updateAiExtractionProgress,
+  setUploadError,
 } from "@/drizzle/src/db/mutations";
 import {
   getPilatesVideos,
   getPilatesVideoById,
+  getUploadQueueItems,
+  getUploadQueueItem,
+  getAllActiveUploads,
+  getUploadQueueItemByMuxUploadId,
+  getFailedUploads,
 } from "@/drizzle/src/db/queries";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -60,6 +71,7 @@ export const adminRouter = createTRPCRouter({
       z.object({
         filename: z.string(),
         contentType: z.string(),
+        fileSize: z.number().optional(),
         fileData: z.string().optional(), // Not needed for direct uploads
       }),
     )
@@ -91,11 +103,27 @@ export const adminRouter = createTRPCRouter({
           status: directUpload.status,
         });
 
+        // Add to upload queue for tracking
+        const queueItem = await insertUploadQueueItem({
+          userId: ctx.userId,
+          filename: input.filename,
+          contentType: input.contentType,
+          fileSize: input.fileSize || null,
+          muxUploadId: directUpload.id,
+          uploadStatus: "pending",
+          uploadProgress: 0,
+          aiExtractionStatus: "pending", 
+          aiExtractionProgress: 0,
+        });
+
+        console.log("Added to upload queue:", queueItem.id);
+
         return {
           uploadId: directUpload.id,
           uploadUrl: directUpload.url,
           assetId: directUpload.asset_id, // Will be null initially
           status: directUpload.status,
+          queueId: queueItem.id, // Return queue ID for tracking
         };
       } catch (error) {
         console.error("Error creating Mux direct upload:", error);
@@ -139,6 +167,33 @@ export const adminRouter = createTRPCRouter({
           } catch (assetError) {
             console.warn("Asset not yet available:", assetError);
           }
+        }
+
+        // Update upload queue with current status
+        const queueItem = await getUploadQueueItemByMuxUploadId(input.uploadId);
+        if (queueItem) {
+          let newStatus: "pending" | "uploading" | "processing" | "completed" | "failed" = "pending";
+          
+          // Map Mux status to our queue status
+          if (upload.status === "waiting") {
+            newStatus = "pending";
+          } else if (upload.status === "asset_created") {
+            if (asset?.status === "ready") {
+              newStatus = "completed";
+            } else if (asset?.status === "preparing") {
+              newStatus = "processing";
+            }
+          } else if (upload.status === "errored") {
+            newStatus = "failed";
+          }
+          
+          await updateUploadQueueItem(queueItem.id, {
+            uploadStatus: newStatus,
+            muxAssetId: upload.asset_id || null,
+            muxPlaybackId: playbackId || null,
+            uploadProgress: newStatus === "completed" ? 100 : queueItem.uploadProgress,
+            completedAt: newStatus === "completed" ? new Date() : null,
+          });
         }
 
         return {
@@ -729,6 +784,265 @@ Guidelines:
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to delete video",
+        });
+      }
+    }),
+
+  // Upload Queue Management Routes
+  
+  // Get upload queue items for current user
+  getUploadQueue: protectedProcedure
+    .input(
+      z
+        .object({
+          limit: z.number().min(1).max(50).default(20),
+          offset: z.number().min(0).default(0),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.userRole !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const limit = input?.limit ?? 20;
+        const offset = input?.offset ?? 0;
+        return await getUploadQueueItems(ctx.userId, limit, offset);
+      } catch (error) {
+        console.error("Error getting upload queue:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get upload queue",
+        });
+      }
+    }),
+
+  // Get all active uploads across all users (admin only)
+  getAllActiveUploads: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.userRole !== "admin") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Admin privileges required",
+      });
+    }
+
+    try {
+      return await getAllActiveUploads();
+    } catch (error) {
+      console.error("Error getting active uploads:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to get active uploads",
+      });
+    }
+  }),
+
+  // Get single upload queue item
+  getUploadQueueItem: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.userRole !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const item = await getUploadQueueItem(input.id);
+        if (!item) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Upload queue item not found",
+          });
+        }
+        return item;
+      } catch (error) {
+        console.error("Error getting upload queue item:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get upload queue item",
+        });
+      }
+    }),
+
+  // Update upload progress manually
+  updateUploadProgress: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        progress: z.number().min(0).max(100),
+        status: z.enum(["pending", "uploading", "processing", "completed", "failed", "cancelled"]).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.userRole !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const result = await updateUploadProgress(input.id, input.progress, input.status);
+        if (!result) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Upload queue item not found",
+          });
+        }
+        return result;
+      } catch (error) {
+        console.error("Error updating upload progress:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update upload progress",
+        });
+      }
+    }),
+
+  // Update AI extraction progress
+  updateAiExtractionProgress: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        progress: z.number().min(0).max(100),
+        status: z.enum(["pending", "uploading", "processing", "completed", "failed", "cancelled"]).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.userRole !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const result = await updateAiExtractionProgress(input.id, input.progress, input.status);
+        if (!result) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Upload queue item not found",
+          });
+        }
+        return result;
+      } catch (error) {
+        console.error("Error updating AI extraction progress:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update AI extraction progress",
+        });
+      }
+    }),
+
+  // Cancel upload
+  cancelUpload: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.userRole !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const result = await updateUploadQueueItem(input.id, {
+          uploadStatus: "cancelled",
+          completedAt: new Date(),
+        });
+        
+        if (!result) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Upload queue item not found",
+          });
+        }
+        
+        return result;
+      } catch (error) {
+        console.error("Error cancelling upload:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to cancel upload",
+        });
+      }
+    }),
+
+  // Delete upload queue item
+  deleteUploadQueueItem: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.userRole !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const result = await deleteUploadQueueItem(input.id);
+        if (!result) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Upload queue item not found",
+          });
+        }
+        return { success: true };
+      } catch (error) {
+        console.error("Error deleting upload queue item:", error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete upload queue item",
+        });
+      }
+    }),
+
+  // Get failed uploads for retry
+  getFailedUploads: protectedProcedure
+    .input(
+      z
+        .object({
+          limit: z.number().min(1).max(50).default(10),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.userRole !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin privileges required",
+        });
+      }
+
+      try {
+        const limit = input?.limit ?? 10;
+        return await getFailedUploads(ctx.userId, limit);
+      } catch (error) {
+        console.error("Error getting failed uploads:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get failed uploads",
         });
       }
     }),

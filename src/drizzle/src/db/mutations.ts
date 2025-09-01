@@ -21,6 +21,8 @@ import {
   classDrafts,
   insertUserSchema,
   waitlist,
+  uploadQueue,
+  uploadStatusEnum,
 } from "./schema";
 import type {
   NewWorkout,
@@ -41,7 +43,7 @@ import type {
   NotificationPreferences,
   NewWaitlist,
 } from "./queries";
-import { eq, inArray, and } from "drizzle-orm";
+import { eq, inArray, and, sql } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
 import { getWeeklySchedulesByPlan } from "./queries";
 import { z } from "zod";
@@ -761,4 +763,144 @@ export async function deleteClassDraft(userId: string, sessionId: string) {
 export async function insertWaitlist(data: NewWaitlist) {
   const result = await db.insert(waitlist).values(data).returning();
   return result[0]!;
+}
+
+// Upload Queue mutations
+export type NewUploadQueueItem = {
+  userId: string;
+  filename: string;
+  contentType: string;
+  fileSize?: number | null;
+  muxUploadId?: string | null;
+  muxAssetId?: string | null;
+  muxPlaybackId?: string | null;
+  uploadStatus?: (typeof uploadStatusEnum.enumValues)[number];
+  uploadProgress?: number;
+  aiExtractionStatus?: (typeof uploadStatusEnum.enumValues)[number];
+  aiExtractionProgress?: number;
+  errorMessage?: string | null;
+  retryCount?: number;
+  maxRetries?: number;
+  startedAt?: Date | null;
+  completedAt?: Date | null;
+  pilatesVideoId?: string | null;
+};
+
+export async function insertUploadQueueItem(data: NewUploadQueueItem) {
+  const result = await db
+    .insert(uploadQueue)
+    .values({
+      ...data,
+      uploadStatus: data.uploadStatus ?? "pending",
+      uploadProgress: data.uploadProgress ?? 0,
+      aiExtractionStatus: data.aiExtractionStatus ?? "pending",
+      aiExtractionProgress: data.aiExtractionProgress ?? 0,
+      retryCount: data.retryCount ?? 0,
+      maxRetries: data.maxRetries ?? 3,
+    })
+    .returning();
+  return result[0]!;
+}
+
+export async function updateUploadQueueItem(
+  id: string,
+  data: Partial<NewUploadQueueItem> & {
+    updatedAt?: Date;
+  },
+) {
+  const result = await db
+    .update(uploadQueue)
+    .set({
+      ...data,
+      updatedAt: data.updatedAt ?? new Date(),
+    })
+    .where(eq(uploadQueue.id, id))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function deleteUploadQueueItem(id: string) {
+  const result = await db
+    .delete(uploadQueue)
+    .where(eq(uploadQueue.id, id))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function updateUploadProgress(
+  id: string,
+  progress: number,
+  status?: (typeof uploadStatusEnum.enumValues)[number],
+) {
+  const now = new Date();
+  if (status) {
+    const setObject: Partial<typeof uploadQueue.$inferInsert> = {
+      uploadProgress: progress,
+      uploadStatus: status,
+      updatedAt: now,
+      startedAt: status === "uploading" ? now : undefined,
+      completedAt:
+        status === "completed" || status === "failed" ? now : undefined,
+    };
+    const result = await db
+      .update(uploadQueue)
+      .set(setObject)
+      .where(eq(uploadQueue.id, id))
+      .returning();
+    return result[0] ?? null;
+  }
+
+  const result = await db
+    .update(uploadQueue)
+    .set({ uploadProgress: progress, updatedAt: now })
+    .where(eq(uploadQueue.id, id))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function updateAiExtractionProgress(
+  id: string,
+  progress: number,
+  status?: (typeof uploadStatusEnum.enumValues)[number],
+) {
+  const now = new Date();
+  const setObject: Partial<typeof uploadQueue.$inferInsert> = {
+    aiExtractionProgress: progress,
+    updatedAt: now,
+    aiExtractionStatus: status ?? undefined,
+  };
+  const result = await db
+    .update(uploadQueue)
+    .set(setObject)
+    .where(eq(uploadQueue.id, id))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function setUploadError(
+  id: string,
+  errorMessage: string,
+  incrementRetry = true,
+) {
+  const now = new Date();
+  if (incrementRetry) {
+    const result = await db
+      .update(uploadQueue)
+      .set({
+        errorMessage,
+        uploadStatus: "failed",
+        updatedAt: now,
+        retryCount: sql`${uploadQueue.retryCount} + 1`,
+      })
+      .where(eq(uploadQueue.id, id))
+      .returning();
+    return result[0] ?? null;
+  }
+
+  const result = await db
+    .update(uploadQueue)
+    .set({ errorMessage, uploadStatus: "failed", updatedAt: now })
+    .where(eq(uploadQueue.id, id))
+    .returning();
+  return result[0] ?? null;
 }
