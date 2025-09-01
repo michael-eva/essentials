@@ -310,6 +310,7 @@ REQUIRED FIELDS for pilates class (must be present in the final JSON):
 - tags (array): Array of tags for searchability
 - exerciseSequence (array): Array of exercises in order
 - instructor (string): REQUIRED - Instructor name (cannot be empty or null)
+- thumbnailTimestamp (number): REQUIRED - Timestamp in seconds for video thumbnail (ask user for time in mm:ss format like "01:25" then convert to seconds)
 
 OPTIONAL CONTEXT (do not block completion if missing; include in description or tags if present):
 - Pre/Postnatal suitability notes
@@ -345,7 +346,7 @@ Guidelines:
               console.log("Raw extracted data before validation:", JSON.stringify(rawData, null, 2));
               
               // Check for critical required fields before validation
-              const requiredFields = ['title', 'summary', 'description', 'difficulty', 'duration', 'equipment', 'pilatesStyle', 'classType', 'focusArea', 'targetedMuscles', 'intensity', 'modifications', 'beginnerFriendly', 'tags', 'exerciseSequence', 'instructor'];
+              const requiredFields = ['title', 'summary', 'description', 'difficulty', 'duration', 'equipment', 'pilatesStyle', 'classType', 'focusArea', 'targetedMuscles', 'intensity', 'modifications', 'beginnerFriendly', 'tags', 'exerciseSequence', 'instructor', 'thumbnailTimestamp'];
               const missingFields = requiredFields.filter(field => !rawData[field] || (typeof rawData[field] === 'string' && rawData[field].trim() === '') || (Array.isArray(rawData[field]) && rawData[field].length === 0));
               
               if (missingFields.length > 0) {

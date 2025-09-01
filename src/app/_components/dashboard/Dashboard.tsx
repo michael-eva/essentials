@@ -247,7 +247,7 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number; mux_playback_id?: string })[]).map((classItem, index) => {
+            (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number; mux_playback_id?: string, thumbnailTimestamp?: number })[]).map((classItem, index) => {
               // Function to get activity image based on type
               const getActivityImage = (activityType: string | null) => {
                 return localImages[activityType as keyof typeof localImages] || "/images/workouts/fitness.jpg";

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TimeInput } from "@/components/ui/time-input";
 import {
   Dialog,
   DialogContent,
@@ -48,7 +49,7 @@ const editClassDataSchema = z.object({
   tags: z.string().min(1, "Tags are required"),
   exerciseSequence: z.string().min(1, "Exercise sequence is required"),
   instructor: z.string().min(1, "Instructor is required"),
-  thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater").default(35),
+  thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater"),
 });
 
 type EditClassDataForm = z.infer<typeof editClassDataSchema>;
@@ -143,6 +144,7 @@ export function ClassDataExtractor({
       tags: "",
       exerciseSequence: "",
       instructor: "",
+      thumbnailTimestamp: 35,
     },
   });
 
@@ -357,6 +359,12 @@ export function ClassDataExtractor({
                 {extractedData.equipment}
               </p>
             </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Thumbnail Timestamp</label>
+              <p className="text-sm text-gray-900 border-b border-gray-200 pb-1">
+                {extractedData.thumbnailTimestamp ? `${Math.floor(extractedData.thumbnailTimestamp / 60).toString().padStart(2, '0')}:${(extractedData.thumbnailTimestamp % 60).toString().padStart(2, '0')}` : '00:35'}
+              </p>
+            </div>
           </div>
 
           <div>
@@ -561,7 +569,7 @@ export function ClassDataExtractor({
             )} */}
             <Button 
               onClick={onSubmit} 
-              disabled={isSubmitting || videoUploadStatus !== "complete"}
+              disabled={isSubmitting || videoUploadStatus !== "complete" || !extractedData?.thumbnailTimestamp}
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -575,6 +583,7 @@ export function ClassDataExtractor({
                videoUploadStatus === "processing" ? "Processing Video..." :
                videoUploadStatus === "error" ? "Video Upload Failed" :
                videoUploadStatus === "idle" ? "Upload Video First" :
+               !extractedData?.thumbnailTimestamp ? "Timestamp Required" :
                "Create Pilates Class"}
             </Button>
           </div>
@@ -698,19 +707,18 @@ export function ClassDataExtractor({
             {/* Thumbnail Timestamp */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="thumbnailTimestamp">Thumbnail Timestamp (seconds) *</Label>
-                <Input
+                <Label htmlFor="thumbnailTimestamp">Thumbnail Timestamp (mm:ss) *</Label>
+                <TimeInput
                   id="thumbnailTimestamp"
-                  type="number"
-                  min="0"
-                  {...form.register("thumbnailTimestamp", { valueAsNumber: true })}
-                  placeholder="e.g., 35"
+                  value={form.watch("thumbnailTimestamp")}
+                  onChange={(seconds) => form.setValue("thumbnailTimestamp", seconds)}
+                  error={!!form.formState.errors.thumbnailTimestamp}
                 />
                 {form.formState.errors.thumbnailTimestamp && (
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.thumbnailTimestamp.message}</p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
-                  Timestamp in seconds for the video thumbnail
+                  Time in video for thumbnail image (e.g., 01:25)
                 </p>
               </div>
             </div>

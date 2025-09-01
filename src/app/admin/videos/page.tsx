@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TimeInput } from "@/components/ui/time-input";
 import {
   Dialog,
   DialogContent,
@@ -57,7 +58,7 @@ const editVideoSchema = z.object({
   tags: z.string().min(1, "Tags are required"),
   exerciseSequence: z.string().min(1, "Exercise sequence is required"),
   instructor: z.string().min(1, "Instructor is required"),
-  thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater").default(35),
+  thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater"),
 });
 
 type EditVideoForm = z.infer<typeof editVideoSchema>;
@@ -612,19 +613,18 @@ export default function AdminVideosPage() {
             {/* Thumbnail Timestamp */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="thumbnailTimestamp">Thumbnail Timestamp (seconds) *</Label>
-                <Input
+                <Label htmlFor="thumbnailTimestamp">Thumbnail Timestamp (mm:ss) *</Label>
+                <TimeInput
                   id="thumbnailTimestamp"
-                  type="number"
-                  min="0"
-                  {...form.register("thumbnailTimestamp", { valueAsNumber: true })}
-                  placeholder="e.g., 35"
+                  value={form.watch("thumbnailTimestamp")}
+                  onChange={(seconds) => form.setValue("thumbnailTimestamp", seconds)}
+                  error={!!form.formState.errors.thumbnailTimestamp}
                 />
                 {form.formState.errors.thumbnailTimestamp && (
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.thumbnailTimestamp.message}</p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
-                  Timestamp in seconds for the video thumbnail
+                  Time in video for thumbnail image (e.g., 01:25)
                 </p>
               </div>
             </div>
