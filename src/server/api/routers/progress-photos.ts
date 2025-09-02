@@ -39,7 +39,7 @@ export const progressPhotosRouter = createTRPCRouter({
       const buffer = Buffer.from(base64Data, "base64");
 
       // Detect MIME type from base64 data
-      const mimeMatch = input.imageData.match(/^data:([^;]+);base64,/);
+      const mimeMatch = /^data:([^;]+);base64,/.exec(input.imageData);
       const contentType = mimeMatch ? mimeMatch[1] : "image/jpeg";
 
       // Upload to Supabase Storage
@@ -78,7 +78,7 @@ export const progressPhotosRouter = createTRPCRouter({
 
       // Get photo data to verify ownership and get storage path
       const photos = await getProgressPhotos(userId);
-      const photo = photos.find(p => p.id === input.id);
+      const photo = photos.find((p) => p.id === input.id);
 
       if (!photo) {
         throw new Error("Photo not found");

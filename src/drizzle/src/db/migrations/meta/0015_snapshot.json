@@ -1,5 +1,5 @@
 {
-  "id": "6f32659a-41da-41fe-a17d-c85124863d44",
+  "id": "731f06ac-45db-4ce5-bea4-b9eeb28ae233",
   "prevId": "26a3ed7f-b8bb-4f75-b2a4-560dfaec26f1",
   "version": "7",
   "dialect": "postgresql",
@@ -274,6 +274,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "thumbnail_timestamp": {
+          "name": "thumbnail_timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 35
         }
       },
       "indexes": {},

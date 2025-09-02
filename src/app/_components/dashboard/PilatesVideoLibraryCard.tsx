@@ -12,7 +12,7 @@ const PilatesVideoLibraryCard: React.FC<{ video: PilatesVideo }> = ({ video }) =
     <div className="relative aspect-video w-full bg-gray-100 flex items-center justify-center" style={{ maxHeight: 190 }}>
       {video.mux_playback_id ? (
         <Image
-          src={`https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=600&height=338&fit_mode=smartcrop&time=35`}
+          src={`https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=600&height=338&fit_mode=smartcrop&time=${video.thumbnailTimestamp || 35}`}
           alt="class thumbnail"
           className="w-full h-full object-cover"
           width={200}

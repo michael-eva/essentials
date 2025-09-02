@@ -71,7 +71,7 @@ export default function PilatesVideoDetailPage({
   // Situation 3: video exists, no error
   // Prepare props for PilatesDetail
   const posterUrl = video.mux_playback_id
-    ? `https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=384&height=216&fit_mode=smartcrop&time=35`
+    ? `https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=384&height=216&fit_mode=smartcrop&time=${video.thumbnailTimestamp || 35}`
     : undefined;
 
   return (

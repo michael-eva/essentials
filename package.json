@@ -114,6 +114,14 @@
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.27.0"
   },
+  "optionalDependencies": {
+    "lightningcss-darwin-arm64": "^1.29.0",
+    "lightningcss-darwin-x64": "^1.29.0",
+    "lightningcss-linux-arm64-gnu": "^1.29.0",
+    "lightningcss-linux-arm64-musl": "^1.29.0",
+    "lightningcss-linux-x64-gnu": "^1.29.0",
+    "lightningcss-linux-x64-musl": "^1.29.0"
+  },
   "ct3aMetadata": {
     "initVersion": "7.39.3"
   },

@@ -14,7 +14,7 @@ const PilatesVideoCard: React.FC<{ video: PilatesVideo, link?: string, height?: 
       {video.mux_playback_id ? (
         <>
           <Image
-            src={`https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=384&height=256&fit_mode=smartcrop&time=35`}
+            src={`https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=384&height=256&fit_mode=smartcrop&time=${video.thumbnailTimestamp || 35}`}
             alt="class thumbnail"
             className="h-full w-full rounded object-cover transition group-hover:scale-105"
             width={100}

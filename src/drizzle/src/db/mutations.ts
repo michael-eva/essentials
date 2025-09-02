@@ -697,6 +697,7 @@ export type NewPilatesVideo = {
   muxAssetId?: string | null;
   mux_playback_id?: string | null;
   instructor?: string | null;
+  thumbnailTimestamp?: number | null;
 };
 
 export async function insertPilatesVideo(data: NewPilatesVideo) {

@@ -453,6 +453,7 @@ export const PilatesVideos = pgTable("pilates_videos", {
     .default(sql`now()`),
   mux_playback_id: text("mux_playback_id"),
   instructor: text("instructor"),
+  thumbnailTimestamp: integer("thumbnail_timestamp").default(35),
 });
 
 export const classDrafts = pgTable(

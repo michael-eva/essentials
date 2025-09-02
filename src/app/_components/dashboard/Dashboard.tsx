@@ -247,7 +247,7 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number; mux_playback_id?: string })[]).map((classItem, index) => {
+            (upcomingClasses as (Workout & { tracking: WorkoutTracking | null; weekNumber?: number; mux_playback_id?: string, thumbnailTimestamp?: number })[]).map((classItem, index) => {
               // Function to get activity image based on type
               const getActivityImage = (activityType: string | null) => {
                 return localImages[activityType as keyof typeof localImages] || "/images/workouts/fitness.jpg";
@@ -263,7 +263,7 @@ export default function Dashboard() {
                   <div className="flex w-16 h-16 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-brand-sage/10">
                     <Image
                       src={classItem.mux_playback_id
-                        ? `https://image.mux.com/${classItem.mux_playback_id}/thumbnail.png?width=128&height=128&fit_mode=smartcrop&time=35`
+                        ? `https://image.mux.com/${classItem.mux_playback_id}/thumbnail.png?width=128&height=128&fit_mode=smartcrop&time=${classItem.thumbnailTimestamp || 35}`
                         : getActivityImage(classItem.activityType)
                       }
                       alt={`${classItem.activityType || 'fitness'} workout`}
@@ -482,7 +482,7 @@ export default function Dashboard() {
                       <div className="flex w-16 h-16 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-brand-sage/10">
                         <Image
                           src={activity.workout?.mux_playback_id
-                            ? `https://image.mux.com/${activity.workout.mux_playback_id}/thumbnail.png?width=128&height=128&fit_mode=smartcrop&time=35`
+                            ? `https://image.mux.com/${activity.workout.mux_playback_id}/thumbnail.png?width=128&height=128&fit_mode=smartcrop&time=${activity.workout.thumbnailTimestamp || 35}`
                             : getActivityImage(activity.tracking.activityType)
                           }
                           alt={`${activity.tracking.activityType || 'fitness'} activity`}

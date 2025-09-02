@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TimeInput } from "@/components/ui/time-input";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,7 @@ const editVideoSchema = z.object({
   tags: z.string().min(1, "Tags are required"),
   exerciseSequence: z.string().min(1, "Exercise sequence is required"),
   instructor: z.string().min(1, "Instructor is required"),
+  thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater"),
 });
 
 type EditVideoForm = z.infer<typeof editVideoSchema>;
@@ -120,6 +122,7 @@ export default function AdminVideosPage() {
       tags: "",
       exerciseSequence: "",
       instructor: "",
+      thumbnailTimestamp: 35,
     },
   });
 
@@ -164,6 +167,7 @@ export default function AdminVideosPage() {
         tags: video.tags.join(", "),
         exerciseSequence: video.exerciseSequence.join(", "),
         instructor: video.instructor || "",
+        thumbnailTimestamp: video.thumbnailTimestamp ?? 35,
       });
     }
   };
@@ -189,6 +193,7 @@ export default function AdminVideosPage() {
       tags: data.tags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0),
       exerciseSequence: data.exerciseSequence.split(",").map(ex => ex.trim()).filter(ex => ex.length > 0),
       instructor: data.instructor,
+      thumbnailTimestamp: data.thumbnailTimestamp,
     });
   };
 
@@ -340,7 +345,7 @@ export default function AdminVideosPage() {
                   <div className="relative h-48 bg-gray-100">
                     {video.mux_playback_id ? (
                       <Image
-                        src={`https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=400&height=300&fit_mode=smartcrop&time=35`}
+                        src={`https://image.mux.com/${video.mux_playback_id}/thumbnail.png?width=400&height=300&fit_mode=smartcrop&time=${video.thumbnailTimestamp || 35}`}
                         alt={video.title}
                         fill
                         className="object-cover"
@@ -602,6 +607,25 @@ export default function AdminVideosPage() {
                 {form.formState.errors.intensity && (
                   <p className="text-sm text-red-600 mt-1">{form.formState.errors.intensity.message}</p>
                 )}
+              </div>
+            </div>
+
+            {/* Thumbnail Timestamp */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="thumbnailTimestamp">Thumbnail Timestamp (mm:ss) *</Label>
+                <TimeInput
+                  id="thumbnailTimestamp"
+                  value={form.watch("thumbnailTimestamp")}
+                  onChange={(seconds) => form.setValue("thumbnailTimestamp", seconds)}
+                  error={!!form.formState.errors.thumbnailTimestamp}
+                />
+                {form.formState.errors.thumbnailTimestamp && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.thumbnailTimestamp.message}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Time in video for thumbnail image (e.g., 01:25)
+                </p>
               </div>
             </div>
 

@@ -56,6 +56,7 @@ const ClassDataSchema = z.object({
   instructor: z.string().min(1, "Instructor is required"),
   muxPlaybackId: z.string().optional(),
   muxAssetId: z.string().optional(),
+  thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater").default(35),
 });
 
 export const adminRouter = createTRPCRouter({
@@ -309,6 +310,7 @@ REQUIRED FIELDS for pilates class (must be present in the final JSON):
 - tags (array): Array of tags for searchability
 - exerciseSequence (array): Array of exercises in order
 - instructor (string): REQUIRED - Instructor name (cannot be empty or null)
+- thumbnailTimestamp (number): REQUIRED - Timestamp in seconds for video thumbnail (ask user for time in mm:ss format like "01:25" then convert to seconds)
 
 OPTIONAL CONTEXT (do not block completion if missing; include in description or tags if present):
 - Pre/Postnatal suitability notes
@@ -347,33 +349,9 @@ Guidelines:
               );
 
               // Check for critical required fields before validation
-              const requiredFields = [
-                "title",
-                "summary",
-                "description",
-                "difficulty",
-                "duration",
-                "equipment",
-                "pilatesStyle",
-                "classType",
-                "focusArea",
-                "targetedMuscles",
-                "intensity",
-                "modifications",
-                "beginnerFriendly",
-                "tags",
-                "exerciseSequence",
-                "instructor",
-              ];
-              const missingFields = requiredFields.filter(
-                (field) =>
-                  !rawData[field] ||
-                  (typeof rawData[field] === "string" &&
-                    rawData[field].trim() === "") ||
-                  (Array.isArray(rawData[field]) &&
-                    rawData[field].length === 0),
-              );
-
+              const requiredFields = ['title', 'summary', 'description', 'difficulty', 'duration', 'equipment', 'pilatesStyle', 'classType', 'focusArea', 'targetedMuscles', 'intensity', 'modifications', 'beginnerFriendly', 'tags', 'exerciseSequence', 'instructor', 'thumbnailTimestamp'];
+              const missingFields = requiredFields.filter(field => !rawData[field] || (typeof rawData[field] === 'string' && rawData[field].trim() === '') || (Array.isArray(rawData[field]) && rawData[field].length === 0));
+              
               if (missingFields.length > 0) {
                 console.error(
                   "Missing or empty required fields:",
@@ -455,6 +433,7 @@ Guidelines:
             : "",
           muxAssetId: input.muxAssetId,
           mux_playback_id: input.muxPlaybackId,
+          thumbnailTimestamp: input.thumbnailTimestamp,
         });
 
         return pilatesVideo;
@@ -699,6 +678,7 @@ Guidelines:
         tags: z.array(z.string()).optional(),
         exerciseSequence: z.array(z.string()).optional(),
         instructor: z.string().min(1, "Instructor is required").optional(),
+        thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater").optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {

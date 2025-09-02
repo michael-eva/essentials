@@ -175,25 +175,37 @@ export async function getUpcomingActivities(userId: string): Promise<
     .map((w) => w.classId)
     .filter((id): id is string => Boolean(id));
 
-  let pilatesVideos: { id: string; mux_playback_id: string }[] = [];
+  let pilatesVideos: {
+    id: string;
+    mux_playback_id: string;
+    thumbnailTimestamp: number | null;
+  }[] = [];
   if (classIds.length > 0) {
     pilatesVideos = (
       await db
         .select({
           id: PilatesVideos.id,
           mux_playback_id: PilatesVideos.mux_playback_id,
+          thumbnailTimestamp: PilatesVideos.thumbnailTimestamp,
         })
         .from(PilatesVideos)
         .where(inArray(PilatesVideos.id, classIds))
     ).filter((v) => v.mux_playback_id !== null) as {
       id: string;
       mux_playback_id: string;
+      thumbnailTimestamp: number | null;
     }[];
   }
 
   // Create a map for quick lookup
   const pilatesVideoMap = Object.fromEntries(
-    pilatesVideos.map((v) => [v.id, v.mux_playback_id]),
+    pilatesVideos.map((v) => [
+      v.id,
+      {
+        mux_playback_id: v.mux_playback_id,
+        thumbnailTimestamp: v.thumbnailTimestamp || 35,
+      },
+    ]),
   );
 
   return workouts.map((workout) => {
@@ -206,7 +218,11 @@ export async function getUpcomingActivities(userId: string): Promise<
       exercises: tracking?.exercises ?? null,
       mux_playback_id:
         workout.type === "class" && workout.classId
-          ? pilatesVideoMap[workout.classId]
+          ? pilatesVideoMap[workout.classId]?.mux_playback_id
+          : undefined,
+      thumbnailTimestamp:
+        workout.type === "class" && workout.classId
+          ? pilatesVideoMap[workout.classId]?.thumbnailTimestamp || 35
           : undefined,
     };
   });
@@ -278,7 +294,11 @@ export async function getPreviousPlans(userId: string): Promise<
         .filter((id): id is string => id !== null);
 
       // 2. Fetch pilates videos for those classIds
-      let pilatesVideos: { id: string; mux_playback_id: string }[] = [];
+      let pilatesVideos: {
+        id: string;
+        mux_playback_id: string;
+        thumbnailTimestamp: number | null;
+      }[] = [];
       if (classIds.length > 0) {
         pilatesVideos = (
           await db
@@ -291,12 +311,19 @@ export async function getPreviousPlans(userId: string): Promise<
         ).filter((v) => v.mux_playback_id !== null) as {
           id: string;
           mux_playback_id: string;
+          thumbnailTimestamp: number | null;
         }[];
       }
 
       // 3. Create a map for quick lookup
       const pilatesVideoMap = Object.fromEntries(
-        pilatesVideos.map((v) => [v.id, v.mux_playback_id]),
+        pilatesVideos.map((v) => [
+          v.id,
+          {
+            mux_playback_id: v.mux_playback_id,
+            thumbnailTimestamp: v.thumbnailTimestamp || 35,
+          },
+        ]),
       );
 
       // 4. When building weekWorkouts, attach mux_playback_id if class
@@ -311,7 +338,10 @@ export async function getPreviousPlans(userId: string): Promise<
             if (w && w.type === "class" && w.classId) {
               return {
                 ...w,
-                mux_playback_id: pilatesVideoMap[w.classId] || null,
+                mux_playback_id:
+                  pilatesVideoMap[w.classId]?.mux_playback_id || null,
+                thumbnailTimestamp:
+                  pilatesVideoMap[w.classId]?.thumbnailTimestamp || 35,
               };
             }
             return w;
@@ -367,25 +397,37 @@ export async function getActivePlan(userId: string): Promise<
     .filter((id): id is string => id !== null);
 
   // 2. Fetch pilates videos for those classIds
-  let pilatesVideos: { id: string; mux_playback_id: string }[] = [];
+  let pilatesVideos: {
+    id: string;
+    mux_playback_id: string;
+    thumbnailTimestamp: number | null;
+  }[] = [];
   if (classIds.length > 0) {
     pilatesVideos = (
       await db
         .select({
           id: PilatesVideos.id,
           mux_playback_id: PilatesVideos.mux_playback_id,
+          thumbnailTimestamp: PilatesVideos.thumbnailTimestamp,
         })
         .from(PilatesVideos)
         .where(inArray(PilatesVideos.id, classIds))
     ).filter((v) => v.mux_playback_id !== null) as {
       id: string;
       mux_playback_id: string;
+      thumbnailTimestamp: number | null;
     }[];
   }
 
   // 3. Create a map for quick lookup
   const pilatesVideoMap = Object.fromEntries(
-    pilatesVideos.map((v) => [v.id, v.mux_playback_id]),
+    pilatesVideos.map((v) => [
+      v.id,
+      {
+        mux_playback_id: v.mux_playback_id,
+        thumbnailTimestamp: v.thumbnailTimestamp || 35,
+      },
+    ]),
   );
 
   // 4. When building weekWorkouts, attach mux_playback_id if class
@@ -400,7 +442,10 @@ export async function getActivePlan(userId: string): Promise<
         if (w && w.type === "class" && w.classId) {
           return {
             ...w,
-            mux_playback_id: pilatesVideoMap[w.classId] || null,
+            mux_playback_id:
+              pilatesVideoMap[w.classId]?.mux_playback_id || null,
+            thumbnailTimestamp:
+              pilatesVideoMap[w.classId]?.thumbnailTimestamp || 35,
           };
         }
         return w;
@@ -554,7 +599,9 @@ export async function getActivityHistory(
 ): Promise<
   Array<{
     tracking: WorkoutTracking;
-    workout: (Workout & { mux_playback_id?: string }) | null;
+    workout:
+      | (Workout & { mux_playback_id?: string; thumbnailTimestamp?: number })
+      | null;
   }>
 > {
   const trackingData = await db
@@ -583,32 +630,50 @@ export async function getActivityHistory(
     .map((w) => w.classId)
     .filter((id): id is string => Boolean(id));
 
-  let pilatesVideos: { id: string; mux_playback_id: string }[] = [];
+  let pilatesVideos: {
+    id: string;
+    mux_playback_id: string;
+    thumbnailTimestamp: number | null;
+  }[] = [];
   if (classIds.length > 0) {
     pilatesVideos = (
       await db
         .select({
           id: PilatesVideos.id,
           mux_playback_id: PilatesVideos.mux_playback_id,
+          thumbnailTimestamp: PilatesVideos.thumbnailTimestamp,
         })
         .from(PilatesVideos)
         .where(inArray(PilatesVideos.id, classIds))
     ).filter((v) => v.mux_playback_id !== null) as {
       id: string;
       mux_playback_id: string;
+      thumbnailTimestamp: number | null;
     }[];
   }
 
   // Create a map for quick lookup
   const pilatesVideoMap = Object.fromEntries(
-    pilatesVideos.map((v) => [v.id, v.mux_playback_id]),
+    pilatesVideos.map((v) => [
+      v.id,
+      {
+        mux_playback_id: v.mux_playback_id,
+        thumbnailTimestamp: v.thumbnailTimestamp || 35,
+      },
+    ]),
   );
 
   // Attach mux_playback_id to class workouts
   const workoutsWithMux = workouts.map((w) => ({
     ...w,
     mux_playback_id:
-      w.type === "class" && w.classId ? pilatesVideoMap[w.classId] : undefined,
+      w.type === "class" && w.classId
+        ? pilatesVideoMap[w.classId]?.mux_playback_id
+        : undefined,
+    thumbnailTimestamp:
+      w.type === "class" && w.classId
+        ? pilatesVideoMap[w.classId]?.thumbnailTimestamp || 35
+        : undefined,
   }));
 
   return trackingData.map((tracking) => ({

@@ -6,4 +6,5 @@ export interface PilatesVideo {
     difficulty: string;
     videoUrl: string;
     mux_playback_id: string | null;
+    thumbnailTimestamp?: number | null;
   } 
