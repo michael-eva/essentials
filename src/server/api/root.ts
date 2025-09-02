@@ -10,6 +10,7 @@ import { adminRouter } from "./routers/admin";
 import { userRouter } from "./routers/user";
 import { videosRouter } from "./routers/videos";
 import { waitlistRouter } from "./routers/waitlist";
+import { progressPhotosRouter } from "./routers/progress-photos";
 
 /**
  * This is the primary router for your server.
@@ -28,6 +29,7 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   videos: videosRouter,
   waitlist: waitlistRouter,
+  progressPhotos: progressPhotosRouter,
 });
 
 // export type definition of API

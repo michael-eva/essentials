@@ -36,6 +36,7 @@ import {
   roleEnum,
   waitlist,
   uploadQueue,
+  progressPhotos,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -55,6 +56,7 @@ export type NotificationPreferences = InferSelectModel<
 >;
 export type UploadQueue = InferSelectModel<typeof uploadQueue>;
 export type Role = (typeof roleEnum.enumValues)[number];
+export type ProgressPhoto = InferSelectModel<typeof progressPhotos>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -69,7 +71,7 @@ export type NewNotificationPreferences = InferInsertModel<
   typeof notificationPreferences
 >;
 export type NewWaitlist = InferInsertModel<typeof waitlist>;
-
+export type NewProgressPhoto = InferInsertModel<typeof progressPhotos>;
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;
 export type PersonalTrainerInteraction = InferSelectModel<
@@ -1402,5 +1404,16 @@ export async function getFailedUploads(
     .where(and(...conditions))
     .orderBy(desc(uploadQueue.updatedAt))
     .limit(limit);
+  return result;
+}
+
+export async function getProgressPhotos(
+  userId: string,
+): Promise<ProgressPhoto[]> {
+  const result = await db
+    .select()
+    .from(progressPhotos)
+    .where(eq(progressPhotos.userId, userId))
+    .orderBy(desc(progressPhotos.takenAt));
   return result;
 }
