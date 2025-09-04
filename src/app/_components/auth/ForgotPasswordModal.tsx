@@ -61,7 +61,7 @@ export function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswordModalP
             {isEmailSent ? "Check Your Email" : "Reset Password"}
           </DialogTitle>
           <DialogDescription className="text-brand-black/70">
-            {isEmailSent 
+            {isEmailSent
               ? "We've sent you a password reset link. Check your email and follow the instructions to reset your password."
               : "Enter your email address and we'll send you a link to reset your password."
             }
@@ -91,15 +91,13 @@ export function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswordModalP
               >
                 Cancel
               </Button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <Button
                 type="submit"
                 disabled={isLoading}
                 className="flex-1 bg-brand-bright-orange text-white py-3 rounded-lg font-semibold hover:bg-brand-bright-orange/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Sending..." : "Send Reset Link"}
-              </motion.button>
+              </Button>
             </div>
           </form>
         ) : (
