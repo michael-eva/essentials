@@ -9,6 +9,7 @@ import { api } from "@/trpc/react";
 import { login } from "@/services/auth-helpers";
 import { supabase } from "@/lib/supabase/client";
 import Link from 'next/link'
+import { ForgotPasswordModal } from "@/app/_components/auth/ForgotPasswordModal";
 
 
 type AuthMode = "existing" | "new";
@@ -57,6 +58,7 @@ function SignInForm() {
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = (searchParams.get("mode") as AuthMode) || "existing";
@@ -260,6 +262,17 @@ function SignInForm() {
                 className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-brand-light-yellow  rounded-lg text-brand-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm sm:text-base"
                 required
               />
+              {mode === "existing" && (
+                <div className="text-right mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-brand-cobalt text-sm hover:underline font-medium"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
             </div>
 
             <motion.button
@@ -312,6 +325,11 @@ function SignInForm() {
           </div>
         </div>
       </motion.div>
+
+      <ForgotPasswordModal 
+        open={showForgotPassword} 
+        onOpenChange={setShowForgotPassword} 
+      />
     </div>
   );
 }
