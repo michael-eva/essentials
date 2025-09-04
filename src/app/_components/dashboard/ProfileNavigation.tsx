@@ -17,14 +17,7 @@ const profileSections = [
   //   color: "#3B82F6",
   //   href: "/dashboard/profile/account"
   // },
-  {
-    id: "progress-photos",
-    title: "Progress Photos",
-    description: "Capture and view your fitness progress over time",
-    icon: <Camera className="h-6 w-6" />,
-    color: "#F59E0B",
-    href: "/dashboard/profile/progress-photos"
-  },
+
   {
     id: "settings",
     title: "Profile Settings",
@@ -32,6 +25,14 @@ const profileSections = [
     icon: <Settings className="h-6 w-6" />,
     color: "#10B981",
     href: "/dashboard/profile/settings"
+  },
+  {
+    id: "progress-photos",
+    title: "Progress Photos",
+    description: "Capture and view your fitness progress over time",
+    icon: <Camera className="h-6 w-6" />,
+    color: "#F59E0B",
+    href: "/dashboard/profile/progress-photos"
   },
   {
     id: "app",
