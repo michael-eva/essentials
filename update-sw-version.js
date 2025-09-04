@@ -29,18 +29,31 @@ const __dirname = path.dirname(__filename);
 
 const SW_FILE_PATH = path.join(__dirname, 'public', 'sw.js');
 
+// Type definitions
+/**
+ * @typedef {Object} Version
+ * @property {number} major
+ * @property {number} minor
+ * @property {number} patch
+ * @property {string} full
+ * @property {string} [shortVersion]
+ */
+
 // Create readline interface
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
+/**
+ * @returns {Version} The current version object
+ */
 function getCurrentVersion() {
   try {
     const swContent = fs.readFileSync(SW_FILE_PATH, 'utf8');
     const versionMatch = swContent.match(/const SW_VERSION = '(\d+)\.(\d+)\.(\d+)'/);
     
-    if (versionMatch) {
+    if (versionMatch && versionMatch[1] && versionMatch[2] && versionMatch[3]) {
       return {
         major: parseInt(versionMatch[1]),
         minor: parseInt(versionMatch[2]),
@@ -51,11 +64,16 @@ function getCurrentVersion() {
     
     throw new Error('Could not parse current version from sw.js');
   } catch (error) {
-    console.error('Error reading sw.js:', error.message);
+    console.error('Error reading sw.js:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }
 
+/**
+ * @param {Version} currentVersion - The current version object
+ * @param {string} updateType - The type of update (major, minor, patch)
+ * @returns {Version} The new version object
+ */
 function updateVersion(currentVersion, updateType) {
   let newVersion = { ...currentVersion };
   
@@ -82,6 +100,10 @@ function updateVersion(currentVersion, updateType) {
   return newVersion;
 }
 
+/**
+ * @param {Version} currentVersion - The current version object
+ * @param {Version} newVersion - The new version object
+ */
 function updateSwFile(currentVersion, newVersion) {
   try {
     let swContent = fs.readFileSync(SW_FILE_PATH, 'utf8');
@@ -132,11 +154,14 @@ function updateSwFile(currentVersion, newVersion) {
     console.log(`   - Comments and logs: V${newVersion.shortVersion}`);
     
   } catch (error) {
-    console.error('Error updating sw.js:', error.message);
+    console.error('Error updating sw.js:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }
 
+/**
+ * @returns {Promise<string>} The update type selected by the user
+ */
 function askForUpdateType() {
   return new Promise((resolve) => {
     process.stdout.write('What type of update? (major/minor/patch): ');
@@ -146,6 +171,11 @@ function askForUpdateType() {
   });
 }
 
+/**
+ * @param {Version} currentVersion - The current version object
+ * @param {Version} newVersion - The new version object
+ * @returns {Promise<boolean>} Whether the user confirmed the update
+ */
 function askForConfirmation(currentVersion, newVersion) {
   return new Promise((resolve) => {
     console.log(`\n📋 Update Summary:`);
@@ -179,7 +209,7 @@ async function main() {
     }
     
     // Validate update type
-    if (!['major', 'minor', 'patch'].includes(updateType.toLowerCase())) {
+    if (!['major', 'minor', 'patch'].includes(updateType?.toLowerCase() ?? '')) {
       console.log('❌ Invalid update type. Please use: major, minor, or patch');
       console.log('💡 Usage: node update-sw-version.js [major|minor|patch]');
       rl.close();
@@ -187,7 +217,7 @@ async function main() {
     }
     
     // Calculate new version
-    const newVersion = updateVersion(currentVersion, updateType);
+    const newVersion = updateVersion(currentVersion, updateType ?? '');
     
     // Ask for confirmation (or auto-confirm if --force flag is present)
     const forceFlag = args.includes('--force') || args.includes('-f');
@@ -206,7 +236,7 @@ async function main() {
     rl.close();
     
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('❌ Error:', error instanceof Error ? error.message : String(error));
     rl.close();
     process.exit(1);
   }
