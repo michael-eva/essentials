@@ -181,6 +181,7 @@ export default function WaitlistForm() {
                   {...register("fullName")}
                   placeholder="Enter your full name"
                   className={errors.fullName ? "border-red-500" : ""}
+                  disabled={showAccessCode}
                 />
                 {errors.fullName && (
                   <p className="text-red-500 text-sm">{errors.fullName.message}</p>
@@ -197,6 +198,7 @@ export default function WaitlistForm() {
                   {...register("email")}
                   placeholder="Enter your email address"
                   className={errors.email ? "border-red-500" : ""}
+                  disabled={showAccessCode}
                 />
                 {errors.email && (
                   <p className="text-red-500 text-sm">{errors.email.message}</p>
@@ -256,7 +258,7 @@ export default function WaitlistForm() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={submitWaitlistMutation.isPending}
+                disabled={submitWaitlistMutation.isPending || showAccessCode}
               >
                 {submitWaitlistMutation.isPending ? (
                   <>
