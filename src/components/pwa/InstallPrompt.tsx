@@ -40,7 +40,7 @@ export function InstallPrompt({ forceShow = false, onClose }: InstallPromptProps
   const [pwaSupported, setPwaSupported] = useState<boolean | null>(null)
 
   // Don't show install prompts during auth or onboarding
-  const shouldHidePrompt = pathname?.includes('/auth') || pathname?.includes('/onboarding') || pathname === '/'
+  const shouldHidePrompt = pathname?.includes('/auth') || pathname?.includes('/onboarding') || pathname === '/' || pathname === '/referral'
 
   // Enhanced PWA support detection
   const checkPWASupport = () => {

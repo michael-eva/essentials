@@ -37,6 +37,8 @@ import {
   waitlist,
   uploadQueue,
   progressPhotos,
+  referralTransactions,
+  referralAnalytics,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
@@ -57,6 +59,8 @@ export type NotificationPreferences = InferSelectModel<
 export type UploadQueue = InferSelectModel<typeof uploadQueue>;
 export type Role = (typeof roleEnum.enumValues)[number];
 export type ProgressPhoto = InferSelectModel<typeof progressPhotos>;
+export type ReferralTransaction = InferSelectModel<typeof referralTransactions>;
+export type ReferralAnalytics = InferSelectModel<typeof referralAnalytics>;
 
 export type NewWorkout = InferInsertModel<typeof workout>;
 export type NewWorkoutTracking = InferInsertModel<typeof workoutTracking>;
@@ -71,7 +75,10 @@ export type NewNotificationPreferences = InferInsertModel<
   typeof notificationPreferences
 >;
 export type NewWaitlist = InferInsertModel<typeof waitlist>;
+export type Waitlist = InferSelectModel<typeof waitlist>;
 export type NewProgressPhoto = InferInsertModel<typeof progressPhotos>;
+export type NewReferralTransaction = InferInsertModel<typeof referralTransactions>;
+export type NewReferralAnalytics = InferInsertModel<typeof referralAnalytics>;
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;
 export type PersonalTrainerInteraction = InferSelectModel<

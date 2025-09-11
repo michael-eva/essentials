@@ -525,7 +525,53 @@ export const waitlist = pgTable("waitlist", {
   email: text("email").notNull().unique(),
   accessCode: text("access_code"),
   hasValidAccessCode: boolean("has_valid_access_code").notNull().default(false),
+  referrerId: uuid("referrer_id"),
   createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+});
+
+// Enum for referral transaction types
+export const referralTransactionTypeEnum = pgEnum("referral_transaction_type", [
+  "base_signup",
+  "referral_bonus", 
+  "referrer_reward",
+]);
+
+// Referral transactions table
+export const referralTransactions = pgTable("referral_transactions", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => waitlist.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  transactionType: referralTransactionTypeEnum("transaction_type").notNull(),
+  monthsCount: integer("months_count").notNull(),
+  description: text("description"),
+  referredUserId: uuid("referred_user_id").references(() => waitlist.id, {
+    onDelete: "set null",
+    onUpdate: "cascade",
+  }),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .default(sql`now()`),
+});
+
+// Referral analytics table
+export const referralAnalytics = pgTable("referral_analytics", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => waitlist.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  totalReferrals: integer("total_referrals").notNull().default(0),
+  totalFreeMonths: integer("total_free_months").notNull().default(0),
+  lastUpdated: timestamp("last_updated")
     .notNull()
     .default(sql`now()`),
 });
@@ -653,6 +699,12 @@ export const selectAppConfigSchema = createSelectSchema(appConfig);
 
 export const insertWaitlistSchema = createInsertSchema(waitlist);
 export const selectWaitlistSchema = createSelectSchema(waitlist);
+
+export const insertReferralTransactionsSchema = createInsertSchema(referralTransactions);
+export const selectReferralTransactionsSchema = createSelectSchema(referralTransactions);
+
+export const insertReferralAnalyticsSchema = createInsertSchema(referralAnalytics);
+export const selectReferralAnalyticsSchema = createSelectSchema(referralAnalytics);
 
 export const progressPhotos = pgTable("progress_photos", {
   id: uuid("id")
