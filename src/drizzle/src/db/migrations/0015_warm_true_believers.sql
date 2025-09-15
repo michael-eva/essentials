@@ -1,1 +1,1 @@
-ALTER TABLE "pilates_videos" ADD COLUMN "thumbnail_timestamp" integer DEFAULT 35;
+-- thumbnail_timestamp column already exists, skipping addition

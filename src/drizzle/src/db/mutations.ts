@@ -22,6 +22,8 @@ import {
   insertUserSchema,
   waitlist,
   progressPhotos,
+  referralTransactions,
+  referralAnalytics,
 } from "./schema";
 import type {
   NewWorkout,
@@ -42,6 +44,10 @@ import type {
   NotificationPreferences,
   NewWaitlist,
   NewProgressPhoto,
+  NewReferralTransaction,
+  NewReferralAnalytics,
+  ReferralTransaction,
+  ReferralAnalytics,
 } from "./queries";
 import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
@@ -773,4 +779,50 @@ export async function deleteProgressPhotos(userId: string, id: string) {
   await db
     .delete(progressPhotos)
     .where(and(eq(progressPhotos.userId, userId), eq(progressPhotos.id, id)));
+}
+
+// Referral mutations
+export async function insertReferralTransaction(data: NewReferralTransaction): Promise<ReferralTransaction> {
+  const result = await db.insert(referralTransactions).values(data).returning();
+  return result[0]!;
+}
+
+export async function insertReferralAnalytics(data: NewReferralAnalytics): Promise<ReferralAnalytics> {
+  const result = await db.insert(referralAnalytics).values(data).returning();
+  return result[0]!;
+}
+
+export async function updateReferralAnalytics(
+  userId: string,
+  data: Partial<NewReferralAnalytics>
+): Promise<ReferralAnalytics | null> {
+  const result = await db
+    .update(referralAnalytics)
+    .set({ ...data, lastUpdated: new Date() })
+    .where(eq(referralAnalytics.userId, userId))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function upsertReferralAnalytics(
+  userId: string,
+  data: { totalReferrals: number; totalFreeMonths: number }
+): Promise<ReferralAnalytics> {
+  const result = await db
+    .insert(referralAnalytics)
+    .values({
+      userId,
+      totalReferrals: data.totalReferrals,
+      totalFreeMonths: data.totalFreeMonths,
+    })
+    .onConflictDoUpdate({
+      target: referralAnalytics.userId,
+      set: {
+        totalReferrals: data.totalReferrals,
+        totalFreeMonths: data.totalFreeMonths,
+        lastUpdated: new Date(),
+      },
+    })
+    .returning();
+  return result[0]!;
 }

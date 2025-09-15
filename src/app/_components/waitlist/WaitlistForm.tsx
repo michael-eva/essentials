@@ -11,13 +11,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 const waitlistSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Please enter a valid email address"),
   accessCode: z.string().optional(),
+  referrerId: z.string().uuid().optional(),
 });
 
 type WaitlistFormData = z.infer<typeof waitlistSchema>;
@@ -25,10 +26,10 @@ type WaitlistFormData = z.infer<typeof waitlistSchema>;
 const ACCESS_CODE_STORAGE_KEY = "essentials_access_code_validated";
 
 export default function WaitlistForm() {
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [showAccessCode, setShowAccessCode] = useState(false);
   const [hasValidAccessCode, setHasValidAccessCode] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const {
     register,
@@ -42,7 +43,7 @@ export default function WaitlistForm() {
 
   const accessCodeValue = watch("accessCode");
 
-  // Check for previously validated access code
+  // Check for previously validated access code and referral parameter
   useEffect(() => {
     const storedValidation = localStorage.getItem(ACCESS_CODE_STORAGE_KEY);
     if (storedValidation === "true") {
@@ -50,11 +51,16 @@ export default function WaitlistForm() {
       // If user has valid access code, redirect to auth
       router.push("/auth");
     }
-  }, [router]);
+
+    // Capture referral parameter from URL
+    const referralId = searchParams.get('ref');
+    if (referralId) {
+      setValue('referrerId', referralId);
+    }
+  }, [router, searchParams, setValue]);
 
   const submitWaitlistMutation = api.waitlist.submitWaitlist.useMutation({
     onSuccess: (data) => {
-      setIsSubmitted(true);
 
       if (data.hasValidAccessCode) {
         localStorage.setItem(ACCESS_CODE_STORAGE_KEY, "true");
@@ -62,6 +68,20 @@ export default function WaitlistForm() {
         setHasValidAccessCode(true);
       } else {
         toast.success(data.message);
+
+        // Show referral rewards if any (only for the current user)
+        if (data.rewards && data.rewards.length > 0) {
+          const userRewards = data.rewards.filter(reward => reward.userId === data.userId);
+          const totalMonths = userRewards.reduce((sum, reward) => sum + reward.monthsCount, 0);
+          if (totalMonths > 0) {
+            toast.success(`🎉 You've earned ${totalMonths} free months!`);
+          }
+        }
+
+        // Redirect to referral page after a short delay
+        setTimeout(() => {
+          router.push(`/referral/${data.userId}`);
+        }, 1500);
       }
     },
     onError: (error) => {
@@ -106,51 +126,6 @@ export default function WaitlistForm() {
     validateAccessCodeMutation.mutate({ accessCode: accessCodeValue });
   };
 
-  if (isSubmitted && !hasValidAccessCode) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-brand-light-yellow to-brand-white flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Card className="w-full max-w-md shadow-lg">
-            <CardContent className="px-8 py-4 text-center">
-              <img src="/logo/essentials_pt_logo.png" alt="logo" className="rounded-lg mb-6" />
-              {/* <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg
-                  className="w-8 h-8 text-brand-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div> */}
-              <h2 className="text-2xl font-bold text-brand-brown mb-4">
-                Thank you for joining our waitlist!
-              </h2>
-              <p className="text-brand-brown/70 mb-6">
-                We&apos;ll notify you when Essentials is ready for you to experience.
-              </p>
-              <Button
-                onClick={() => setIsSubmitted(false)}
-                variant="outline"
-                className="w-full"
-              >
-                Back to Form
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-brand-white flex items-center justify-center p-4">
