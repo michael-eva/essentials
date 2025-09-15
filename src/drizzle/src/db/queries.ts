@@ -93,7 +93,7 @@ export type NewPersonalTrainerInteraction = InferInsertModel<
 export type NewProgressTracking = InferInsertModel<typeof progressTracking>;
 
 // Initialize database connection
-const client = postgres(env.DATABASE_URL!);
+const client = postgres(env.DATABASE_URL);
 const db = drizzle(client);
 
 export async function getUpcomingActivities(userId: string): Promise<

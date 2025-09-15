@@ -14,8 +14,8 @@ import {
 import { env } from "@/env";
 
 // Configure VAPID details for push notifications (only if keys are available)
-const vapidPublicKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
-const vapidPrivateKey = env.VAPID_PRIVATE_KEY!;
+const vapidPublicKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const vapidPrivateKey = env.VAPID_PRIVATE_KEY;
 
 if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails(

@@ -29,8 +29,8 @@ import { env } from "@/env";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const cookieStore = await cookies();
   const supabase = createServerClient(
-    env.NEXT_PUBLIC_SUPABASE_URL!,
-    env.SUPABASE_SERVICE_ROLE_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY,
     {
       cookies: {
         getAll: () => {

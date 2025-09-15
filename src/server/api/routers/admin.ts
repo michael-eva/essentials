@@ -581,7 +581,7 @@ Guidelines:
     }
 
     try {
-      const client = postgres(env.DATABASE_URL!);
+      const client = postgres(env.DATABASE_URL);
       const db = drizzle(client);
 
       const [liveVideosResult, draftVideosResult] = await Promise.all([
@@ -613,7 +613,7 @@ Guidelines:
     }
 
     try {
-      const client = postgres(env.DATABASE_URL!);
+      const client = postgres(env.DATABASE_URL);
       const db = drizzle(client);
 
       const drafts = await db
@@ -724,7 +724,7 @@ Guidelines:
       }
 
       try {
-        const client = postgres(env.DATABASE_URL!);
+        const client = postgres(env.DATABASE_URL);
         const db = drizzle(client);
 
         // First check if video exists
@@ -784,7 +784,7 @@ Guidelines:
       }
 
       try {
-        const client = postgres(env.DATABASE_URL!);
+        const client = postgres(env.DATABASE_URL);
         const db = drizzle(client);
 
         // First get the video to check Mux asset ID

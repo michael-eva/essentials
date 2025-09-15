@@ -55,7 +55,7 @@ import { getWeeklySchedulesByPlan } from "./queries";
 import { z } from "zod";
 import { env } from "@/env";
 
-const client = postgres(env.DATABASE_URL!);
+const client = postgres(env.DATABASE_URL);
 export const db = drizzle(client);
 
 export type WorkoutTrackingInput = {
