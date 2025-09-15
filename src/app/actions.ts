@@ -1,17 +1,21 @@
 "use server";
 
 import webpush from "web-push";
-import { getPushSubscriptionByUserId, getNotificationPreferences } from "@/drizzle/src/db/queries";
+import {
+  getPushSubscriptionByUserId,
+  getNotificationPreferences,
+} from "@/drizzle/src/db/queries";
 import {
   deletePushSubscriptionByEndpoint,
   deletePushSubscriptionsByUserId,
   upsertPushSubscription,
   upsertNotificationPreferences,
 } from "@/drizzle/src/db/mutations";
+import { env } from "@/env";
 
 // Configure VAPID details for push notifications (only if keys are available)
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY!;
+const vapidPublicKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
+const vapidPrivateKey = env.VAPID_PRIVATE_KEY!;
 
 if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails(
@@ -93,7 +97,7 @@ export async function subscribeUser(
           "progress_celebration",
           "motivation_boost",
           "streak_celebration",
-          "recovery_reminder"
+          "recovery_reminder",
         ],
       });
     }

@@ -7,6 +7,7 @@ import { subscribeUser } from '@/app/actions'
 import { useSession } from '@/contexts/SessionContext'
 import { api } from '@/trpc/react'
 import { Bell, X } from 'lucide-react'
+import { env } from '@/env'
 
 // Constants for localStorage
 const NOTIFICATION_PROMPT_DISMISSED_KEY = 'notification_prompt_dismissed'
@@ -110,7 +111,7 @@ export function NotificationPrompt({ isPWAInstalled }: NotificationPromptProps) 
       return
     }
 
-    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    const vapidPublicKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
     if (!vapidPublicKey) {
       alert('Push notifications are not configured. Please contact support.')
       return

@@ -53,8 +53,9 @@ import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
 import { getWeeklySchedulesByPlan } from "./queries";
 import { z } from "zod";
+import { env } from "@/env";
 
-const client = postgres(process.env.DATABASE_URL!);
+const client = postgres(env.DATABASE_URL!);
 export const db = drizzle(client);
 
 export type WorkoutTrackingInput = {
@@ -782,19 +783,23 @@ export async function deleteProgressPhotos(userId: string, id: string) {
 }
 
 // Referral mutations
-export async function insertReferralTransaction(data: NewReferralTransaction): Promise<ReferralTransaction> {
+export async function insertReferralTransaction(
+  data: NewReferralTransaction,
+): Promise<ReferralTransaction> {
   const result = await db.insert(referralTransactions).values(data).returning();
   return result[0]!;
 }
 
-export async function insertReferralAnalytics(data: NewReferralAnalytics): Promise<ReferralAnalytics> {
+export async function insertReferralAnalytics(
+  data: NewReferralAnalytics,
+): Promise<ReferralAnalytics> {
   const result = await db.insert(referralAnalytics).values(data).returning();
   return result[0]!;
 }
 
 export async function updateReferralAnalytics(
   userId: string,
-  data: Partial<NewReferralAnalytics>
+  data: Partial<NewReferralAnalytics>,
 ): Promise<ReferralAnalytics | null> {
   const result = await db
     .update(referralAnalytics)
@@ -806,7 +811,7 @@ export async function updateReferralAnalytics(
 
 export async function upsertReferralAnalytics(
   userId: string,
-  data: { totalReferrals: number; totalFreeMonths: number }
+  data: { totalReferrals: number; totalFreeMonths: number },
 ): Promise<ReferralAnalytics> {
   const result = await db
     .insert(referralAnalytics)

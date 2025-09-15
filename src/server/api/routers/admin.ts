@@ -56,7 +56,11 @@ const ClassDataSchema = z.object({
   instructor: z.string().min(1, "Instructor is required"),
   muxPlaybackId: z.string().optional(),
   muxAssetId: z.string().optional(),
-  thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater").default(35),
+  thumbnailTimestamp: z
+    .number()
+    .int()
+    .min(0, "Timestamp must be 0 or greater")
+    .default(35),
 });
 
 export const adminRouter = createTRPCRouter({
@@ -349,9 +353,34 @@ Guidelines:
               );
 
               // Check for critical required fields before validation
-              const requiredFields = ['title', 'summary', 'description', 'difficulty', 'duration', 'equipment', 'pilatesStyle', 'classType', 'focusArea', 'targetedMuscles', 'intensity', 'modifications', 'beginnerFriendly', 'tags', 'exerciseSequence', 'instructor', 'thumbnailTimestamp'];
-              const missingFields = requiredFields.filter(field => !rawData[field] || (typeof rawData[field] === 'string' && rawData[field].trim() === '') || (Array.isArray(rawData[field]) && rawData[field].length === 0));
-              
+              const requiredFields = [
+                "title",
+                "summary",
+                "description",
+                "difficulty",
+                "duration",
+                "equipment",
+                "pilatesStyle",
+                "classType",
+                "focusArea",
+                "targetedMuscles",
+                "intensity",
+                "modifications",
+                "beginnerFriendly",
+                "tags",
+                "exerciseSequence",
+                "instructor",
+                "thumbnailTimestamp",
+              ];
+              const missingFields = requiredFields.filter(
+                (field) =>
+                  !rawData[field] ||
+                  (typeof rawData[field] === "string" &&
+                    rawData[field].trim() === "") ||
+                  (Array.isArray(rawData[field]) &&
+                    rawData[field].length === 0),
+              );
+
               if (missingFields.length > 0) {
                 console.error(
                   "Missing or empty required fields:",
@@ -552,7 +581,7 @@ Guidelines:
     }
 
     try {
-      const client = postgres(process.env.DATABASE_URL!);
+      const client = postgres(env.DATABASE_URL!);
       const db = drizzle(client);
 
       const [liveVideosResult, draftVideosResult] = await Promise.all([
@@ -584,7 +613,7 @@ Guidelines:
     }
 
     try {
-      const client = postgres(process.env.DATABASE_URL!);
+      const client = postgres(env.DATABASE_URL!);
       const db = drizzle(client);
 
       const drafts = await db
@@ -678,7 +707,11 @@ Guidelines:
         tags: z.array(z.string()).optional(),
         exerciseSequence: z.array(z.string()).optional(),
         instructor: z.string().min(1, "Instructor is required").optional(),
-        thumbnailTimestamp: z.number().int().min(0, "Timestamp must be 0 or greater").optional(),
+        thumbnailTimestamp: z
+          .number()
+          .int()
+          .min(0, "Timestamp must be 0 or greater")
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -691,7 +724,7 @@ Guidelines:
       }
 
       try {
-        const client = postgres(process.env.DATABASE_URL!);
+        const client = postgres(env.DATABASE_URL!);
         const db = drizzle(client);
 
         // First check if video exists
@@ -751,7 +784,7 @@ Guidelines:
       }
 
       try {
-        const client = postgres(process.env.DATABASE_URL!);
+        const client = postgres(env.DATABASE_URL!);
         const db = drizzle(client);
 
         // First get the video to check Mux asset ID

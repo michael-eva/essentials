@@ -12,6 +12,7 @@ import { ZodError } from "zod";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
+import { env } from "@/env";
 
 /**
  * 1. CONTEXT
@@ -28,8 +29,8 @@ import type { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const cookieStore = await cookies();
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       cookies: {
         getAll: () => {
@@ -38,7 +39,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
             ...cookie,
             path: "/",
             sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
+            secure: env.NODE_ENV === "production",
           }));
         },
         setAll: (cookies) => {
@@ -46,7 +47,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
             cookieStore.set(cookie.name, cookie.value, {
               path: "/",
               sameSite: "lax",
-              secure: process.env.NODE_ENV === "production",
+              secure: env.NODE_ENV === "production",
             });
           });
         },
@@ -55,7 +56,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
         name: "sb-rflvcogfitcffdappsuz-auth-token",
         path: "/",
         sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
       },
     },
   );
@@ -63,15 +64,15 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  
+
   let session = null;
   let userData = null;
-  
+
   if (user) {
     // Get session for compatibility with existing code
     const { data: sessionData } = await supabase.auth.getSession();
     session = sessionData.session;
-    
+
     // Get user role from database
     const { data: userRoleData } = await supabase
       .from("user")

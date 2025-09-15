@@ -8,6 +8,7 @@ import { useSession } from '@/contexts/SessionContext'
 import { api } from '@/trpc/react'
 import { Download } from 'lucide-react'
 import { InstallPrompt } from './InstallPrompt'
+import { env } from '@/env'
 
 // Utility function to convert base64 URL to Uint8Array
 const base64UrlToUint8Array = (base64UrlData: string) => {
@@ -105,7 +106,7 @@ export function PushNotificationManager() {
     } catch (error) {
       console.error('Error with service worker:', error)
       // Don't show alert for development or unsupported environments
-      if (process.env.NODE_ENV === 'production') {
+      if (env.NODE_ENV === 'production') {
         alert('Error with service worker: ' + String(error))
       }
     }
@@ -133,7 +134,7 @@ export function PushNotificationManager() {
       return
     }
 
-    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    const vapidPublicKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
     if (!vapidPublicKey) {
       alert('Push notifications are not configured. Please contact support.')
       return

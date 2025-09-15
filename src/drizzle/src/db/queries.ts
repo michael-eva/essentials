@@ -41,6 +41,7 @@ import {
   referralAnalytics,
 } from "./schema";
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
+import { env } from "@/env";
 
 // Type definitions
 export type Workout = InferSelectModel<typeof workout>;
@@ -77,7 +78,9 @@ export type NewNotificationPreferences = InferInsertModel<
 export type NewWaitlist = InferInsertModel<typeof waitlist>;
 export type Waitlist = InferSelectModel<typeof waitlist>;
 export type NewProgressPhoto = InferInsertModel<typeof progressPhotos>;
-export type NewReferralTransaction = InferInsertModel<typeof referralTransactions>;
+export type NewReferralTransaction = InferInsertModel<
+  typeof referralTransactions
+>;
 export type NewReferralAnalytics = InferInsertModel<typeof referralAnalytics>;
 export type Onboarding = InferSelectModel<typeof onboarding>;
 export type User = InferSelectModel<typeof user>;
@@ -90,7 +93,7 @@ export type NewPersonalTrainerInteraction = InferInsertModel<
 export type NewProgressTracking = InferInsertModel<typeof progressTracking>;
 
 // Initialize database connection
-const client = postgres(process.env.DATABASE_URL!);
+const client = postgres(env.DATABASE_URL!);
 const db = drizzle(client);
 
 export async function getUpcomingActivities(userId: string): Promise<
