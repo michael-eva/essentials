@@ -148,7 +148,7 @@ export default function ReferralSharing({
                 <div className="text-sm text-brand-brown/70">Month free for you</div>
               </div>
               <div className="p-4 bg-brand-light-yellow border border-brand-brown rounded-lg">
-                <div className="text-2xl font-bold text-brand-cobalt">+2</div>
+                <div className="text-2xl font-bold text-brand-cobalt">+1</div>
                 <div className="text-sm text-brand-brown/70">Months free for them</div>
               </div>
             </div>
