@@ -8,8 +8,8 @@ import { ThemeProvider } from "./_components/theme-provider";
 import { SessionProvider } from '@/contexts/SessionContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import SharedLayout from './_components/SharedLayout';
-
 import { PWAProvider } from '@/components/pwa/PWAProvider';
+import ClarityProvider from "./_components/ClarityProvider";
 
 export const metadata: Metadata = {
   title: "Essentials Studio",
@@ -63,6 +63,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <TRPCReactProvider>
+          <ClarityProvider />
           <SessionProvider>
             <ThemeProvider defaultTheme="light" storageKey="app-theme">
               <ProtectedRoute>
