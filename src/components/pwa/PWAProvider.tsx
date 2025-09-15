@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react'
 import { InstallPrompt } from './InstallPrompt'
 import { UpdateNotification } from './UpdateNotification'
 import { NotificationPrompt } from './NotificationPrompt'
-import { env } from '@/env'
 
 export function PWAProvider() {
   const [updateAvailable, setUpdateAvailable] = useState(false)
@@ -64,7 +63,7 @@ export function PWAProvider() {
                     // New service worker is available - this means there's actually an update
 
                     // For local development, show notification regardless of PWA status
-                    if (env.NODE_ENV === 'development' || checkPWAInstallation()) {
+                    if (process.env.NODE_ENV === 'development' || checkPWAInstallation()) {
                       setUpdateAvailable(true)
                     }
                   }
@@ -76,7 +75,7 @@ export function PWAProvider() {
           // Check if there's already an update waiting
           if (registration.waiting) {
             setNewWorker(registration.waiting)
-            if (env.NODE_ENV === 'development' || checkPWAInstallation()) {
+            if (process.env.NODE_ENV === 'development' || checkPWAInstallation()) {
               setUpdateAvailable(true)
             }
           }
@@ -138,7 +137,7 @@ export function PWAProvider() {
       <NotificationPrompt isPWAInstalled={isPWAInstalled} />
 
       {/* Show update notification if PWA is installed OR in development mode */}
-      {(isPWAInstalled || env.NODE_ENV === 'development') && (
+      {(isPWAInstalled || process.env.NODE_ENV === 'development') && (
         <UpdateNotification
           isVisible={updateAvailable}
           onUpdate={handleUpdate}
