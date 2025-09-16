@@ -1,13 +1,13 @@
 // ==========================================
-// ESSENTIALS PWA SERVICE WORKER V5.11
+// ESSENTIALS PWA SERVICE WORKER V5.12
 // SAFARI COMPATIBILITY - NULL RESPONSE FIX  
 // ==========================================
 
-const CACHE_NAME = 'essentials-safari-v5.11'
-const STATIC_CACHE = 'essentials-static-v5.11'
-const DYNAMIC_CACHE = 'essentials-dynamic-v5.11'
+const CACHE_NAME = 'essentials-safari-v5.12'
+const STATIC_CACHE = 'essentials-static-v5.12'
+const DYNAMIC_CACHE = 'essentials-dynamic-v5.12'
 const DEBUG_MODE = true
-const SW_VERSION = '5.11.0'
+const SW_VERSION = '5.12.0'
 
 // Completely new cache strategy
 const STATIC_ASSETS = [
@@ -16,13 +16,13 @@ const STATIC_ASSETS = [
   '/logo/essentials_studio_logo.png'
 ]
 
-console.log('🚀 SERVICE WORKER V5.11 - SAFARI NULL RESPONSE FIX + TRPC BYPASS')
+console.log('🚀 SERVICE WORKER V5.12 - SAFARI NULL RESPONSE FIX + TRPC BYPASS')
 console.log('📦 Cache Names:', { CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE })
 console.log('🔥 SW Version:', SW_VERSION)
 
 // Enhanced install event
 self.addEventListener('install', (event) => {
-  console.log('🔧 SERVICE WORKER V5.11 INSTALLING...')
+  console.log('🔧 SERVICE WORKER V5.12 INSTALLING...')
   
   event.waitUntil(
     Promise.all([
@@ -39,7 +39,7 @@ self.addEventListener('install', (event) => {
         return cache
       })
     ]).then(() => {
-      console.log('✅ V5.11 SERVICE WORKER INSTALLED SUCCESSFULLY')
+      console.log('✅ V5.12 SERVICE WORKER INSTALLED SUCCESSFULLY')
       return self.skipWaiting()
     }).catch(error => {
       console.error('❌ Installation failed:', error)
@@ -205,7 +205,7 @@ async function doBackgroundSync() {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('🔄 SERVICE WORKER V5.11 ACTIVATING...')
+  console.log('🔄 SERVICE WORKER V5.12 ACTIVATING...')
   
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -218,7 +218,7 @@ self.addEventListener('activate', (event) => {
       
       return Promise.all(deletePromises)
     }).then(() => {
-      console.log('✅ V5.11 SERVICE WORKER ACTIVATED')
+      console.log('✅ V5.12 SERVICE WORKER ACTIVATED')
       // Take control of all clients immediately
       return self.clients.claim()
     }).catch(error => {

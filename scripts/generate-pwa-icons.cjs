@@ -15,7 +15,7 @@ const ICON_SIZES = [
   { size: 512, suffix: '512x512' }
 ];
 
-const SOURCE_LOGO = 'public/logo/essentials_pt_logo.png';
+const SOURCE_LOGO = 'public/logo/pt_logo.jpeg';
 const OUTPUT_DIR = 'public/icons';
 
 console.log('🎨 Generating PWA Icons for Essentials');
