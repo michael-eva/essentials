@@ -56,11 +56,11 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
             fitnessLevel: isDeveloper() ? "I've been working out for years and want to challenge myself" : undefined,
             pilatesExperience: isDeveloper() ? false : undefined,
             pilatesDuration: isDeveloper() ? "3-6 months" : undefined,
-            homeEquipment: isDeveloper() ? ["Ankle weights", "Ball", "Weights", "Sliders", "Resistance bands", "Chair", "Foam Roller", "Blocks"] : undefined,
-            pilatesStyles: isDeveloper() ? ["Pilates", "Barre", "Strength", "HIIT", "Yoga", "Stretching"] : undefined,
-            fitnessGoals: isDeveloper() ? ["Get toned", "Increase strength", "Increase endurance", "Prenatal/postnatal fitness"] : undefined,
-            otherFitnessGoals: isDeveloper() ? ["Gain muscle", "Improve balance", "Improve posture"] : undefined,
-            specificGoals: isDeveloper() ? "Developer testing" : undefined,
+            homeEquipment: isDeveloper() ? ["Ankle weights", "Ball", "Weights", "Sliders", "Resistance bands", "Chair", "Foam Roller", "Blocks"] : [],
+            pilatesStyles: isDeveloper() ? ["Pilates", "Barre", "Strength", "HIIT", "Yoga", "Stretching"] : [],
+            fitnessGoals: isDeveloper() ? ["Get toned", "Increase strength", "Increase endurance", "Prenatal/postnatal fitness"] : [],
+            otherFitnessGoals: isDeveloper() ? ["Gain muscle", "Improve balance", "Improve posture"] : [],
+            specificGoals: isDeveloper() ? "Developer testing" : "",
         }
     });
     const { mutate: postPilatesExperience } = api.onboarding.postPilatesExperience.useMutation()
@@ -78,7 +78,7 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
         setValue("pilatesStyles", newStyles);
     };
     const handleFitnessGoalsChange = (goal: string) => {
-        const currentGoals = watch("fitnessGoals");
+        const currentGoals = watch("fitnessGoals") ?? [];
         const newGoals = currentGoals.includes(goal)
             ? currentGoals.filter((g) => g !== goal)
             : [...currentGoals, goal];
@@ -271,12 +271,12 @@ export default function PilatesForm({ isFirstStep, isLastStep, currentStep }: Pi
                                     render={({ field }) => (
                                         <MultiSelectPills
                                             options={GOALS}
-                                            selectedValues={field.value}
+                                            selectedValues={field.value || []}
                                             onChange={handleFitnessGoalsChange}
                                         />
                                     )}
                                 />
-                                {watch("fitnessGoals").includes("Other") && (
+                                {watch("fitnessGoals")?.includes("Other") && (
                                     <div className="mt-4 flex flex-col gap-2">
                                         <div className="flex gap-2">
                                             <Input

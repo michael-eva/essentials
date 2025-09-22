@@ -74,8 +74,8 @@ export const authRouter = createTRPCRouter({
       const authData = await verifyOtp(
         input.email,
         input.token,
-        // ctx.supabase,
         "signup",
+        ctx.supabase,
       );
 
       // Check if user exists in our database

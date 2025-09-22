@@ -5,8 +5,11 @@ export async function verifyOtp(
   email: string,
   token: string,
   type: "signup" | "email" = "email",
+  client?: SupabaseClient,
 ) {
-  const { data, error } = await supabase.auth.verifyOtp({
+  const supabaseClient = client ?? supabase;
+
+  const { data, error } = await supabaseClient.auth.verifyOtp({
     email,
     token,
     type,
