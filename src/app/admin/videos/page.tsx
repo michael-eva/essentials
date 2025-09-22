@@ -617,7 +617,7 @@ export default function AdminVideosPage() {
                 <TimeInput
                   id="thumbnailTimestamp"
                   value={form.watch("thumbnailTimestamp")}
-                  onChange={(seconds) => form.setValue("thumbnailTimestamp", seconds)}
+                  onChange={(seconds) => form.setValue("thumbnailTimestamp", seconds, { shouldDirty: true })}
                   error={!!form.formState.errors.thumbnailTimestamp}
                 />
                 {form.formState.errors.thumbnailTimestamp && (
