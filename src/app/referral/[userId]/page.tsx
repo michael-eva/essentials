@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,8 +14,10 @@ export default function ReferralPage() {
   const params = useParams();
   const router = useRouter();
   const userId = params.userId as string;
+  const searchParams = useSearchParams();
+  const referrerId = searchParams.get("ref");
 
-  const [isValidUser, setIsValidUser] = useState(false);
+  const [isValidUser, setIsValidUser] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch referral link for the user
@@ -43,7 +45,17 @@ export default function ReferralPage() {
       retry: 1
     }
   );
-
+  const confirmUserMutation = api.waitlist.confirmUser.useMutation({
+    onSuccess: () => {
+      setIsValidUser(true);
+      setIsLoading(false);
+    },
+    onError: (error) => {
+      console.error('Failed to confirm user:', error);
+      setIsValidUser(false);
+      setIsLoading(false);
+    }
+  });
   useEffect(() => {
     if (linkData || analytics) {
       setIsValidUser(true);
@@ -59,9 +71,15 @@ export default function ReferralPage() {
       }
     }
   }, [linkData, analytics, linkError, analyticsError]);
+  useEffect(() => {
+    if (userId) {
+      confirmUserMutation.mutate({ userId, referrerId: referrerId ?? undefined });
+    }
+  }, [userId]);
+
 
   // Show loading state
-  if (isLoading || linkLoading || analyticsLoading) {
+  if (isLoading || linkLoading || analyticsLoading || confirmUserMutation.isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
@@ -73,7 +91,7 @@ export default function ReferralPage() {
   }
 
   // Show error state for invalid user
-  if (!isValidUser) {
+  if (isValidUser === false) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <motion.div

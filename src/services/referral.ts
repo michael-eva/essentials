@@ -230,24 +230,16 @@ export async function getUserReferralTransactions(userId: string) {
 }
 
 /**
- * Enhanced waitlist insertion with referral processing
+ * Enhanced waitlist insertion that defers referral processing until confirmation
  */
 export async function insertWaitlistWithReferral(
-  waitlistData: Omit<NewWaitlist, "id"> & { referrerId?: string },
+  waitlistData: Omit<NewWaitlist, "id">,
 ): Promise<{ waitlistEntry: Waitlist; rewards: ReferralReward[] }> {
-  const { referrerId, ...waitlistFields } = waitlistData;
-
-  // First, insert the waitlist entry
-  const waitlistEntry = await insertWaitlist(waitlistFields);
-
-  // Then process referral rewards
-  const rewards = await processReferralRewards({
-    newUserId: waitlistEntry.id,
-    referrerId,
-  });
+  // Persist the waitlist entry (confirmation will trigger rewards later)
+  const waitlistEntry = await insertWaitlist(waitlistData);
 
   return {
     waitlistEntry,
-    rewards,
+    rewards: [],
   };
 }

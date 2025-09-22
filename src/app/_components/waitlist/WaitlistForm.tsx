@@ -30,7 +30,6 @@ export default function WaitlistForm() {
   const [hasValidAccessCode, setHasValidAccessCode] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const {
     register,
     handleSubmit,
@@ -58,7 +57,14 @@ export default function WaitlistForm() {
       setValue('referrerId', referralId);
     }
   }, [router, searchParams, setValue]);
-
+  const sendConfirmationEmailMutation = api.waitlist.sendConfirmationEmail.useMutation({
+    onSuccess: (data) => {
+      toast.success("Confirmation email sent");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
   const submitWaitlistMutation = api.waitlist.submitWaitlist.useMutation({
     onSuccess: (data) => {
 
@@ -70,18 +76,17 @@ export default function WaitlistForm() {
         toast.success(data.message);
 
         // Show referral rewards if any (only for the current user)
-        if (data.rewards && data.rewards.length > 0) {
-          const userRewards = data.rewards.filter(reward => reward.userId === data.userId);
-          const totalMonths = userRewards.reduce((sum, reward) => sum + reward.monthsCount, 0);
-          if (totalMonths > 0) {
-            toast.success(`🎉 You've earned ${totalMonths} free months!`);
-          }
-        }
-
+        // if (data.rewards && data.rewards.length > 0) {
+        //   const userRewards = data.rewards.filter(reward => reward.userId === data.userId);
+        //   const totalMonths = userRewards.reduce((sum, reward) => sum + reward.monthsCount, 0);
+        //   if (totalMonths > 0) {
+        //     toast.success(`🎉 You've earned ${totalMonths} free months!`);
+        //   }
+        // }
+        sendConfirmationEmailMutation.mutate({ email: watch("email"), waitlistId: data.userId, referrerId: watch("referrerId") });
+        // Send email to user to confirm their email
         // Redirect to referral page after a short delay
-        setTimeout(() => {
-          router.push(`/referral/${data.userId}`);
-        }, 1500);
+        router.push(`/waitlist-confirm?id=${data.userId}${watch("referrerId") ? `&ref=${watch("referrerId")}` : ""}&email=${watch("email")}`);
       }
     },
     onError: (error) => {
@@ -125,7 +130,6 @@ export default function WaitlistForm() {
     }
     validateAccessCodeMutation.mutate({ accessCode: accessCodeValue });
   };
-
 
   return (
     <div className="min-h-screen bg-brand-white flex items-center justify-center p-4">

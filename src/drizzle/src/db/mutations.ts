@@ -48,6 +48,7 @@ import type {
   NewReferralAnalytics,
   ReferralTransaction,
   ReferralAnalytics,
+  Waitlist,
 } from "./queries";
 import { eq, inArray, and } from "drizzle-orm";
 import { trackWorkoutProgress } from "@/services/progress-tracker";
@@ -830,4 +831,15 @@ export async function upsertReferralAnalytics(
     })
     .returning();
   return result[0]!;
+}
+export async function updateWaitlistUser(
+  userId: string,
+  data: Partial<Waitlist>,
+) {
+  const result = await db
+    .update(waitlist)
+    .set(data)
+    .where(eq(waitlist.id, userId))
+    .returning();
+  return result[0] ?? null;
 }

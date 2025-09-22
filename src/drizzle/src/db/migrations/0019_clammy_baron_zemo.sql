@@ -1,0 +1,1 @@
+ALTER TABLE "waitlist" ADD COLUMN "confirmed" boolean DEFAULT false NOT NULL;

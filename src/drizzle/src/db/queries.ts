@@ -1427,3 +1427,13 @@ export async function getProgressPhotos(
     .orderBy(desc(progressPhotos.takenAt));
   return result;
 }
+export async function getWaitlistUser(
+  userId: string,
+): Promise<Waitlist | null> {
+  const result = await db
+    .select()
+    .from(waitlist)
+    .where(eq(waitlist.id, userId))
+    .limit(1);
+  return result[0] ?? null;
+}

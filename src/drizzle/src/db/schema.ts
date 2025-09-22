@@ -529,12 +529,13 @@ export const waitlist = pgTable("waitlist", {
   createdAt: timestamp("created_at")
     .notNull()
     .default(sql`now()`),
+  confirmed: boolean("confirmed").notNull().default(false),
 });
 
 // Enum for referral transaction types
 export const referralTransactionTypeEnum = pgEnum("referral_transaction_type", [
   "base_signup",
-  "referral_bonus", 
+  "referral_bonus",
   "referrer_reward",
 ]);
 
@@ -700,11 +701,15 @@ export const selectAppConfigSchema = createSelectSchema(appConfig);
 export const insertWaitlistSchema = createInsertSchema(waitlist);
 export const selectWaitlistSchema = createSelectSchema(waitlist);
 
-export const insertReferralTransactionsSchema = createInsertSchema(referralTransactions);
-export const selectReferralTransactionsSchema = createSelectSchema(referralTransactions);
+export const insertReferralTransactionsSchema =
+  createInsertSchema(referralTransactions);
+export const selectReferralTransactionsSchema =
+  createSelectSchema(referralTransactions);
 
-export const insertReferralAnalyticsSchema = createInsertSchema(referralAnalytics);
-export const selectReferralAnalyticsSchema = createSelectSchema(referralAnalytics);
+export const insertReferralAnalyticsSchema =
+  createInsertSchema(referralAnalytics);
+export const selectReferralAnalyticsSchema =
+  createSelectSchema(referralAnalytics);
 
 export const progressPhotos = pgTable("progress_photos", {
   id: uuid("id")
